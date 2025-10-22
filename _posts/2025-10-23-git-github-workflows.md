@@ -334,4 +334,6 @@ By following these commands in order, you can smoothly manage local and remote r
 
 8. **[Git Desktop on Linux](https://gist.github.com/berkorbay/6feda478a00b0432d13f1fc0a50467f1)** — Installing GitHub Desktop on Linux (Unofficial, as of publishing date).
 
+9. **[Learn Git Branching](https://learngitbranching.js.org/)** — Mastering Git commands, **Visually**.
+
 ---
