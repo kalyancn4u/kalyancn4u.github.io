@@ -27,13 +27,21 @@ description: "A clear and structured revision guide covering Git and GitHub fund
 
 | **Term** | **Definition** |
 |-----------|----------------|
+| **Git** | A **distributed version control system (VCS)** that records changes to files and enables multiple developers to collaborate on a project by maintaining complete version histories locally and remotely. |
+| **GitHub** | A cloud-based platform for version control using Git, enabling code collaboration and repository hosting. |
+| **Open Source** | Software whose source code is publicly accessible under a license permitting use, modification, and distribution. |
+| **CI/CD** | A development practice combining **Continuous Integration** (automated code testing and merging) and **Continuous Deployment** (automated code delivery to production). |
+| **VCS (Version Control System)** | A system that manages and records changes to files over time, allowing restoration, comparison, and collaborative editing. |
+| | |
 | **Repository (Repo)** | A storage area for project files, acting like a project folder. |
 | **Local Repository** | A version of the repository stored on your computer for personal use and updates. |
 | **Remote Repository** | An internet-based repository for sharing and collaboration. |
-| **Commit** | Saving your changes as snapshots to track changes over time. |
-| **Push** | Uploading your local changes to a remote repository to share with collaborators. |
-| **Pull** | Downloading the latest changes from the remote repository to your local system. |
-| **Clone** | Making a local copy of a repository from a remote source. |
+| **Commit** | Saving your changes as snapshots to track progress and version history. |
+| **Push** | Uploading your local commits to a remote repository to share with collaborators. |
+| **Pull** | Downloading the latest updates from a remote repository to your local system. |
+| **Clone** | Creating a local copy of a repository from a remote source. |
+| **Pull Request (PR)** | A formal request to merge code changes from one branch into another within a version-controlled repository. |
+| **Snapshot** | A complete record of the project’s state at a specific point in time, created when a commit is made in Git. |
 
 ---
 
