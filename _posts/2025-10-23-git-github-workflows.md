@@ -2,7 +2,7 @@
 title: "Git and GitHub Basics — Comprehensive Revision Notes"
 date: 2025-10-22 04:00:00 +0530
 categories: [Revision Notes, Git & GitHub]
-tags: [git, github, version-control, workflows]
+tags: [git, github, version-control, workflows, TODO]
 description: "A clear and structured revision guide covering Git and GitHub fundamentals, key concepts, workflows, and collaboration practices."
 ---
 
