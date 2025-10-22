@@ -5,7 +5,6 @@ categories: [Revision Notes, Git & GitHub]
 tags: [git, github, version-control, workflows, TODO]
 description: "A clear and structured revision guide covering Git and GitHub fundamentals, key concepts, workflows, and collaboration practices."
 pin: true
-media_subpath: '/posts/20251023'
 ---
 
 # 🧠 Git and GitHub Workflows
