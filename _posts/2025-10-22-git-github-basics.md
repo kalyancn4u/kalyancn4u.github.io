@@ -168,7 +168,7 @@ By following these workflows and examples, learners can manage codebases efficie
 
 ---
 
-## 📚 Appendix: Trusted References (Git → GitHub Workflow)
+## 📚 References (Git → GitHub Workflow)
 
 1. **[Learn Git Basics](https://git-scm.com/learn)** — Understand version control, repositories, commits, and branches.
 2. **[Explore Git Commands](https://git-scm.com/doc)** — Review official command references and workflows.  
