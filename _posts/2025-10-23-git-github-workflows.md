@@ -330,4 +330,8 @@ By following these commands in order, you can smoothly manage local and remote r
 
 6. **[Git Cheat Sheet](https://education.github.com/git-cheat-sheet-education.pdf)** — Quick reference of essential Git commands.
 
+7. **[Git Desktop documentation](https://docs.github.com/en/desktop)** — GitHub Desktop official documentation.
+
+8. **[Git Desktop on Linux](https://gist.github.com/berkorbay/6feda478a00b0432d13f1fc0a50467f1)** — Installing GitHub Desktop on Linux (Unofficial, as of publishing date).
+
 ---
