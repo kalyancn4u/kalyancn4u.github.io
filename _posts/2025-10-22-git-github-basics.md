@@ -175,5 +175,6 @@ By following these workflows and examples, learners can manage codebases efficie
 3. **[Get Started with GitHub](https://docs.github.com/en/get-started/using-github)** — Learn how GitHub works with Git for collaboration.
 4. **[Try the Hello World Tutorial](https://guides.github.com/activities/hello-world)** — Practice repository creation, commits, and pull requests.
 5. **[Reinforce Concepts](https://www.w3schools.com/git/)** — Revisit fundamentals interactively with examples.
+6. **[Git Cheat Sheet](https://education.github.com/git-cheat-sheet-education.pdf)** — Quick reference of essential Git commands.
 
 ---
