@@ -4,6 +4,7 @@ date: 2025-10-22 05:00:00 +0530
 categories: [Workflows, Git & GitHub]
 tags: [git, github, version-control, workflows, TODO]
 description: "A clear and structured revision guide covering Git and GitHub fundamentals, key concepts, workflows, and collaboration practices."
+published: true
 ---
 
 # 🧠 Git and GitHub Workflows
