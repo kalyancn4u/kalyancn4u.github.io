@@ -336,4 +336,6 @@ By following these commands in order, you can smoothly manage local and remote r
 
 9. **[Learn Git Branching](https://learngitbranching.js.org/)** — Mastering Git commands, **Visually**.
 
+10. **[Roadmap: Learn Git and GitHub](https://roadmap.sh/git-github)**
+
 ---
