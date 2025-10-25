@@ -203,9 +203,9 @@ With **Streamlit** and **Pickle**, you can:
 
 ## 📚 References
 
-1. [Streamlit Official Documentation](https://docs.streamlit.io/)
-2. [Streamlit GitHub Repository](https://github.com/streamlit/streamlit)
-3. [Pickle Module — Python Docs](https://docs.python.org/3/library/pickle.html)
-4. [Scikit-learn Model Persistence](https://scikit-learn.org/stable/model_persistence.html)
-5. [Streamlit Cheat Sheet (GitHub)](https://github.com/daniellewisDL/streamlit-cheat-sheet)
-6. **[Streamlit App Cheat Sheet](https://cheat-sheet.streamlit.app/)**
+1. [Streamlit Official Documentation](https://docs.streamlit.io/){:target="_blank"}
+2. [Streamlit GitHub Repository](https://github.com/streamlit/streamlit){:target="_blank"}
+3. [Pickle Module — Python Docs](https://docs.python.org/3/library/pickle.html){:target="_blank"}
+4. [Scikit-learn Model Persistence](https://scikit-learn.org/stable/model_persistence.html){:target="_blank"}
+5. [Streamlit Cheat Sheet (GitHub)](https://github.com/daniellewisDL/streamlit-cheat-sheet){:target="_blank"}
+6. **[Streamlit App Cheat Sheet](https://cheat-sheet.streamlit.app/){:target="_blank"}**
