@@ -170,11 +170,24 @@ By following these workflows and examples, learners can manage codebases efficie
 
 ## 📚 References (Git → GitHub Workflow)
 
-1. **[Learn Git Basics](https://git-scm.com/learn)** — Understand version control, repositories, commits, and branches.
-2. **[Explore Git Commands](https://git-scm.com/doc)** — Review official command references and workflows.  
-3. **[Get Started with GitHub](https://docs.github.com/en/get-started/using-github)** — Learn how GitHub works with Git for collaboration.
-4. **[Try the Hello World Tutorial](https://guides.github.com/activities/hello-world)** — Practice repository creation, commits, and pull requests.
-5. **[Reinforce Concepts](https://www.w3schools.com/git/)** — Revisit fundamentals interactively with examples.
-6. **[Git Cheat Sheet](https://education.github.com/git-cheat-sheet-education.pdf)** — Quick reference of essential Git commands.
+1. **[Learn Git &vert; Official](https://git-scm.com/learn){:target="_blank"}** — Understand version control, repositories, commits, and branches.
+
+2. **[Explore Git Commands &vert; Official](https://git-scm.com/doc){:target="_blank"}** — Review official command references.
+
+3. **[GitHub Docs &vert; Official](https://docs.github.com/en/get-started/using-github){:target="_blank"}** — Learn GitHub workflows.
+
+4. [Hello World Tutorial &vert; GitHub Docs](https://guides.github.com/activities/hello-world){:target="_blank"} — Practice repository creation, commits, and pull requests.
+
+5. [Git Tutorial &vert; W3Schools](https://www.w3schools.com/git/){:target="_blank"} — Beginner-friendly interactive guide.
+
+6. **[Git Cheat Sheet &vert; Official](https://education.github.com/git-cheat-sheet-education.pdf){:target="_blank"}** — Quick reference of essential Git commands.
+
+7. **[Git Desktop documentation &vert; Official](https://docs.github.com/en/desktop){:target="_blank"}** — GitHub Desktop official documentation.
+
+8. **[Git Desktop on Linux &vert; Unofficial](https://gist.github.com/berkorbay/6feda478a00b0432d13f1fc0a50467f1){:target="_blank"}** — Installing GitHub Desktop on Linux (Unofficial, as of publishing date).
+
+9. **[Learn Git Branching &vert; Comprehensive](https://learngitbranching.js.org/){:target="_blank"}** — Mastering Git commands, **Visually**.
+
+10. **[Roadmap: Learn Git and GitHub &vert; Comprehensive](https://roadmap.sh/git-github){:target="_blank"}** - Roadmap to master Git and GitHub
 
 ---
