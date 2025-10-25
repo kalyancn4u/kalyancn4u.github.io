@@ -6,9 +6,9 @@ tags: [git, github, version-control]
 description: "A clear and structured revision guide covering Git and GitHub fundamentals, key concepts, workflows, and collaboration practices."
 ---
 
-# 🧠 Git and GitHub Basics
+# 🧠 Git & GitHub Basics
 
-## 📘 Understanding Git and GitHub
+## 📘 Understanding Git & GitHub
 
 ---
 
