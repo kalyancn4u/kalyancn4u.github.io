@@ -184,10 +184,10 @@ By following these workflows and examples, learners can manage codebases efficie
 
 7. **[Git Desktop documentation &vert; Official](https://docs.github.com/en/desktop){:target="_blank"}** — GitHub Desktop official documentation.
 
-8. **[Git Desktop on Linux &vert; Unofficial](https://gist.github.com/berkorbay/6feda478a00b0432d13f1fc0a50467f1){:target="_blank"}** — Installing GitHub Desktop on Linux (Unofficial, as of publishing date).
+8. **[Git Desktop on Linux `\' Unofficial](https://gist.github.com/berkorbay/6feda478a00b0432d13f1fc0a50467f1){:target="_blank"}** — Installing GitHub Desktop on Linux (Unofficial, as of publishing date).
 
-9. **[Learn Git Branching &vert; Comprehensive](https://learngitbranching.js.org/){:target="_blank"}** — Mastering Git commands, **Visually**.
+9. **[Learn Git Branching \| Comprehensive](https://learngitbranching.js.org/){:target="_blank"}** — Mastering Git commands, **Visually**.
 
-10. **[Roadmap: Learn Git and GitHub &vert; Comprehensive](https://roadmap.sh/git-github){:target="_blank"}** - Roadmap to master Git and GitHub
+10. **[Roadmap: Learn Git and GitHub &#124; Comprehensive](https://roadmap.sh/git-github){:target="_blank"}** - Roadmap to master Git and GitHub
 
 ---
