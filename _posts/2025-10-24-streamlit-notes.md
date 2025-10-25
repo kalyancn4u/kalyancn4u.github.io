@@ -208,17 +208,4 @@ With **Streamlit** and **Pickle**, you can:
 3. [Pickle Module — Python Docs](https://docs.python.org/3/library/pickle.html)
 4. [Scikit-learn Model Persistence](https://scikit-learn.org/stable/model_persistence.html)
 5. [Streamlit Cheat Sheet (GitHub)](https://github.com/daniellewisDL/streamlit-cheat-sheet)
-
-```
-
----
-
-✅ **Why this Markdown works perfectly for Chirpy:**
-- Clean headings and spacing for TOC generation.  
-- Uses proper fenced code blocks with language hints (`python`, `bash`).  
-- Bulleted and numbered lists are consistently aligned.  
-- Includes minimal yet complete reference section.  
-- Ready for deployment under `_posts/` or `notes/`.
-
-Would you like me to append a **“Streamlit Deployment on Cloud”** section (covering Hugging Face Spaces, Streamlit Cloud, or GitHub Pages + requirements.txt setup)?
-```
+6. **[Streamlit App Cheat Sheet](https://cheat-sheet.streamlit.app/)**
