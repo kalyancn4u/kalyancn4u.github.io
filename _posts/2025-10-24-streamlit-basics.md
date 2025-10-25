@@ -1,7 +1,7 @@
 ---
 title: "Streamlit and Model Serialization in Python"
 date: 2025-10-25 04:00:00 +0530
-categories: [Revision Notes, Python Tools]
+categories: [Notes, Python Tools]
 tags: [streamlit, model-serialization, pickle, ml-deployment, python]
 description: "An introductory guide to building interactive web apps with Streamlit and deploying machine learning models through serialization using Pickle."
 ---
