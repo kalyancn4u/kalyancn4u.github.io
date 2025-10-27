@@ -15,6 +15,25 @@ description: "An introductory guide to building interactive web apps with Stream
 It enables you to design web interfaces quickly using **pure Python code**, without needing knowledge of web technologies like HTML, CSS, or JavaScript.
 
 ---
+### 🧩 Terminologies
+
+| **Term** | **Definition** |
+|-----------|----------------|
+| **Pickle File** | A file format used to serialize and save machine learning models for later use. |
+| **Streamlit** | A Python library used to create web applications for data science without needing HTML or JavaScript. |
+| **Linear Regression** | A machine learning algorithm used to model the relationship between a scalar dependent and one or more explanatory variables. |
+| **Model Deployment** | The process of integrating a machine learning model into a production environment to make predictions. |
+| **Flask** | A micro web framework for Python, used for building web applications. |
+| **Yahoo Finance API** | A tool used to access stock market data programmatically. |
+| **Widgets** | Interactive elements like buttons and sliders used in Streamlit applications. |
+| **Encoding Categorical Features** | The process of converting categorical variables into numerical values for model training. |
+| **Random Forest** | An ensemble learning method for classification and regression that constructs multiple decision trees. |
+| **Prototype** | An initial model of a product used for testing and validating concepts. |
+| **Production Environment** | A live environment where actual users interact with the deployed version of applications. |
+| **Feature Engineering** | The practice of using domain knowledge to select, modify, or create new features from raw data. |
+
+
+---
 
 ## 🧩 Basic Components of Streamlit
 
