@@ -15,12 +15,6 @@ toc_sticky: true
 
 However, 2025 offers a robust ecosystem of **browser-based code playgrounds** and **standalone IDEs** — some extend to full-stack environments with AI, GitHub integration, and offline capabilities.
 
-This article consolidates **all unique options** listed across:
-> 🔹 [AlternativeTo](https://alternativeto.net/software/codepen/)  
-> 🔹 [Crozdesk](https://crozdesk.com/software/codepen-io/alternatives)  
-> 🔹 [SitePoint](https://www.sitepoint.com/code-playgrounds/)  
-> 🔹 [DhiWise (2025)](https://www.dhiwise.com/post/codepen-alternative-options-2025)
-
 All information is validated from multiple trusted sources and ordered by **prominence and capability**.
 
 ---
@@ -189,9 +183,160 @@ All information is validated from multiple trusted sources and ordered by **prom
 - **License:** MIT.
 
 #### **2. IntelliJ IDEA**
-- Advanced IDE for **Java/Kotlin/Web development**.  
+- Advanced IDE for **Java/Kotlin/Web development/...**.
 - Offers **smart refactoring**, **static analysis**, and **enterprise tools**.  
 - **License:** Community (free), Ultimate (paid).
+
+The **JetBrains IntelliJ family** comprises specialized IDEs built atop the IntelliJ Platform — a unified, extensible framework offering deep static analysis, intelligent code completion, and version control integration.  
+Each editor is optimized for a distinct language or workflow while maintaining a consistent UI/UX, plugin ecosystem, and shortcut system.
+
+Below are the primary JetBrains IDEs and their focused use-cases:
+
+##### **🧠 IntelliJ IDEA**
+- **Primary Purpose:** Full-featured IDE for **Java**, **Kotlin**, **Groovy**, **Scala**, and modern **web frameworks**.  
+- **Use-Cases:**  
+  - Enterprise application development (Spring, Hibernate, Jakarta EE).  
+  - Full-stack engineering with front-end + back-end modules.  
+  - Integrated build systems (Gradle, Maven) and CI/CD toolchains.  
+- **Highlights:**  
+  - Smart refactoring, code inspections, UML diagrams, version control, database browser, and integrated testing.  
+  - Community Edition (open-source) and Ultimate Edition (commercial).  
+- **License:** Apache 2.0 (Community), Proprietary (Ultimate).
+
+##### **💻 PyCharm**
+- **Primary Purpose:** Professional IDE for **Python** and **Data Science / ML** workflows.  
+- **Use-Cases:**  
+  - Building, debugging, and testing Python scripts and notebooks.  
+  - Integrating libraries such as NumPy, pandas, scikit-learn, TensorFlow, and PyTorch.  
+  - Web frameworks like Django and Flask.  
+- **Highlights:**  
+  - Integrated Jupyter Notebook support, Python REPL, and visual debugger.  
+  - Scientific mode for plots, console, and variable tracking.  
+- **License:** Community (free) and Professional (paid).
+
+##### **🕸️ WebStorm**
+- **Primary Purpose:** Dedicated IDE for **JavaScript**, **TypeScript**, **React**, **Vue**, **Angular**, **Node.js**, and modern web tooling.  
+- **Use-Cases:**  
+  - Developing front-end or full-stack web applications.  
+  - Debugging client and server-side JS in one environment.  
+  - Managing npm/yarn dependencies and ESLint integration.  
+- **Highlights:**  
+  - Framework-aware refactoring, built-in REST client, test runners (Jest, Mocha), and code coverage tools.  
+  - Deep integration with Git, Docker, and browsers.  
+- **License:** Proprietary (commercial).
+
+##### **🐘 PhpStorm**
+- **Primary Purpose:** Advanced IDE for **PHP** development.  
+- **Use-Cases:**  
+  - Full-cycle PHP app development with frameworks like Laravel, Symfony, WordPress, or Drupal.  
+  - Managing front-end stack (HTML, CSS, JS) alongside PHP backend.  
+- **Highlights:**  
+  - Smart code navigation, Xdebug profiling, database tools, and deployment automation.  
+- **License:** Proprietary.
+
+##### **🐍 RubyMine**
+- **Primary Purpose:** Comprehensive IDE for **Ruby** and **Ruby on Rails** applications.  
+- **Use-Cases:**  
+  - Building MVC-based web applications with Rails.  
+  - Managing RSpec/Cucumber testing suites and database migrations.  
+- **Highlights:**  
+  - Rails-aware code completion, ERB template preview, integrated versioning.  
+- **License:** Proprietary.
+
+##### **🦀 CLion**
+- **Primary Purpose:** IDE for **C** and **C++**, with cross-platform build and debugging tools.  
+- **Use-Cases:**  
+  - System programming, embedded development, and CMake-based projects.  
+  - Integration with GDB, LLDB, and Valgrind.  
+- **Highlights:**  
+  - Smart code navigation, refactoring, static analysis, and integration with Python and Rust toolchains.  
+- **License:** Proprietary.
+
+##### **⚙️ GoLand**
+- **Primary Purpose:** IDE for **Go (Golang)** developers.  
+- **Use-Cases:**  
+  - Cloud-native applications, CLI tools, and microservices.  
+  - Integration with Docker, Kubernetes, and REST APIs.  
+- **Highlights:**  
+  - Intelligent refactoring, testing framework support, and module dependency visualization.  
+- **License:** Proprietary.
+
+##### **📱 Android Studio**
+- **Primary Purpose:** IDE for **Android app development**, jointly developed by Google and JetBrains.  
+- **Use-Cases:**  
+  - Mobile app design, Kotlin/Java development, Gradle-based builds, and emulator testing.  
+  - Supports Jetpack Compose and modern Android APIs.  
+- **Highlights:**  
+  - Layout Editor, APK Analyzer, device profiler, and Firebase integration.  
+- **License:** Free (Apache 2.0).
+
+##### **🧩 Rider**
+- **Primary Purpose:** Cross-platform IDE for **.NET**, **C#**, **ASP.NET Core**, and **Unity** game development.  
+- **Use-Cases:**  
+  - Building C# web apps, Unity games, or enterprise applications on Windows, macOS, or Linux.  
+- **Highlights:**  
+  - Integrates ReSharper analysis, debugger, and database tools.  
+  - Ideal for developers transitioning from Visual Studio to a multi-OS workflow.  
+- **License:** Proprietary.
+
+##### **🗄️ DataGrip**
+- **Primary Purpose:** Universal database and SQL IDE.  
+- **Use-Cases:**  
+  - Database management, schema design, and SQL query optimization.  
+  - Supports MySQL, PostgreSQL, Oracle, SQLite, MongoDB, and more.  
+- **Highlights:**  
+  - Intelligent query console, schema diffing, ER diagrams, and refactoring of SQL scripts.  
+- **License:** Proprietary.
+
+##### **💾 AppCode**
+- **Primary Purpose:** IDE for **Swift**, **Objective-C**, and **iOS/macOS development**.  
+- **Use-Cases:**  
+  - Building iOS/macOS applications with Xcode interoperability.  
+  - Refactoring Swift/Objective-C codebases and unit testing.  
+- **Highlights:**  
+  - Smart code completion, inspections, and on-the-fly analysis for iOS frameworks.  
+- **License:** Proprietary.
+
+##### **🧪 DataSpell**
+- **Primary Purpose:** JetBrains IDE for **Data Science, ML, and Analytics**.  
+- **Use-Cases:**  
+  - Jupyter Notebook–native workflow for Python and R.  
+  - ML model development, visualization, and experimentation.  
+- **Highlights:**  
+  - Integrated scientific mode, variable tracking, SQL + Python blending, and environment management.  
+- **License:** Proprietary.
+
+##### **🌐 Fleet**
+- **Primary Purpose:** JetBrains’ next-generation **lightweight IDE** supporting multiple languages and collaborative editing.  
+- **Use-Cases:**  
+  - Cloud-based or local polyglot development (Python, JS, Go, Rust, etc.).  
+  - Team collaboration and AI-powered navigation.  
+- **Highlights:**  
+  - Remote development support, project sharing, and integration with JetBrains Space.  
+- **License:** Proprietary (in preview).
+
+#### 🧩 Key Takeaways for IntelliJ-Based Editors
+
+| Editor | Primary Purpose | Ideal For | License |
+|---------|------------------|------------|----------|
+| IntelliJ IDEA | Java / Kotlin / Web | Enterprise & multi-module apps | Community / Proprietary |
+| PyCharm | Python & ML | Data science / AI development | Community / Proprietary |
+| WebStorm | JS, TS, React, Vue | Front-end devs | Proprietary |
+| PhpStorm | PHP, HTML, JS | Web back-end devs | Proprietary |
+| RubyMine | Ruby / Rails | Rails developers | Proprietary |
+| CLion | C / C++ | System programming | Proprietary |
+| GoLand | Go | Cloud / microservices | Proprietary |
+| Rider | .NET / Unity | Cross-platform C# devs | Proprietary |
+| Android Studio | Android apps | Mobile devs | Free (Apache 2.0) |
+| DataGrip | Databases / SQL | DBAs, data engineers | Proprietary |
+| AppCode | Swift / iOS | iOS/macOS devs | Proprietary |
+| DataSpell | Data science IDE | Analysts & ML engineers | Proprietary |
+| Fleet | Lightweight IDE | Polyglot, collaborative devs | Proprietary |
+
+> The JetBrains IntelliJ suite offers a **language-specialized IDE ecosystem**, each sharing the same intelligent engine, UI consistency, and productivity tooling.  
+> Whether you’re a **data scientist (DataSpell)**, **web developer (WebStorm)**, or **Java engineer (IntelliJ IDEA)**, JetBrains provides a focused, stable environment with deep code intelligence, version control, and DevOps readiness.
+
+---
 
 #### **3. Eclipse IDE**
 - Plugin-rich, enterprise-grade **open-source IDE**.  
