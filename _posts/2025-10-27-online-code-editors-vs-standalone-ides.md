@@ -22,32 +22,36 @@ However, 2025 offers a robust ecosystem of **browser-based code playgrounds** an
 All information is validated from multiple trusted sources and ordered by **prominence and capability**.
 
 ---
+The fire (🔥) and star (✨) icons mark tools that are **most modern, widely regarded, or uniquely powerful** in 2025.
 
-## 🌐 Table 1 — Online Code-Playgrounds (All-Inclusive)
+* 🔥 = top-tier, widely used, best-in-class
+* ✨ = standout niche tools or highly innovative options
 
-| # | Platform | Core Tags | Focus Area |
-|---|-----------|------------|-------------|
-| 1 | **CodePen** | `HTML` `CSS` `JS` `Prototyping` `Community` | Rapid front-end prototyping & UI sharing |
-| 2 | **JSFiddle** | `Lightweight` `Quick Test` `Sharing` | Simple, fast HTML/CSS/JS experimentation |
-| 3 | **JS Bin** | `Teaching` `Live Preview` `Collaboration` | Educational, live web snippet collaboration |
-| 4 | **CodeSandbox** | `Full-stack` `Frameworks` `GitHub` `Deploy` | Browser IDE for React/Vue/Angular apps |
-| 5 | **StackBlitz** | `Offline` `WebContainers` `Frameworks` | Local-like in-browser development |
-| 6 | **Replit** | `Multi-language` `AI` `Hosting` `Collab` | Universal online IDE + hosting + team coding |
-| 7 | **Glitch** | `Full-stack` `Node.js` `Remix` | Collaborative web app creation & remixing |
-| 8 | **PlayCode** | `Beginner` `Fast` `Console` | Quick JS prototyping & learning |
-| 9 | **Plunker** | `Multi-file` `Collaboration` | Project-based collaborative playground |
-| 10 | **CSSDeck** | `HTML` `CSS` `Snippets` | Lightweight UI animation demos |
-| 11 | **JSitor** | `Mobile` `Node.js` `Web` | Online web & NodeJS code editor |
-| 12 | **Liveweave** | `Multi-pane` `Real-time` `Embed` | Responsive HTML/CSS/JS code preview |
-| 13 | **Dabblet** | `CSS` `HTML` `GitHub` | CSS/HTML playground saving to Gists |
-| 14 | **Flems (flems.io)** | `Self-hostable` `Minimal` `Front-end` | Lightweight, privacy-focused JS sandbox |
-| 15 | **ESNextBin** | `Modern JS` `ESNext` `Transpile` | Playground for experimenting with ES6+ |
-| 16 | **JSPad** | `Simple` `Instant` `Web` | Minimal browser HTML/CSS/JS editor |
-| 17 | **ICEcoder** | `Self-hosted` `Browser IDE` `Offline` | Full web IDE hosted on your own server |
-| 18 | **Web Maker** | `Offline` `Browser` `Fast` | Offline HTML/CSS/JS sandbox |
-| 19 | **Firebase Studio** | `Cloud IDE` `Firebase` `Web` | Firebase-focused prototyping IDE |
-| 20 | **vscode.dev** | `VS Code Online` `Microsoft` `Cloud` | Browser-hosted Visual Studio Code |
-| 21 | **KodeWeave** | `Portable` `Offline` `Web` | Offline playground for HTML/CSS/JS |
+## 🌐 Table 1 — Online Code-Playgrounds
+
+| #  | Platform             | Core Tags                                   | Focus Area                                   |
+| -- | -------------------- | ------------------------------------------- | -------------------------------------------- |
+| 1  | **🔥 CodePen**       | `HTML` `CSS` `JS` `Prototyping` `Community` | Rapid front-end prototyping & UI sharing     |
+| 2  | **JSFiddle**         | `Lightweight` `Quick Test` `Sharing`        | Simple, fast HTML/CSS/JS experimentation     |
+| 3  | **JS Bin**           | `Teaching` `Live Preview` `Collaboration`   | Educational, live web snippet collaboration  |
+| 4  | **🔥 CodeSandbox**   | `Full-stack` `Frameworks` `GitHub` `Deploy` | Browser IDE for React/Vue/Angular apps       |
+| 5  | **🔥 StackBlitz**    | `Offline` `WebContainers` `Frameworks`      | Local-like in-browser development            |
+| 6  | **🔥 Replit**        | `Multi-language` `AI` `Hosting` `Collab`    | Universal online IDE + hosting + team coding |
+| 7  | **✨ Glitch**         | `Full-stack` `Node.js` `Remix`              | Collaborative web app creation & remixing    |
+| 8  | **PlayCode**         | `Beginner` `Fast` `Console`                 | Quick JS prototyping & learning              |
+| 9  | **Plunker**          | `Multi-file` `Collaboration`                | Project-based collaborative playground       |
+| 10 | **CSSDeck**          | `HTML` `CSS` `Snippets`                     | Lightweight UI animation demos               |
+| 11 | **JSitor**           | `Mobile` `Node.js` `Web`                    | Online web & NodeJS code editor              |
+| 12 | **Liveweave**        | `Multi-pane` `Real-time` `Embed`            | Responsive HTML/CSS/JS code preview          |
+| 13 | **Dabblet**          | `CSS` `HTML` `GitHub`                       | CSS/HTML playground saving to Gists          |
+| 14 | **Flems (flems.io)** | `Self-hostable` `Minimal` `Front-end`       | Lightweight, privacy-focused JS sandbox      |
+| 15 | **ESNextBin**        | `Modern JS` `ESNext` `Transpile`            | Playground for experimenting with ES6+       |
+| 16 | **JSPad**            | `Simple` `Instant` `Web`                    | Minimal browser HTML/CSS/JS editor           |
+| 17 | **✨ ICEcoder**       | `Self-hosted` `Browser IDE` `Offline`       | Full web IDE hosted on your own server       |
+| 18 | **Web Maker**        | `Offline` `Browser` `Fast`                  | Offline HTML/CSS/JS sandbox                  |
+| 19 | **Firebase Studio**  | `Cloud IDE` `Firebase` `Web`                | Firebase-focused prototyping IDE             |
+| 20 | **vscode.dev**       | `VS Code Online` `Microsoft` `Cloud`        | Browser-hosted Visual Studio Code            |
+| 21 | **KodeWeave**        | `Portable` `Offline` `Web`                  | Offline playground for HTML/CSS/JS           |
 
 ---
 
@@ -161,21 +165,21 @@ All information is validated from multiple trusted sources and ordered by **prom
 
 ---
 
-## 💻 Table 2 — Standalone IDEs & Editors (All-Inclusive)
+## 💻 Table 2 — Standalone IDEs & Editors
 
-| # | IDE / Editor | Core Tags | OS Support |
-|---|---------------|------------|-------------|
-| 1 | **Visual Studio Code** | `Open-source` `Extensible` `Cross-platform` | Win / macOS / Linux |
-| 2 | **IntelliJ IDEA** | `Enterprise` `Java` `Web` `Kotlin` | Win / macOS / Linux |
-| 3 | **Eclipse IDE** | `Open-source` `Enterprise` `Plugins` | Win / macOS / Linux |
-| 4 | **Apache NetBeans** | `Modular` `Open-source` `Web` | Win / macOS / Linux |
-| 5 | **Adobe Dreamweaver CC** | `WYSIWYG` `Design` `Web` | Win / macOS |
-| 6 | **CodeLobster IDE** | `PHP` `Debugger` `Web` | Windows |
-| 7 | **Froala Editor** | `WYSIWYG` `Rich Text` `Embeddable` | Cross-platform (Web) |
-| 8 | **AWS Cloud9** | `Cloud IDE` `Collaboration` `Multi-language` | Web (All OS) |
-| 9 | **Eclipse Che** | `Cloud Workspace` `Containerized` | Web (All OS) |
-| 10 | **Coder Workspace** | `Cloud IDE` `Dev Environments` `Teams` | Web (All OS) |
-| 11 | **Qoder IDE** | `AI-powered` `Desktop IDE` | macOS / Windows |
+| #  | IDE / Editor              | Core Tags                                    | OS Support           |
+| -- | ------------------------- | -------------------------------------------- | -------------------- |
+| 1  | **🔥 Visual Studio Code** | `Open-source` `Extensible` `Cross-platform`  | Win / macOS / Linux  |
+| 2  | **🔥 IntelliJ IDEA**      | `Enterprise` `Java` `Web` `Kotlin`           | Win / macOS / Linux  |
+| 3  | **Eclipse IDE**           | `Open-source` `Enterprise` `Plugins`         | Win / macOS / Linux  |
+| 4  | **Apache NetBeans**       | `Modular` `Open-source` `Web`                | Win / macOS / Linux  |
+| 5  | **Adobe Dreamweaver CC**  | `WYSIWYG` `Design` `Web`                     | Win / macOS          |
+| 6  | **CodeLobster IDE**       | `PHP` `Debugger` `Web`                       | Windows              |
+| 7  | **Froala Editor**         | `WYSIWYG` `Rich Text` `Embeddable`           | Cross-platform (Web) |
+| 8  | **✨ AWS Cloud9**          | `Cloud IDE` `Collaboration` `Multi-language` | Web (All OS)         |
+| 9  | **✨ Eclipse Che**         | `Cloud Workspace` `Containerised`            | Web (All OS)         |
+| 10 | **✨ Coder Workspace**     | `Cloud IDE` `Dev Environments` `Teams`       | Web (All OS)         |
+| 11 | **✨ Qoder IDE**           | `AI-powered` `Desktop IDE`                   | macOS / Windows      |
 
 ---
 
