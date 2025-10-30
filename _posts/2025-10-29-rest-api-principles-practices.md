@@ -52,10 +52,10 @@ REST is defined by **six key constraints**, validated from [Wikipedia](https://e
 - **Principle:** Each client request must contain **all information** needed by the server.  
 - **Rationale:** No session state stored on the server → easier scalability and reliability.  
 - **Example:**
-  ```http
+ ```http
   GET /orders/123
   Authorization: Bearer <token>
-````
+```
 
 The server doesn’t rely on prior requests.
 
