@@ -1,6 +1,6 @@
 ---
-# layout: page
-layout: profile
+# layout: profile
+layout: page
 title: "My Profile"
 description: "Kalyan Narayana — Data Science, ML, and Full-Stack Engineer (Aspirant)"
 permalink: /profile/
