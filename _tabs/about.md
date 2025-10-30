@@ -11,5 +11,6 @@ order: 4                     # integer; controls tab position
 
 [//]: # **[About Me →](/profile/){:target="_blank"}**
 
-> # **[My Profile](/profile/)**
-{: .prompt-tip }
+> # **[My Profile](/profile/)**{: .prompt-tip }
+
+> # **[My Portfolio](/portfolio/)**{: .prompt-tip }
