@@ -9,4 +9,7 @@ order: 4                     # integer; controls tab position
 > Add Markdown syntax content to file `_tabs/about.md`{: .filepath } and it will show up on this page.
 {: .prompt-tip }
 
-# **[About Me →](/profile/){:target="_blank"}**
+[//]: # **[About Me →](/profile/){:target="_blank"}**
+
+> # **[My Profile](/profile/)**
+{: .prompt-tip }
