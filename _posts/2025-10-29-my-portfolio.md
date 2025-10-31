@@ -8,7 +8,7 @@ image: /assets/img/avatar/portfolio.png   # 🔁 add your headshot
 toc: true
 nav_order: 1
 # published: true
-# pin: true
+pin: true
 ---
 
 # 👋 Hi, I’m **Kalyan Narayana** - WORK IN PROGRESS
