@@ -1,7 +1,7 @@
 ---
 title: "Mastering JavaScript for Full-Stack Development 🏁"
 date: 2025-10-31
-categories: [Full-Stack, JavaScript, Web Development]
+categories: [Web Dev, JavaScript]
 tags: [JavaScript, Node.js, Express, React, MongoDB, MERN, MEAN, Deployment]
 description: "Comprehensive step-by-step roadmap to mastering JavaScript for full-stack web development — validated from MDN, W3Schools, The Odin Project, and official documentation — designed for beginners aiming for professional readiness."
 author: "Kalyan Narayana"
