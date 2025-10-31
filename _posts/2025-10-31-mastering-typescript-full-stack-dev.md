@@ -63,7 +63,7 @@ author: "Kalyan Narayana"
   interface B { b: number }
   type AB = A & B;
   ```
-* **TS + JavaScript Compatibility** — TS is a superset. ([developer.mozilla.org][1])
+* **TS + JavaScript Compatibility** — TS is a superset.
   **Rationale:** Strong typing and TS features help you build scalable, maintainable full-stack apps.
 
 🏁 **Milestone 1:** Comfortable writing TS code, using types, interfaces, generics.
@@ -94,7 +94,7 @@ author: "Kalyan Narayana"
   app.listen(3000, () => console.log("Server on 3000"));
   ```
 * **Use TS types for request/response, middleware, etc.**
-* **Shared type definitions between layers** (helps full-stack consistency) ([Medium][2])
+* **Shared type definitions between layers** (helps full-stack consistency)
   **Rationale:** Using TS on backend ensures type-safe APIs, better refactoring and fewer runtime errors.
 
 🏁 **Milestone 2:** Backend service written in TS with at least one endpoint, compiling and running correctly.
@@ -154,7 +154,7 @@ author: "Kalyan Narayana"
   const [users, setUsers] = useState<User[]>([]);
   ```
 * **Routing, components, props in TS**
-* **Shared model types**: import `User` interface used in backend for frontend too. ([fullstackopen.com][3])
+* **Shared model types**: import `User` interface used in backend for frontend too.
   **Rationale:** TS across both frontend and backend improves consistency, developer experience and maintainability.
 
 🏁 **Milestone 4:** Frontend app built using TS, fully communicating with TS backend API, states typed.
@@ -224,7 +224,7 @@ author: "Kalyan Narayana"
 * **GraphQL with TS** for typed APIs.
 * **Real-time (WebSocket) in TS**.
 * **Performance tuning, observability, logs in TS apps.**
-  **Rationale:** To elevate from developer to engineer, you will need architectural understanding, scalable TS patterns, maintainable codebases. ([nilebits.com][4])
+  **Rationale:** To elevate from developer to engineer, you will need architectural understanding, scalable TS patterns, maintainable codebases.
 
 🏁 **Milestone 7:** Architect and build scalable, maintainable TS full-stack systems.
 
