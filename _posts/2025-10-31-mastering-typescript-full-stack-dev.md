@@ -35,7 +35,7 @@ author: "Kalyan Narayana"
   ```bash
   npm install -g typescript
   tsc --init
-```
+  ```
 
 * **Basic Types & Variables**
 
@@ -43,6 +43,7 @@ author: "Kalyan Narayana"
   let userName: string = "Alice";
   const pi: number = 3.1415;
   ```
+
 * **Interfaces & Type Aliases**
 
   ```ts
