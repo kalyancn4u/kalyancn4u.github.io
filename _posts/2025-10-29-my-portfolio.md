@@ -4,8 +4,7 @@ layout: default
 title: "My Portfolio"
 description: "Kalyan Narayana — Data Science, ML, and Full-Stack Engineer (Aspirant)"
 permalink: /portfolio/
-# TODO - image: /assets/img/profile/kalyan.jpg   # 🔁 add your headshot
-image: /assets/img/avatar/profile.png   # 🔁 add your headshot
+image: /assets/img/avatar/portfolio.png   # 🔁 add your headshot
 toc: true
 nav_order: 1
 # published: true
