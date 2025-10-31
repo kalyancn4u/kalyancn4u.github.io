@@ -1,7 +1,7 @@
 ---
 title: "REST API Architecture Principles & Best Practices"
 date: 2025-10-30
-categories: [API, Web Development, Architecture]
+categories: [Web Dev, API, Architecture]
 tags: [REST, API Design, Best Practices, HTTP, JSON]
 description: "Comprehensive guide to REST API architecture principles and best practices — validated from top trusted sources like Wikipedia, IBM, Microsoft Learn, and GeeksforGeeks — explained clearly, concisely, and precisely for beginners and professionals alike."
 author: "Kalyan Narayana"
