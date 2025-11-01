@@ -91,6 +91,7 @@ description: "A novice-friendly, Maslow-inspired map of life priorities—from f
 ---
 
 ## 🧭 Final Unified Order (Bottom → Top)
+
 | # | Priority | Key Focus |
 |---:|---|---|
 | 1 | 🩺 **Health** | Keep body & mind working. |
