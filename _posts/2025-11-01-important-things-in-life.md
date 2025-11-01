@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "🌈 Guide — The Important Things in Life"
+title: "🌈 The Important Things in Life"
 date: 2025-11-01
 categories: [Life, Important things]
 tags: [Maslow, Hierarchy, Priorities, Wellbeing, Clarity]
