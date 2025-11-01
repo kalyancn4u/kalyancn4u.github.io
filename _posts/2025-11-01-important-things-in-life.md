@@ -6,6 +6,7 @@ categories: [Life, Important things]
 tags: [Maslow, Hierarchy, Priorities, Wellbeing, Clarity]
 description: "A novice-friendly, Maslow-inspired map of life priorities—from foundations to fulfillment."
 ---
+# 🌈 The Important Things in Life
 
 > **TL;DR**  
 > Build from **Health → Safety → Belonging → Esteem/Growth → Purpose & Peace**.  
