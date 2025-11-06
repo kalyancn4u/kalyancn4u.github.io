@@ -53,6 +53,7 @@ Deep Learning is a subfield of ML that uses **multi-layered neural networks** to
 - **Regularisation**: Dropout, weight decay, batch norm  
 
 ### 🔹 Common Architectures
+
 | Type | Typical Use |
 |------|--------------|
 | MLP | Tabular or small-scale data |
@@ -132,6 +133,7 @@ Use:
 ---
 
 ### 🔹 Ranking & Recommendation Metrics
+
 | Metric | Description |
 |---------|-------------|
 | **Precision@k** | Relevant items in top-k recommendations |
