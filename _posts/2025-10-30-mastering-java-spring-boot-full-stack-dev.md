@@ -1,5 +1,5 @@
 ---
-title: "Mastering Java & Spring Boot for Full-Stack Development 🚀"
+title: "📗 Mastering Java & Spring Boot for Full-Stack Development"
 date: 2025-10-30
 categories: [Web Dev, Java, Spring Boot]
 tags: [Java, Spring Boot, REST API, Full Stack, React, Angular, DevOps]
