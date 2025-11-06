@@ -1,5 +1,5 @@
 ---
-title: "📗 DSML: Deep Learning Metrics"
+title: "📘 DSML: Deep Learning Metrics"
 layout: post
 description: "Concise, clear, and validated revision notes on Machine Learning, Deep Learning, and Data Science Metrics — structured for beginners and practitioners."
 categories: [Notes, Machine Learning Metrics]
@@ -10,7 +10,7 @@ toc: true
 math: true
 ---
 
-# 🎯 DSML: Deep Learning Metrics ✅
+# 🎯 DSML: Deep Learning Metrics
 
 Comprehensive **revision notes** covering the essentials of **Deep Learning (DL) metrics** written clearly, concisely, and precisely — ideal for quick review or structured study.
 
