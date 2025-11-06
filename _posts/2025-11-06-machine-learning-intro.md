@@ -172,20 +172,11 @@ According to standard ML literature, there are several broad categories:
 
 ### 📚 References
 
-1. **Machine Learning – Wikipedia**  
-   🔗 [https://en.wikipedia.org/wiki/Machine_learning](https://en.wikipedia.org/wiki/Machine_learning)
-
-2. **What Is Machine Learning (ML)? – IBM**  
-   🔗 [https://www.ibm.com/think/topics/machine-learning](https://www.ibm.com/think/topics/machine-learning)
-
-3. **What Is a Machine Learning Algorithm? – IBM**  
-   🔗 [https://www.ibm.com/think/topics/machine-learning-algorithms](https://www.ibm.com/think/topics/machine-learning-algorithms)
-
-4. **Machine Learning, Explained – MIT Sloan**  
-   🔗 [https://mitsloan.mit.edu/ideas-made-to-matter/machine-learning-explained](https://mitsloan.mit.edu/ideas-made-to-matter/machine-learning-explained)
-
-5. **Types of Machine Learning – IBM**  
-   🔗 [https://www.ibm.com/think/topics/machine-learning-types](https://www.ibm.com/think/topics/machine-learning-types)
-
-6. **Machine Learning Examples, Applications & Use Cases – IBM**  
-   🔗 [https://www.ibm.com/think/topics/machine-learning-use-cases](https://www.ibm.com/think/topics/machine-learning-use-cases)
+1. [Machine Learning – Wikipedia](https://en.wikipedia.org/wiki/Machine_learning)  
+2. [Introduction to Machine Learning – GeeksforGeeks](https://www.geeksforgeeks.org/machine-learning/introduction-machine-learning/)  
+3. [Machine Learning Overview – GeeksforGeeks](https://www.geeksforgeeks.org/machine-learning/machine-learning/)  
+4. [What Is Machine Learning (ML)? – IBM](https://www.ibm.com/think/topics/machine-learning)  
+5. [What Is a Machine Learning Algorithm? – IBM](https://www.ibm.com/think/topics/machine-learning-algorithms)  
+6. [Types of Machine Learning – IBM](https://www.ibm.com/think/topics/machine-learning-types)  
+7. [Machine Learning Examples & Use Cases – IBM](https://www.ibm.com/think/topics/machine-learning-use-cases)  
+8. [Machine Learning, Explained – MIT Sloan](https://mitsloan.mit.edu/ideas-made-to-matter/machine-learning-explained)
