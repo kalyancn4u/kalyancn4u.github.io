@@ -450,19 +450,37 @@ print(f"Median Absolute Error (MedAE)    : {medae:.3f}")
 
 ### 📦 Clustering Metrics (Unsupervised)
 
-Used when no labels exist; these measure the **compactness and separation** of clusters.
+These metrics measure the **compactness and separation** of clusters.
 
 | Metric                      | Description                                                                        | Formula / Idea                                                                             | Python Method                        |
 | :-------------------------- | :--------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------- | :----------------------------------- |
 | **Silhouette Score**        | How close each point is to its own cluster vs. others (−1 to +1). Higher = better. | $$s = \frac{b - a}{\max(a,b)}$$ where *a* = intra-cluster, *b* = nearest cluster distance. | `silhouette_score(X, labels)`        |
-| **Calinski-Harabasz Index** | Ratio of between-cluster variance to within-cluster variance. Higher = better.     | $$CH = \frac{Tr(B_k)/(k-1)}{Tr(W_k)/(n-k)}$$                                               | `calinski_harabasz_score(X, labels)` |
-| **Davies-Bouldin Index**    | Average similarity between clusters; lower = better.                               | —                                                                                          | `davies_bouldin_score(X, labels)`    |
+| **Silhouette Samples** | Per-sample silhouette values — useful to diagnose which points are poorly clustered. | Same as above, returned per sample \(s_i\). | `sklearn.metrics.silhouette_samples(X, labels)` |
+| **Calinski-Harabasz Index (CH)** | Ratio of between-cluster dispersion to within-cluster dispersion. Higher = better (more separated, compact clusters). | $$CH = \frac{\text{trace}(B_k)/(k-1)}{\text{trace}(W_k)/(n-k)}$$ where \(B_k\) between-group dispersion, \(W_k\) within-group. | `calinski_harabasz_score(X, labels)` |
+| **Davies–Bouldin Index (DBI)** | Average similarity between each cluster and its most similar one. Lower = better (compact, well-separated clusters). | For cluster i with scatter \(s_i\) and centroid distance \(d_{ij}\): $$DB = \frac{1}{k}\sum_i \max_{j\ne i}\frac{s_i + s_j}{d_{ij}}$$ | `davies_bouldin_score(X, labels)` |
+| **Adjusted Rand Index (ARI)** | Measures similarity between predicted clusters and ground-truth labels, corrected for chance. 1 = perfect agreement, ~0 = random. | Based on pair counting (agreements vs disagreements), adjusted for expected index. (See ARI definition in literature.) | `adjusted_rand_score(true_labels, pred_labels)` |
+| **Rand Index (RI)** | Fraction of label pairs on which clusterings agree (does **not** correct for chance). | RI = (number of agreement pairs) / (total pairs). | `rand_score(true_labels, pred_labels)` (newer sklearn) or compute from confusion matrix. |
+| **Normalized Mutual Information (NMI)** | Measures shared information between cluster assignment and true labels, normalized to [0,1]. Higher = better. | $$NMI(U,V)=\frac{I(U;V)}{\sqrt{H(U)H(V)}}$$ where \(I\) = mutual information, \(H\)=entropy. | `normalized_mutual_info_score(true_labels, pred_labels)` |
+| **Mutual Information (MI)** | Raw mutual information between clustering and labels (not normalized). | \(I(U;V)=\sum_{u,v} p(u,v)\log\frac{p(u,v)}{p(u)p(v)}\) | `mutual_info_score(true_labels, pred_labels)` |
+| **Adjusted Mutual Info (AMI)** | Mutual information adjusted for chance. Like ARI but information-theoretic. | Adjusts MI by expected MI under random labeling. | `adjusted_mutual_info_score(true_labels, pred_labels)` |
+| **Homogeneity** | Each cluster contains only members of a single class (pure clusters). Range 0..1. | Homogeneity = 1 when each cluster has single class. Related to conditional entropy H(Class|Cluster). | `homogeneity_score(true_labels, pred_labels)` |
+| **Completeness** | All members of a given class are assigned to the same cluster. Range 0..1. | Related to H(Cluster|Class). | `completeness_score(true_labels, pred_labels)` |
+| **V-measure** | Harmonic mean of Homogeneity and Completeness (balanced). Range 0..1. | $$V = 2\cdot\frac{\text{homogeneity}\cdot\text{completeness}}{\text{homogeneity}+\text{completeness}}$$ | `v_measure_score(true_labels, pred_labels)` |
+| **Fowlkes–Mallows Index (FMI)** | Geometric mean of precision and recall over pairs (pairwise precision/recall). Higher = better. | $$FMI = \sqrt{\frac{TP}{TP+FP}\cdot\frac{TP}{TP+FN}}$$ where TP/FP/FN are pair counts. | `fowlkes_mallows_score(true_labels, pred_labels)` |
+| **Purity** | Simple external metric: fraction of cluster members that belong to the majority true class in that cluster. Easy to interpret but not normalized. | $$Purity = \frac{1}{n}\sum_i \max_j |C_i \cap T_j|$$ where \(C_i\) cluster, \(T_j\) true class. | Not in sklearn by default — compute from contingency matrix (`sklearn.metrics.cluster.contingency_matrix`) then apply formula. |
+| **Jaccard Index (pairwise)** | Pairwise similarity: intersection over union of pair assignments. Useful for comparing clusterings. | For sets A,B: \(J(A,B)=\frac{|A\cap B|}{|A\cup B|}\). For clustering, use pairwise version. | `sklearn.metrics.jaccard_score` for binary; cluster-level custom computation or `sklearn.metrics.pairwise_distances` / contingency-based code. |
+| **Noise Ratio (DBSCAN)** | Fraction of points labeled as noise (-1) by DBSCAN. Lower noise ratio usually preferred (but depends on task). | $$\text{noise\_ratio} = \frac{\#\{labels==-1\}}{n}$$ | Compute from labels array: `np.mean(labels == -1)` |
+| **Dunn Index** | Measures cluster separation / compactness (higher = better). Sensitive to outliers; not in sklearn. | $$D = \frac{\min_{i\ne j} \delta(C_i,C_j)}{\max_k \Delta(C_k)}$$ where \(\delta\) inter-cluster distance, \(\Delta\) intra-cluster diameter. | Not in sklearn — custom implementation required (use pairwise distances). |
 
 #### ✅ Use:
-- Use **internal metrics** (silhouette, CH, DBI) when you **do not** have ground-truth labels.
-- Use **external metrics** (ARI, NMI) when you **do** have reliable true labels for validation.
+- Use **internal metrics** (silhouette, CH, DBI) when you **do not** have ground-truth labels. They measure compactness and separation.
+- Use **external metrics** (ARI, NMI) when you **do** have reliable true labels for validation. They compare clustering to a known truth.
 - For **DBSCAN**, check `-1` labels (noise); internal metrics may be undefined if too few clusters exist.
 - Always **visualize** clusters (scatter, PCA, t-SNE) alongside metrics — numbers alone can be misleading.
+
+- **Silhouette Samples** help find misclustered points — useful for visualization and debugging.
+- **Purity** is easy to explain to stakeholders but can be biased by many small clusters — pair with other metrics.
+- **Some metrics aren’t in sklearn** (Purity, Dunn): compute from contingency / distance matrices if needed.
 
 🧩 **Example: Clustering Metrics**
 
