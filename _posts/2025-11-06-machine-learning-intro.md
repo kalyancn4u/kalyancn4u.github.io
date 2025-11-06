@@ -7,6 +7,7 @@ tags: [Machine-Learning, AI, Data-Science, Intro]
 author: Kalyan Narayana
 date: 2025-11-06 18:00:00 +0530
 toc: true
+math: true
 ---
 
 # Introduction to Machine Learning (ML) ✅
@@ -109,9 +110,9 @@ According to standard ML literature, there are several broad categories:
 * **Data:** Each house → [sq ft, bedrooms, age] ⇒ price.  
 * **Algorithm:** Linear Regression  
 
-  \[
-  \text{Price} = A \times (\text{sq ft}) + B \times (\text{bedrooms}) + C \times (\text{age}) + \text{Base}
-  \]
+$$
+\text{Price} = A \times (\text{sq ft}) + B \times (\text{bedrooms}) + C \times (\text{age}) + \text{Base}
+$$
 
   Here A, B, C are parameters (weights) learned during training.  
 * **Outcome:** The model can estimate the price of new houses if it generalises well.
