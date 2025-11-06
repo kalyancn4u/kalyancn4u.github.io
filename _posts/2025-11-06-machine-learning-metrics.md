@@ -106,29 +106,20 @@ Each metric includes:
 - 🧮 The **mathematical formula**
 - 🧩 A **Python method or code snippet**
 
-### 🔹 Classification Metrics
-Let **TP, FP, TN, FN** represent the standard confusion matrix entries.
+### 🧠 Classification Metrics
 
-- **Accuracy**  
-  $$
-  Accuracy = \frac{TP + TN}{TP + TN + FP + FN}
-  $$
-- **Precision**  
-  $$
-  Precision = \frac{TP}{TP + FP}
-  $$
-- **Recall (Sensitivity)**  
-  $$
-  Recall = \frac{TP}{TP + FN}
-  $$
-- **F1 Score**  
-  $$
-  F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}
-  $$
-- **Specificity**  
-  $$
-  Specificity = \frac{TN}{TN + FP}
-  $$
+Used when the model predicts discrete labels (e.g., *spam / not spam*, *disease / no disease*). Let **TP, FP, TN, FN** represent the standard confusion matrix entries. 
+
+| Metric | Description | Formula | Python Method |
+|:--|:--|:--|:--|
+| **Accuracy** | Measures the overall percentage of correct predictions. Best for balanced datasets. | $$Accuracy = \frac{TP + TN}{TP + TN + FP + FN}$$ | `accuracy_score(y_true, y_pred)` |
+| **Precision** | Out of all predicted positives, how many are actually positive. Useful when false positives are costly. | $$Precision = \frac{TP}{TP + FP}$$ | `precision_score(y_true, y_pred)` |
+| **Recall (Sensitivity / TPR)** | Out of all actual positives, how many did we correctly predict. Useful when missing positives is costly. | $$Recall = \frac{TP}{TP + FN}$$ | `recall_score(y_true, y_pred)` |
+| **F1-Score** | Harmonic mean of precision and recall — balances both. | $$F_1 = 2 \cdot \frac{Precision \cdot Recall}{Precision + Recall}$$ | `f1_score(y_true, y_pred)` |
+| **Specificity (TNR)** | Out of all actual negatives, how many were correctly predicted. | $$Specificity = \frac{TN}{TN + FP}$$ | via `confusion_matrix` |
+| **ROC-AUC** | Measures the model’s ability to distinguish classes. Closer to 1 = better. | *Area under ROC curve* | `roc_auc_score(y_true, y_prob)` |
+| **PR-AUC** | Precision–Recall tradeoff, ideal for imbalanced datasets. | *Area under PR curve* | `average_precision_score(y_true, y_prob)` |
+| **Log Loss** | Penalizes incorrect probabilities heavily. Ideal for probabilistic classifiers. | $$L = -\frac{1}{n}\sum [y_i\log(\hat{y}_i) + (1-y_i)\log(1-\hat{y}_i)]$$ | `log_loss(y_true, y_prob)` |
 
 Use:
 - **Precision** when false positives are costly.  
@@ -264,21 +255,6 @@ optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
 CCC
 ---
-
-## 🧠 1. Classification Metrics
-
-Used when the model predicts discrete labels (e.g., *spam / not spam*, *disease / no disease*).
-
-| Metric | Description | Formula | Python Method |
-|:--|:--|:--|:--|
-| **Accuracy** | Measures the overall percentage of correct predictions. Best for balanced datasets. | $$Accuracy = \frac{TP + TN}{TP + TN + FP + FN}$$ | `accuracy_score(y_true, y_pred)` |
-| **Precision** | Out of all predicted positives, how many are actually positive. Useful when false positives are costly. | $$Precision = \frac{TP}{TP + FP}$$ | `precision_score(y_true, y_pred)` |
-| **Recall (Sensitivity / TPR)** | Out of all actual positives, how many did we correctly predict. Useful when missing positives is costly. | $$Recall = \frac{TP}{TP + FN}$$ | `recall_score(y_true, y_pred)` |
-| **F1-Score** | Harmonic mean of precision and recall — balances both. | $$F_1 = 2 \cdot \frac{Precision \cdot Recall}{Precision + Recall}$$ | `f1_score(y_true, y_pred)` |
-| **Specificity (TNR)** | Out of all actual negatives, how many were correctly predicted. | $$Specificity = \frac{TN}{TN + FP}$$ | via `confusion_matrix` |
-| **ROC-AUC** | Measures the model’s ability to distinguish classes. Closer to 1 = better. | *Area under ROC curve* | `roc_auc_score(y_true, y_prob)` |
-| **PR-AUC** | Precision–Recall tradeoff, ideal for imbalanced datasets. | *Area under PR curve* | `average_precision_score(y_true, y_prob)` |
-| **Log Loss** | Penalizes incorrect probabilities heavily. Ideal for probabilistic classifiers. | $$L = -\frac{1}{n}\sum [y_i\log(\hat{y}_i) + (1-y_i)\log(1-\hat{y}_i)]$$ | `log_loss(y_true, y_prob)` |
 
 🧩 **Example**
 ```python
