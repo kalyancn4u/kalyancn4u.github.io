@@ -121,7 +121,7 @@ Used when the model predicts discrete labels (e.g., *spam / not spam*, *disease 
 | **PR-AUC** | Precision–Recall tradeoff, ideal for imbalanced datasets. | *Area under PR curve* | `average_precision_score(y_true, y_prob)` |
 | **Log Loss** | Penalizes incorrect probabilities heavily. Ideal for probabilistic classifiers. | $$L = -\frac{1}{n}\sum [y_i\log(\hat{y}_i) + (1-y_i)\log(1-\hat{y}_i)]$$ | `log_loss(y_true, y_prob)` |
 
-#### Use:
+#### ⚙️Tips:
 - **Precision** when false positives are costly.  
 - **Recall** when false negatives are costly.  
 - **F1** when balancing both is important.  
@@ -178,7 +178,7 @@ print("\nConfusion Matrix:\n", cm)
 print("\nClassification Report:\n", report)
 ````
 
-#### Notes:
+#### ⚙️Tips:
 - **Accuracy** → fraction of correct predictions overall.  
 - **Precision** → of all predicted positives, how many were correct.  
 - **Recall** → of all actual positives, how many were found.  
@@ -204,18 +204,114 @@ Used when predicting continuous values (e.g., house price, temperature, revenue)
 | **MAPE (Mean Absolute Percentage Error)** | Measures average percentage difference between prediction and actual. Easy to explain to non-tech users. | $$MAPE = \frac{100}{n}\sum \left \| \frac{y_i - \hat{y}_i}{y_i}\right \| $$  | `np.mean(np.abs((y_true - y_pred)/y_true))*100` |
 | **SMAPE (Symmetric MAPE)**                | Handles zeros better by averaging actuals & predictions in denominator.                                  | $$SMAPE = \frac{100}{n}\sum \frac{ \| y_i - \hat{y}_i \| }{( \| y_i \| + \| \hat{y}_i \| )/2}$$ | `2*np.mean(np.abs(y-y_hat)/(np.abs(y)+np.abs(y_hat)))*100` |
 
-🧩 **Example**
+🧩 **Example: Regression Metrics**
 
 ```python
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+# -------------------------------------------------------------
+# 🧠 IMPORTS
+# -------------------------------------------------------------
+from sklearn.metrics import (
+    mean_absolute_error,
+    mean_squared_error,
+    mean_absolute_percentage_error,
+    median_absolute_error,
+    r2_score,
+    explained_variance_score
+)
 import numpy as np
 
-mae  = mean_absolute_error(y_true, y_pred)
+# -------------------------------------------------------------
+# 🧩 EXAMPLE DATA
+# -------------------------------------------------------------
+# Example: true vs predicted continuous values
+# y_true = np.array([100, 200, 300, 400, 500])
+# y_pred = np.array([110, 190, 310, 395, 480])
+
+# -------------------------------------------------------------
+# ✅ BASIC REGRESSION METRICS
+# -------------------------------------------------------------
+
+# Mean Absolute Error (MAE) → average absolute difference
+mae = mean_absolute_error(y_true, y_pred)
+
+# Mean Squared Error (MSE) → average of squared errors
+mse = mean_squared_error(y_true, y_pred)
+
+# Root Mean Squared Error (RMSE) → square root of MSE (same units as target)
 rmse = mean_squared_error(y_true, y_pred, squared=False)
-r2   = r2_score(y_true, y_pred)
-mape = np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+
+# R-squared (R²) → proportion of variance explained by model
+r2 = r2_score(y_true, y_pred)
+
+# Explained Variance Score → proportion of variance captured (less strict than R²)
+evs = explained_variance_score(y_true, y_pred)
+
+# -------------------------------------------------------------
+# ✅ EXTENDED REGRESSION METRICS
+# -------------------------------------------------------------
+
+# Adjusted R-squared → adjusts R² for number of predictors (manual formula)
+# n = number of observations, p = number of predictors
+n, p = len(y_true), 1  # update 'p' as per number of features used
+adj_r2 = 1 - ((1 - r2) * (n - 1) / (n - p - 1))
+
+# Mean Absolute Percentage Error (MAPE) → avg. percentage error
+# Built-in in sklearn >= 0.24
+try:
+    mape = mean_absolute_percentage_error(y_true, y_pred) * 100
+except:
+    mape = np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+
+# Symmetric Mean Absolute Percentage Error (SMAPE) → bounded [0–200]%
+smape = 100 * np.mean(
+    2 * np.abs(y_true - y_pred) / (np.abs(y_true) + np.abs(y_pred))
+)
+
+# Root Mean Squared Log Error (RMSLE) → penalizes underestimation
+rmsle = np.sqrt(mean_squared_error(np.log1p(y_true), np.log1p(y_pred)))
+
+# Median Absolute Error (MedAE) → robust to outliers
+medae = median_absolute_error(y_true, y_pred)
+
+# -------------------------------------------------------------
+# ✅ PRINT RESULTS NEATLY
+# -------------------------------------------------------------
+print(f"Mean Absolute Error (MAE)        : {mae:.3f}")
+print(f"Mean Squared Error (MSE)         : {mse:.3f}")
+print(f"Root Mean Squared Error (RMSE)   : {rmse:.3f}")
+print(f"R-squared (R²)                   : {r2:.3f}")
+print(f"Adjusted R-squared (Adj R²)      : {adj_r2:.3f}")
+print(f"Explained Variance Score (EVS)   : {evs:.3f}")
+print(f"Mean Absolute % Error (MAPE)     : {mape:.3f}%")
+print(f"Symmetric MAPE (SMAPE)           : {smape:.3f}%")
+print(f"Root Mean Squared Log Error      : {rmsle:.3f}")
+print(f"Median Absolute Error (MedAE)    : {medae:.3f}")
 ```
 
+---
+#### ⚙️Tips:
+
+- ✅ Use **MAE or RMSE** for general performance comparison.  
+- ✅ Prefer **MAPE or SMAPE** for percentage-based reporting (business metrics).  
+- ⚠️ **Avoid MAPE** when `y_true` contains zeros — use SMAPE instead.  
+- 💡 **RMSLE** is useful for targets with large magnitude variation (e.g., population, revenue).  
+- 📊 Use **Adjusted R²** for multi-feature models to account for model complexity.  
+- 🔍 Always visualize residuals to understand error distribution.
+
+| Metric | Meaning | Notes |
+|---------|----------|-------|
+| **MAE** | Average of absolute errors | Easy to interpret; robust to outliers. |
+| **MSE** | Average of squared errors | Penalizes large deviations more. |
+| **RMSE** | Square root of MSE | Same scale as original data. |
+| **R² (Coefficient of Determination)** | Proportion of variance explained | 1 = perfect fit, 0 = poor fit. |
+| **Adjusted R²** | R² adjusted for #features | Prevents artificial inflation with many predictors. |
+| **EVS (Explained Variance Score)** | Variation captured by model | Similar to R² but less strict. |
+| **MAPE** | Avg. percentage error | Interpretable in %. Avoid if `y_true` has zeros. |
+| **SMAPE** | Symmetric version of MAPE | Bounded (0–200%), handles zeros better. |
+| **RMSLE** | Penalizes underestimation | Useful when target values vary exponentially. |
+| **MedAE** | Median of absolute errors | Robust alternative to MAE for skewed data. |
+
+TODO
 ---
 
 ### 🔹 Ranking & Recommendation Metrics
@@ -488,3 +584,10 @@ Emphasis on **directional accuracy** and **scale-independent errors**.
 13. <a href="https://en.wikipedia.org/wiki/Deep_learning" target="_blank" rel="noopener">Deep Learning — Wikipedia</a>
 
 ---
+
+
+1. <a href="https://scikit-learn.org/stable/modules/model_evaluation.html" target="_blank" rel="noopener">Scikit-Learn: Model Evaluation — Official Docs</a>  
+2. <a href="https://en.wikipedia.org/wiki/Mean_absolute_percentage_error" target="_blank" rel="noopener">Mean Absolute Percentage Error — Wikipedia</a>  
+3. <a href="https://en.wikipedia.org/wiki/Coefficient_of_determination" target="_blank" rel="noopener">R-squared — Wikipedia</a>  
+4. <a href="https://developers.google.com/machine-learning/crash-course" target="_blank" rel="noopener">Google ML Crash Course — Regression Metrics</a>  
+5. <a href="https://www.geeksforgeeks.org/regression-models-in-machine-learning/" target="_blank" rel="noopener">Regression Models in ML — GeeksforGeeks</a>
