@@ -126,8 +126,7 @@ Used when the model predicts discrete labels (e.g., *spam / not spam*, *disease 
 - **Recall** when false negatives are costly.  
 - **F1** when balancing both is important.  
 
-```python
-### 🧩 Classification Metrics (Comprehensive Python Example)
+🧩 **Example: Classification Metrics**
 
 ```python
 # Import common classification metrics
@@ -190,18 +189,32 @@ print("\nClassification Report:\n", report)
 - **Confusion Matrix** → shows TP, FP, TN, FN counts — great for diagnostic insight.  
 - **Classification Report** → gives per-class Precision, Recall, F1, and Support.  
 
-TODO
-
 ---
 
-### 🔹 Regression Metrics
+### 📈 Regression Metrics
 
-| Metric | Formula | Interpretation |
-|---------|----------|----------------|
-| **MSE** | $\text{MSE} = \frac{1}{n}\sum (y - \hat{y})^2$ | Penalises large errors |
-| **RMSE** | $\text{RMSE} = \sqrt{\text{MSE}}$ | Same units as target |
-| **MAE** | $\text{MAE} = \frac{1}{n}\sum \|y - \hat{y}\|$ | Robust to outliers |
-| **R² (Coefficient of Determination)** | $R^2 = 1 - \frac{\sum (y - \hat{y})^2}{\sum (y - \bar{y})^2}$ | Fraction of variance explained |
+Used when predicting continuous values (e.g., house price, temperature, revenue).
+
+| Metric                                    | Description                                                                                              | Formula                                                             | Python Method                                       |
+| :---------------------------------------- | :------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------ | :-------------------------------------------------- |
+| **MAE (Mean Absolute Error)**             | Average absolute difference between predicted and actual values. Easy to interpret.                      | $$MAE = \frac{1}{n}\sum \| y_i - \hat{y}_i \| $$  | `mean_absolute_error(y_true, y_pred)`           |
+| **MSE (Mean Squared Error)**              | Squares errors, penalizing large deviations. Sensitive to outliers.                                      | $$MSE = \frac{1}{n}\sum (y_i - \hat{y}_i)^2$$                       | `mean_squared_error(y_true, y_pred)`          |
+| **RMSE (Root Mean Squared Error)**        | Square root of MSE, same unit as the target.                                                             | $$RMSE = \sqrt{MSE}$$                                               | `mean_squared_error(y_true, y_pred, squared=False)` |
+| **R² (Coefficient of Determination)**     | Proportion of variance in target explained by the model (1 = perfect).                                   | $$R^2 = 1 - \frac{\sum (y_i - \hat y_i)^2}{\sum (y_i - \bar y)^2}$$ | `r2_score(y_true, y_pred)`                          |
+| **MAPE (Mean Absolute Percentage Error)** | Measures average percentage difference between prediction and actual. Easy to explain to non-tech users. | $$MAPE = \frac{100}{n}\sum \left \| \frac{y_i - \hat{y}_i}{y_i}\right \| $$  | `np.mean(np.abs((y_true - y_pred)/y_true))*100` |
+| **SMAPE (Symmetric MAPE)**                | Handles zeros better by averaging actuals & predictions in denominator.                                  | $$SMAPE = \frac{100}{n}\sum \frac{ \| y_i - \hat{y}_i \| }{( \| y_i \| + \| \hat{y}_i \| )/2}$$ | `2*np.mean(np.abs(y-y_hat)/(np.abs(y)+np.abs(y_hat)))*100` |
+
+🧩 **Example**
+
+```python
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import numpy as np
+
+mae  = mean_absolute_error(y_true, y_pred)
+rmse = mean_squared_error(y_true, y_pred, squared=False)
+r2   = r2_score(y_true, y_pred)
+mape = np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+```
 
 ---
 
@@ -320,44 +333,6 @@ optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 # 📊 DSML Metrics — Comprehensive Guide ✅
 
 CCC
----
-
-🧩 **Example**
-```python
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-acc  = accuracy_score(y_true, y_pred)
-prec = precision_score(y_true, y_pred)
-rec  = recall_score(y_true, y_pred)
-f1   = f1_score(y_true, y_pred)
-````
-
----
-
-## 📈 2. Regression Metrics
-
-Used when predicting continuous values (e.g., house price, temperature, revenue).
-
-| Metric                                    | Description                                                                                              | Formula                                                             | Python Method                                       |
-| :---------------------------------------- | :------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------ | :-------------------------------------------------- |
-| **MAE (Mean Absolute Error)**             | Average absolute difference between predicted and actual values. Easy to interpret.                      | $$MAE = \frac{1}{n}\sum \| y_i - \hat{y}_i \| $$  | `mean_absolute_error(y_true, y_pred)`           |
-| **MSE (Mean Squared Error)**              | Squares errors, penalizing large deviations. Sensitive to outliers.                                      | $$MSE = \frac{1}{n}\sum (y_i - \hat{y}_i)^2$$                       | `mean_squared_error(y_true, y_pred)`          |
-| **RMSE (Root Mean Squared Error)**        | Square root of MSE, same unit as the target.                                                             | $$RMSE = \sqrt{MSE}$$                                               | `mean_squared_error(y_true, y_pred, squared=False)` |
-| **R² (Coefficient of Determination)**     | Proportion of variance in target explained by the model (1 = perfect).                                   | $$R^2 = 1 - \frac{\sum (y_i - \hat y_i)^2}{\sum (y_i - \bar y)^2}$$ | `r2_score(y_true, y_pred)`                          |
-| **MAPE (Mean Absolute Percentage Error)** | Measures average percentage difference between prediction and actual. Easy to explain to non-tech users. | $$MAPE = \frac{100}{n}\sum \left \| \frac{y_i - \hat{y}_i}{y_i}\right \| $$  | `np.mean(np.abs((y_true - y_pred)/y_true))*100` |
-| **SMAPE (Symmetric MAPE)**                | Handles zeros better by averaging actuals & predictions in denominator.                                  | $$SMAPE = \frac{100}{n}\sum \frac{ \| y_i - \hat{y}_i \| }{( \| y_i \| + \| \hat{y}_i \| )/2}$$ | `2*np.mean(np.abs(y-y_hat)/(np.abs(y)+np.abs(y_hat)))*100` |
-
-🧩 **Example**
-
-```python
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-import numpy as np
-
-mae  = mean_absolute_error(y_true, y_pred)
-rmse = mean_squared_error(y_true, y_pred, squared=False)
-r2   = r2_score(y_true, y_pred)
-mape = np.mean(np.abs((y_true - y_pred) / y_true)) * 100
-```
-
 ---
 
 ## 📦 3. Clustering Metrics (Unsupervised)
