@@ -801,7 +801,48 @@ Emphasis on **directional accuracy** and **scale-independent errors**.
 * Track **multiple metrics** — one metric rarely tells the full story.
 * In production, monitor **metrics drift** to detect model decay.
 
---- 
+---
+
+### ⚙️ Notes & Tips
+
+- [**Scikit-learn: Choosing the right estimator**](https://scikit-learn.org/stable/machine_learning_map.html){:target="_blank"}
+- **Supervised Learning** dominates applied ML (most business problems have labeled data).  
+- **Unsupervised Learning** is used for discovery, not prediction.  
+- **Semi/Self-Supervised Learning** bridges gaps where labeled data is scarce.  
+- **Reinforcement Learning** is powerful but data-hungry and environment-dependent.  
+- **Deep Learning** cuts across all categories — when data is large and complex.  
+- Always **align metrics** with your business objective (precision for spam filters, recall for disease detection, MAPE for forecasts).  
+
+---
+
+### 🧩 Plain-Language Summary for Beginners
+
+| **Category** | **Plain Meaning** | **What It Learns** | **Example** |
+|---------------|------------------|--------------------|--------------|
+| **Supervised Learning** | Learns from examples with correct answers (labeled data). | Input → Output mapping. | Predicting loan default, image classification. |
+| **Unsupervised Learning** | Learns from unlabeled data to find hidden patterns. | Data structure or clusters. | Grouping customers by purchase behavior. |
+| **Semi-Supervised Learning** | Learns from a few labeled + many unlabeled examples. | Extends labeled data usefulness. | Medical image analysis (few labeled scans). |
+| **Self-Supervised Learning** | Creates labels automatically from raw data. | Learns general representations. | Predict masked words in sentences (BERT). |
+| **Reinforcement Learning** | Learns through trial and error to maximize reward. | Policy or strategy. | Self-driving cars, game agents. |
+| **Deep Learning** | Uses large neural networks to learn features automatically. | Complex feature hierarchies. | Face recognition, speech translation. |
+
+---
+
+### ✅ Simplified View (At a Glance)
+
+| **ML Category** | **Typical Problems** | **Typical Metrics** | **Example Use-Case** |
+|------------------|----------------------|----------------------|----------------------|
+| **Supervised Learning (SL)** | Classification, Regression | Accuracy, F1, ROC-AUC, MAE, RMSE | Spam detection, price prediction |
+| **Unsupervised Learning (USL)** | Clustering, Dimensionality Reduction | Silhouette, CH, DBI, Explained Variance | Customer segmentation, visualization |
+| **Semi-Supervised Learning (SSL)** | Hybrid labeled/unlabeled learning | Accuracy, F1, ROC-AUC | Learning from few labeled samples |
+| **Self-Supervised Learning (Self-SL)** | Pretext predictive tasks | Representation quality, Transfer Accuracy | Pretraining models on unlabeled data |
+| **Reinforcement Learning (RL)** | Sequential decision-making | Reward, Cumulative Return | Robotics, games, trading bots |
+| **Deep Learning (DL)** | Vision, NLP, Audio, Generative tasks | Accuracy, IoU, BLEU, FID | Image, speech, and text understanding |
+| **Forecasting / Time-Series** | Predicting future trends | MAPE, SMAPE, RMSE | Sales, weather, demand forecasts |
+| **Ranking / Recommendation** | Search / recommender systems | Precision@k, Recall@k, NDCG | Netflix, YouTube, Google Search |
+| **Anomaly Detection** | Rare-event detection | F1, ROC-AUC, PR-AUC | Fraud, defect detection |
+
+---
 
 ## 🧭 ML Categories, Problem Types & Evaluation Metrics (Validated & Beginner-Friendly)
 
@@ -823,47 +864,6 @@ Emphasis on **directional accuracy** and **scale-independent errors**.
 |  | **Natural Language Processing (NLP)** | Text Classification / NER / Translation | Accuracy, F1, BLEU, ROUGE, METEOR | Evaluates language model outputs. Example: sentiment analysis, summarization. |
 |  | **Computer Vision (CV)** | Object Detection / Segmentation / Recognition | mAP, IoU, Dice, Pixel Accuracy | Measures visual recognition accuracy. Example: detecting cars or faces in images. |
 |  | **Generative Models** | GANs, Diffusion Models | FID, Inception Score, Perplexity | Evaluates realism and diversity of generated outputs. Example: image or text synthesis. |
-
----
-
-### ✅ Simplified View (At a Glance)
-
-| **ML Category** | **Typical Problems** | **Typical Metrics** | **Example Use-Case** |
-|------------------|----------------------|----------------------|----------------------|
-| **Supervised Learning (SL)** | Classification, Regression | Accuracy, F1, ROC-AUC, MAE, RMSE | Spam detection, price prediction |
-| **Unsupervised Learning (USL)** | Clustering, Dimensionality Reduction | Silhouette, CH, DBI, Explained Variance | Customer segmentation, visualization |
-| **Semi-Supervised Learning (SSL)** | Hybrid labeled/unlabeled learning | Accuracy, F1, ROC-AUC | Learning from few labeled samples |
-| **Self-Supervised Learning (Self-SL)** | Pretext predictive tasks | Representation quality, Transfer Accuracy | Pretraining models on unlabeled data |
-| **Reinforcement Learning (RL)** | Sequential decision-making | Reward, Cumulative Return | Robotics, games, trading bots |
-| **Deep Learning (DL)** | Vision, NLP, Audio, Generative tasks | Accuracy, IoU, BLEU, FID | Image, speech, and text understanding |
-| **Forecasting / Time-Series** | Predicting future trends | MAPE, SMAPE, RMSE | Sales, weather, demand forecasts |
-| **Ranking / Recommendation** | Search / recommender systems | Precision@k, Recall@k, NDCG | Netflix, YouTube, Google Search |
-| **Anomaly Detection** | Rare-event detection | F1, ROC-AUC, PR-AUC | Fraud, defect detection |
-
----
-
-### 🧩 Plain-Language Summary for Beginners
-
-| **Category** | **Plain Meaning** | **What It Learns** | **Example** |
-|---------------|------------------|--------------------|--------------|
-| **Supervised Learning** | Learns from examples with correct answers (labeled data). | Input → Output mapping. | Predicting loan default, image classification. |
-| **Unsupervised Learning** | Learns from unlabeled data to find hidden patterns. | Data structure or clusters. | Grouping customers by purchase behavior. |
-| **Semi-Supervised Learning** | Learns from a few labeled + many unlabeled examples. | Extends labeled data usefulness. | Medical image analysis (few labeled scans). |
-| **Self-Supervised Learning** | Creates labels automatically from raw data. | Learns general representations. | Predict masked words in sentences (BERT). |
-| **Reinforcement Learning** | Learns through trial and error to maximize reward. | Policy or strategy. | Self-driving cars, game agents. |
-| **Deep Learning** | Uses large neural networks to learn features automatically. | Complex feature hierarchies. | Face recognition, speech translation. |
-
----
-
-### ⚙️ Notes & Tips
-
-- [**Scikit-learn: Choosing the right estimator**](https://scikit-learn.org/stable/machine_learning_map.html){:target="_blank"}
-- **Supervised Learning** dominates applied ML (most business problems have labeled data).  
-- **Unsupervised Learning** is used for discovery, not prediction.  
-- **Semi/Self-Supervised Learning** bridges gaps where labeled data is scarce.  
-- **Reinforcement Learning** is powerful but data-hungry and environment-dependent.  
-- **Deep Learning** cuts across all categories — when data is large and complex.  
-- Always **align metrics** with your business objective (precision for spam filters, recall for disease detection, MAPE for forecasts).  
 
 ---
 
