@@ -91,6 +91,21 @@ Deep Learning is a subfield of ML that uses **multi-layered neural networks** to
 
 ## 4. Data Science Metrics — Essentials
 
+Understanding metrics is at the **heart of Data Science and Machine Learning**.  
+Metrics tell you *how well your model is performing* — whether it predicts correctly, generalizes well, and aligns with the real-world objective.
+
+This guide explains key metrics for:
+- **Classification**
+- **Regression**
+- **Clustering**
+- **Ranking / Recommendation**
+- **Time Series / Forecasting**
+
+Each metric includes:
+- 💡 A beginner-friendly **description**
+- 🧮 The **mathematical formula**
+- 🧩 A **Python method or code snippet**
+
 ### 🔹 Classification Metrics
 Let **TP, FP, TN, FN** represent the standard confusion matrix entries.
 
@@ -247,21 +262,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
 # 📊 DSML Metrics — Comprehensive Guide ✅
 
-Understanding metrics is at the **heart of Data Science and Machine Learning**.  
-Metrics tell you *how well your model is performing* — whether it predicts correctly, generalizes well, and aligns with the real-world objective.
-
-This guide explains key metrics for:
-- **Classification**
-- **Regression**
-- **Clustering**
-- **Ranking / Recommendation**
-- **Time Series / Forecasting**
-
-Each metric includes:
-- 💡 A beginner-friendly **description**
-- 🧮 The **mathematical formula**
-- 🧩 A **Python method or code snippet**
-
+CCC
 ---
 
 ## 🧠 1. Classification Metrics
