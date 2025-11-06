@@ -586,19 +586,83 @@ print(f"DBSCAN noise ratio                  : {noise_ratio:.3f}")
 - **Normalized Mutual Information (NMI)**: measures shared information between clustering and true labels.
 - **Homogeneity / Completeness / V-measure**: explain how pure clusters are (homogeneity) and how complete true classes are captured (completeness); v-measure = harmonic mean.
 
-TODO
-#### ✅ Use:
-#### ⚙️ Tips:
 ---
-### 🔹 Ranking & Recommendation Metrics
 
-| Metric | Description |
-|---------|-------------|
-| **Precision@k** | Relevant items in top-k recommendations |
-| **Recall@k** | Fraction of total relevant items found |
-| **MAP** | Mean average precision across queries |
-| **NDCG** | Rank-aware relevance metric |
+### 🔍 Ranking / Recommendation Metrics
 
+Used for recommendation systems, search ranking, or top-k predictions. Ranking and recommendation systems evaluate **how well a model orders or recommends items** based on **relevance or preference**.
+
+Unlike classification, which predicts *what*, ranking cares about *how high* relevant results appear.
+
+| Metric                                           | Description                                                                | Formula / Concept                                                            | Python Method                 |
+| :----------------------------------------------- | :------------------------------------------------------------------------- | :--------------------------------------------------------------------------- | :---------------------------- |
+| **Precision@k**                                  | Fraction of top-k recommended items that are relevant.                     | $$P@k = \frac{\text{Relevant items in top }k}{k}$$                           | Custom function               |
+| **Recall@k**                                     | Fraction of total relevant items retrieved in top-k list.                  | $$R@k = \frac{\text{Relevant items in top }k}{\text{Total relevant items}}$$ | Custom function               |
+| **MAP (Mean Average Precision)**                 | Average of precision values across recall levels. Higher = better ranking. | $$MAP = \frac{1}{Q}\sum_q AvgPrecision(q)$$                                  | `average_precision_score()`   |
+| **NDCG (Normalized Discounted Cumulative Gain)** | Measures ranking quality considering order and relevance.                  | $$NDCG@k = \frac{DCG@k}{IDCG@k}$$                                            | `ndcg_score(y_true, y_score)` |
+
+| **Metric** | **Measures** | **Interpretation / When to Use** | **Python Method** |
+|-------------|--------------|----------------------------------|--------------------|
+| **Precision@k** | Fraction of top-k recommended items that are relevant. | Measures short-term relevance — good for search and top-N recommendation quality. | Custom or `precision_score_at_k` (custom wrapper) |
+| **Recall@k** | Fraction of relevant items retrieved in top-k. | Focuses on coverage — how much of what user wants appears in top-k. | Custom implementation |
+| **MAP (Mean Average Precision)** | Average of precision across recall levels for all queries/users. | Combines ranking accuracy and completeness — robust for IR and recommendation. | `average_precision_score()` |
+| **MRR (Mean Reciprocal Rank)** | Average reciprocal of the rank of the first relevant item. | Prioritizes *early relevance* — ideal for Q&A or retrieval systems. | Custom formula |
+| **NDCG (Normalized Discounted Cumulative Gain)** | Weighted ranking quality — higher relevance at higher ranks yields more gain. | Handles graded relevance; common in search engines. | `ndcg_score(y_true, y_score)` |
+|  |  |  |  |
+| **Hit Rate (HR@k)** | Whether at least one relevant item appears in top-k. | Binary form of recall@k — easier to interpret. | Custom implementation |
+| **Coverage** | Fraction of all items ever recommended to any user. | Reflects diversity — higher coverage = model recommends wider variety. | Custom computation |
+| **Diversity** | Average dissimilarity between recommended items. | Encourages variety; avoids echo chambers or repetitive results. | Pairwise similarity / cosine distance–based custom code |
+| **Novelty** | Popularity bias measure — lower popularity → higher novelty. | Ensures recommendations surface less-seen items. | Popularity-weighted score (custom) |
+| **Serendipity** | Measures how surprising but relevant the recommendation is. | Enhances user satisfaction beyond predictability. | Requires behavioral data — computed offline. |
+
+#### ✅ Use:
+- **Search Engines:** rank documents by query relevance (Google, Bing).  
+- **Recommender Systems:** suggest products, movies, or news items (Amazon, Netflix).  
+- **Information Retrieval (IR):** evaluate top-k precision and recall.  
+- **Personalization Systems:** adapt ranking to user profiles and click history.  
+
+🧩 **Example**
+
+### 🧮 Example (Python Sketch)
+
+```python
+import numpy as np
+from sklearn.metrics import ndcg_score, average_precision_score
+
+# Example: relevance scores for each query (user)
+y_true = np.asarray([[3, 2, 3, 0, 1, 2]])   # true relevance grades
+y_score = np.asarray([[0.8, 0.3, 0.7, 0.1, 0.2, 0.4]])  # predicted scores
+
+# NDCG (Normalized Discounted Cumulative Gain) @ K=5
+ndcg = ndcg_score(y_true, y_score, k=5)
+print(f"NDCG@5: {ndcg:.3f}")
+
+# MAP (Mean Average Precision)
+map_score = average_precision_score((y_true > 0).ravel(), y_score.ravel())
+print(f"MAP: {map_score:.3f}")
+````
+
+#### ⚙️ Tips:
+
+| **When / Goal** | **Preferred Metric(s)** | **Tips & Insights** |
+|------------------|--------------------------|----------------------|
+| **You want the top-k results to be correct.** | Precision@k, NDCG, Hit Rate | Tune for higher precision; good for homepage or top-N recommendations. |
+| **You care about retrieving *all* relevant items.** | Recall@k, MAP | Important for archival search, playlist or content retrieval. |
+| **You want early relevant results.** | MRR, NDCG | Ideal for search ranking and question answering (QA). |
+| **You want balanced ranking quality.** | MAP, NDCG | Use for general ranking system evaluation. |
+| **You want model diversity / user satisfaction.** | Coverage, Diversity, Novelty, Serendipity | Add as secondary optimization targets to avoid redundancy. |
+| **You have implicit feedback only (clicks/views).** | Hit Rate, NDCG | Suitable when explicit “relevance” labels aren’t available. |
+
+#### 💡 Practical Takeaways
+
+* **Ranking metrics depend on order**, not absolute scores — focus on relative correctness.
+* **Precision@k and Recall@k** are easy to compute but ignore graded relevance — prefer **NDCG** when relevance is multi-level (e.g., 0–3 scale).
+* **MAP** provides a single global score combining precision and recall — excellent for comparing models.
+* **MRR** emphasizes how quickly the first relevant item appears — good for retrieval.
+* Track **Diversity, Coverage, and Novelty** to ensure real-world user satisfaction and system robustness.
+* Always evaluate both **offline** (metrics) and **online** (A/B tests, click-through rates).
+
+TODO
 ---
 
 ## 5. Practical Python Snippets
@@ -705,27 +769,6 @@ optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 # 📊 DSML Metrics — Comprehensive Guide ✅
 
 CCC
----
-
-## 🔍 4. Ranking / Recommendation Metrics
-
-Used for recommendation systems, search ranking, or top-k predictions.
-
-| Metric                                           | Description                                                                | Formula / Concept                                                            | Python Method                 |
-| :----------------------------------------------- | :------------------------------------------------------------------------- | :--------------------------------------------------------------------------- | :---------------------------- |
-| **Precision@k**                                  | Fraction of top-k recommended items that are relevant.                     | $$P@k = \frac{\text{Relevant items in top }k}{k}$$                           | Custom function               |
-| **Recall@k**                                     | Fraction of total relevant items retrieved in top-k list.                  | $$R@k = \frac{\text{Relevant items in top }k}{\text{Total relevant items}}$$ | Custom function               |
-| **MAP (Mean Average Precision)**                 | Average of precision values across recall levels. Higher = better ranking. | $$MAP = \frac{1}{Q}\sum_q AvgPrecision(q)$$                                  | `average_precision_score()`   |
-| **NDCG (Normalized Discounted Cumulative Gain)** | Measures ranking quality considering order and relevance.                  | $$NDCG@k = \frac{DCG@k}{IDCG@k}$$                                            | `ndcg_score(y_true, y_score)` |
-
-🧩 **Example**
-
-```python
-from sklearn.metrics import ndcg_score, average_precision_score
-ndcg = ndcg_score(y_true, y_score)
-map_score = average_precision_score(y_true, y_score)
-```
-
 ---
 
 ## ⏱️ 5. Time Series / Forecasting Metrics
@@ -867,3 +910,9 @@ Emphasis on **directional accuracy** and **scale-independent errors**.
 
 - Scikit-learn: Model evaluation and clustering metrics (official docs)  
 - PapersWithCode / survey pages for clustering evaluation
+
+1. <a href="https://scikit-learn.org/stable/modules/model_evaluation.html#ranking-metrics" target="_blank" rel="noopener">Scikit-Learn — Ranking Metrics</a>
+2. <a href="https://developers.google.com/machine-learning/recommendation/evaluation" target="_blank" rel="noopener">Google ML — Recommendation System Evaluation</a>
+3. <a href="https://en.wikipedia.org/wiki/Information_retrieval#Evaluation" target="_blank" rel="noopener">Information Retrieval — Evaluation (Wikipedia)</a>
+4. <a href="https://www.ibm.com/think/topics/machine-learning" target="_blank" rel="noopener">IBM Think — Machine Learning Overview</a>
+5. <a href="https://paperswithcode.com/datasets-and-evaluation-metrics" target="_blank" rel="noopener">Papers With Code — Evaluation Metrics by Domain</a>
