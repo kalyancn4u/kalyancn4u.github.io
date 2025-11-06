@@ -396,3 +396,80 @@ Emphasis on **directional accuracy** and **scale-independent errors**.
 5. <a href="https://www.ibm.com/think/topics/machine-learning-algorithms" target="_blank" rel="noopener">Machine Learning Algorithms — IBM</a>
 6. <a href="https://scikit-learn.org/stable/modules/model_evaluation.html" target="_blank" rel="noopener">Scikit-Learn Model Evaluation — Official Docs</a>
 7. <a href="https://mitsloan.mit.edu/ideas-made-to-matter/machine-learning-explained" target="_blank" rel="noopener">Machine Learning Explained — MIT Sloan</a>
+
+--- 
+
+## 🧭 ML Categories, Problem Types & Evaluation Metrics (Validated & Beginner-Friendly)
+
+| **ML Category** | **Problem Type** | **Sub-Category / Nature** | **Typical Metrics** | **Use When / Description** |
+|-----------------|------------------|-----------------------------|----------------------|-----------------------------|
+| **Supervised Learning (SL)** | **Classification** | Binary / Multi-class / Multi-label / Imbalanced | Accuracy, Precision, Recall, F1-Score, ROC-AUC, PR-AUC, Log-Loss | When you have labeled data (known outputs). The model learns to map input → output. Example: spam detection, disease diagnosis. |
+|  | **Regression** | Linear / Nonlinear / Robust / Percentage-based | MAE, MSE, RMSE, R², MAPE, SMAPE | When predicting continuous values (e.g., prices, temperature). MAPE and SMAPE express accuracy as % error. |
+| **Unsupervised Learning (USL)** | **Clustering** | Partition-based, Hierarchical, Density-based | Silhouette Score, Calinski-Harabasz Index, Davies-Bouldin Index | When no labels exist; model groups similar data. Example: customer segmentation. |
+|  | **Dimensionality Reduction** | PCA, t-SNE, UMAP | Reconstruction Error, Explained Variance | When simplifying features while preserving structure. Example: visualization, compression. |
+| **Semi-Supervised Learning (SSL)** | **Hybrid Tasks** | Few labeled + many unlabeled samples | Accuracy, F1-Score, Log-Loss, ROC-AUC (on labeled subset) | When labeled data is expensive or scarce. Example: labeling a few medical images, learning from rest automatically. |
+| **Self-Supervised Learning (Self-SL)** | **Representation Learning** | Contrastive, Masked Prediction, Autoencoding | Pretext-task accuracy, Transfer Learning performance | Model generates pseudo-labels from data itself. Example: predicting masked words in text (BERT), missing pixels in images. |
+| **Reinforcement Learning (RL)** | **Decision / Control Tasks** | Single-agent / Multi-agent / Continuous / Discrete | Reward, Cumulative Return, Average Reward, Success Rate | Model learns by interacting with environment via trial-and-error. Example: robotics, game AI. |
+| **Deep Learning (DL)** | **Supervised DL** | CNNs (images), RNNs (sequences), Transformers (text) | Accuracy, F1-Score, IoU, BLEU, ROUGE | Applies neural networks to complex data. Example: image classification, translation, text summarization. |
+|  | **Unsupervised DL** | Autoencoders, GANs, VAEs | Reconstruction Loss, FID, Inception Score | Learns structure or generates new samples without labels. Example: synthetic image generation. |
+|  | **Self-Supervised DL** | Pretraining models using pseudo-tasks | Linear Probe Accuracy, Fine-tune Accuracy | Foundation models trained on large unlabeled corpora; adapted to downstream tasks. |
+| **Specialized Domains (Cross-Cutting)** | **Ranking / Recommender Systems** | Search, Recommendation, Personalization | Precision@k, Recall@k, MAP, NDCG | Measures top-k relevance and ordering of results. Example: Netflix, Google Search. |
+|  | **Forecasting (Time-Series)** | Univariate / Multivariate / Multi-step | MAPE, SMAPE, RMSE, MAE | Predicts future values from past data. Example: sales, demand, energy load. |
+|  | **Anomaly Detection** | Supervised / Unsupervised | Precision@k, Recall@k, F1, ROC-AUC, PR-AUC | Detects rare abnormal events. Example: fraud, system failures. |
+|  | **Natural Language Processing (NLP)** | Text Classification / NER / Translation | Accuracy, F1, BLEU, ROUGE, METEOR | Evaluates language model outputs. Example: sentiment analysis, summarization. |
+|  | **Computer Vision (CV)** | Object Detection / Segmentation / Recognition | mAP, IoU, Dice, Pixel Accuracy | Measures visual recognition accuracy. Example: detecting cars or faces in images. |
+|  | **Generative Models** | GANs, Diffusion Models | FID, Inception Score, Perplexity | Evaluates realism and diversity of generated outputs. Example: image or text synthesis. |
+
+---
+
+### ✅ Simplified View (At a Glance)
+
+| **ML Category** | **Typical Problems** | **Typical Metrics** | **Example Use-Case** |
+|------------------|----------------------|----------------------|----------------------|
+| **Supervised Learning (SL)** | Classification, Regression | Accuracy, F1, ROC-AUC, MAE, RMSE | Spam detection, price prediction |
+| **Unsupervised Learning (USL)** | Clustering, Dimensionality Reduction | Silhouette, CH, DBI, Explained Variance | Customer segmentation, visualization |
+| **Semi-Supervised Learning (SSL)** | Hybrid labeled/unlabeled learning | Accuracy, F1, ROC-AUC | Learning from few labeled samples |
+| **Self-Supervised Learning (Self-SL)** | Pretext predictive tasks | Representation quality, Transfer Accuracy | Pretraining models on unlabeled data |
+| **Reinforcement Learning (RL)** | Sequential decision-making | Reward, Cumulative Return | Robotics, games, trading bots |
+| **Deep Learning (DL)** | Vision, NLP, Audio, Generative tasks | Accuracy, IoU, BLEU, FID | Image, speech, and text understanding |
+| **Forecasting / Time-Series** | Predicting future trends | MAPE, SMAPE, RMSE | Sales, weather, demand forecasts |
+| **Ranking / Recommendation** | Search / recommender systems | Precision@k, Recall@k, NDCG | Netflix, YouTube, Google Search |
+| **Anomaly Detection** | Rare-event detection | F1, ROC-AUC, PR-AUC | Fraud, defect detection |
+
+---
+
+### 🧩 Plain-Language Summary for Beginners
+
+| **Category** | **Plain Meaning** | **What It Learns** | **Example** |
+|---------------|------------------|--------------------|--------------|
+| **Supervised Learning** | Learns from examples with correct answers (labeled data). | Input → Output mapping. | Predicting loan default, image classification. |
+| **Unsupervised Learning** | Learns from unlabeled data to find hidden patterns. | Data structure or clusters. | Grouping customers by purchase behavior. |
+| **Semi-Supervised Learning** | Learns from a few labeled + many unlabeled examples. | Extends labeled data usefulness. | Medical image analysis (few labeled scans). |
+| **Self-Supervised Learning** | Creates labels automatically from raw data. | Learns general representations. | Predict masked words in sentences (BERT). |
+| **Reinforcement Learning** | Learns through trial and error to maximize reward. | Policy or strategy. | Self-driving cars, game agents. |
+| **Deep Learning** | Uses large neural networks to learn features automatically. | Complex feature hierarchies. | Face recognition, speech translation. |
+
+---
+
+### ⚙️ Notes & Tips
+
+- **Supervised Learning** dominates applied ML (most business problems have labeled data).  
+- **Unsupervised Learning** is used for discovery, not prediction.  
+- **Semi/Self-Supervised Learning** bridges gaps where labeled data is scarce.  
+- **Reinforcement Learning** is powerful but data-hungry and environment-dependent.  
+- **Deep Learning** cuts across all categories — when data is large and complex.  
+- Always **align metrics** with your business objective (precision for spam filters, recall for disease detection, MAPE for forecasts).  
+
+---
+
+### 📚 References (clickable)
+
+1. <a href="https://en.wikipedia.org/wiki/Machine_learning" target="_blank" rel="noopener">Machine Learning — Wikipedia</a>  
+2. <a href="https://www.ibm.com/think/topics/machine-learning" target="_blank" rel="noopener">What Is Machine Learning — IBM Think</a>  
+3. <a href="https://www.geeksforgeeks.org/machine-learning/machine-learning/" target="_blank" rel="noopener">Machine Learning Overview — GeeksforGeeks</a>  
+4. <a href="https://developers.google.com/machine-learning/crash-course/classification/metrics" target="_blank" rel="noopener">Google ML Crash Course — Evaluation Metrics</a>  
+5. <a href="https://scikit-learn.org/stable/modules/model_evaluation.html" target="_blank" rel="noopener">Scikit-Learn: Model Evaluation — Official Docs</a>  
+6. <a href="https://paperswithcode.com/datasets-and-evaluation-metrics" target="_blank" rel="noopener">Papers With Code — Evaluation Metrics by Domain</a>  
+7. <a href="https://en.wikipedia.org/wiki/Reinforcement_learning" target="_blank" rel="noopener">Reinforcement Learning — Wikipedia</a>  
+8. <a href="https://en.wikipedia.org/wiki/Self-supervised_learning" target="_blank" rel="noopener">Self-Supervised Learning — Wikipedia</a>  
+9. <a href="https://en.wikipedia.org/wiki/Deep_learning" target="_blank" rel="noopener">Deep Learning — Wikipedia</a>
