@@ -1,7 +1,7 @@
 ---
-title: "📗 DSML: Machine Learning, Deep Learning & Data Science Metrics — Comprehensive Revision"
+title: "📗 DSML: Machine Learning Metrics"
 layout: post
-description: "Concise, clear, and validated revision notes on Machine Learning, Deep Learning, and Data Science Metrics — structured for beginners and practitioners. Chirpy-ready markdown."
+description: "Concise, clear, and validated revision notes on Machine Learning, Deep Learning, and Data Science Metrics — structured for beginners and practitioners."
 categories: [Notes, DSML Metrics]
 tags: [DSML, Machine-Learning, Deep-Learning, Metrics, Data-Science, Notes]
 author: Kalyan Narayana
@@ -10,7 +10,7 @@ toc: true
 math: true
 ---
 
-# DSML: Machine Learning, Deep Learning & Data Science Metrics ✅
+# DSML: Machine Learning Metrics ✅
 
 Comprehensive **revision notes** covering the essentials of **Machine Learning (ML)**, **Deep Learning (DL)**, and **Data Science metrics**, written clearly, concisely, and precisely — ideal for quick review or structured study.
 
@@ -128,7 +128,7 @@ Use:
 |---------|----------|----------------|
 | **MSE** | $\text{MSE} = \frac{1}{n}\sum (y - \hat{y})^2$ | Penalises large errors |
 | **RMSE** | $\text{RMSE} = \sqrt{\text{MSE}}$ | Same units as target |
-| **MAE** | $\text{MAE} = \frac{1}{n}\sum |y - \hat{y}|$ | Robust to outliers |
+| **MAE** | $\text{MAE} = \frac{1}{n}\sum \|y - \hat{y}\|$ | Robust to outliers |
 | **R² (Coefficient of Determination)** | $R^2 = 1 - \frac{\sum (y - \hat{y})^2}{\sum (y - \bar{y})^2}$ | Fraction of variance explained |
 
 ---
@@ -296,12 +296,12 @@ Used when predicting continuous values (e.g., house price, temperature, revenue)
 
 | Metric                                    | Description                                                                                              | Formula                                                             | Python Method                                       |     |                                                 |   |           |        |                                                          |
 | :---------------------------------------- | :------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------ | :-------------------------------------------------- | --- | ----------------------------------------------- | - | --------- | ------ | -------------------------------------------------------- |
-| **MAE (Mean Absolute Error)**             | Average absolute difference between predicted and actual values. Easy to interpret.                      | $$MAE = \frac{1}{n}\sum                                             | y_i - \hat{y}_i                                     | $$  | `mean_absolute_error(y_true, y_pred)`           |   |           |        |                                                          |
+| **MAE (Mean Absolute Error)**             | Average absolute difference between predicted and actual values. Easy to interpret.                      | $$MAE = \frac{1}{n}\sum \| y_i - \hat{y}_i \| $$  | `mean_absolute_error(y_true, y_pred)`           |   |           |        |                                                          |
 | **MSE (Mean Squared Error)**              | Squares errors, penalizing large deviations. Sensitive to outliers.                                      | $$MSE = \frac{1}{n}\sum (y_i - \hat{y}_i)^2$$                       | `mean_squared_error(y_true, y_pred)`                |     |                                                 |   |           |        |                                                          |
 | **RMSE (Root Mean Squared Error)**        | Square root of MSE, same unit as the target.                                                             | $$RMSE = \sqrt{MSE}$$                                               | `mean_squared_error(y_true, y_pred, squared=False)` |     |                                                 |   |           |        |                                                          |
 | **R² (Coefficient of Determination)**     | Proportion of variance in target explained by the model (1 = perfect).                                   | $$R^2 = 1 - \frac{\sum (y_i - \hat y_i)^2}{\sum (y_i - \bar y)^2}$$ | `r2_score(y_true, y_pred)`                          |     |                                                 |   |           |        |                                                          |
-| **MAPE (Mean Absolute Percentage Error)** | Measures average percentage difference between prediction and actual. Easy to explain to non-tech users. | $$MAPE = \frac{100}{n}\sum \left                                    | \frac{y_i - \hat{y}_i}{y_i}\right                   | $$  | `np.mean(np.abs((y_true - y_pred)/y_true))*100` |   |           |        |                                                          |
-| **SMAPE (Symmetric MAPE)**                | Handles zeros better by averaging actuals & predictions in denominator.                                  | $$SMAPE = \frac{100}{n}\sum \frac{                                  | y_i - \hat{y}_i                                     | }{( | y_i                                             | + | \hat{y}_i | )/2}$$ | `2*np.mean(np.abs(y-yhat)/(np.abs(y)+np.abs(yhat)))*100` |
+| **MAPE (Mean Absolute Percentage Error)** | Measures average percentage difference between prediction and actual. Easy to explain to non-tech users. | $$MAPE = \frac{100}{n}\sum \left \| \frac{y_i - \hat{y}_i}{y_i}\right \| $$  | `np.mean(np.abs((y_true - y_pred)/y_true))*100` |   |           |        |                                                          |
+| **SMAPE (Symmetric MAPE)**                | Handles zeros better by averaging actuals & predictions in denominator.                                  | $$SMAPE = \frac{100}{n}\sum \frac{ \| y_i - \hat{y}_i \| }{( \| y_i \| + \| \hat{y}_i \| )/2}$$ | `2*np.mean(np.abs(y-yhat)/(np.abs(y)+np.abs(yhat)))*100` |
 
 🧩 **Example**
 
@@ -360,7 +360,7 @@ Emphasis on **directional accuracy** and **scale-independent errors**.
 | **MAE**   | Average of absolute errors; robust and easy to interpret.              | $$MAE = \frac{1}{n}\sum                                                          | y_t - \hat y_t                                      | $$  | `mean_absolute_error(y_true, y_pred)`           |   |          |        |                      |
 | **RMSE**  | Penalises larger errors; sensitive to outliers.                        | $$RMSE = \sqrt{\frac{1}{n}\sum (y_t - \hat y_t)^2}$$                             | `mean_squared_error(y_true, y_pred, squared=False)` |     |                                                 |   |          |        |                      |
 | **MAPE**  | Average percentage error; intuitive but unstable for near-zero values. | $$MAPE = \frac{100}{n}\sum \left                                                 | \frac{y_t - \hat y_t}{y_t}\right                    | $$  | `np.mean(np.abs((y_true - y_pred)/y_true))*100` |   |          |        |                      |
-| **SMAPE** | Symmetric version of MAPE; bounded between 0–200%.                     | $$SMAPE = \frac{100}{n}\sum \frac{                                               | y_t - \hat y_t                                      | }{( | y_t                                             | + | \hat y_t | )/2}$$ | Custom NumPy formula |
+| **SMAPE** | Symmetric version of MAPE; bounded between 0–200%.                     | $$SMAPE = \frac{100}{n}\sum \frac{ \| y_t - \hat y_t \| }{( \| y_t \| + \| \hat y_t \| )/2}$$ | Custom NumPy formula |
 | **RMSPE** | Root mean square percentage error; scale-free measure.                 | $$RMSPE = 100 \sqrt{\frac{1}{n}\sum \left(\frac{y_t - \hat y_t}{y_t}\right)^2}$$ | Custom NumPy formula                                |     |                                                 |   |          |        |                      |
 
 ---
