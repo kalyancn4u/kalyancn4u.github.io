@@ -1,5 +1,5 @@
 ---
-title: "Git & GitHub Basics"
+title: "📘 Git & GitHub Basics"
 date: 2025-10-22 04:00:00 +0530
 categories: [Notes, Git & GitHub]
 tags: [git, github, version-control]
