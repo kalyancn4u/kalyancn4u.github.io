@@ -1,7 +1,7 @@
 ---
 # layout: profile
 layout: page
-title: "My Profile"
+title: "🧑‍💻 My Profile"
 description: "Kalyan Narayana — Data Science, ML, and Full-Stack Engineer (Aspirant)"
 permalink: /profile/
 # TODO - image: /assets/img/profile/kalyan.jpg   # 🔁 add your headshot
