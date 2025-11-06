@@ -34,6 +34,7 @@ The goal is **generalisation** — achieving strong performance on unseen data, 
 7. Deployment & monitoring  
 
 ### 🔹 Key Trade-offs
+
 | Concept | Explanation |
 |----------|-------------|
 | **Bias–Variance Tradeoff** | High bias → underfitting; high variance → overfitting |
