@@ -1,5 +1,5 @@
 ---
-title: "REST API Architecture Principles & Best Practices"
+title: "📔 REST API Architecture Principles & Best Practices"
 date: 2025-10-30
 categories: [Web Dev, API, Architecture]
 tags: [REST, API Design, Best Practices, HTTP, JSON]
