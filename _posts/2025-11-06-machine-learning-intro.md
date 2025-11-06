@@ -1,5 +1,5 @@
 ---
-title: "Introduction to Machine Learning (ML)"
+title: "📘 Introduction to Machine Learning (ML)"
 layout: post
 description: "A clear, concise, and validated introduction to Machine Learning — structured for beginners with definitions, examples, and authoritative references."
 categories: [Notes, Machine Learning]
