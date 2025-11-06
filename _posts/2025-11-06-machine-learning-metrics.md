@@ -121,7 +121,7 @@ Used when the model predicts discrete labels (e.g., *spam / not spam*, *disease 
 | **PR-AUC** | Precision–Recall tradeoff, ideal for imbalanced datasets. | *Area under PR curve* | `average_precision_score(y_true, y_prob)` |
 | **Log Loss** | Penalizes incorrect probabilities heavily. Ideal for probabilistic classifiers. | $$L = -\frac{1}{n}\sum [y_i\log(\hat{y}_i) + (1-y_i)\log(1-\hat{y}_i)]$$ | `log_loss(y_true, y_prob)` |
 
-#### ✅Use:
+#### ✅ Use:
 - **Precision** when false positives are costly.  
 - **Recall** when false negatives are costly.  
 - **F1** when balancing both is important.  
@@ -178,7 +178,7 @@ print("\nConfusion Matrix:\n", cm)
 print("\nClassification Report:\n", report)
 ````
 
-#### ⚙️Tips:
+#### ⚙️ Tips:
 - **Accuracy** → fraction of correct predictions overall.  
 - **Precision** → of all predicted positives, how many were correct.  
 - **Recall** → of all actual positives, how many were found.  
@@ -338,7 +338,7 @@ Used when predicting continuous values (e.g., house price, temperature, revenue)
 | **MAPE (Mean Absolute Percentage Error)** | Measures average percentage difference between prediction and actual. Easy to explain to non-tech users. | $$MAPE = \frac{100}{n}\sum \left \| \frac{y_i - \hat{y}_i}{y_i}\right \| $$  | `np.mean(np.abs((y_true - y_pred)/y_true))*100` |
 | **SMAPE (Symmetric MAPE)**                | Handles zeros better by averaging actuals & predictions in denominator.                                  | $$SMAPE = \frac{100}{n}\sum \frac{ \| y_i - \hat{y}_i \| }{( \| y_i \| + \| \hat{y}_i \| )/2}$$ | `2*np.mean(np.abs(y-y_hat)/(np.abs(y)+np.abs(y_hat)))*100` |
 
-#### ✅Use:
+#### ✅ Use:
 - ✅ Use **MAE or RMSE** for general performance comparison.  
 - ✅ Prefer **MAPE or SMAPE** for percentage-based reporting (business metrics).  
 - ⚠️ **Avoid MAPE** when `y_true` contains zeros — use SMAPE instead.  
@@ -431,7 +431,7 @@ print(f"Median Absolute Error (MedAE)    : {medae:.3f}")
 ```
 
 ---
-#### ⚙️Tips:
+#### ⚙️ Tips:
 
 | Metric | Meaning | Notes |
 |---------|----------|-------|
