@@ -601,29 +601,24 @@ Unlike classification, which predicts *what*, ranking cares about *how high* rel
 | **MAP (Mean Average Precision)**                 | Average of precision values across recall levels. Higher = better ranking. | $$MAP = \frac{1}{Q}\sum_q AvgPrecision(q)$$                                  | `average_precision_score()`   |
 | **NDCG (Normalized Discounted Cumulative Gain)** | Measures ranking quality considering order and relevance.                  | $$NDCG@k = \frac{DCG@k}{IDCG@k}$$                                            | `ndcg_score(y_true, y_score)` |
 
-| **Metric** | **Measures** | **Interpretation / When to Use** | **Python Method** |
-|-------------|--------------|----------------------------------|--------------------|
-| **Precision@k** | Fraction of top-k recommended items that are relevant. | Measures short-term relevance — good for search and top-N recommendation quality. | Custom or `precision_score_at_k` (custom wrapper) |
-| **Recall@k** | Fraction of relevant items retrieved in top-k. | Focuses on coverage — how much of what user wants appears in top-k. | Custom implementation |
-| **MAP (Mean Average Precision)** | Average of precision across recall levels for all queries/users. | Combines ranking accuracy and completeness — robust for IR and recommendation. | `average_precision_score()` |
-| **MRR (Mean Reciprocal Rank)** | Average reciprocal of the rank of the first relevant item. | Prioritizes *early relevance* — ideal for Q&A or retrieval systems. | Custom formula |
-| **NDCG (Normalized Discounted Cumulative Gain)** | Weighted ranking quality — higher relevance at higher ranks yields more gain. | Handles graded relevance; common in search engines. | `ndcg_score(y_true, y_score)` |
-|  |  |  |  |
-| **Hit Rate (HR@k)** | Whether at least one relevant item appears in top-k. | Binary form of recall@k — easier to interpret. | Custom implementation |
-| **Coverage** | Fraction of all items ever recommended to any user. | Reflects diversity — higher coverage = model recommends wider variety. | Custom computation |
-| **Diversity** | Average dissimilarity between recommended items. | Encourages variety; avoids echo chambers or repetitive results. | Pairwise similarity / cosine distance–based custom code |
-| **Novelty** | Popularity bias measure — lower popularity → higher novelty. | Ensures recommendations surface less-seen items. | Popularity-weighted score (custom) |
-| **Serendipity** | Measures how surprising but relevant the recommendation is. | Enhances user satisfaction beyond predictability. | Requires behavioral data — computed offline. |
-
 #### ✅ Use:
 - **Search Engines:** rank documents by query relevance (Google, Bing).  
 - **Recommender Systems:** suggest products, movies, or news items (Amazon, Netflix).  
 - **Information Retrieval (IR):** evaluate top-k precision and recall.  
 - **Personalization Systems:** adapt ranking to user profiles and click history.  
 
-🧩 **Example**
+- **Precision@k:** Measures short-term relevance — good for search and top-N recommendation quality.|
+- **Recall@k:** Focuses on coverage — how much of what user wants appears in top-k.
+- **MAP (Mean Average Precision):** Combines ranking accuracy and completeness — robust for IR and recommendation.
+- **MRR (Mean Reciprocal Rank):** Average reciprocal of the rank of the first relevant item. Prioritizes *early relevance* — ideal for Q&A or retrieval systems.
+- **NDCG (Normalized Discounted Cumulative Gain):** Handles graded relevance; common in search engines. Weighted ranking quality — higher relevance at higher ranks yields more gain.
+- **Hit Rate (HR@k):** Binary form of recall@k — easier to interpret. Whether at least one relevant item appears in top-k.
+- **Coverage:** Reflects diversity — higher coverage = model recommends wider variety. Fraction of all items ever recommended to any user.
+- **Diversity:** Encourages variety; avoids echo chambers or repetitive results. Average dissimilarity between recommended items.
+- **Novelty:** Ensures recommendations surface less-seen items. Popularity bias measure — lower popularity → higher novelty.
+- **Serendipity:** Enhances user satisfaction beyond predictability. Measures how surprising but relevant the recommendation is.
 
-### 🧮 Example (Python Sketch)
+🧩 **Example**
 
 ```python
 import numpy as np
