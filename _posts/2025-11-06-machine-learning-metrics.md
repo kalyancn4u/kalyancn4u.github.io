@@ -793,7 +793,7 @@ Emphasis on **directional accuracy** and **scale-independent errors**.
 
 ---
 
-## ✅ 7. Key Takeaways
+## 🧭 7. Key Takeaways
 
 * Always **choose a metric aligned with your business goal**.
   (e.g., Recall for fraud detection, MAPE for forecast accuracy).
@@ -844,7 +844,7 @@ Emphasis on **directional accuracy** and **scale-independent errors**.
 
 ---
 
-## 🧭 ML Categories, Problem Types & Evaluation Metrics (Validated & Beginner-Friendly)
+### 🧭 ML Categories, Problem Type & Evaluation Metrics
 
 | **ML Category** | **Problem Type** | **Sub-Category / Nature** | **Typical Metrics** | **Use When / Description** |
 |-----------------|------------------|-----------------------------|----------------------|-----------------------------|
