@@ -455,7 +455,7 @@ Emphasis on **directional accuracy** and **scale-independent errors**.
 1. <a href="https://en.wikipedia.org/wiki/Machine_learning" target="_blank" rel="noopener">Machine Learning — Wikipedia</a>  
 2. <a href="https://www.ibm.com/think/topics/machine-learning" target="_blank" rel="noopener">What Is Machine Learning — IBM Think</a>  
 3. <a href="https://www.geeksforgeeks.org/machine-learning/machine-learning/" target="_blank" rel="noopener">Machine Learning Overview — GeeksforGeeks</a>
-4. 3. <a href="https://www.geeksforgeeks.org/machine-learning/introduction-machine-learning/" target="_blank" rel="noopener">Introduction to Machine Learning — GeeksforGeeks</a>
+4. <a href="https://www.geeksforgeeks.org/machine-learning/introduction-machine-learning/" target="_blank" rel="noopener">Introduction to Machine Learning — GeeksforGeeks</a>
 
 5. <a href="https://www.ibm.com/think/topics/machine-learning" target="_blank" rel="noopener">What Is Machine Learning (ML)? — IBM</a>
 6. <a href="https://www.ibm.com/think/topics/machine-learning-algorithms" target="_blank" rel="noopener">Machine Learning Algorithms — IBM</a>
