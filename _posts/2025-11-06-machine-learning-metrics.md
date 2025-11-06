@@ -781,7 +781,7 @@ Emphasis on **directional accuracy** and **scale-independent errors**.
 
 ---
 
-## ⚙️ 6. Summary: Choosing the Right Metric
+## 🧭 6. Summary: Choosing the Right Metric
 
 | Problem Type              | Typical Metrics        | Use When                                |
 | ------------------------- | ---------------------- | --------------------------------------- |
@@ -869,46 +869,41 @@ Emphasis on **directional accuracy** and **scale-independent errors**.
 
 ### 📚 References
 
-1. <a href="https://en.wikipedia.org/wiki/Machine_learning" target="_blank" rel="noopener">Machine Learning — Wikipedia</a>  
-2. <a href="https://www.ibm.com/think/topics/machine-learning" target="_blank" rel="noopener">What Is Machine Learning — IBM Think</a>  
-3. <a href="https://www.geeksforgeeks.org/machine-learning/machine-learning/" target="_blank" rel="noopener">Machine Learning Overview — GeeksforGeeks</a>
-4. <a href="https://www.geeksforgeeks.org/machine-learning/introduction-machine-learning/" target="_blank" rel="noopener">Introduction to Machine Learning — GeeksforGeeks</a>
+- Validated from **official documentation**, **academic repositories**, and **industry sources**.  
+- Recommended reading flow:  
+  → *Foundations* → *Evaluation Metrics* → *Paradigms* → *Practical Guides*.  
+- Combine conceptual (Wikipedia, IBM, MIT) with applied (scikit-learn, Google MLCC) for holistic mastery.
 
-5. <a href="https://www.ibm.com/think/topics/machine-learning" target="_blank" rel="noopener">What Is Machine Learning (ML)? — IBM</a>
-6. <a href="https://www.ibm.com/think/topics/machine-learning-algorithms" target="_blank" rel="noopener">Machine Learning Algorithms — IBM</a>
+#### 🧠 Core Machine Learning Foundations
 
-7. <a href="https://scikit-learn.org/stable/modules/model_evaluation.html" target="_blank" rel="noopener">Scikit-Learn: Model Evaluation — Official Docs</a>
-8. <a href="https://developers.google.com/machine-learning/crash-course/classification/metrics" target="_blank" rel="noopener">Google ML Crash Course — Evaluation Metrics</a>  
-9. <a href="https://paperswithcode.com/datasets-and-evaluation-metrics" target="_blank" rel="noopener">Papers With Code — Evaluation Metrics by Domain</a>  
-10. <a href="https://mitsloan.mit.edu/ideas-made-to-matter/machine-learning-explained" target="_blank" rel="noopener">Machine Learning Explained — MIT Sloan</a>
+1. [Machine Learning — Wikipedia](https://en.wikipedia.org/wiki/Machine_learning){: target="_blank" }  
+2. [What Is Machine Learning — IBM Think](https://www.ibm.com/think/topics/machine-learning){: target="_blank" }  
+3. [Machine Learning Overview — GeeksforGeeks](https://www.geeksforgeeks.org/machine-learning/machine-learning/){: target="_blank" }  
+4. [Introduction to Machine Learning — GeeksforGeeks](https://www.geeksforgeeks.org/machine-learning/introduction-machine-learning/){: target="_blank" }  
+5. [Machine Learning Explained — MIT Sloan](https://mitsloan.mit.edu/ideas-made-to-matter/machine-learning-explained){: target="_blank" }  
 
-11. <a href="https://en.wikipedia.org/wiki/Reinforcement_learning" target="_blank" rel="noopener">Reinforcement Learning — Wikipedia</a>  
-12. <a href="https://en.wikipedia.org/wiki/Self-supervised_learning" target="_blank" rel="noopener">Self-Supervised Learning — Wikipedia</a>  
-13. <a href="https://en.wikipedia.org/wiki/Deep_learning" target="_blank" rel="noopener">Deep Learning — Wikipedia</a>
+#### ⚙️ Evaluation & Metrics (Classification, Regression, Clustering, Ranking)
+
+6. [Scikit-Learn: Model Evaluation — Official Docs](https://scikit-learn.org/stable/modules/model_evaluation.html){: target="_blank" }  
+7. [Scikit-Learn — Ranking Metrics](https://scikit-learn.org/stable/modules/model_evaluation.html#ranking-metrics){: target="_blank" }  
+8. [Google ML Crash Course — Classification & Metrics](https://developers.google.com/machine-learning/crash-course/classification/metrics){: target="_blank" }  
+9. [Google ML Crash Course — Regression Metrics](https://developers.google.com/machine-learning/crash-course){: target="_blank" }  
+10. [Google ML — Recommendation System Evaluation](https://developers.google.com/machine-learning/recommendation/evaluation){: target="_blank" }  
+11. [Papers With Code — Evaluation Metrics by Domain](https://paperswithcode.com/datasets-and-evaluation-metrics){: target="_blank" }  
+12. [Precision and Recall — Wikipedia](https://en.wikipedia.org/wiki/Precision_and_recall){: target="_blank" }  
+13. [Mean Absolute Percentage Error (MAPE) — Wikipedia](https://en.wikipedia.org/wiki/Mean_absolute_percentage_error){: target="_blank" }  
+14. [Coefficient of Determination (R²) — Wikipedia](https://en.wikipedia.org/wiki/Coefficient_of_determination){: target="_blank" }  
+15. [Information Retrieval — Evaluation (Wikipedia)](https://en.wikipedia.org/wiki/Information_retrieval#Evaluation){: target="_blank" }  
+
+#### 🔍 Specialized Learning Paradigms
+
+16. [Reinforcement Learning — Wikipedia](https://en.wikipedia.org/wiki/Reinforcement_learning){: target="_blank" }  
+17. [Self-Supervised Learning — Wikipedia](https://en.wikipedia.org/wiki/Self-supervised_learning){: target="_blank" }  
+18. [Deep Learning — Wikipedia](https://en.wikipedia.org/wiki/Deep_learning){: target="_blank" }  
+
+#### 🧩 Supplementary & Practical Guides
+
+19. [Regression Models in ML — GeeksforGeeks](https://www.geeksforgeeks.org/regression-models-in-machine-learning/){: target="_blank" }  
+20. [Machine Learning Algorithms — IBM Think](https://www.ibm.com/think/topics/machine-learning-algorithms){: target="_blank" }  
 
 ---
-
-1. <a href="https://scikit-learn.org/stable/modules/model_evaluation.html" target="_blank" rel="noopener">Scikit-Learn: Model Evaluation — Official Docs</a>  
-2. <a href="https://en.wikipedia.org/wiki/Mean_absolute_percentage_error" target="_blank" rel="noopener">Mean Absolute Percentage Error — Wikipedia</a>  
-3. <a href="https://en.wikipedia.org/wiki/Coefficient_of_determination" target="_blank" rel="noopener">R-squared — Wikipedia</a>  
-4. <a href="https://developers.google.com/machine-learning/crash-course" target="_blank" rel="noopener">Google ML Crash Course — Regression Metrics</a>  
-5. <a href="https://www.geeksforgeeks.org/regression-models-in-machine-learning/" target="_blank" rel="noopener">Regression Models in ML — GeeksforGeeks</a>
-
----
-
-1. <a href="https://scikit-learn.org/stable/modules/model_evaluation.html" target="_blank" rel="noopener">Scikit-Learn: Model Evaluation — Official Docs</a>  
-2. <a href="https://developers.google.com/machine-learning/crash-course/classification/metrics" target="_blank" rel="noopener">Google ML Crash Course — Evaluation Metrics</a>  
-3. <a href="https://en.wikipedia.org/wiki/Precision_and_recall" target="_blank" rel="noopener">Precision and Recall — Wikipedia</a>  
-4. <a href="https://www.geeksforgeeks.org/machine-learning/" target="_blank" rel="noopener">Machine Learning Overview — GeeksforGeeks</a>  
-5. <a href="https://www.ibm.com/think/topics/machine-learning" target="_blank" rel="noopener">What Is Machine Learning — IBM Think</a>
-
----
-
-- Scikit-learn: Model evaluation and clustering metrics (official docs)  
-- PapersWithCode / survey pages for clustering evaluation
-
-1. <a href="https://scikit-learn.org/stable/modules/model_evaluation.html#ranking-metrics" target="_blank" rel="noopener">Scikit-Learn — Ranking Metrics</a>
-2. <a href="https://developers.google.com/machine-learning/recommendation/evaluation" target="_blank" rel="noopener">Google ML — Recommendation System Evaluation</a>
-3. <a href="https://en.wikipedia.org/wiki/Information_retrieval#Evaluation" target="_blank" rel="noopener">Information Retrieval — Evaluation (Wikipedia)</a>
-4. <a href="https://www.ibm.com/think/topics/machine-learning" target="_blank" rel="noopener">IBM Think — Machine Learning Overview</a>
-5. <a href="https://paperswithcode.com/datasets-and-evaluation-metrics" target="_blank" rel="noopener">Papers With Code — Evaluation Metrics by Domain</a>
