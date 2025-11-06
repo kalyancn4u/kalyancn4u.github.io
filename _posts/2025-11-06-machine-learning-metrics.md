@@ -3,7 +3,7 @@ title: "📗 DSML: Machine Learning, Deep Learning & Data Science Metrics — Co
 layout: post
 description: "Concise, clear, and validated revision notes on Machine Learning, Deep Learning, and Data Science Metrics — structured for beginners and practitioners. Chirpy-ready markdown."
 categories: [DSML, Machine-Learning, Metrics]
-tags: [DSML, Machine-Learning, Deep-Learning, Metrics, Data-Science, Revision]
+tags: [DSML, Machine-Learning, Deep-Learning, Metrics, Data-Science, Notes]
 author: Kalyan Narayana
 date: 2025-11-06 19:30:00 +0530
 toc: true
