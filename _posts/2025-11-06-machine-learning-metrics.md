@@ -464,7 +464,7 @@ Used when no labels exist; these measure the **compactness and separation** of c
 - For **DBSCAN**, check `-1` labels (noise); internal metrics may be undefined if too few clusters exist.
 - Always **visualize** clusters (scatter, PCA, t-SNE) alongside metrics — numbers alone can be misleading.
 
-#### 🧩 Clustering Metrics (Comprehensive Python Example)
+🧩 **Example: Clustering Metrics**
 
 ```python
 # -------------------------------------------------------------
