@@ -301,7 +301,7 @@ Used when predicting continuous values (e.g., house price, temperature, revenue)
 | **RMSE (Root Mean Squared Error)**        | Square root of MSE, same unit as the target.                                                             | $$RMSE = \sqrt{MSE}$$                                               | `mean_squared_error(y_true, y_pred, squared=False)` |
 | **R² (Coefficient of Determination)**     | Proportion of variance in target explained by the model (1 = perfect).                                   | $$R^2 = 1 - \frac{\sum (y_i - \hat y_i)^2}{\sum (y_i - \bar y)^2}$$ | `r2_score(y_true, y_pred)`                          |
 | **MAPE (Mean Absolute Percentage Error)** | Measures average percentage difference between prediction and actual. Easy to explain to non-tech users. | $$MAPE = \frac{100}{n}\sum \left \| \frac{y_i - \hat{y}_i}{y_i}\right \| $$  | `np.mean(np.abs((y_true - y_pred)/y_true))*100` |
-| **SMAPE (Symmetric MAPE)**                | Handles zeros better by averaging actuals & predictions in denominator.                                  | $$SMAPE = \frac{100}{n}\sum \frac{ \| y_i - \hat{y}_i \| }{( \| y_i \| + \| \hat{y}_i \| )/2}$$ | `2*np.mean(np.abs(y-yhat)/(np.abs(y)+np.abs(yhat)))*100` |
+| **SMAPE (Symmetric MAPE)**                | Handles zeros better by averaging actuals & predictions in denominator.                                  | $$SMAPE = \frac{100}{n}\sum \frac{ \| y_i - \hat{y}_i \| }{( \| y_i \| + \| \hat{y}_i \| )/2}$$ | `2*np.mean(np.abs(y-y_hat)/(np.abs(y)+np.abs(y_hat)))*100` |
 
 🧩 **Example**
 
@@ -355,13 +355,13 @@ map_score = average_precision_score(y_true, y_score)
 Used when predicting values over time (sales, temperature, stock prices).
 Emphasis on **directional accuracy** and **scale-independent errors**.
 
-| Metric    | Description                                                            | Formula                                                                          | Python Method                                       |     |                                                 |   |          |        |                      |
-| :-------- | :--------------------------------------------------------------------- | :------------------------------------------------------------------------------- | :-------------------------------------------------- | --- | ----------------------------------------------- | - | -------- | ------ | -------------------- |
-| **MAE**   | Average of absolute errors; robust and easy to interpret.              | $$MAE = \frac{1}{n}\sum                                                          | y_t - \hat y_t                                      | $$  | `mean_absolute_error(y_true, y_pred)`           |   |          |        |                      |
-| **RMSE**  | Penalises larger errors; sensitive to outliers.                        | $$RMSE = \sqrt{\frac{1}{n}\sum (y_t - \hat y_t)^2}$$                             | `mean_squared_error(y_true, y_pred, squared=False)` |     |                                                 |   |          |        |                      |
-| **MAPE**  | Average percentage error; intuitive but unstable for near-zero values. | $$MAPE = \frac{100}{n}\sum \left                                                 | \frac{y_t - \hat y_t}{y_t}\right                    | $$  | `np.mean(np.abs((y_true - y_pred)/y_true))*100` |   |          |        |                      |
+| Metric    | Description                                                            | Formula                                                                          | Python Method                                      |
+| :-------- | :--------------------------------------------------------------------- | :------------------------------------------------------------------------------- | :------------------------------------------------- |
+| **MAE**   | Average of absolute errors; robust and easy to interpret.              | $$MAE = \frac{1}{n}\sum \| y_t - \hat y_t \| $$  | `mean_absolute_error(y_true, y_pred)`           |
+| **RMSE**  | Penalises larger errors; sensitive to outliers.                        | $$RMSE = \sqrt{\frac{1}{n}\sum (y_t - \hat y_t)^2}$$  | `mean_squared_error(y_true, y_pred, squared=False)` |
+| **MAPE**  | Average percentage error; intuitive but unstable for near-zero values. | $$MAPE = \frac{100}{n}\sum \left \| \frac{y_t - \hat y_t}{y_t}\right \| $$  | `np.mean(np.abs((y_true - y_pred)/y_true))*100` |
 | **SMAPE** | Symmetric version of MAPE; bounded between 0–200%.                     | $$SMAPE = \frac{100}{n}\sum \frac{ \| y_t - \hat y_t \| }{( \| y_t \| + \| \hat y_t \| )/2}$$ | Custom NumPy formula |
-| **RMSPE** | Root mean square percentage error; scale-free measure.                 | $$RMSPE = 100 \sqrt{\frac{1}{n}\sum \left(\frac{y_t - \hat y_t}{y_t}\right)^2}$$ | Custom NumPy formula                                |     |                                                 |   |          |        |                      |
+| **RMSPE** | Root mean square percentage error; scale-free measure.                 | $$RMSPE = 100 \sqrt{\frac{1}{n}\sum \left(\frac{y_t - \hat y_t}{y_t}\right)^2}$$ | Custom NumPy formula  |
 
 ---
 
