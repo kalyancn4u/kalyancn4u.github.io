@@ -1,5 +1,5 @@
 ---
-title: "Streamlit and Model Serialization in Python"
+title: "📘 Streamlit and Model Serialization in Python"
 date: 2025-10-25 04:00:00 +0530
 categories: [Notes, Streamlit]
 tags: [streamlit, model-serialization, pickle, ml-deployment, python-tools]
