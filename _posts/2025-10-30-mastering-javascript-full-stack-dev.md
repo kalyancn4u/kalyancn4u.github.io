@@ -1,5 +1,5 @@
 ---
-title: "Mastering JavaScript for Full-Stack Development"
+title: "📗 Mastering JavaScript for Full-Stack Development"
 date: 2025-10-31
 categories: [Web Dev, JavaScript]
 tags: [JavaScript, Node.js, Express, React, MongoDB, MERN, MEAN, Deployment]
