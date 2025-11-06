@@ -385,18 +385,6 @@ Emphasis on **directional accuracy** and **scale-independent errors**.
 * Track **multiple metrics** — one metric rarely tells the full story.
 * In production, monitor **metrics drift** to detect model decay.
 
----
-
-### 📚 References
-
-1. <a href="https://en.wikipedia.org/wiki/Machine_learning" target="_blank" rel="noopener">Machine Learning — Wikipedia</a>
-2. <a href="https://www.geeksforgeeks.org/machine-learning/machine-learning/" target="_blank" rel="noopener">Machine Learning Overview — GeeksforGeeks</a>
-3. <a href="https://www.geeksforgeeks.org/machine-learning/introduction-machine-learning/" target="_blank" rel="noopener">Introduction to Machine Learning — GeeksforGeeks</a>
-4. <a href="https://www.ibm.com/think/topics/machine-learning" target="_blank" rel="noopener">What Is Machine Learning (ML)? — IBM</a>
-5. <a href="https://www.ibm.com/think/topics/machine-learning-algorithms" target="_blank" rel="noopener">Machine Learning Algorithms — IBM</a>
-6. <a href="https://scikit-learn.org/stable/modules/model_evaluation.html" target="_blank" rel="noopener">Scikit-Learn Model Evaluation — Official Docs</a>
-7. <a href="https://mitsloan.mit.edu/ideas-made-to-matter/machine-learning-explained" target="_blank" rel="noopener">Machine Learning Explained — MIT Sloan</a>
-
 --- 
 
 ## 🧭 ML Categories, Problem Types & Evaluation Metrics (Validated & Beginner-Friendly)
@@ -462,14 +450,23 @@ Emphasis on **directional accuracy** and **scale-independent errors**.
 
 ---
 
-### 📚 References (clickable)
+### 📚 References
 
 1. <a href="https://en.wikipedia.org/wiki/Machine_learning" target="_blank" rel="noopener">Machine Learning — Wikipedia</a>  
 2. <a href="https://www.ibm.com/think/topics/machine-learning" target="_blank" rel="noopener">What Is Machine Learning — IBM Think</a>  
-3. <a href="https://www.geeksforgeeks.org/machine-learning/machine-learning/" target="_blank" rel="noopener">Machine Learning Overview — GeeksforGeeks</a>  
-4. <a href="https://developers.google.com/machine-learning/crash-course/classification/metrics" target="_blank" rel="noopener">Google ML Crash Course — Evaluation Metrics</a>  
-5. <a href="https://scikit-learn.org/stable/modules/model_evaluation.html" target="_blank" rel="noopener">Scikit-Learn: Model Evaluation — Official Docs</a>  
-6. <a href="https://paperswithcode.com/datasets-and-evaluation-metrics" target="_blank" rel="noopener">Papers With Code — Evaluation Metrics by Domain</a>  
-7. <a href="https://en.wikipedia.org/wiki/Reinforcement_learning" target="_blank" rel="noopener">Reinforcement Learning — Wikipedia</a>  
-8. <a href="https://en.wikipedia.org/wiki/Self-supervised_learning" target="_blank" rel="noopener">Self-Supervised Learning — Wikipedia</a>  
-9. <a href="https://en.wikipedia.org/wiki/Deep_learning" target="_blank" rel="noopener">Deep Learning — Wikipedia</a>
+3. <a href="https://www.geeksforgeeks.org/machine-learning/machine-learning/" target="_blank" rel="noopener">Machine Learning Overview — GeeksforGeeks</a>
+4. 3. <a href="https://www.geeksforgeeks.org/machine-learning/introduction-machine-learning/" target="_blank" rel="noopener">Introduction to Machine Learning — GeeksforGeeks</a>
+
+5. <a href="https://www.ibm.com/think/topics/machine-learning" target="_blank" rel="noopener">What Is Machine Learning (ML)? — IBM</a>
+6. <a href="https://www.ibm.com/think/topics/machine-learning-algorithms" target="_blank" rel="noopener">Machine Learning Algorithms — IBM</a>
+
+7. <a href="https://scikit-learn.org/stable/modules/model_evaluation.html" target="_blank" rel="noopener">Scikit-Learn: Model Evaluation — Official Docs</a>
+8. <a href="https://developers.google.com/machine-learning/crash-course/classification/metrics" target="_blank" rel="noopener">Google ML Crash Course — Evaluation Metrics</a>  
+9. <a href="https://paperswithcode.com/datasets-and-evaluation-metrics" target="_blank" rel="noopener">Papers With Code — Evaluation Metrics by Domain</a>  
+10. <a href="https://mitsloan.mit.edu/ideas-made-to-matter/machine-learning-explained" target="_blank" rel="noopener">Machine Learning Explained — MIT Sloan</a>
+
+11. <a href="https://en.wikipedia.org/wiki/Reinforcement_learning" target="_blank" rel="noopener">Reinforcement Learning — Wikipedia</a>  
+12. <a href="https://en.wikipedia.org/wiki/Self-supervised_learning" target="_blank" rel="noopener">Self-Supervised Learning — Wikipedia</a>  
+13. <a href="https://en.wikipedia.org/wiki/Deep_learning" target="_blank" rel="noopener">Deep Learning — Wikipedia</a>
+
+---
