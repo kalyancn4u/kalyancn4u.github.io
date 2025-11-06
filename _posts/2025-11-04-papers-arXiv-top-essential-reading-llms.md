@@ -1,9 +1,12 @@
 ---
-title: "📘 Top AI Papers You Should Read (Ranked & Explained)"
+title: "📘 ArXiv: Essential Reading for LLMs"
 layout: post
 description: "A curated list of the most influential AI & LLM papers — clearly categorized and explained for beginners."
-tags: [AI, LLM, Deep Learning, NLP, Research, Transformers]
+categories: [Papers, arXiv]
+tags: [LLM, Deep Learning, NLP, Research, Transformers, arXiv, Papers]
 ---
+
+# 📘 ArXiv: Top AI Papers - Essential Reading
 
 > 🧠 *A concise guide to foundational and breakthrough AI papers that shaped the modern era of Large Language Models (LLMs).*
 
