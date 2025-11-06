@@ -121,10 +121,76 @@ Used when the model predicts discrete labels (e.g., *spam / not spam*, *disease 
 | **PR-AUC** | Precision–Recall tradeoff, ideal for imbalanced datasets. | *Area under PR curve* | `average_precision_score(y_true, y_prob)` |
 | **Log Loss** | Penalizes incorrect probabilities heavily. Ideal for probabilistic classifiers. | $$L = -\frac{1}{n}\sum [y_i\log(\hat{y}_i) + (1-y_i)\log(1-\hat{y}_i)]$$ | `log_loss(y_true, y_prob)` |
 
-Use:
+#### Use:
 - **Precision** when false positives are costly.  
 - **Recall** when false negatives are costly.  
 - **F1** when balancing both is important.  
+
+```python
+### 🧩 Classification Metrics (Comprehensive Python Example)
+
+```python
+# Import common classification metrics
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    roc_auc_score,
+    average_precision_score,
+    log_loss,
+    confusion_matrix,
+    classification_report
+)
+
+# Assume y_true are true labels and y_pred are predicted class labels
+# y_prob are predicted probabilities (for ROC-AUC, PR-AUC, Log-Loss)
+# Example:
+# y_true = [0, 1, 1, 0, 1]
+# y_pred = [0, 1, 0, 0, 1]
+# y_prob = [0.1, 0.9, 0.4, 0.2, 0.8]
+
+# ✅ Basic classification metrics
+acc  = accuracy_score(y_true, y_pred)              # Overall correctness
+prec = precision_score(y_true, y_pred)             # Positive predictive value
+rec  = recall_score(y_true, y_pred)                # Sensitivity / True Positive Rate
+f1   = f1_score(y_true, y_pred)                    # Balance between precision & recall
+
+# ✅ Probabilistic metrics (for probabilistic classifiers)
+roc_auc = roc_auc_score(y_true, y_prob)            # Area under ROC Curve
+pr_auc  = average_precision_score(y_true, y_prob)  # Area under Precision-Recall Curve
+logloss = log_loss(y_true, y_prob)                 # Penalizes wrong probability estimates
+
+# ✅ Confusion Matrix (raw performance counts)
+cm = confusion_matrix(y_true, y_pred)
+
+# ✅ Detailed classification report (precision, recall, F1 per class)
+report = classification_report(y_true, y_pred)
+
+# Print results neatly
+print(f"Accuracy       : {acc:.3f}")
+print(f"Precision      : {prec:.3f}")
+print(f"Recall         : {rec:.3f}")
+print(f"F1 Score       : {f1:.3f}")
+print(f"ROC-AUC        : {roc_auc:.3f}")
+print(f"PR-AUC         : {pr_auc:.3f}")
+print(f"Log Loss       : {logloss:.3f}")
+print("\nConfusion Matrix:\n", cm)
+print("\nClassification Report:\n", report)
+````
+
+#### Notes:
+- **Accuracy** → fraction of correct predictions overall.  
+- **Precision** → of all predicted positives, how many were correct.  
+- **Recall** → of all actual positives, how many were found.  
+- **F1 Score** → harmonic mean of precision and recall (balanced measure).  
+- **ROC-AUC** → model’s ability to separate classes.  
+- **PR-AUC** → preferred for imbalanced datasets (focuses on positive class).  
+- **Log Loss** → measures confidence of probability predictions (lower = better).  
+- **Confusion Matrix** → shows TP, FP, TN, FN counts — great for diagnostic insight.  
+- **Classification Report** → gives per-class Precision, Recall, F1, and Support.  
+
+TODO
 
 ---
 
