@@ -1,5 +1,5 @@
 ---
-title: "☁️ Cloud Comparison: AWS vs Azure vs GCP — Architecture, Learning & Icons"
+title: "📔 Cloud Comparison: AWS vs Azure vs GCP — Architecture, Learning & Icons"
 date: 2025-11-03 04:00:00 +0530
 categories: [Cloud, Architecture]
 tags: [AWS, Azure, GCP, Comparison, Cloud-Computing, Architecture, DevOps, ML, Icons, Learning]
