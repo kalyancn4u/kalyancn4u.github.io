@@ -2,8 +2,8 @@
 title: "📘 Introduction to Machine Learning (ML)"
 layout: post
 description: "A clear, concise, and validated introduction to Machine Learning — structured for beginners with definitions, examples, and authoritative references."
-categories: [Notes, DSML Intro]
-tags: [Machine-Learning, AI, Data-Science, Intro]
+categories: [Notes, Machine Learning]
+tags: [Machine-Learning, Data-Science, Intro, DSML]
 author: Kalyan Narayana
 date: 2025-11-06 18:00:00 +0530
 toc: true
