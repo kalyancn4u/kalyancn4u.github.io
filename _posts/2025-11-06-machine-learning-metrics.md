@@ -857,6 +857,7 @@ Emphasis on **directional accuracy** and **scale-independent errors**.
 
 ### ⚙️ Notes & Tips
 
+- [**Scikit-learn: Choosing the right estimator**](https://scikit-learn.org/stable/machine_learning_map.html){:target="_blank"}
 - **Supervised Learning** dominates applied ML (most business problems have labeled data).  
 - **Unsupervised Learning** is used for discovery, not prediction.  
 - **Semi/Self-Supervised Learning** bridges gaps where labeled data is scarce.  
