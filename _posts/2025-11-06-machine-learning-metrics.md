@@ -204,6 +204,14 @@ Used when predicting continuous values (e.g., house price, temperature, revenue)
 | **MAPE (Mean Absolute Percentage Error)** | Measures average percentage difference between prediction and actual. Easy to explain to non-tech users. | $$MAPE = \frac{100}{n}\sum \left \| \frac{y_i - \hat{y}_i}{y_i}\right \| $$  | `np.mean(np.abs((y_true - y_pred)/y_true))*100` |
 | **SMAPE (Symmetric MAPE)**                | Handles zeros better by averaging actuals & predictions in denominator.                                  | $$SMAPE = \frac{100}{n}\sum \frac{ \| y_i - \hat{y}_i \| }{( \| y_i \| + \| \hat{y}_i \| )/2}$$ | `2*np.mean(np.abs(y-y_hat)/(np.abs(y)+np.abs(y_hat)))*100` |
 
+#### ✅Use:
+- ✅ Use **MAE or RMSE** for general performance comparison.  
+- ✅ Prefer **MAPE or SMAPE** for percentage-based reporting (business metrics).  
+- ⚠️ **Avoid MAPE** when `y_true` contains zeros — use SMAPE instead.  
+- 💡 **RMSLE** is useful for targets with large magnitude variation (e.g., population, revenue).  
+- 📊 Use **Adjusted R²** for multi-feature models to account for model complexity.  
+- 🔍 Always visualize residuals to understand error distribution.
+
 🧩 **Example: Regression Metrics**
 
 ```python
@@ -290,13 +298,6 @@ print(f"Median Absolute Error (MedAE)    : {medae:.3f}")
 
 ---
 #### ⚙️Tips:
-
-- ✅ Use **MAE or RMSE** for general performance comparison.  
-- ✅ Prefer **MAPE or SMAPE** for percentage-based reporting (business metrics).  
-- ⚠️ **Avoid MAPE** when `y_true` contains zeros — use SMAPE instead.  
-- 💡 **RMSLE** is useful for targets with large magnitude variation (e.g., population, revenue).  
-- 📊 Use **Adjusted R²** for multi-feature models to account for model complexity.  
-- 🔍 Always visualize residuals to understand error distribution.
 
 | Metric | Meaning | Notes |
 |---------|----------|-------|
