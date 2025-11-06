@@ -121,7 +121,7 @@ Used when the model predicts discrete labels (e.g., *spam / not spam*, *disease 
 | **PR-AUC** | Precision–Recall tradeoff, ideal for imbalanced datasets. | *Area under PR curve* | `average_precision_score(y_true, y_prob)` |
 | **Log Loss** | Penalizes incorrect probabilities heavily. Ideal for probabilistic classifiers. | $$L = -\frac{1}{n}\sum [y_i\log(\hat{y}_i) + (1-y_i)\log(1-\hat{y}_i)]$$ | `log_loss(y_true, y_prob)` |
 
-#### ⚙️Tips:
+#### ✅Use:
 - **Precision** when false positives are costly.  
 - **Recall** when false negatives are costly.  
 - **F1** when balancing both is important.  
