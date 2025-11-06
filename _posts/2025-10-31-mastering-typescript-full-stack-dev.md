@@ -1,5 +1,5 @@
 ---
-title: "Mastering TypeScript for Full-Stack Development"
+title: "📗 Mastering TypeScript for Full-Stack Development"
 date: 2025-10-31
 categories: [Web Dev, TypeScript]
 tags: [TypeScript, Node.js, Express, React, Full-Stack, TS]
