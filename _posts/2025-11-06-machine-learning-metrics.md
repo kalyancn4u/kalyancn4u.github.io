@@ -189,6 +189,140 @@ print("\nClassification Report:\n", report)
 - **Confusion Matrix** → shows TP, FP, TN, FN counts — great for diagnostic insight.  
 - **Classification Report** → gives per-class Precision, Recall, F1, and Support.  
 
+### 🧠 Classification Metrics — Binary, Multi-Class & Multi-Label
+
+#### ✅ Use:
+- Always use `average='weighted'` for **imbalanced** multi-class datasets.  
+- For **multi-label tasks**, `average='micro'` is preferred to capture global performance.  
+- Use **`classification_report()`** to summarize all metrics at once — it’s your go-to diagnostic summary.  
+- For **probabilistic classifiers** (like Logistic Regression, XGBoost, or Neural Nets), use `y_prob` to compute **ROC-AUC, PR-AUC, or Log Loss**.  
+- Always examine the **confusion matrix** — metrics may look good overall but hide class-specific issues.  
+
+🧩 **Example: Classification Metrics — Binary, Multi-Class & Multi-Label**
+
+```python
+# -------------------------------------------------------------
+# 🧠 IMPORTS
+# -------------------------------------------------------------
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    roc_auc_score,
+    average_precision_score,
+    log_loss,
+    confusion_matrix,
+    classification_report
+)
+
+# -------------------------------------------------------------
+# 🧩 EXAMPLE DATA
+# -------------------------------------------------------------
+# Binary classification example
+y_true_bin = [0, 1, 1, 0, 1]
+y_pred_bin = [0, 1, 0, 0, 1]
+y_prob_bin = [0.1, 0.9, 0.4, 0.2, 0.8]
+
+# Multi-class example (3 classes)
+y_true_multi = [0, 1, 2, 2, 1, 0]
+y_pred_multi = [0, 2, 2, 1, 1, 0]
+# For AUC-like metrics, you need probability estimates for each class (e.g., softmax output)
+# y_prob_multi = model.predict_proba(X_test)
+
+# Multi-label example (each sample can have multiple true labels)
+y_true_multi_label = [
+    [1, 0, 1],
+    [0, 1, 0],
+    [1, 1, 0],
+]
+y_pred_multi_label = [
+    [1, 0, 1],
+    [1, 1, 0],
+    [0, 1, 0],
+]
+
+# -------------------------------------------------------------
+# ✅ BINARY CLASSIFICATION METRICS
+# -------------------------------------------------------------
+print("=== Binary Classification Metrics ===")
+acc_bin  = accuracy_score(y_true_bin, y_pred_bin)
+prec_bin = precision_score(y_true_bin, y_pred_bin)
+rec_bin  = recall_score(y_true_bin, y_pred_bin)
+f1_bin   = f1_score(y_true_bin, y_pred_bin)
+roc_bin  = roc_auc_score(y_true_bin, y_prob_bin)
+pr_bin   = average_precision_score(y_true_bin, y_prob_bin)
+logl_bin = log_loss(y_true_bin, y_prob_bin)
+cm_bin   = confusion_matrix(y_true_bin, y_pred_bin)
+
+print(f"Accuracy       : {acc_bin:.3f}")
+print(f"Precision      : {prec_bin:.3f}")
+print(f"Recall         : {rec_bin:.3f}")
+print(f"F1 Score       : {f1_bin:.3f}")
+print(f"ROC-AUC        : {roc_bin:.3f}")
+print(f"PR-AUC         : {pr_bin:.3f}")
+print(f"Log Loss       : {logl_bin:.3f}")
+print("\nConfusion Matrix:\n", cm_bin)
+print("\nClassification Report:\n", classification_report(y_true_bin, y_pred_bin))
+
+# -------------------------------------------------------------
+# ✅ MULTI-CLASS CLASSIFICATION METRICS
+# -------------------------------------------------------------
+print("\n=== Multi-Class Classification Metrics ===")
+
+# average='macro' → treats all classes equally (useful when classes are balanced)
+# average='weighted' → weights by support (better for imbalanced multi-class)
+acc_multi  = accuracy_score(y_true_multi, y_pred_multi)
+prec_macro = precision_score(y_true_multi, y_pred_multi, average='macro')
+rec_macro  = recall_score(y_true_multi, y_pred_multi, average='macro')
+f1_macro   = f1_score(y_true_multi, y_pred_multi, average='macro')
+prec_weighted = precision_score(y_true_multi, y_pred_multi, average='weighted')
+rec_weighted  = recall_score(y_true_multi, y_pred_multi, average='weighted')
+f1_weighted   = f1_score(y_true_multi, y_pred_multi, average='weighted')
+
+print(f"Accuracy (Overall)  : {acc_multi:.3f}")
+print(f"Precision (Macro)   : {prec_macro:.3f}")
+print(f"Recall (Macro)      : {rec_macro:.3f}")
+print(f"F1 Score (Macro)    : {f1_macro:.3f}")
+print(f"Precision (Weighted): {prec_weighted:.3f}")
+print(f"Recall (Weighted)   : {rec_weighted:.3f}")
+print(f"F1 Score (Weighted) : {f1_weighted:.3f}")
+print("\nClassification Report:\n", classification_report(y_true_multi, y_pred_multi))
+
+# -------------------------------------------------------------
+# ✅ MULTI-LABEL CLASSIFICATION METRICS
+# -------------------------------------------------------------
+print("\n=== Multi-Label Classification Metrics ===")
+
+# Here each label is evaluated independently; use averaging to aggregate
+prec_micro = precision_score(y_true_multi_label, y_pred_multi_label, average='micro')
+rec_micro  = recall_score(y_true_multi_label, y_pred_multi_label, average='micro')
+f1_micro   = f1_score(y_true_multi_label, y_pred_multi_label, average='micro')
+
+prec_samples = precision_score(y_true_multi_label, y_pred_multi_label, average='samples')
+rec_samples  = recall_score(y_true_multi_label, y_pred_multi_label, average='samples')
+f1_samples   = f1_score(y_true_multi_label, y_pred_multi_label, average='samples')
+
+print(f"Precision (Micro) : {prec_micro:.3f}")
+print(f"Recall (Micro)    : {rec_micro:.3f}")
+print(f"F1 Score (Micro)  : {f1_micro:.3f}")
+print(f"Precision (Samples): {prec_samples:.3f}")
+print(f"Recall (Samples)   : {rec_samples:.3f}")
+print(f"F1 Score (Samples) : {f1_samples:.3f}")
+print("\nClassification Report:\n", classification_report(y_true_multi_label, y_pred_multi_label))
+```
+
+#### ⚙️ Tips
+
+| Concept | Meaning | Common Usage |
+|----------|----------|--------------|
+| **Binary Classification** | Two classes (e.g., yes/no, 0/1). | Accuracy, F1, ROC-AUC, PR-AUC |
+| **Multi-Class** | More than two classes (e.g., cat, dog, horse). | Macro- and Weighted- averages for F1, Precision, Recall |
+| **Multi-Label** | Each sample can belong to multiple classes simultaneously. | Micro-average and sample-average metrics |
+| **Macro-Average** | Treats each class equally (good for balanced datasets). | Gives equal weight to all classes. |
+| **Weighted-Average** | Weighs metrics by class frequency. | Best for imbalanced data. |
+| **Micro-Average** | Aggregates across all classes (global view). | Useful for multi-label or imbalanced setups. |
+
 ---
 
 ### 📈 Regression Metrics
@@ -592,3 +726,11 @@ Emphasis on **directional accuracy** and **scale-independent errors**.
 3. <a href="https://en.wikipedia.org/wiki/Coefficient_of_determination" target="_blank" rel="noopener">R-squared — Wikipedia</a>  
 4. <a href="https://developers.google.com/machine-learning/crash-course" target="_blank" rel="noopener">Google ML Crash Course — Regression Metrics</a>  
 5. <a href="https://www.geeksforgeeks.org/regression-models-in-machine-learning/" target="_blank" rel="noopener">Regression Models in ML — GeeksforGeeks</a>
+
+---
+
+1. <a href="https://scikit-learn.org/stable/modules/model_evaluation.html" target="_blank" rel="noopener">Scikit-Learn: Model Evaluation — Official Docs</a>  
+2. <a href="https://developers.google.com/machine-learning/crash-course/classification/metrics" target="_blank" rel="noopener">Google ML Crash Course — Evaluation Metrics</a>  
+3. <a href="https://en.wikipedia.org/wiki/Precision_and_recall" target="_blank" rel="noopener">Precision and Recall — Wikipedia</a>  
+4. <a href="https://www.geeksforgeeks.org/machine-learning/" target="_blank" rel="noopener">Machine Learning Overview — GeeksforGeeks</a>  
+5. <a href="https://www.ibm.com/think/topics/machine-learning" target="_blank" rel="noopener">What Is Machine Learning — IBM Think</a>
