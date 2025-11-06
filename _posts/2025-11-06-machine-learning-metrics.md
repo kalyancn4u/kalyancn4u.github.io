@@ -446,9 +446,132 @@ print(f"Median Absolute Error (MedAE)    : {medae:.3f}")
 | **RMSLE** | Penalizes underestimation | Useful when target values vary exponentially. |
 | **MedAE** | Median of absolute errors | Robust alternative to MAE for skewed data. |
 
-TODO
 ---
 
+### 📦 Clustering Metrics (Unsupervised)
+
+Used when no labels exist; these measure the **compactness and separation** of clusters.
+
+| Metric                      | Description                                                                        | Formula / Idea                                                                             | Python Method                        |
+| :-------------------------- | :--------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------- | :----------------------------------- |
+| **Silhouette Score**        | How close each point is to its own cluster vs. others (−1 to +1). Higher = better. | $$s = \frac{b - a}{\max(a,b)}$$ where *a* = intra-cluster, *b* = nearest cluster distance. | `silhouette_score(X, labels)`        |
+| **Calinski-Harabasz Index** | Ratio of between-cluster variance to within-cluster variance. Higher = better.     | $$CH = \frac{Tr(B_k)/(k-1)}{Tr(W_k)/(n-k)}$$                                               | `calinski_harabasz_score(X, labels)` |
+| **Davies-Bouldin Index**    | Average similarity between clusters; lower = better.                               | —                                                                                          | `davies_bouldin_score(X, labels)`    |
+
+#### ✅ Use:
+- Use **internal metrics** (silhouette, CH, DBI) when you **do not** have ground-truth labels.
+- Use **external metrics** (ARI, NMI) when you **do** have reliable true labels for validation.
+- For **DBSCAN**, check `-1` labels (noise); internal metrics may be undefined if too few clusters exist.
+- Always **visualize** clusters (scatter, PCA, t-SNE) alongside metrics — numbers alone can be misleading.
+
+#### 🧩 Clustering Metrics (Comprehensive Python Example)
+
+```python
+# -------------------------------------------------------------
+# Imports
+# -------------------------------------------------------------
+import numpy as np
+from sklearn.datasets import make_blobs
+from sklearn.cluster import KMeans, DBSCAN
+from sklearn.metrics import (
+    silhouette_score,
+    silhouette_samples,
+    calinski_harabasz_score,
+    davies_bouldin_score,
+    adjusted_rand_score,
+    normalized_mutual_info_score,
+    homogeneity_score,
+    completeness_score,
+    v_measure_score,
+)
+
+# -------------------------------------------------------------
+# Example data (synthetic) and clustering
+# -------------------------------------------------------------
+X, y_true = make_blobs(n_samples=500, centers=4, cluster_std=0.60, random_state=42)
+
+# KMeans clustering (example)
+n_clusters = 4
+kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+labels_km = kmeans.fit_predict(X)
+
+# DBSCAN clustering (density-based example)
+db = DBSCAN(eps=0.6, min_samples=5)
+labels_db = db.fit_predict(X)  # -1 indicates noise in DBSCAN
+
+# -------------------------------------------------------------
+# Internal / Unsupervised Metrics (no ground-truth required)
+# -------------------------------------------------------------
+# Silhouette Score (range -1..1): higher is better; requires >=2 clusters
+sil_score_km = silhouette_score(X, labels_km)              # KMeans
+sil_score_db = silhouette_score(X, labels_db) if len(set(labels_db)) > 1 else float('nan')
+
+# Silhouette values per sample (useful for diagnostics)
+sil_samples = silhouette_samples(X, labels_km)
+
+# Calinski-Harabasz Index: higher is better (between-cluster / within-cluster)
+ch_score_km = calinski_harabasz_score(X, labels_km)
+
+# Davies-Bouldin Index: lower is better (compactness vs separation)
+db_index_km = davies_bouldin_score(X, labels_km)
+
+# -------------------------------------------------------------
+# External / Labelled Metrics (require ground-truth labels)
+# -------------------------------------------------------------
+# Adjusted Rand Index (ARI): 1=perfect agreement, ~0 random
+ari_km = adjusted_rand_score(y_true, labels_km)
+
+# Normalized Mutual Information (NMI): 0..1, higher better
+nmi_km = normalized_mutual_info_score(y_true, labels_km)
+
+# Homogeneity, Completeness, V-measure
+homog = homogeneity_score(y_true, labels_km)
+compl = completeness_score(y_true, labels_km)
+vmes = v_measure_score(y_true, labels_km)
+
+# -------------------------------------------------------------
+# Print results
+# -------------------------------------------------------------
+print("=== KMeans clustering metrics ===")
+print(f"Number of clusters (KMeans)        : {len(set(labels_km))}")
+print(f"Silhouette Score (KMeans)          : {sil_score_km:.4f}")
+print(f"Calinski-Harabasz Index (KMeans)   : {ch_score_km:.4f}")
+print(f"Davies-Bouldin Index (KMeans)     : {db_index_km:.4f}")
+print(f"Adjusted Rand Index (KMeans)       : {ari_km:.4f}")
+print(f"NMI (KMeans)                       : {nmi_km:.4f}")
+print(f"Homogeneity                         : {homog:.4f}")
+print(f"Completeness                        : {compl:.4f}")
+print(f"V-measure                           : {vmes:.4f}")
+
+print("\n=== DBSCAN clustering metrics ===")
+n_clusters_db = len(set(labels_db)) - (1 if -1 in labels_db else 0)
+print(f"Estimated clusters (DBSCAN)         : {n_clusters_db} (noise points labeled -1)")
+if np.isfinite(sil_score_db):
+    print(f"Silhouette Score (DBSCAN)          : {sil_score_db:.4f}")
+else:
+    print("Silhouette Score (DBSCAN)          : N/A (need >=2 labelled clusters)")
+
+# -------------------------------------------------------------
+# Optional: quick diagnostic summaries
+# -------------------------------------------------------------
+# Proportion of noise for DBSCAN
+noise_ratio = np.mean(np.array(labels_db) == -1)
+print(f"DBSCAN noise ratio                  : {noise_ratio:.3f}")
+```
+
+#### ⚙️ Tips:
+- **Silhouette Score**: how similar a point is to its own cluster vs the nearest other cluster. Values near +1 mean well-clustered; near -1 mean misclassified.
+- **Silhouette Samples**: per-sample scores useful for plotting/diagnostics (e.g., identify bad clusters).
+- **Calinski–Harabasz**: ratio of between-cluster dispersion to within-cluster dispersion — larger is better.
+- **Davies–Bouldin**: average similarity between each cluster and its most similar one — smaller is better.
+- **Adjusted Rand Index (ARI)**: compares clusters to ground-truth labels (corrects for chance).
+- **Normalized Mutual Information (NMI)**: measures shared information between clustering and true labels.
+- **Homogeneity / Completeness / V-measure**: explain how pure clusters are (homogeneity) and how complete true classes are captured (completeness); v-measure = harmonic mean.
+
+TODO
+#### ✅ Use:
+#### ⚙️ Tips:
+---
 ### 🔹 Ranking & Recommendation Metrics
 
 | Metric | Description |
@@ -564,18 +687,6 @@ optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 # 📊 DSML Metrics — Comprehensive Guide ✅
 
 CCC
----
-
-## 📦 3. Clustering Metrics (Unsupervised)
-
-Used when no labels exist; these measure the **compactness and separation** of clusters.
-
-| Metric                      | Description                                                                        | Formula / Idea                                                                             | Python Method                        |
-| :-------------------------- | :--------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------- | :----------------------------------- |
-| **Silhouette Score**        | How close each point is to its own cluster vs. others (−1 to +1). Higher = better. | $$s = \frac{b - a}{\max(a,b)}$$ where *a* = intra-cluster, *b* = nearest cluster distance. | `silhouette_score(X, labels)`        |
-| **Calinski-Harabasz Index** | Ratio of between-cluster variance to within-cluster variance. Higher = better.     | $$CH = \frac{Tr(B_k)/(k-1)}{Tr(W_k)/(n-k)}$$                                               | `calinski_harabasz_score(X, labels)` |
-| **Davies-Bouldin Index**    | Average similarity between clusters; lower = better.                               | —                                                                                          | `davies_bouldin_score(X, labels)`    |
-
 ---
 
 ## 🔍 4. Ranking / Recommendation Metrics
@@ -720,7 +831,6 @@ Emphasis on **directional accuracy** and **scale-independent errors**.
 
 ---
 
-
 1. <a href="https://scikit-learn.org/stable/modules/model_evaluation.html" target="_blank" rel="noopener">Scikit-Learn: Model Evaluation — Official Docs</a>  
 2. <a href="https://en.wikipedia.org/wiki/Mean_absolute_percentage_error" target="_blank" rel="noopener">Mean Absolute Percentage Error — Wikipedia</a>  
 3. <a href="https://en.wikipedia.org/wiki/Coefficient_of_determination" target="_blank" rel="noopener">R-squared — Wikipedia</a>  
@@ -734,3 +844,8 @@ Emphasis on **directional accuracy** and **scale-independent errors**.
 3. <a href="https://en.wikipedia.org/wiki/Precision_and_recall" target="_blank" rel="noopener">Precision and Recall — Wikipedia</a>  
 4. <a href="https://www.geeksforgeeks.org/machine-learning/" target="_blank" rel="noopener">Machine Learning Overview — GeeksforGeeks</a>  
 5. <a href="https://www.ibm.com/think/topics/machine-learning" target="_blank" rel="noopener">What Is Machine Learning — IBM Think</a>
+
+---
+
+- Scikit-learn: Model evaluation and clustering metrics (official docs)  
+- PapersWithCode / survey pages for clustering evaluation
