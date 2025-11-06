@@ -1,5 +1,5 @@
 ---
-title: "Git & GitHub Workflows"
+title: "📘 Git & GitHub Workflows"
 date: 2025-10-22 05:00:00 +0530
 categories: [Workflows, Git & GitHub]
 tags: [git, github, version-control, workflows, TODO]
