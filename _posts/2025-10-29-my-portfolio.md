@@ -1,7 +1,7 @@
 ---
 # layout: page portfolio profile
 layout: default
-title: "My Portfolio"
+title: "🧑‍💻 My Portfolio"
 description: "Kalyan Narayana — Data Science, ML, and Full-Stack Engineer (Aspirant)"
 permalink: /portfolio/
 image: /assets/img/avatar/portfolio.png   # 🔁 add your headshot
