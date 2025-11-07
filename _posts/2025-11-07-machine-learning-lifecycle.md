@@ -4,7 +4,7 @@ layout: post
 description: "Concise, clear, and validated revision notes on the end-to-end Machine Learning Lifecycle — phases, checklists, pitfalls, and trusted references."
 categories: [Notes, Machine Learning]
 tags: [Machine Learning, Lifecycle, Workflow, MLOps]
-image: /assets/img/posts/ml_workflow_iterations.png
+image: /assets/img/posts/ml_workflow_lifecycle.png
 toc: true
 author: Kalyan Narayana
 date: 2025-11-07 07:30:00 +0530
@@ -22,7 +22,7 @@ _— Comprehensive Notes: Phases, Jargon, and Best Practices_
 
 The **Machine Learning (ML) lifecycle** is a structured, iterative process that defines how ML projects move from **concept → deployment → continuous improvement**.  
 
-![Machine Learning Lifecycle Illustrated](/assets/img/posts/ml_workflow_lifecycle.png){: width="640" height="640" }
+![Machine Learning Lifecycle Illustrated](/assets/img/posts/ml_workflow_iterations.png){: width="960" height="640" }
 _Machine Learning Lifecycle Illustrated_
 
 ### 🧭 Workflow of Machine Learning
