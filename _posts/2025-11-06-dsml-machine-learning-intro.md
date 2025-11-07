@@ -1,5 +1,5 @@
 ---
-title: "📘 Introduction to Machine Learning (ML)"
+title: "📘 DSML: Introduction to Machine Learning"
 layout: post
 description: "A clear, concise, and validated introduction to Machine Learning — structured for beginners with definitions, examples, and authoritative references."
 categories: [Notes, Machine Learning]
@@ -10,7 +10,7 @@ toc: true
 math: true
 ---
 
-# 📘 Introduction to Machine Learning (ML)
+# 📘 DSML: Introduction to Machine Learning
 
 This set of notes is structured for beginners — **clear**, **step-wise**, and **technically correct** — drawing on trusted sources to provide a solid foundation.
 
