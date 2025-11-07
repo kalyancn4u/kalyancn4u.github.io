@@ -3,7 +3,7 @@ title: "📘 Machine Learning Workflow & Lifecycle Illustrated"
 layout: post
 description: "Concise, clear, and validated revision notes on the end-to-end Machine Learning Lifecycle — phases, checklists, pitfalls, and trusted references."
 categories: [Notes, Machine Learning]
-tags: [Machine Learning, Lifecycle, Workflow, MLOps, Notes]
+tags: [Machine Learning, Lifecycle, Workflow, MLOps]
 image: /assets/img/posts/ml_workflow_lifecycle.png
 toc: true
 author: Kalyan Narayana
