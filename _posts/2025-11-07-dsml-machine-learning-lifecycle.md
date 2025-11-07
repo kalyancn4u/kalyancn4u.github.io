@@ -1,5 +1,5 @@
 ---
-title: "📘 Machine Learning Workflow & Lifecycle Illustrated"
+title: "📘 DSML: Machine Learning Workflow & Lifecycle Illustrated"
 layout: post
 description: "Concise, clear, and validated revision notes on the end-to-end Machine Learning Lifecycle — phases, checklists, pitfalls, and trusted references."
 categories: [Notes, Machine Learning]
@@ -10,7 +10,7 @@ author: Kalyan Narayana
 date: 2025-11-07 07:30:00 +0530
 ---
 
-# 🧭 Machine Learning Workflow & Lifecycle Illustrated
+# 🧭 DSML: Machine Learning Workflow & Lifecycle Illustrated
 
 _— Comprehensive Notes: Phases, Jargon, and Best Practices_
  
