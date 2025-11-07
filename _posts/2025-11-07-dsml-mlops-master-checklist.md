@@ -17,7 +17,7 @@ date: 2025-11-07 17:30:00 +0530
 > 🧭 *A complete, validated, and easy-to-follow roadmap of the Machine Learning lifecycle — harmonized from Google, AWS, Microsoft, Deepchecks, and Neptune.ai frameworks.*
 
 ![MLOps Illustrated](/assets/img/posts/ml_ops_dev_ops_data_ml_lifecycle.png){: width="960" height="480" }
-_MLOps Illustrated: MLOps = Data_
+_MLOps Illustrated: MLOps = Data + ML + Dev + Sec + Ops_
 
 ---
 
