@@ -22,7 +22,8 @@ _— Comprehensive Notes: Phases, Jargon, and Best Practices_
 
 The **Machine Learning (ML) lifecycle** is a structured, iterative process that defines how ML projects move from **concept → deployment → continuous improvement**.  
 
-{% include figure.html src="/assets/img/posts/ml_workflow_lifecycle.png" alt="Workflow of Machine Learning" caption="Illustrated Machine Learning Lifecycle — define, collect, preprocess, model, evaluate, deploy, and monitor." %}
+![Machine Learning Lifecycle Illustrated](/posts/20190808/mockup.png){: width="972" height="589" }
+_Machine Learning Lifecycle Illustrated_
 
 ### 🧭 Workflow of Machine Learning
 
@@ -212,19 +213,5 @@ def ml_pipeline():
 
 > 🧭 The Machine Learning Lifecycle is the **bridge between experimentation and production**.
 > It ensures that ML solutions are **reliable, explainable, and maintainable** — enabling sustainable Data Science success.
-
----
-
-### 🔖 Flagpost Icons Legend
-
-| Icon | Meaning                |
-| :--: | ---------------------- |
-|  🧭  | Orientation / Overview |
-|  🎯  | Goal / Objective       |
-|  🧩  | Key Concept            |
-|  ⚙️  | Tool / Process         |
-|  🧠  | Insight / Takeaway     |
-|  🪶  | Reference / Source     |
-|  🏁  | Summary / Conclusion   |
 
 ---
