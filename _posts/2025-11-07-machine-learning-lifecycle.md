@@ -22,7 +22,7 @@ _— Comprehensive Notes: Phases, Jargon, and Best Practices_
 
 The **Machine Learning (ML) lifecycle** is a structured, iterative process that defines how ML projects move from **concept → deployment → continuous improvement**.  
 
-![Machine Learning Lifecycle Illustrated](/assets/img/posts/ml_workflow_iterations.png){: width="800" height="640" }
+![Machine Learning Lifecycle Illustrated](/assets/img/posts/ml_workflow_iterations_bg_white.png){: width="800" height="640" }
 _Machine Learning Lifecycle Illustrated_
 
 ### 🧭 Workflow of Machine Learning
