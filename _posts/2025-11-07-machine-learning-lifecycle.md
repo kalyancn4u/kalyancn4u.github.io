@@ -7,7 +7,7 @@ tags: [Machine Learning, Lifecycle, Workflow, MLOps]
 image: /assets/img/posts/ml_workflow_lifecycle.png
 toc: true
 author: Kalyan Narayana
-date: 2025-11-07
+date: 2025-11-06
 ---
 
 # 🧭 Machine Learning Workflow & Lifecycle Illustrated
