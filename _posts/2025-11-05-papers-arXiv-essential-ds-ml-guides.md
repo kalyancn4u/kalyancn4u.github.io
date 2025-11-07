@@ -186,4 +186,4 @@ _Essential Guides for DS / ML / DL (Novice → Deep Dive → Advanced)_
 
 ---
 
-📎 *Curated & harmonized by [OpenAI GPT-5](https://openai.com/){:target="_blank"} • Validated from top arXiv sources • Chirpy-ready Markdown*
+📎 *Curated by [OpenAI GPT-5](https://openai.com/){:target="_blank"} • Validated from top arXiv sources*
