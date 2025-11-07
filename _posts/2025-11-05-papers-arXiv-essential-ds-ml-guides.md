@@ -1,12 +1,14 @@
 ---
-title: "📗 arXiv: Essential & Comprehensive Guides for DS / ML / DL (Novice → Deep Dive → Advanced)"
+title: "📗 ArXiv: Essential Comprehensive Guides for DSML"
 layout: post
 description: "A unified, validated roadmap combining essential, comprehensive, and deep-dive arXiv papers for Data Science, Machine Learning, and Deep Learning — curated in apt learning order for clarity and confidence."
 categories: [Papers, arXiv]
 tags: [Data-Science, Machine-Learning, Deep-Learning, arXiv, Papers]
 reading_time: 20 min
 ---
-# 📗 ArXiv: Essential & Comprehensive Guides for DS / ML / DL (Novice → Deep Dive → Advanced)
+# 📗 ArXiv: Essential Comprehensive Guides for DSML
+
+_Essential & Comprehensive Guides for DS / ML / DL (Novice → Deep Dive → Advanced)_
 
 > 🧭 **Purpose:**  
 > This post unifies the **Essential**, **Comprehensive**, and **Deep-Dive** arXiv guides into one harmonized roadmap.  
