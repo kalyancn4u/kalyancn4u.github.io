@@ -1,17 +1,19 @@
 ---
-title: "📘 DSML: Machine Learning Lifecycle — Phases, Jargon, and Best Practices"
+title: "📘 Machine Learning Workflow & Lifecycle Illustrated"
 layout: post
 description: "Concise, clear, and validated revision notes on the end-to-end Machine Learning Lifecycle — phases, checklists, pitfalls, and trusted references."
-categories: [Machine Learning, Lifecycle]
-tags: [Machine-Learning, Lifecycle, MLOps, DSML, Notes]
-[//]: image: /assets/images/posts/ml-lifecycle-banner.png
+categories: [Notes, Machine Learning]
+tags: [Machine Learning, Lifecycle, Workflow, MLOps, Notes]
+image: /assets/img/posts/ml_workflow_lifecycle.png
 toc: true
 author: Kalyan Narayana
 date: 2025-11-07
 ---
 
-# 🧭 DSML: Machine Learning Lifecycle — Comprehensive Notes
+# 🧭 Machine Learning Workflow & Lifecycle Illustrated
 
+_— Comprehensive Notes: Phases, Jargon, and Best Practices_
+ 
 > *A structured, novice-friendly guide to understanding the entire Machine Learning Lifecycle — from problem definition to monitoring and governance.*
 
 ---
@@ -19,7 +21,31 @@ date: 2025-11-07
 ## 🎯 Overview
 
 The **Machine Learning (ML) lifecycle** is a structured, iterative process that defines how ML projects move from **concept → deployment → continuous improvement**.  
-It ensures reproducibility, reliability, and business value — uniting **Data Science**, **Engineering**, and **Operations (MLOps)**.
+
+{% include figure.html src="/assets/img/posts/ml_workflow_lifecycle.png" alt="Workflow of Machine Learning" caption="Illustrated Machine Learning Lifecycle — define, collect, preprocess, model, evaluate, deploy, and monitor." %}
+
+### 🧭 Workflow of Machine Learning
+
+> A visually guided overview of the **Machine Learning Lifecycle**, showing each stage in a cyclical, iterative process from **strategy to deployment and monitoring**.
+
+> The ML lifecycle is **not linear** — it’s a **continuous feedback loop** where monitoring insights drive retraining and improvement. It ensures reproducibility, reliability, and business value — uniting **Data Science**, **Engineering**, and **Operations (MLOps)**.
+
+### 🧩 Stages in the ML Workflow
+
+| Stage | Description |
+|-------|--------------|
+| **Define Strategy** | Establish problem scope, objectives, and metrics. |
+| **Data Collection** | Gather relevant, representative, and reliable data. |
+| **Data Preprocessing** | Clean, transform, and prepare data for modeling. |
+| **Data Modeling** | Select algorithms and structure data relationships. |
+| **Training & Evaluation** | Train models, assess performance using metrics. |
+| **Optimization** | Tune hyperparameters and improve generalization. |
+| **Deployment** | Push trained models into production environments. |
+| **Performance Monitoring** | Continuously track model health and drift. |
+
+- Use **MLOps** pipelines for automation of retraining and deployment.  
+- Implement **data versioning** and **experiment tracking** for reproducibility.  
+- Include **monitoring tools** (EvidentlyAI, WhyLabs, Prometheus) for drift detection.
 
 ---
 
