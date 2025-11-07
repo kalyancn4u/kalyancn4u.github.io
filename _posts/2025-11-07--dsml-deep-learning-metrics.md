@@ -2,8 +2,8 @@
 title: "📘 DSML: Deep Learning Metrics"
 layout: post
 description: "Concise, clear, and validated revision notes on Machine Learning, Deep Learning, and Data Science Metrics — structured for beginners and practitioners."
-categories: [Notes, Machine Learning Metrics]
-tags: [DSML, Machine-Learning, Deep-Learning, Metrics, Notes, TODO]
+categories: [Notes, Deep-Learning, Metrics]
+tags: [Deep-Learning, Metrics, TODO]
 author: Kalyan Narayana
 date: 2025-11-07 19:30:00 +0530
 toc: true
