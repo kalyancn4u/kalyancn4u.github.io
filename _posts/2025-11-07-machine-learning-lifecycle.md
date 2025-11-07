@@ -4,7 +4,7 @@ layout: post
 description: "Concise, clear, and validated revision notes on the end-to-end Machine Learning Lifecycle — phases, checklists, pitfalls, and trusted references."
 categories: [Notes, Machine Learning]
 tags: [Machine Learning, Lifecycle, Workflow, MLOps]
-image: /assets/img/posts/ml_workflow_lifecycle.png
+image: /assets/img/posts/ml_workflow_iterations.png
 toc: true
 author: Kalyan Narayana
 date: 2025-11-07 07:30:00 +0530
