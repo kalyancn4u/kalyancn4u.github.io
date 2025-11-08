@@ -1,33 +1,160 @@
-/* Tag Cloud Styles */
+/* ==========================================================================
+   assets/css/tag-cloud.css
+   Custom Tag Cloud styles — Chirpy-aligned (uses CSS variables used by Chirpy)
+   Drop this file in: assets/css/tag-cloud.css
+   --------------------------------------------------------------------------
+   Comments explain purpose & rationale for each rule. Designed to:
+   - match Chirpy theme tokens (colors, spacing, radii)
+   - support dark/light automatically
+   - be accessible (contrast, reduced-motion)
+   - scale nicely for different viewports
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1) Container: layout and box styling
+   - Uses flex to wrap tags and center them
+   - gap uses relative spacing for theme harmony
+   -------------------------------------------------------------------------- */
 .tag-cloud {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
   align-items: center;
-  margin: 1rem 0;
+  justify-content: center;
+
+  /* Chirpy global spacing rhythm: use rem so it scales with base font-size */
+  gap: 0.5rem;            /* space between tags */
+  margin: 1rem 0;         /* vertical spacing for the block */
+
+  /* soft background and subtle border-radius to look like a card region */
+  background-color: var(--card-bg, rgba(0,0,0,0.02)); /* falls back if variable missing */
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  /* subtle border using theme muted color */
+  border: 1px solid var(--muted, rgba(0,0,0,0.06));
 }
 
+/* --------------------------------------------------------------------------
+   2) Each tag anchor: base visual style and accessible interactions
+   - Inherits theme link color and respects hover/focus states
+   - Uses focus outline for keyboard accessibility
+   -------------------------------------------------------------------------- */
 .tag-cloud a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem; /* small pill padding */
+  border-radius: 999px;    /* pill shape */
   text-decoration: none;
-  color: var(--link-color, #007acc);
-  transition: transform 0.2s ease, color 0.2s ease;
+  cursor: pointer;
+
+  /* Color: prefer theme link color; fallback provided */
+  color: var(--link-color, #0066cc);
+
+  /* Background is slightly transparent for contrast; uses theme accent when available */
+  background-color: var(--muted-bg, rgba(0,0,0,0.02));
+  transition: transform 180ms ease, box-shadow 180ms ease, color 180ms ease;
+  will-change: transform;
 }
 
-.tag-cloud a:hover {
-  color: var(--text-color, #333);
-  transform: scale(1.1);
+/* Hover and focus — visual emphasis (works for mouse + keyboard) */
+.tag-cloud a:hover,
+.tag-cloud a:focus {
+  transform: translateY(-2px) scale(1.03);
+  text-decoration: none;
+  color: var(--text-color, #111); /* darker text on hover for readability */
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  outline: none; /* remove default outline; we provide custom focus */
 }
 
-/* Size levels based on post count */
-.tag-size-2 { font-size: 0.85rem; font-weight: 400; }
-.tag-size-3 { font-size: 1rem;   font-weight: 500; }
-.tag-size-4 { font-size: 1.15rem; font-weight: 600; }
-.tag-size-5 { font-size: 1.3rem;  font-weight: 700; }
+/* Keyboard accessibility: clear visible focus ring */
+.tag-cloud a:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--link-color, #0066cc) 20%, transparent);
+  border-radius: 999px;
+}
 
-/* Optional subtle animation */
-@media (prefers-reduced-motion: no-preference) {
+/* --------------------------------------------------------------------------
+   3) Tag size levels — mapped to post-count derived classes
+   - .tag-size-2 ... .tag-size-5 are set in the HTML by Liquid
+   - These define font-size and weight — tuned for readable scales
+   - Use rem units so scaling respects user settings
+   -------------------------------------------------------------------------- */
+.tag-size-2 { font-size: 0.85rem; font-weight: 400; line-height: 1.2; }
+.tag-size-3 { font-size: 1.00rem; font-weight: 500; line-height: 1.2; }
+.tag-size-4 { font-size: 1.15rem; font-weight: 600; line-height: 1.15; }
+.tag-size-5 { font-size: 1.30rem; font-weight: 700; line-height: 1.1; }
+
+/* Small caps numeric count styling (the <sup> we used in tag-cloud.html) */
+.tag-cloud a sup {
+  margin-left: 0.25rem;
+  font-size: 0.65em;
+  vertical-align: top;
+  color: var(--muted, rgba(0,0,0,0.5));
+  font-weight: 500;
+}
+
+/* --------------------------------------------------------------------------
+   4) Responsiveness: ensure tags wrap nicely on small screens
+   - On very small screens, slightly reduce font-size so layout stays tidy
+   -------------------------------------------------------------------------- */
+@media (max-width: 420px) {
+  .tag-size-2 { font-size: 0.78rem; }
+  .tag-size-3 { font-size: 0.92rem; }
+  .tag-size-4 { font-size: 1.04rem; }
+  .tag-size-5 { font-size: 1.18rem; }
+  .tag-cloud { gap: 0.4rem; padding: 0.5rem; }
+}
+
+/* --------------------------------------------------------------------------
+   5) Dark & light mode harmony
+   - Prefer Chirpy variables; fallback to safe colors
+   - We define an explicit dark mode block to ensure contrast on dark themes
+   -------------------------------------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+  .tag-cloud {
+    background-color: var(--card-bg-dark, rgba(255,255,255,0.02));
+    border: 1px solid var(--muted-dark, rgba(255,255,255,0.06));
+  }
+
   .tag-cloud a {
-    transition: all 0.25s ease-in-out;
+    color: var(--link-color, #57a6ff); /* slightly brighter link in dark */
+    background-color: rgba(255,255,255,0.02);
+  }
+
+  .tag-cloud a:hover,
+  .tag-cloud a:focus {
+    color: var(--text-color, #fff);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  }
+
+  .tag-cloud a sup {
+    color: var(--muted-dark, rgba(255,255,255,0.6));
   }
 }
+
+/* --------------------------------------------------------------------------
+   6) Reduced motion accessibility
+   - If user prefers reduced motion, disable transforms/transitions
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .tag-cloud a,
+  .tag-cloud a:hover,
+  .tag-cloud a:focus {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   7) Optional color accents (non-essential)
+   - Uncomment or tune if you want color variety; uses nth-child for subtle alternation
+   - Not needed for accessibility but provides visual interest
+   -------------------------------------------------------------------------- */
+/* .tag-cloud a:nth-child(odd)  { color: var(--link-color, #0066cc); }
+   .tag-cloud a:nth-child(even) { color: color-mix(in srgb, var(--link-color, #0066cc) 70%, #9333ea 30%); } */
+
+/* ========================================================================== 
+   End of tag-cloud.css
+   - This file is intentionally self-contained and uses theme variables.
+   - If you want exact Chirpy variable names (e.g., --site-bg, --muted, --link-color),
+     inspect your site's compiled CSS or _sass variables and tweak the fallbacks above.
+   ========================================================================== */
