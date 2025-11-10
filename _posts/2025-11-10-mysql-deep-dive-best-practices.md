@@ -5,6 +5,7 @@ author: Kalyan Narayana
 date: 2025-11-10 14:30:00 +0530
 categories: [Notes, MySQL]
 tags: [MySQL, Database, Lifecycle, Best-practices, Normalization, Query, Transactions, ACID]
+description: "Concise, clear, and validated revision notes on MySQL — structured for beginners and practitioners."
 toc: true
 math: true
 mermaid: true
