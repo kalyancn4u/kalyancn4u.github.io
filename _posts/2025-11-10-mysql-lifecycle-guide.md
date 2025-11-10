@@ -3,14 +3,14 @@ title: "MySQL: MySQL Lifecycle & Best Practices - Comprehensive Guide"
 layout: post
 author: Kalyan Narayana
 date: 2025-11-10 14:30:00 +0530
-categories: [Database, MySQL]
-tags: [mysql, sql, database-optimization, query-lifecycle, best-practices, normalization, transactions, acid]
+categories: [Notes, MySQL]
+tags: [MySQL, Database, Lifecycle, Best-practices, Normalization, Query, Transactions, ACID]
 toc: true
 math: true
 mermaid: true
 ---
 
-# MySQL: SQL Lifecycle & Best Practices
+# MySQL: MySQL Lifecycle & Best Practices
 
 ## Introduction
 
