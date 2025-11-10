@@ -1,5 +1,5 @@
 ---
-title: "MySQL: MySQL Lifecycle & Best Practices - Comprehensive Guide"
+title: "MySQL: MySQL Deep Dive & Best Practices"
 layout: post
 author: Kalyan Narayana
 date: 2025-11-10 14:30:00 +0530
@@ -10,7 +10,7 @@ math: true
 mermaid: true
 ---
 
-# MySQL: MySQL Lifecycle & Best Practices
+# MySQL: MySQL Deep Dive & Best Practices
 
 ## Introduction
 
