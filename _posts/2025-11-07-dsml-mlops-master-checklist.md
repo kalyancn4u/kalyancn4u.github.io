@@ -4,7 +4,7 @@ layout: post
 description: "A validated and novice-friendly master checklist for the DSML lifecycle — Plan, Data, Model, and Deploy — aligned with Google, AWS, and Microsoft MLOps frameworks."
 categories: [Notes, MLOps]
 tags: [MLOps, Checklists, Best-Practices, Machine Learning, Lifecycle]
-image: /assets/img/posts/ml_ops_dev_ops_data_ml_lifecycle.png
+image: /assets/img/posts/ml_workflow_iterations_bg_white.png
 icon: fas fa-project-diagram
 toc: true
 author: Kalyan Narayana
