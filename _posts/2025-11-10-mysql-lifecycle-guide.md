@@ -1,11 +1,10 @@
 ---
 title: "MySQL: MySQL Lifecycle & Best Practices - Comprehensive Guide"
+layout: post
 author: Kalyan Narayana
 date: 2025-11-10 14:30:00 +0530
 categories: [Database, MySQL]
 tags: [mysql, sql, database-optimization, query-lifecycle, best-practices, normalization, transactions, acid]
-image: /assets/img/posts/ml_ops_dev_ops_data_ml_lifecycle.png
-icon: fas fa-project-diagram
 toc: true
 math: true
 mermaid: true
@@ -16,9 +15,6 @@ mermaid: true
 ## Introduction
 
 Understanding how MySQL processes SQL queries is fundamental to writing efficient, optimized database applications. This comprehensive guide explores the complete lifecycle of SQL queries in MySQL, from submission to result delivery, along with industry best practices for optimal database design and performance.
-
-![Machine Learning Lifecycle Illustrated](/assets/img/posts/ml_workflow_iterations_bg_white.png){: width="800" height="640" }
-_Machine Learning Lifecycle Illustrated_
 
 ---
 
