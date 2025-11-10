@@ -2,7 +2,7 @@
 title: "Pandas: Deep Dive & Best Practices"
 layout: post
 author: Kalyan Narayana
-date: 2025-11-10 14:30:00 +0530
+date: 2025-11-10 7:30:00 +0530
 categories: [Notes, Pandas]
 tags: [Pandas, Machine Learning, Python, Data Analysis, Data Science, Data Cleaning, Optimization, Best Practices]
 description: "Concise, clear, and validated revision notes on Pandas — structured for beginners and practitioners."
