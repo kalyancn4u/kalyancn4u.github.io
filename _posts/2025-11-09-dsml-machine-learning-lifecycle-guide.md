@@ -1,5 +1,5 @@
 ---
-title: "📘 DSML: Machine Learning Lifecycle - Comprehensive Guide"
+title: "📔 DSML: Machine Learning Lifecycle - Comprehensive Guide"
 layout: post
 description: "Concise, clear, and validated Comprehesive guide revision notes on Machine Learning Lifecycle, MLOps, Metrics, Code Snippets — structured for beginners and practitioners."
 date: 2025-11-09 05:30:00 +0530
