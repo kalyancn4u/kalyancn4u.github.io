@@ -4,8 +4,8 @@ layout: post
 author: Kalyan Narayana
 date: 2025-11-10 5:30:00 +0530
 categories: [Notes, NumPy]
-tags: [NumPy, Machine Learning]
-description: "Concise, clear, and validated revision notes on Machine Learning, Deep Learning, and Data Science Metrics — structured for beginners and practitioners."
+tags: [NumPy, Python, Machine Learning, Data Science, Optimization, Best Practices]
+description: "Concise, clear, and validated revision notes on NumPy — structured for beginners and practitioners."
 toc: true
 math: true
 ---
