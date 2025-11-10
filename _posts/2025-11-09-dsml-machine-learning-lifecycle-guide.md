@@ -1,11 +1,13 @@
 ---
 title: "📔 DSML: Machine Learning Lifecycle - Comprehensive Guide"
 layout: post
+author: Kalyan Narayana
 description: "Concise, clear, and validated Comprehesive guide revision notes on Machine Learning Lifecycle, MLOps, Metrics, Code Snippets — structured for beginners and practitioners."
 date: 2025-11-09 05:30:00 +0530
 categories: [Notes, Machine Learning]
 tags: [Machine Learning, Lifecycle, Metrics, MLOps]
-author: Kalyan Narayana
+image: /assets/img/posts/ml_ops_dev_ops_data_ml_lifecycle.png
+icon: fas fa-project-diagram
 toc: true
 math: true
 ---
@@ -15,6 +17,9 @@ math: true
 The **Machine Learning Lifecycle** is a structured, iterative framework that guides the complete development, deployment, and maintenance of machine learning systems. It provides a systematic methodology for transforming business problems into operational AI solutions that deliver sustained value. Unlike traditional software development, the ML lifecycle emphasizes continuous improvement, data centricity, and adaptive model management throughout the entire project duration.
 
 The lifecycle is fundamentally **cyclical and iterative** rather than linear—models are never truly "finished" but require ongoing refinement, retraining, and optimization based on real-world performance, evolving data patterns, and changing business requirements.
+
+![Machine Learning Lifecycle Illustrated](/assets/img/posts/ml_workflow_iterations_bg_white.png){: width="960" height="480" }
+_Machine Learning Lifecycle Illustrated_
 
 ### Key Characteristics
 
