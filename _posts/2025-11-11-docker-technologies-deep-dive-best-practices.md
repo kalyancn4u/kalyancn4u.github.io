@@ -1,5 +1,5 @@
 ---
-title: "Docker Technologies: Deep Dive & Best Practices"
+title: "🌊 Docker Technologies: Deep Dive & Best Practices"
 description: "Concise, clear, and validated revision notes on Docker technologies — containers, Dockerfile patterns, docker-compose, and practical best practices for beginners and practitioners."
 author: technical_notes
 layout: post
