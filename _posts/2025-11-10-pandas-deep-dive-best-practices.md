@@ -1,5 +1,5 @@
 ---
-title: "Pandas: Deep Dive & Best Practices"
+title: "🌊 Pandas: Deep Dive & Best Practices"
 layout: post
 author: Kalyan Narayana
 date: 2025-11-10 7:30:00 +0530
