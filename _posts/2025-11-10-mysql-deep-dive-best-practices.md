@@ -1,5 +1,5 @@
 ---
-title: "MySQL: MySQL Deep Dive & Best Practices"
+title: "🌊 MySQL: Deep Dive & Best Practices"
 layout: post
 author: Kalyan Narayana
 date: 2025-11-10 2:30:00 +0530
@@ -11,7 +11,7 @@ math: true
 mermaid: true
 ---
 
-# MySQL: MySQL Deep Dive & Best Practices
+# MySQL: Deep Dive & Best Practices
 
 ## Introduction
 
