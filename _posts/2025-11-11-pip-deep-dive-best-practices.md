@@ -1,5 +1,5 @@
 ---
-title: "Pip: Deep Dive & Best Practices"
+title: "🌊 Pip: Deep Dive & Best Practices"
 description: "Concise, clear, and validated revision notes on Pip installer for Python — structured for beginners and practitioners."
 layout: post
 date: 2025-11-11 00:00:00 +0530
