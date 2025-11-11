@@ -1,5 +1,5 @@
 ---
-title: "Conda: Deep Dive & Best Practices"
+title: "🌊 Conda: Deep Dive & Best Practices"
 layout: post
 author: Kalyan Narayana
 date: 2025-11-10 16:30:00 +0530
