@@ -1801,28 +1801,29 @@ new_predictions = loaded_model.predict(X_new)
 
 <div style="line-height: 1.8;">
 
+<br>
 1. <a href="https://scikit-learn.org/stable/documentation.html" target="_blank">Scikit-learn Official Documentation</a>
-
+<br>
 2. <a href="https://scikit-learn.org/stable/developers/develop.html" target="_blank">Scikit-learn Development Guide</a>
-
+<br>
 3. <a href="https://scikit-learn.org/stable/tutorial/machine_learning_map/index.html" target="_blank">Choosing the Right Estimator - Scikit-learn</a>
-
+<br>
 4. <a href="https://scikit-learn.org/stable/modules/cross_validation.html" target="_blank">Cross-validation: Evaluating Estimator Performance</a>
-
+<br>
 5. <a href="https://scikit-learn.org/stable/modules/grid_search.html" target="_blank">Tuning the Hyper-parameters of an Estimator</a>
-
+<br>
 6. <a href="https://scikit-learn.org/stable/modules/compose.html" target="_blank">Pipelines and Composite Estimators</a>
-
+<br>
 7. <a href="https://scikit-learn.org/stable/modules/preprocessing.html" target="_blank">Preprocessing Data</a>
-
+<br>
 8. <a href="https://scikit-learn.org/stable/modules/feature_selection.html" target="_blank">Feature Selection</a>
-
+<br>
 9. <a href="https://scikit-learn.org/stable/auto_examples/index.html" target="_blank">Scikit-learn Examples Gallery</a>
-
+<br>
 10. <a href="https://scikit-learn.org/stable/common_pitfalls.html" target="_blank">Common Pitfalls and Recommended Practices</a>
-
+<br>
 11. <a href="https://arxiv.org/abs/1201.0490" target="_blank">Scikit-learn: Machine Learning in Python (Research Paper)</a>
-
+<br>
 12. <a href="https://inria.hal.science/hal-00650905v2/document" target="_blank">API Design for Machine Learning Software (Research Paper)</a>
-
+<br>
 </div>
