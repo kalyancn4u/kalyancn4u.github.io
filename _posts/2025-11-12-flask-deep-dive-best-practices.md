@@ -1,9 +1,14 @@
 ---
 layout: post
-title: "Flask: Deep Dive & Best Practices"
-date: 2025-01-12
-categories: [web-development, python, backend]
-tags: [flask, python, web-framework, rest-api, sqlalchemy, blueprints]
+title: "🌊 Flask: Deep Dive & Best Practices"
+description: "Concise, clear, and validated revision notes on Docker technologies — containers, Dockerfile patterns, docker-compose, and practical best practices for beginners and practitioners."
+author: technical_notes
+date: 2025-11-12 00:01:00 +05:30
+categories: [Notes, Flask]
+tags: [Flask, Python, REST API, SQL Alchemy, Web Dev, Framework, Blue print]
+toc: true
+math: true
+mermaid: true
 ---
 
 ## Table of Contents
