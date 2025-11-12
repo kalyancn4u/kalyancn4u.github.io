@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Flask: Deep Dive & Best Practices"
-date: 2025-01-15
+date: 2025-01-12
 categories: [web-development, python, backend]
 tags: [flask, python, web-framework, rest-api, sqlalchemy, blueprints]
 ---
@@ -4267,4 +4267,4 @@ python run.py
 ✅ **API Endpoints** - RESTful API with pagination  
 ✅ **Error Handling** - Custom error pages  
 ✅ **CLI Commands** - Database initialization and seeding  
-✅ **Multiple Configurations** -
+✅ **Multiple Configurations** - 
