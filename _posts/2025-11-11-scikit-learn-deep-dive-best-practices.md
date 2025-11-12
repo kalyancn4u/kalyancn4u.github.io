@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "🌊 Scikit-learn: Deep Dive & Best Practices"
-description: "Concise, clear, and validated revision notes on Docker technologies — containers, Dockerfile patterns, docker-compose, and practical best practices for beginners and practitioners."
+description: "Concise, clear, and validated revision notes on Scikit-learn library for Python — practical best practices for beginners and practitioners."
 author: technical_notes
 date: 2025-11-11 00:06:00 +05:30
 categories: [Notes, Scikit-learn]
