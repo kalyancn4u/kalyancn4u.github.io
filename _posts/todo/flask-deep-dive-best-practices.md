@@ -3261,57 +3261,217 @@ flask db upgrade
 
 ## Complete Example Application
 
+This is a fully functional Flask blog application demonstrating best practices and production-ready patterns.
+
+### Project Structure
+
+```
+flask_blog/
+├── app/
+│   ├── __init__.py
+│   ├── models.py
+│   ├── auth/
+│   │   ├── __init__.py
+│   │   ├── routes.py
+│   │   └── forms.py
+│   ├── blog/
+│   │   ├── __init__.py
+│   │   ├── routes.py
+│   │   └── forms.py
+│   ├── api/
+│   │   ├── __init__.py
+│   │   └── routes.py
+│   ├── templates/
+│   │   ├── base.html
+│   │   ├── index.html
+│   │   ├── auth/
+│   │   │   ├── login.html
+│   │   │   └── register.html
+│   │   └── blog/
+│   │       ├── index.html
+│   │       ├── post.html
+│   │       └── create.html
+│   └── static/
+│       ├── css/
+│       │   └── style.css
+│       └── js/
+│           └── main.js
+├── migrations/
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py
+│   ├── test_models.py
+│   ├── test_auth.py
+│   └── test_blog.py
+├── config.py
+├── run.py
+├── requirements.txt
+├── .env.example
+└── .gitignore
+```
+
+---
+
+### 1. Application Factory (`app/__init__.py`)
+
 ```python
-# app/__init__.py
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
+from flask_wtf.csrf import CSRFProtect
 from config import config
 
+# Initialize extensions
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
+csrf = CSRFProtect()
 
 def create_app(config_name='development'):
-    """Application factory"""
+    """
+    Application factory function.
+    
+    Args:
+        config_name: Configuration environment (development, testing, production)
+        
+    Returns:
+        Configured Flask application instance
+    """
     app = Flask(__name__)
+    
+    # Load configuration
     app.config.from_object(config[config_name])
+    config[config_name].init_app(app)
     
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
+    csrf.init_app(app)
+    
+    # Configure Flask-Login
     login_manager.login_view = 'auth.login'
+    login_manager.login_message = 'Please log in to access this page.'
+    login_manager.login_message_category = 'info'
     
     # Register blueprints
     from app.auth import auth_bp
-    from app.main import main_bp
+    from app.blog import blog_bp
     from app.api import api_bp
     
     app.register_blueprint(auth_bp, url_prefix='/auth')
-    app.register_blueprint(main_bp)
+    app.register_blueprint(blog_bp, url_prefix='/blog')
     app.register_blueprint(api_bp, url_prefix='/api')
     
-    # Error handlers
+    # Register main routes
+    from app.main import main_bp
+    app.register_blueprint(main_bp)
+    
+    # Register error handlers
+    register_error_handlers(app)
+    
+    # Shell context for flask cli
+    @app.shell_context_processor
+    def make_shell_context():
+        return {
+            'db': db,
+            'User': User,
+            'Post': Post,
+            'Comment': Comment
+        }
+    
+    # Custom CLI commands
+    register_commands(app)
+    
+    return app
+
+def register_error_handlers(app):
+    """Register custom error handlers"""
+    
     @app.errorhandler(404)
-    def not_found(error):
-        return {'error': 'Not found'}, 404
+    def not_found_error(error):
+        if request.path.startswith('/api/'):
+            return {'error': 'Resource not found'}, 404
+        return render_template('errors/404.html'), 404
+    
+    @app.errorhandler(403)
+    def forbidden_error(error):
+        if request.path.startswith('/api/'):
+            return {'error': 'Forbidden'}, 403
+        return render_template('errors/403.html'), 403
     
     @app.errorhandler(500)
     def internal_error(error):
         db.session.rollback()
-        return {'error': 'Internal server error'}, 500
-    
-    return app
+        if request.path.startswith('/api/'):
+            return {'error': 'Internal server error'}, 500
+        return render_template('errors/500.html'), 500
 
-# app/models.py
+def register_commands(app):
+    """Register custom CLI commands"""
+    import click
+    
+    @app.cli.command()
+    def init_db():
+        """Initialize the database."""
+        db.create_all()
+        click.echo('Database initialized.')
+    
+    @app.cli.command()
+    def seed_db():
+        """Seed database with sample data."""
+        from app.models import User, Post
+        
+        # Create sample users
+        admin = User(username='admin', email='admin@example.com', is_admin=True)
+        admin.set_password('admin123')
+        
+        user1 = User(username='john', email='john@example.com')
+        user1.set_password('password')
+        
+        db.session.add_all([admin, user1])
+        db.session.commit()
+        
+        # Create sample posts
+        post1 = Post(
+            title='Welcome to Flask Blog',
+            body='This is the first post on our blog!',
+            author=admin
+        )
+        post2 = Post(
+            title='Getting Started with Flask',
+            body='Flask is a micro web framework...',
+            author=user1
+        )
+        
+        db.session.add_all([post1, post2])
+        db.session.commit()
+        
+        click.echo('Database seeded with sample data.')
+
+# Import models to avoid circular imports
+from app.models import User, Post, Comment
+from flask import request, render_template
+```
+
+---
+
+### 2. Models (`app/models.py`)
+
+```python
 from app import db, login_manager
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
+@login_manager.user_loader
+def load_user(user_id):
+    """Load user by ID for Flask-Login"""
+    return User.query.get(int(user_id))
+
 class User(UserMixin, db.Model):
+    """User model for authentication and authorization"""
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -3320,7 +3480,791 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
+    is_admin = db.Column(db.Boolean, default=False)
+    bio = db.Column(db.Text)
     
-    posts = db.relationship('Post', backref='author', lazy='dynamic')
+    # Relationships
+    posts = db.relationship('Post', backref='author', lazy='dynamic', cascade='all, delete-orphan')
+    comments = db.relationship('Comment', backref='author', lazy='dynamic', cascade='all, delete-orphan')
     
-    def set_password(
+    def set_password(self, password):
+        """Hash and set password"""
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        """Verify password against hash"""
+        return check_password_hash(self.password_hash, password)
+    
+    def to_dict(self, include_email=False):
+        """Serialize user to dictionary"""
+        data = {
+            'id': self.id,
+            'username': self.username,
+            'created_at': self.created_at.isoformat(),
+            'is_active': self.is_active,
+            'post_count': self.posts.count()
+        }
+        if include_email:
+            data['email'] = self.email
+        return data
+    
+    def __repr__(self):
+        return f'<User {self.username}>'
+
+class Post(db.Model):
+    """Blog post model"""
+    __tablename__ = 'posts'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    slug = db.Column(db.String(200), unique=True, nullable=False, index=True)
+    body = db.Column(db.Text, nullable=False)
+    summary = db.Column(db.String(500))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    published = db.Column(db.Boolean, default=False)
+    views = db.Column(db.Integer, default=0)
+    
+    # Foreign key
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    
+    # Relationships
+    comments = db.relationship('Comment', backref='post', lazy='dynamic', cascade='all, delete-orphan')
+    
+    def generate_slug(self):
+        """Generate URL-safe slug from title"""
+        import re
+        slug = re.sub(r'[^\w\s-]', '', self.title.lower())
+        slug = re.sub(r'[-\s]+', '-', slug)
+        
+        # Ensure uniqueness
+        base_slug = slug
+        counter = 1
+        while Post.query.filter_by(slug=slug).first():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        
+        return slug
+    
+    def to_dict(self, include_body=False):
+        """Serialize post to dictionary"""
+        data = {
+            'id': self.id,
+            'title': self.title,
+            'slug': self.slug,
+            'summary': self.summary,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat(),
+            'published': self.published,
+            'views': self.views,
+            'author': self.author.username,
+            'comment_count': self.comments.count()
+        }
+        if include_body:
+            data['body'] = self.body
+        return data
+    
+    def __repr__(self):
+        return f'<Post {self.title}>'
+
+class Comment(db.Model):
+    """Comment model"""
+    __tablename__ = 'comments'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    approved = db.Column(db.Boolean, default=True)
+    
+    # Foreign keys
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), nullable=False)
+    
+    def to_dict(self):
+        """Serialize comment to dictionary"""
+        return {
+            'id': self.id,
+            'body': self.body,
+            'created_at': self.created_at.isoformat(),
+            'author': self.author.username,
+            'post_id': self.post_id
+        }
+    
+    def __repr__(self):
+        return f'<Comment {self.id}>'
+```
+
+---
+
+### 3. Authentication Blueprint (`app/auth/__init__.py`)
+
+```python
+from flask import Blueprint
+
+auth_bp = Blueprint('auth', __name__)
+
+from app.auth import routes
+```
+
+---
+
+### 4. Authentication Routes (`app/auth/routes.py`)
+
+```python
+from flask import render_template, redirect, url_for, flash, request
+from flask_login import login_user, logout_user, login_required, current_user
+from app.auth import auth_bp
+from app.auth.forms import LoginForm, RegistrationForm
+from app.models import User
+from app import db
+
+@auth_bp.route('/register', methods=['GET', 'POST'])
+def register():
+    """User registration"""
+    if current_user.is_authenticated:
+        return redirect(url_for('blog.index'))
+    
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        # Check if user already exists
+        if User.query.filter_by(email=form.email.data).first():
+            flash('Email already registered', 'error')
+            return redirect(url_for('auth.register'))
+        
+        if User.query.filter_by(username=form.username.data).first():
+            flash('Username already taken', 'error')
+            return redirect(url_for('auth.register'))
+        
+        # Create new user
+        user = User(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        flash('Registration successful! Please log in.', 'success')
+        return redirect(url_for('auth.login'))
+    
+    return render_template('auth/register.html', form=form)
+
+@auth_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    """User login"""
+    if current_user.is_authenticated:
+        return redirect(url_for('blog.index'))
+    
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        
+        if user and user.check_password(form.password.data):
+            login_user(user, remember=form.remember.data)
+            
+            # Redirect to next page or home
+            next_page = request.args.get('next')
+            if not next_page or not next_page.startswith('/'):
+                next_page = url_for('blog.index')
+            
+            flash(f'Welcome back, {user.username}!', 'success')
+            return redirect(next_page)
+        
+        flash('Invalid email or password', 'error')
+    
+    return render_template('auth/login.html', form=form)
+
+@auth_bp.route('/logout')
+@login_required
+def logout():
+    """User logout"""
+    logout_user()
+    flash('You have been logged out', 'info')
+    return redirect(url_for('main.index'))
+
+@auth_bp.route('/profile')
+@login_required
+def profile():
+    """User profile"""
+    return render_template('auth/profile.html', user=current_user)
+```
+
+---
+
+### 5. Authentication Forms (`app/auth/forms.py`)
+
+```python
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
+from app.models import User
+
+class LoginForm(FlaskForm):
+    """User login form"""
+    email = StringField('Email', validators=[
+        DataRequired(),
+        Email()
+    ])
+    password = PasswordField('Password', validators=[DataRequired()])
+    remember = BooleanField('Remember Me')
+    submit = SubmitField('Log In')
+
+class RegistrationForm(FlaskForm):
+    """User registration form"""
+    username = StringField('Username', validators=[
+        DataRequired(),
+        Length(min=3, max=80)
+    ])
+    email = StringField('Email', validators=[
+        DataRequired(),
+        Email(),
+        Length(max=120)
+    ])
+    password = PasswordField('Password', validators=[
+        DataRequired(),
+        Length(min=6)
+    ])
+    password_confirm = PasswordField('Confirm Password', validators=[
+        DataRequired(),
+        EqualTo('password', message='Passwords must match')
+    ])
+    submit = SubmitField('Register')
+    
+    def validate_username(self, field):
+        """Check if username is already taken"""
+        if User.query.filter_by(username=field.data).first():
+            raise ValidationError('Username already taken')
+    
+    def validate_email(self, field):
+        """Check if email is already registered"""
+        if User.query.filter_by(email=field.data).first():
+            raise ValidationError('Email already registered')
+```
+
+---
+
+### 6. Blog Blueprint (`app/blog/__init__.py`)
+
+```python
+from flask import Blueprint
+
+blog_bp = Blueprint('blog', __name__)
+
+from app.blog import routes
+```
+
+---
+
+### 7. Blog Routes (`app/blog/routes.py`)
+
+```python
+from flask import render_template, redirect, url_for, flash, request, abort
+from flask_login import login_required, current_user
+from app.blog import blog_bp
+from app.blog.forms import PostForm, CommentForm
+from app.models import Post, Comment
+from app import db
+
+@blog_bp.route('/')
+def index():
+    """List all published posts"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    
+    query = Post.query.filter_by(published=True).order_by(Post.created_at.desc())
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    
+    return render_template('blog/index.html', posts=pagination.items, pagination=pagination)
+
+@blog_bp.route('/post/<slug>')
+def post(slug):
+    """View single post"""
+    post = Post.query.filter_by(slug=slug, published=True).first_or_404()
+    
+    # Increment view count
+    post.views += 1
+    db.session.commit()
+    
+    # Get comments
+    comments = post.comments.filter_by(approved=True).order_by(Comment.created_at.desc()).all()
+    
+    comment_form = CommentForm()
+    
+    return render_template('blog/post.html', post=post, comments=comments, form=comment_form)
+
+@blog_bp.route('/create', methods=['GET', 'POST'])
+@login_required
+def create():
+    """Create new post"""
+    form = PostForm()
+    
+    if form.validate_on_submit():
+        post = Post(
+            title=form.title.data,
+            body=form.body.data,
+            summary=form.summary.data,
+            published=form.published.data,
+            author=current_user
+        )
+        post.slug = post.generate_slug()
+        
+        db.session.add(post)
+        db.session.commit()
+        
+        flash('Post created successfully!', 'success')
+        return redirect(url_for('blog.post', slug=post.slug))
+    
+    return render_template('blog/create.html', form=form)
+
+@blog_bp.route('/edit/<int:post_id>', methods=['GET', 'POST'])
+@login_required
+def edit(post_id):
+    """Edit existing post"""
+    post = Post.query.get_or_404(post_id)
+    
+    # Check authorization
+    if post.author != current_user and not current_user.is_admin:
+        abort(403)
+    
+    form = PostForm(obj=post)
+    
+    if form.validate_on_submit():
+        post.title = form.title.data
+        post.body = form.body.data
+        post.summary = form.summary.data
+        post.published = form.published.data
+        
+        # Regenerate slug if title changed
+        if post.title != form.title.data:
+            post.slug = post.generate_slug()
+        
+        db.session.commit()
+        
+        flash('Post updated successfully!', 'success')
+        return redirect(url_for('blog.post', slug=post.slug))
+    
+    return render_template('blog/edit.html', form=form, post=post)
+
+@blog_bp.route('/delete/<int:post_id>', methods=['POST'])
+@login_required
+def delete(post_id):
+    """Delete post"""
+    post = Post.query.get_or_404(post_id)
+    
+    # Check authorization
+    if post.author != current_user and not current_user.is_admin:
+        abort(403)
+    
+    db.session.delete(post)
+    db.session.commit()
+    
+    flash('Post deleted successfully!', 'success')
+    return redirect(url_for('blog.index'))
+
+@blog_bp.route('/post/<slug>/comment', methods=['POST'])
+@login_required
+def add_comment(slug):
+    """Add comment to post"""
+    post = Post.query.filter_by(slug=slug).first_or_404()
+    form = CommentForm()
+    
+    if form.validate_on_submit():
+        comment = Comment(
+            body=form.body.data,
+            author=current_user,
+            post=post
+        )
+        
+        db.session.add(comment)
+        db.session.commit()
+        
+        flash('Comment added successfully!', 'success')
+    
+    return redirect(url_for('blog.post', slug=slug))
+
+@blog_bp.route('/my-posts')
+@login_required
+def my_posts():
+    """View user's own posts"""
+    page = request.args.get('page', 1, type=int)
+    pagination = current_user.posts.order_by(Post.created_at.desc()).paginate(
+        page=page, per_page=10, error_out=False
+    )
+    
+    return render_template('blog/my_posts.html', posts=pagination.items, pagination=pagination)
+```
+
+---
+
+### 8. Blog Forms (`app/blog/forms.py`)
+
+```python
+from flask_wtf import FlaskForm
+from wtforms import StringField, TextAreaField, BooleanField, SubmitField
+from wtforms.validators import DataRequired, Length
+
+class PostForm(FlaskForm):
+    """Blog post form"""
+    title = StringField('Title', validators=[
+        DataRequired(),
+        Length(min=5, max=200)
+    ])
+    summary = StringField('Summary', validators=[
+        Length(max=500)
+    ])
+    body = TextAreaField('Content', validators=[
+        DataRequired(),
+        Length(min=20)
+    ])
+    published = BooleanField('Publish immediately')
+    submit = SubmitField('Save Post')
+
+class CommentForm(FlaskForm):
+    """Comment form"""
+    body = TextAreaField('Comment', validators=[
+        DataRequired(),
+        Length(min=5, max=1000)
+    ])
+    submit = SubmitField('Add Comment')
+```
+
+---
+
+### 9. API Blueprint (`app/api/__init__.py`)
+
+```python
+from flask import Blueprint
+
+api_bp = Blueprint('api', __name__)
+
+from app.api import routes
+```
+
+---
+
+### 10. API Routes (`app/api/routes.py`)
+
+```python
+from flask import jsonify, request
+from app.api import api_bp
+from app.models import User, Post, Comment
+from app import db
+
+@api_bp.route('/posts', methods=['GET'])
+def get_posts():
+    """Get all published posts"""
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    
+    query = Post.query.filter_by(published=True).order_by(Post.created_at.desc())
+    pagination = query.paginate(page=page, per_page=min(per_page, 100), error_out=False)
+    
+    return jsonify({
+        'posts': [post.to_dict() for post in pagination.items],
+        'total': pagination.total,
+        'page': page,
+        'per_page': per_page,
+        'pages': pagination.pages
+    })
+
+@api_bp.route('/posts/<slug>', methods=['GET'])
+def get_post(slug):
+    """Get single post by slug"""
+    post = Post.query.filter_by(slug=slug, published=True).first_or_404()
+    return jsonify(post.to_dict(include_body=True))
+
+@api_bp.route('/users/<int:user_id>', methods=['GET'])
+def get_user(user_id):
+    """Get user by ID"""
+    user = User.query.get_or_404(user_id)
+    return jsonify(user.to_dict())
+
+@api_bp.route('/posts/<slug>/comments', methods=['GET'])
+def get_comments(slug):
+    """Get comments for a post"""
+    post = Post.query.filter_by(slug=slug).first_or_404()
+    comments = post.comments.filter_by(approved=True).order_by(Comment.created_at.desc()).all()
+    
+    return jsonify({
+        'comments': [comment.to_dict() for comment in comments],
+        'count': len(comments)
+    })
+```
+
+---
+
+### 11. Main Blueprint (`app/main/__init__.py`)
+
+```python
+from flask import Blueprint
+
+main_bp = Blueprint('main', __name__)
+
+from app.main import routes
+```
+
+---
+
+### 12. Main Routes (`app/main/routes.py`)
+
+```python
+from flask import render_template
+from app.main import main_bp
+from app.models import Post
+
+@main_bp.route('/')
+def index():
+    """Home page"""
+    recent_posts = Post.query.filter_by(published=True).order_by(
+        Post.created_at.desc()
+    ).limit(5).all()
+    
+    return render_template('index.html', posts=recent_posts)
+
+@main_bp.route('/about')
+def about():
+    """About page"""
+    return render_template('about.html')
+```
+
+---
+
+### 13. Configuration (`config.py`)
+
+```python
+import os
+from datetime import timedelta
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+class Config:
+    """Base configuration"""
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_RECORD_QUERIES = True
+    
+    # Session configuration
+    PERMANENT_SESSION_LIFETIME = timedelta(days=7)
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    
+    # WTF Forms
+    WTF_CSRF_ENABLED = True
+    WTF_CSRF_TIME_LIMIT = None
+    
+    # Pagination
+    POSTS_PER_PAGE = 10
+    COMMENTS_PER_PAGE = 20
+    
+    @staticmethod
+    def init_app(app):
+        """Initialize application"""
+        pass
+
+class DevelopmentConfig(Config):
+    """Development configuration"""
+    DEBUG = True
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
+        'sqlite:///' + os.path.join(basedir, 'dev-db.sqlite')
+    SQLALCHEMY_ECHO = True
+    SESSION_COOKIE_SECURE = False  # Allow HTTP in development
+
+class TestingConfig(Config):
+    """Testing configuration"""
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    WTF_CSRF_ENABLED = False
+    SESSION_COOKIE_SECURE = False
+
+class ProductionConfig(Config):
+    """Production configuration"""
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'sqlite:///' + os.path.join(basedir, 'data.sqlite')
+    
+    @classmethod
+    def init_app(cls, app):
+        Config.init_app(app)
+        
+        # Log to stderr
+        import logging
+        from logging import StreamHandler
+        file_handler = StreamHandler()
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
+
+config = {
+    'development': DevelopmentConfig,
+    'testing': TestingConfig,
+    'production': ProductionConfig,
+    'default': DevelopmentConfig
+}
+```
+
+---
+
+### 14. Application Entry Point (`run.py`)
+
+```python
+import os
+from app import create_app, db
+from app.models import User, Post, Comment
+
+# Determine configuration from environment
+config_name = os.getenv('FLASK_CONFIG', 'development')
+app = create_app(config_name)
+
+@app.shell_context_processor
+def make_shell_context():
+    """Make database models available in shell"""
+    return {
+        'db': db,
+        'User': User,
+        'Post': Post,
+        'Comment': Comment
+    }
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
+```
+
+---
+
+### 15. Requirements (`requirements.txt`)
+
+```
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.5
+Flask-Login==0.6.3
+Flask-WTF==1.2.1
+WTForms==3.1.1
+email-validator==2.1.0
+python-dotenv==1.0.0
+gunicorn==21.2.0
+```
+
+---
+
+### 16. Environment Variables (`.env.example`)
+
+```bash
+# Flask Configuration
+FLASK_APP=run.py
+FLASK_ENV=development
+FLASK_CONFIG=development
+SECRET_KEY=your-secret-key-here
+
+# Database
+DATABASE_URL=sqlite:///app.db
+DEV_DATABASE_URL=sqlite:///dev-db.sqlite
+
+# Security
+WTF_CSRF_SECRET_KEY=your-csrf-secret-key
+```
+
+---
+
+### 17. Git Ignore (`.gitignore`)
+
+```
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Flask
+instance/
+.webassets-cache
+
+# Database
+*.sqlite
+*.db
+
+# Environment
+.env
+.flaskenv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+```
+
+---
+
+### 18. Running the Application
+
+```bash
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your configuration
+
+# Initialize database
+flask db init
+flask db migrate -m "Initial migration"
+flask db upgrade
+
+# Seed database (optional)
+flask seed-db
+
+# Run development server
+flask run
+
+# Or using run.py
+python run.py
+
+# Access application at http://localhost:5000
+```
+
+---
+
+### Key Features of This Example:
+
+✅ **Application Factory Pattern** - Proper app initialization  
+✅ **Blueprint Organization** - Modular structure  
+✅ **Database Models** - User, Post, Comment with relationships  
+✅ **Authentication System** - Registration, login, logout  
+✅ **Authorization** - Role-based access control  
+✅ **CRUD Operations** - Create, read, update, delete posts  
+✅ **Comment System** - Nested comments on posts  
+✅ **Form Validation** - WTForms with validators  
+✅ **API Endpoints** - RESTful API with pagination  
+✅ **Error Handling** - Custom error pages  
+✅ **CLI Commands** - Database initialization and seeding  
+✅ **Multiple Configurations** -
