@@ -3386,113 +3386,1021 @@ deploy-production:
 **Best Practice**: Separate application code from infrastructure configuration.
 
 **Reasons**:
-1. Different lifecycles and release cadences
-2. Different teams and approval processes
-3. Configuration changes shouldn't trigger app rebuilds
-4. Security and access control separation
+1. **Different lifecycles**: Applications update frequently, infrastructure changes rarely
+2. **Different release cadences**: App releases (daily/weekly) vs infrastructure (monthly/quarterly)
+3. **Different teams**: Developers vs Platform/SRE teams
+4. **Different approval processes**: Code review vs infrastructure approval
+5. **Security and access control**: Not all developers need infrastructure access
+6. **Configuration changes shouldn't trigger app rebuilds**: Avoid unnecessary CI runs
 
-### Repository Organization
+**Anti-Pattern**: Monolithic repository mixing application code, infrastructure, and configurations creates complexity and coupling.
+
+### Repository Organization Patterns
 
 #### Pattern 1: Monorepo for Small Projects
 
+**Use Case**: Small teams, single application, limited environments
+
 ```
 project/
-├── src/                      # Application code
-│   ├── frontend/
-│   ├── backend/
-│   └── shared/
-├── infrastructure/           # Infrastructure code
-│   ├── terraform/
-│   │   ├── modules/
-│   │   ├── environments/
-│   │   │   ├── dev/
-│   │   │   ├── staging/
-│   │   │   └── prod/
-│   │   └── main.tf
-│   └── kubernetes/
-│       ├── base/
-│       └── overlays/
-│           ├── dev/
-│           ├── staging/
-│           └── prod/
 ├── .github/
 │   └── workflows/
-└── docs/
+│       ├── ci.yml                    # Build and test
+│       ├── deploy-dev.yml            # Deploy to dev
+│       ├── deploy-staging.yml        # Deploy to staging
+│       └── deploy-prod.yml           # Deploy to production
+├── src/                              # Application source code
+│   ├── frontend/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── package.json
+│   ├── backend/
+│   │   ├── api/
+│   │   ├── services/
+│   │   └── requirements.txt
+│   └── shared/
+│       └── utils/
+├── tests/                            # Test suites
+│   ├── unit/
+│   ├── integration/
+│   └── e2e/
+├── infrastructure/                   # Infrastructure as Code
+│   ├── terraform/
+│   │   ├── modules/
+│   │   │   ├── vpc/
+│   │   │   │   ├── main.tf
+│   │   │   │   ├── variables.tf
+│   │   │   │   └── outputs.tf
+│   │   │   ├── eks/
+│   │   │   │   ├── main.tf
+│   │   │   │   ├── variables.tf
+│   │   │   │   └── outputs.tf
+│   │   │   └── rds/
+│   │   │       ├── main.tf
+│   │   │       ├── variables.tf
+│   │   │       └── outputs.tf
+│   │   └── environments/
+│   │       ├── dev/
+│   │       │   ├── main.tf
+│   │       │   ├── variables.tf
+│   │       │   ├── terraform.tfvars
+│   │       │   └── backend.tf
+│   │       ├── staging/
+│   │       │   ├── main.tf
+│   │       │   ├── variables.tf
+│   │       │   ├── terraform.tfvars
+│   │       │   └── backend.tf
+│   │       └── prod/
+│   │           ├── main.tf
+│   │           ├── variables.tf
+│   │           ├── terraform.tfvars
+│   │           └── backend.tf
+│   └── kubernetes/                   # K8s manifests
+│       ├── base/
+│       │   ├── deployment.yaml
+│       │   ├── service.yaml
+│       │   ├── configmap.yaml
+│       │   ├── secrets.yaml
+│       │   └── kustomization.yaml
+│       └── overlays/
+│           ├── dev/
+│           │   ├── kustomization.yaml
+│           │   ├── patch-replicas.yaml
+│           │   ├── patch-resources.yaml
+│           │   └── configmap-patch.yaml
+│           ├── staging/
+│           │   ├── kustomization.yaml
+│           │   ├── patch-replicas.yaml
+│           │   ├── patch-resources.yaml
+│           │   └── configmap-patch.yaml
+│           └── prod/
+│               ├── kustomization.yaml
+│               ├── patch-replicas.yaml
+│               ├── patch-resources.yaml
+│               ├── hpa.yaml
+│               └── configmap-patch.yaml
+├── docs/                             # Documentation
+│   ├── architecture/
+│   │   ├── diagrams/
+│   │   └── decisions/
+│   ├── api/
+│   ├── deployment/
+│   └── runbooks/
+├── scripts/                          # Utility scripts
+│   ├── build.sh
+│   ├── test.sh
+│   └── deploy.sh
+├── .gitignore
+├── .dockerignore
+├── Dockerfile
+├── docker-compose.yml
+├── README.md
+└── CHANGELOG.md
 ```
+
+**Pros**:
+- Single source of truth
+- Easy to navigate
+- Atomic changes across code and config
+- Simpler CI/CD setup
+
+**Cons**:
+- Can become cluttered
+- Mixed permissions difficult
+- Code changes trigger infrastructure pipelines
+- Not suitable for multiple applications
+
+---
 
 #### Pattern 2: Multi-Repo for Enterprise
 
-**Application Repository**:
+**Use Case**: Large teams, multiple applications, strict separation of concerns
+
+##### Application Repository
+
 ```
 app-user-service/
-├── src/
-├── tests/
-├── Dockerfile
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml
-│       └── build.yml
-└── README.md
+│       ├── ci.yml                    # Build, test, scan
+│       ├── build-image.yml           # Build Docker image
+│       └── security-scan.yml         # Security scanning
+├── src/                              # Application code
+│   ├── main/
+│   │   └── java/
+│   │       └── com/
+│   │           └── example/
+│   │               ├── controller/
+│   │               ├── service/
+│   │               ├── repository/
+│   │               └── model/
+│   └── test/
+│       └── java/
+│           └── com/
+│               └── example/
+├── build.gradle                      # Build configuration
+├── Dockerfile                        # Container image
+├── .dockerignore
+├── README.md
+└── CHANGELOG.md
 ```
 
-**Infrastructure Repository**:
+**Purpose**: Contains only application source code, tests, and build configuration.
+
+**CI/CD Responsibilities**:
+1. Run unit and integration tests
+2. Build Docker image
+3. Push image to container registry
+4. Update image tag in GitOps repository
+5. Run security scans
+
+**Example CI Workflow**:
+
+```yaml
+# .github/workflows/ci.yml
+name: Build and Push Image
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      
+      - name: Run tests
+        run: ./gradlew test
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+  
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Update GitOps repo
+        run: |
+          git clone https://${{ secrets.GITOPS_PAT }}@github.com/org/gitops-config.git
+          cd gitops-config/apps/user-service/overlays/dev
+          kustomize edit set image user-service=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add .
+          git commit -m "Update user-service image to ${{ github.sha }}"
+          git push
+```
+
+---
+
+##### Infrastructure Repository
+
 ```
 infrastructure/
-├── terraform/
-│   ├── modules/
-│   │   ├── vpc/
-│   │   ├── eks/
-│   │   └── rds/
-│   └── environments/
-│       ├── dev/
-│       ├── staging/
-│       └── prod/
 ├── .github/
 │   └── workflows/
-│       └── terraform.yml
+│       ├── terraform-plan.yml        # Plan on PR
+│       ├── terraform-apply.yml       # Apply on merge
+│       └── terraform-destroy.yml     # Manual destroy
+├── terraform/
+│   ├── modules/                      # Reusable modules
+│   │   ├── vpc/
+│   │   │   ├── main.tf
+│   │   │   ├── variables.tf
+│   │   │   ├── outputs.tf
+│   │   │   └── README.md
+│   │   ├── eks/
+│   │   │   ├── main.tf
+│   │   │   ├── variables.tf
+│   │   │   ├── outputs.tf
+│   │   │   └── README.md
+│   │   ├── rds/
+│   │   │   ├── main.tf
+│   │   │   ├── variables.tf
+│   │   │   ├── outputs.tf
+│   │   │   └── README.md
+│   │   ├── s3/
+│   │   │   ├── main.tf
+│   │   │   ├── variables.tf
+│   │   │   ├── outputs.tf
+│   │   │   └── README.md
+│   │   └── monitoring/
+│   │       ├── main.tf
+│   │       ├── variables.tf
+│   │       ├── outputs.tf
+│   │       └── README.md
+│   ├── environments/
+│   │   ├── dev/
+│   │   │   ├── main.tf
+│   │   │   ├── variables.tf
+│   │   │   ├── terraform.tfvars
+│   │   │   ├── backend.tf
+│   │   │   └── outputs.tf
+│   │   ├── staging/
+│   │   │   ├── main.tf
+│   │   │   ├── variables.tf
+│   │   │   ├── terraform.tfvars
+│   │   │   ├── backend.tf
+│   │   │   └── outputs.tf
+│   │   └── prod/
+│   │       ├── main.tf
+│   │       ├── variables.tf
+│   │       ├── terraform.tfvars
+│   │       ├── backend.tf
+│   │       └── outputs.tf
+│   └── global/
+│       ├── iam/
+│       │   ├── main.tf
+│       │   └── variables.tf
+│       └── route53/
+│           ├── main.tf
+│           └── variables.tf
+├── ansible/                          # Configuration management
+│   ├── inventories/
+│   │   ├── dev/
+│   │   ├── staging/
+│   │   └── prod/
+│   ├── playbooks/
+│   └── roles/
+├── docs/
+│   ├── architecture.md
+│   ├── disaster-recovery.md
+│   └── runbooks/
+├── scripts/
+│   ├── init-backend.sh
+│   └── validate.sh
 └── README.md
 ```
 
-**Configuration Repository** (GitOps):
+**Purpose**: Manages cloud infrastructure, networking, databases, and platform services.
+
+**CI/CD Responsibilities**:
+1. Validate Terraform syntax
+2. Run security scans (Checkov, tfsec)
+3. Generate and review Terraform plans
+4. Apply infrastructure changes
+5. Update documentation
+
+**Example Terraform Workflow**:
+
+```yaml
+# .github/workflows/terraform.yml
+name: Terraform
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'terraform/**'
+  push:
+    branches: [ main ]
+    paths:
+      - 'terraform/**'
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [dev, staging, prod]
+    
+    defaults:
+      run:
+        working-directory: terraform/environments/${{ matrix.environment }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Terraform Format
+        run: terraform fmt -check -recursive
+      
+      - name: Terraform Init
+        run: terraform init
+      
+      - name: Terraform Validate
+        run: terraform validate
+      
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: terraform/environments/${{ matrix.environment }}
+          soft_fail: true
+      
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -out=tfplan
+        continue-on-error: true
+      
+      - name: Comment PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '#### Terraform Plan for ${{ matrix.environment }}\n```\n${{ steps.plan.outputs.stdout }}\n```'
+            })
+      
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve tfplan
+```
+
+---
+
+##### Configuration Repository (GitOps)
+
 ```
 gitops-config/
-├── clusters/
-│   ├── dev/
-│   │   ├── apps/
+├── .github/
+│   └── workflows/
+│       ├── validate.yml              # Validate manifests
+│       └── policy-check.yml          # OPA policy checks
+├── clusters/                         # Cluster-specific configs
+│   ├── dev-cluster/
+│   │   ├── flux-system/
+│   │   │   ├── gotk-components.yaml
+│   │   │   ├── gotk-sync.yaml
+│   │   │   └── kustomization.yaml
 │   │   ├── infrastructure/
-│   │   └── system/
-│   ├── staging/
-│   └── prod/
-├── apps/
+│   │   │   ├── ingress-nginx/
+│   │   │   ├── cert-manager/
+│   │   │   └── external-secrets/
+│   │   └── apps/
+│   │       ├── kustomization.yaml
+│   │       └── app-references.yaml
+│   ├── staging-cluster/
+│   │   ├── flux-system/
+│   │   ├── infrastructure/
+│   │   └── apps/
+│   └── prod-cluster/
+│       ├── flux-system/
+│       ├── infrastructure/
+│       └── apps/
+├── apps/                             # Application manifests
 │   ├── user-service/
 │   │   ├── base/
+│   │   │   ├── namespace.yaml
 │   │   │   ├── deployment.yaml
 │   │   │   ├── service.yaml
+│   │   │   ├── configmap.yaml
+│   │   │   ├── servicemonitor.yaml
+│   │   │   └── kustomization.yaml
+│   │   └── overlays/
+│   │       ├── dev/
+│   │       │   ├── kustomization.yaml
+│   │       │   ├── patch-replicas.yaml
+│   │       │   ├── patch-resources.yaml
+│   │       │   └── configmap-values.yaml
+│   │       ├── staging/
+│   │       │   ├── kustomization.yaml
+│   │       │   ├── patch-replicas.yaml
+│   │       │   ├── patch-resources.yaml
+│   │       │   └── configmap-values.yaml
+│   │       └── prod/
+│   │           ├── kustomization.yaml
+│   │           ├── patch-replicas.yaml
+│   │           ├── patch-resources.yaml
+│   │           ├── hpa.yaml
+│   │           ├── pdb.yaml
+│   │           └── configmap-values.yaml
+│   ├── payment-service/
+│   │   ├── base/
+│   │   └── overlays/
+│   ├── notification-service/
+│   │   ├── base/
+│   │   └── overlays/
+│   └── frontend/
+│       ├── base/
+│       └── overlays/
+├── infrastructure/                   # Platform services
+│   ├── ingress-nginx/
+│   │   ├── base/
+│   │   │   ├── namespace.yaml
+│   │   │   ├── helmrelease.yaml
 │   │   │   └── kustomization.yaml
 │   │   └── overlays/
 │   │       ├── dev/
 │   │       ├── staging/
 │   │       └── prod/
-│   └── payment-service/
+│   ├── cert-manager/
+│   │   ├── base/
+│   │   └── overlays/
+│   ├── external-secrets/
+│   │   ├── base/
+│   │   └── overlays/
+│   ├── monitoring/
+│   │   ├── prometheus/
+│   │   ├── grafana/
+│   │   └── alertmanager/
+│   └── logging/
+│       ├── loki/
+│       └── promtail/
+├── policies/                         # OPA/Kyverno policies
+│   ├── pod-security/
+│   │   ├── require-non-root.yaml
+│   │   ├── drop-capabilities.yaml
+│   │   └── readonly-root-fs.yaml
+│   ├── resource-limits/
+│   │   └── require-limits.yaml
+│   └── network/
+│       └── deny-default.yaml
+├── docs/
+│   ├── architecture.md
+│   ├── deployment-guide.md
+│   └── troubleshooting.md
 └── README.md
 ```
 
-#### Pattern 3: Package Repository
+**Purpose**: Contains all Kubernetes manifests and configurations for applications and infrastructure.
 
-**Platform Repository** (Fleet-wide config):
-```
-platform-config/
-├── cluster-config/
-│   ├── namespaces/
-│   ├── rbac/
-│   └── network-policies/
-├── shared-services/
-│   ├── ingress-nginx/
-│   ├── cert-manager/
-│   └── monitoring/
-└── policies/
-    ├── pod-security/
-    └── network/
+**Key Principles**:
+1. **Declarative**: Everything defined as YAML manifests
+2. **Versioned**: All changes tracked in Git
+3. **Separate by environment**: Use overlays, not branches
+4. **GitOps agent managed**: Flux or ArgoCD syncs from this repo
+
+**Example Base Deployment**:
+
+```yaml
+# apps/user-service/base/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  labels:
+    app: user-service
+    version: v1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+        version: v1
+    spec:
+      serviceAccountName: user-service
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 2000
+      containers:
+      - name: user-service
+        image: ghcr.io/org/user-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: production
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: user-service-db
+              key: url
+        envFrom:
+        - configMapRef:
+            name: user-service-config
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}
 ```
 
-###
+**Example Dev Overlay**:
+
+```yaml
+# apps/user-service/overlays/dev/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: user-service-dev
+
+bases:
+  - ../../base
+
+patches:
+  - patch-replicas.yaml
+  - patch-resources.yaml
+
+images:
+  - name: ghcr.io/org/user-service
+    newTag: dev-latest
+
+configMapGenerator:
+  - name: user-service-config
+    behavior: merge
+    literals:
+      - LOG_LEVEL=DEBUG
+      - ENVIRONMENT=development
+      - CACHE_ENABLED=false
+
+labels:
+  - pairs:
+      environment: dev
+      managed-by: flux
+```
+
+```yaml
+# apps/user-service/overlays/dev/patch-replicas.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+spec:
+  replicas: 1
+```
+
+```yaml
+# apps/user-service/overlays/dev/patch-resources.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+spec:
+  template:
+    spec:
+      containers:
+      - name: user-service
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+```
+
+**Pros of Multi-Repo**:
+- Clear separation of concerns
+- Independent versioning and releases
+- Fine-grained access control
+- Smaller, focused repositories
+- Parallel development without conflicts
+
+**Cons of Multi-Repo**:
+- More complex to manage
+- Requires coordination between repos
+- More CI/CD pipelines to maintain
+- Cross-repo changes require multiple PRs
+
+---
+
+#### Pattern 3: Hybrid Approach
+
+**Use Case**: Medium-sized teams, multiple related applications
+
+```
+organization/
+├── apps/
+│   ├── user-service/
+│   │   ├── src/
+│   │   ├── tests/
+│   │   ├── Dockerfile
+│   │   └── .github/workflows/
+│   ├── payment-service/
+│   │   ├── src/
+│   │   ├── tests/
+│   │   ├── Dockerfile
+│   │   └── .github/workflows/
+│   └── frontend/
+│       ├── src/
+│       ├── tests/
+│       ├── Dockerfile
+│       └── .github/workflows/
+├── platform/
+│   ├── infrastructure/
+│   │   └── terraform/
+│   └── gitops/
+│       ├── clusters/
+│       ├── apps/
+│       └── infrastructure/
+└── shared/
+    ├── libraries/
+    └── configs/
+```
+
+**Pros**:
+- Logical grouping
+- Shared resources in one place
+- Easier discovery
+- Moderate complexity
+
+**Cons**:
+- Can become large
+- Requires clear conventions
+- Build times may increase
+
+---
+
+### Directory Structure Best Practices
+
+#### 1. Use Folders, Not Branches for Environments
+
+**❌ Anti-Pattern: Environment Branches**
+
+```
+main (production)
+├── develop (staging)
+│   └── feature-x (development)
+└── feature-y
+```
+
+**Problems**:
+- Difficult to compare environments
+- Merge conflicts between environments
+- No single source of truth
+- Complex promotion process
+
+**✅ Recommended: Directory Structure**
+
+```
+configs/
+├── base/                     # Common configuration
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   └── kustomization.yaml
+└── environments/
+    ├── dev/
+    │   ├── kustomization.yaml
+    │   └── patches/
+    ├── staging/
+    │   ├── kustomization.yaml
+    │   └── patches/
+    └── prod/
+        ├── kustomization.yaml
+        └── patches/
+```
+
+**Benefits**:
+- All environments visible simultaneously
+- Easy to compare configurations
+- Simple promotion (copy/modify files)
+- Single main branch
+
+#### 2. Organize by Environment, Not by Resource Type
+
+**❌ Poor Organization**:
+
+```
+k8s/
+├── deployments/
+│   ├── app1-dev.yaml
+│   ├── app1-prod.yaml
+│   ├── app2-dev.yaml
+│   └── app2-prod.yaml
+├── services/
+│   ├── app1-dev.yaml
+│   └── app1-prod.yaml
+└── configmaps/
+    └── ...
+```
+
+**✅ Good Organization**:
+
+```
+k8s/
+├── app1/
+│   ├── base/
+│   │   ├── deployment.yaml
+│   │   ├── service.yaml
+│   │   └── configmap.yaml
+│   └── overlays/
+│       ├── dev/
+│       ├── staging/
+│       └── prod/
+└── app2/
+    ├── base/
+    └── overlays/
+```
+
+#### 3. Keep Configuration DRY with Base and Overlays
+
+**Base Configuration** (shared across environments):
+
+```yaml
+# base/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+spec:
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+      - name: myapp
+        image: myapp:latest
+        ports:
+        - containerPort: 8080
+```
+
+**Environment-Specific Overlays**:
+
+```yaml
+# overlays/prod/kustomization.yaml
+bases:
+  - ../../base
+
+patchesStrategicMerge:
+  - replica-patch.yaml
+  - resource-patch.yaml
+
+images:
+  - name: myapp
+    newTag: v1.2.3
+
+configMapGenerator:
+  - name: app-config
+    literals:
+      - ENVIRONMENT=production
+```
+
+#### 4. WET vs DRY Configuration
+
+**DRY (Don't Repeat Yourself)**: Use templates and generators
+```yaml
+# Template with variables
+replicas: {{ .Values.replicas }}
+image: {{ .Values.image }}:{{ .Values.tag }}
+```
+
+**Pros**: Less repetition, easier bulk updates
+**Cons**: Harder to review changes, requires processing
+
+**WET (Write Everything Twice)**: Explicit configuration files
+```yaml
+# Explicit YAML for each environment
+# dev/deployment.yaml
+replicas: 1
+image: myapp:dev
+
+# prod/deployment.yaml
+replicas: 5
+image: myapp:v1.2.3
+```
+
+**Pros**: Easy to review, no hidden logic, GitOps-friendly
+**Cons**: More files, potential inconsistencies
+
+**Recommendation for GitOps**: Use WET approach
+- Changes visible in Git diffs
+- No hidden logic or transformations
+- GitOps agents apply exactly what's in Git
+- Better for auditing and compliance
+
+#### 5. Namespace Organization
+
+**Option A: Namespace per Environment**
+
+```
+namespaces/
+├── dev/
+│   ├── namespace.yaml
+│   └── resource-quotas.yaml
+├── staging/
+│   ├── namespace.yaml
+│   └── resource-quotas.yaml
+└── prod/
+    ├── namespace.yaml
+    └── resource-quotas.yaml
+```
+
+**Option B: Namespace per Application per Environment**
+
+```
+namespaces/
+├── user-service-dev/
+├── user-service-staging/
+├── user-service-prod/
+├── payment-service-dev/
+├── payment-service-staging/
+└── payment-service-prod/
+```
+
+**Option C: Separate Clusters per Environment** (Recommended for production)
+
+```
+Each environment in its own cluster:
+- dev-cluster
+- staging-cluster  
+- prod-cluster
+```
+
+---
+
+### Repository Naming Conventions
+
+**Application Repositories**:
+- `app-<service-name>`: Example: `app-user-service`
+- `service-<name>`: Example: `service-payment`
+- `<team>-<service>`: Example: `platform-api-gateway`
+
+**Infrastructure Repositories**:
+- `infra-<platform>`: Example: `infra-aws`
+- `infrastructure`: Simple, clear name
+- `terraform-<env>`: Example: `terraform-prod` (if env-specific)
+
+**Configuration Repositories**:
+- `gitops-<cluster>`: Example: `gitops-prod-cluster`
+- `k8s-manifests`: Clear purpose
+- `fleet-config`: For multi-cluster setups
+- `config-<env>`: Example: `config-production`
+
+---
+
+### File Naming Conventions
+
+**Kubernetes Manifests**:
+```
+namespace.yaml
+deployment.yaml
+service.yaml
+configmap.yaml
+secret.yaml (or sealed-secret.yaml)
+ingress.yaml
+hpa.yaml (Horizontal Pod Autoscaler)
+pdb.yaml (Pod Disruption Budget)
+networkpolicy.yaml
+serviceaccount.yaml
+role.yaml / rolebinding.yaml
+```
+
+**Terraform Files**:
+```
+main.tf           # Primary resources
+variables.tf      # Input variables
+outputs.tf        # Output values
+backend.tf        # Backend configuration
+providers.tf      # Provider configuration
+terraform.tfvars  # Variable values
+versions.tf       # Version constraints
+```
+
+**Documentation**:
+```
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+ARCHITECTURE.md
+DEPLOYMENT.md
+TROUBLESHOOTING.md
+```
+
+---
+
+### Repository Size Management
+
+**Keep Repositories Focused**:
+- Single responsibility principle
+- Clear boundaries
+- Independent versioning
+
+**Avoid**:
+- Multi-thousand file repositories
+- Mixing unrelated concerns
+- Deep nesting (> 5 levels)
+
+**Split When**:
+- Repository > 1000 files
+- Multiple independent services
+- Different teams/ownership
+- Different security requirements
+- Build times > 10 minutes
+
+---
+
