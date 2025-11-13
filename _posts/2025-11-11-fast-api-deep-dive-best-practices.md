@@ -1,5 +1,5 @@
 ---
-title: "FastAPI: Deep Dive & Best Practices"
+title: "🌊 FastAPI: Deep Dive & Best Practices"
 date: 2025-11-11 22:00:00 +0530
 categories: [Notes, FastAPI]
 tags: [FastAPI, Python, Web Framework, ASYNC, REST API, API Development, Web Development, OpenAPI, Swagger, pydantic, dependency-injection, microservices, async-await]
