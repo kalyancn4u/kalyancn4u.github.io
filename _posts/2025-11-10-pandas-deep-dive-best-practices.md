@@ -1791,5 +1791,6 @@ def clean_data(df):
             date=lambda x: pd.to_datetime(x['date']),
             amount=lambda x: pd.to_numeric(x['amount'], errors='coerce')
         )
+```
 
 ---
