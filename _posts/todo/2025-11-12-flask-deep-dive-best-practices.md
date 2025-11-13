@@ -1257,6 +1257,7 @@ Flask uses Jinja2 as its template engine.
 
 #### Template Inheritance
 
+{% raw %}
 ```html
 <!-- templates/base.html -->
 <!DOCTYPE html>
@@ -1322,6 +1323,7 @@ Flask uses Jinja2 as its template engine.
 {% endif %}
 {% endblock %}
 ```
+{% endraw %}
 
 #### Template Filters
 
