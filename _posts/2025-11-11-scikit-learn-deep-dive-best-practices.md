@@ -1800,8 +1800,6 @@ new_predictions = loaded_model.predict(X_new)
 ## References
 
 <div style="line-height: 1.8;">
-
-<br>
 1. <a href="https://scikit-learn.org/stable/documentation.html" target="_blank">Scikit-learn Official Documentation</a>
 <br>
 2. <a href="https://scikit-learn.org/stable/developers/develop.html" target="_blank">Scikit-learn Development Guide</a>
