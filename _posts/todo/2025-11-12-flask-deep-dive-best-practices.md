@@ -1376,6 +1376,7 @@ def current_year():
 
 #### Template Macros
 
+{% raw %}
 ```html
 <!-- templates/macros.html -->
 {% macro render_field(field) %}
@@ -1401,6 +1402,7 @@ def current_year():
     <button type="submit">Submit</button>
 </form>
 ```
+{% endraw %}
 
 ### Static Files
 
