@@ -4404,3 +4404,2251 @@ TROUBLESHOOTING.md
 
 ---
 
+---
+layout: post
+title: "GitOps: Deep Dive & Best Practices (Part 2)"
+date: 2025-01-15
+categories: [devops, gitops, ci-cd]
+tags: [gitops, git, github-actions, gitlab, kubernetes, infrastructure-as-code, ci-cd, automation]
+---
+
+## Table of Contents (Part 2)
+8. [Branching Strategies](#branching-strategies)
+9. [CI/CD Pipeline Design](#cicd-pipeline-design)
+10. [Infrastructure as Code](#infrastructure-as-code)
+11. [Deployment Strategies](#deployment-strategies)
+12. [Security Best Practices](#security-best-practices)
+13. [Monitoring and Observability](#monitoring-and-observability)
+14. [GitOps Tools](#gitops-tools)
+15. [Best Practices](#best-practices)
+16. [Common Pitfalls](#common-pitfalls)
+17. [Jargon Tables](#jargon-tables)
+
+---
+
+## Branching Strategies
+
+### Overview
+
+Branching strategy defines how teams organize code changes, manage releases, and deploy to different environments. In GitOps, the branching strategy directly impacts deployment workflows and configuration management.
+
+### Trunk-Based Development (Recommended for GitOps)
+
+**Description**: Single main branch with short-lived feature branches.
+
+**Structure**:
+```
+main ──●────●────●────●────●────●────●────●────●────●──▶
+        \  /      \  /      \  /      \  /
+         ●●        ●●        ●●        ●●
+      feature-1 feature-2 feature-3 feature-4
+```
+
+**Characteristics**:
+- Main branch is always deployable
+- Feature branches live < 2 days (ideally < 1 day)
+- Small, incremental changes
+- Continuous integration to main
+- Feature flags for incomplete features
+- No long-lived development branches
+
+**Implementation**:
+
+```bash
+# Developer workflow
+git checkout main
+git pull origin main
+
+# Create short-lived feature branch
+git checkout -b feature/add-user-auth
+
+# Make small, focused changes
+vim src/auth.py
+git add src/auth.py
+git commit -m "feat: add JWT authentication"
+
+# Push and create PR immediately
+git push origin feature/add-user-auth
+
+# After review (same day), merge and delete
+git checkout main
+git merge feature/add-user-auth
+git branch -d feature/add-user-auth
+git push origin --delete feature/add-user-auth
+```
+
+**Branch Protection Rules**:
+
+```yaml
+# GitHub branch protection for main
+main:
+  protection:
+    required_status_checks:
+      strict: true
+      contexts:
+        - ci/test
+        - ci/lint
+        - ci/security-scan
+    required_pull_request_reviews:
+      required_approving_review_count: 1
+      dismiss_stale_reviews: true
+    enforce_admins: false
+    required_linear_history: true
+    allow_force_pushes: false
+    allow_deletions: false
+```
+
+**Pros**:
+- ✅ Simplest strategy
+- ✅ Reduces merge conflicts
+- ✅ Enables continuous deployment
+- ✅ Fast feedback loops
+- ✅ Encourages small changes
+- ✅ Perfect for GitOps
+
+**Cons**:
+- ❌ Requires discipline
+- ❌ Feature flags needed for large features
+- ❌ Requires robust automated testing
+
+---
+
+### GitHub Flow
+
+**Description**: Simplified branching model with main and feature branches.
+
+**Structure**:
+```
+main ──●──────●──────●──────●──────●──────●──────●──▶
+        \    /        \    /        \    /
+         ●──●          ●──●          ●──●
+       feature-1    feature-2    feature-3
+```
+
+**Workflow**:
+
+```bash
+# 1. Create branch from main
+git checkout main
+git pull origin main
+git checkout -b feature/new-feature
+
+# 2. Add commits
+git add .
+git commit -m "Add new feature"
+git push origin feature/new-feature
+
+# 3. Open Pull Request
+
+# 4. Discuss and review code
+
+# 5. Deploy to test environment
+# (Automatically from PR)
+
+# 6. Merge to main
+git checkout main
+git merge feature/new-feature
+
+# 7. Deploy to production
+# (Automatically from main)
+
+# 8. Delete branch
+git branch -d feature/new-feature
+git push origin --delete feature/new-feature
+```
+
+**GitHub Actions for GitHub Flow**:
+
+```yaml
+name: GitHub Flow Pipeline
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: npm test
+  
+  deploy-preview:
+    needs: test
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    environment:
+      name: preview-${{ github.event.pull_request.number }}
+      url: https://pr-${{ github.event.pull_request.number }}.preview.example.com
+    steps:
+      - name: Deploy to preview
+        run: ./deploy-preview.sh ${{ github.event.pull_request.number }}
+  
+  deploy-production:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://example.com
+    steps:
+      - name: Deploy to production
+        run: ./deploy-production.sh
+```
+
+**Pros**:
+- ✅ Simple and easy to understand
+- ✅ Great for continuous deployment
+- ✅ Encourages code review
+- ✅ Works well with GitOps
+
+**Cons**:
+- ❌ No formal release process
+- ❌ Main must always be stable
+- ❌ Requires automated testing
+
+---
+
+### Git Flow (Not Recommended for GitOps)
+
+**Description**: Complex branching model with multiple long-lived branches.
+
+**Structure**:
+```
+main ────────────●───────────●───────────●────▶
+                /           /           /
+release ───────●───────────●───────────●───────▶
+              /           /           /
+develop ─────●───────────●───────────●─────────▶
+            / \         / \         / \
+feature ───●   ●───────●   ●───────●   ●───────▶
+```
+
+**Why Not for GitOps**:
+- ❌ Complex with multiple long-lived branches
+- ❌ Doesn't match declarative model
+- ❌ Environments represented as directories, not branches
+- ❌ Merge conflicts between release branches
+- ❌ Cherry-picking required
+- ❌ Slows down deployment velocity
+
+**When to Use**: Traditional software releases with scheduled releases (monthly/quarterly).
+
+---
+
+### Environment Management in GitOps
+
+**❌ Anti-Pattern: Environment Branches**
+
+```
+main (production)
+├── staging
+└── development
+```
+
+**Problems**:
+- Difficult to compare configurations
+- Merge conflicts when promoting
+- No single source of truth
+- Drift between environments
+
+**✅ Correct Pattern: Directory-Based Environments**
+
+```
+configs/
+├── base/
+│   ├── deployment.yaml
+│   └── service.yaml
+└── environments/
+    ├── dev/
+    │   ├── kustomization.yaml
+    │   └── patches/
+    ├── staging/
+    │   ├── kustomization.yaml
+    │   └── patches/
+    └── prod/
+        ├── kustomization.yaml
+        └── patches/
+```
+
+**Environment Promotion Workflow**:
+
+```bash
+# Step 1: Test in dev
+cd environments/dev
+kubectl apply -k .
+
+# Step 2: Promote to staging
+cd ../staging
+# Copy or update configuration
+cp ../dev/app-config.yaml .
+# Adjust staging-specific values
+vim app-config.yaml
+git add .
+git commit -m "promote: dev config to staging"
+git push
+
+# Step 3: Validate in staging
+# Run tests, manual verification
+
+# Step 4: Promote to production
+cd ../prod
+cp ../staging/app-config.yaml .
+# Adjust production-specific values
+vim app-config.yaml
+git add .
+git commit -m "promote: staging config to production"
+git push
+```
+
+---
+
+### Release Strategies
+
+#### Semantic Versioning
+
+**Format**: MAJOR.MINOR.PATCH (e.g., 1.2.3)
+
+- **MAJOR**: Breaking changes
+- **MINOR**: New features (backward compatible)
+- **PATCH**: Bug fixes
+
+**Git Tagging**:
+
+```bash
+# Tag release
+git tag -a v1.2.3 -m "Release version 1.2.3
+
+Features:
+- Add user authentication
+- Implement JWT tokens
+
+Bug fixes:
+- Fix memory leak in session handler
+"
+
+# Push tags
+git push origin v1.2.3
+
+# Push all tags
+git push origin --tags
+
+# List tags
+git tag -l
+
+# Checkout specific version
+git checkout v1.2.3
+```
+
+**Automated Versioning with GitHub Actions**:
+
+```yaml
+name: Release
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          extra_plugins: |
+            @semantic-release/changelog
+            @semantic-release/git
+```
+
+**Semantic Release Configuration**:
+
+```json
+{
+  "branches": ["main"],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/changelog",
+    "@semantic-release/github",
+    "@semantic-release/git"
+  ]
+}
+```
+
+---
+
+### Hotfix Strategy
+
+**Emergency Production Fixes**:
+
+```bash
+# 1. Create hotfix branch from production tag
+git checkout v1.2.3
+git checkout -b hotfix/critical-security-fix
+
+# 2. Apply fix
+vim src/security.py
+git add src/security.py
+git commit -m "fix: patch security vulnerability CVE-2024-1234"
+
+# 3. Tag hotfix version
+git tag -a v1.2.4 -m "Hotfix: Security patch"
+
+# 4. Merge to main
+git checkout main
+git merge hotfix/critical-security-fix
+
+# 5. Update production immediately
+cd gitops-repo/environments/prod
+kustomize edit set image app=myapp:v1.2.4
+git add .
+git commit -m "hotfix: deploy v1.2.4 to production"
+git push
+
+# 6. Clean up
+git branch -d hotfix/critical-security-fix
+```
+
+---
+
+### Branch Naming Conventions
+
+**Feature Branches**:
+```
+feature/add-user-authentication
+feature/implement-payment-gateway
+feat/JIRA-123-shopping-cart
+```
+
+**Bug Fix Branches**:
+```
+bugfix/fix-login-redirect
+fix/memory-leak-session
+bugfix/JIRA-456-checkout-error
+```
+
+**Hotfix Branches**:
+```
+hotfix/security-patch
+hotfix/critical-database-issue
+```
+
+**Chore Branches**:
+```
+chore/update-dependencies
+chore/cleanup-logs
+```
+
+**Documentation Branches**:
+```
+docs/update-api-documentation
+docs/add-deployment-guide
+```
+
+---
+
+### Commit Message Conventions
+
+**Conventional Commits Format**:
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+**Types**:
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation
+- `style`: Formatting
+- `refactor`: Code restructuring
+- `test`: Adding tests
+- `chore`: Maintenance
+
+**Examples**:
+
+```bash
+# Feature
+git commit -m "feat(auth): add JWT token authentication
+
+Implement JWT-based authentication system with refresh tokens.
+Tokens expire after 1 hour with 7-day refresh window.
+
+Closes #123"
+
+# Bug fix
+git commit -m "fix(payment): resolve race condition in transaction
+
+Add mutex lock to prevent concurrent transaction processing
+that was causing duplicate charges.
+
+Fixes #456"
+
+# Breaking change
+git commit -m "feat(api)!: change user endpoint response format
+
+BREAKING CHANGE: User API now returns ISO 8601 timestamps
+instead of Unix epochs. Update clients accordingly.
+
+Closes #789"
+
+# Documentation
+git commit -m "docs: add deployment guide for production
+
+Include step-by-step instructions for deploying to production
+environment with rollback procedures."
+
+# Chore
+git commit -m "chore(deps): update kubernetes to v1.28
+
+Update Kubernetes dependencies to latest stable version."
+```
+
+---
+
+### Pull Request Workflow
+
+**PR Template**:
+
+```markdown
+## Description
+Brief description of changes and why they're needed.
+
+## Type of Change
+- [ ] Bug fix (non-breaking change fixing an issue)
+- [ ] New feature (non-breaking change adding functionality)
+- [ ] Breaking change (fix or feature causing existing functionality to break)
+- [ ] Documentation update
+- [ ] Configuration change
+- [ ] Infrastructure change
+
+## Related Issues
+Closes #123
+Related to #456
+
+## How Has This Been Tested?
+- [ ] Unit tests
+- [ ] Integration tests
+- [ ] Manual testing in dev environment
+- [ ] Tested in staging environment
+
+## Deployment Notes
+Any special deployment considerations or database migrations required.
+
+## Rollback Plan
+Steps to rollback if deployment fails.
+
+## Screenshots (if applicable)
+
+## Checklist
+- [ ] Code follows style guidelines
+- [ ] Self-review completed
+- [ ] Comments added for complex logic
+- [ ] Documentation updated
+- [ ] No new warnings generated
+- [ ] Tests added/updated
+- [ ] All tests passing
+- [ ] CHANGELOG updated
+- [ ] Secrets not committed
+```
+
+**PR Review Process**:
+
+```yaml
+# .github/CODEOWNERS
+# Automatic reviewer assignment
+
+# Global owners
+* @platform-team
+
+# Application code
+/src/ @developers @tech-leads
+
+# Infrastructure
+/terraform/ @platform-team @sre-team
+/kubernetes/ @platform-team @sre-team
+
+# Production configs
+/kubernetes/overlays/prod/ @platform-team @sre-team @tech-leads
+
+# CI/CD
+/.github/workflows/ @devops-team @platform-team
+
+# Documentation
+/docs/ @tech-writers @developers
+```
+
+---
+
+### Branching Best Practices
+
+**1. Keep Branches Short-Lived**
+```bash
+# Maximum 2 days old
+git for-each-ref --sort=committerdate refs/heads/ --format='%(committerdate:short) %(refname:short)'
+
+# Delete merged branches
+git branch --merged | grep -v "\*" | xargs -n 1 git branch -d
+```
+
+**2. Sync Frequently**
+```bash
+# Before starting work
+git checkout main
+git pull origin main
+git checkout feature/my-feature
+git rebase main
+
+# Or merge
+git merge main
+```
+
+**3. Use Descriptive Names**
+```bash
+# Good
+feature/add-user-profile-page
+fix/resolve-memory-leak-in-cache
+
+# Bad
+fix-stuff
+my-branch
+test
+```
+
+**4. Delete After Merge**
+```bash
+# Automatic deletion in GitHub
+# Enable in repository settings:
+# Settings > Options > Automatically delete head branches
+
+# Manual cleanup
+git branch -d feature/merged-feature
+git push origin --delete feature/merged-feature
+```
+
+**5. Protect Important Branches**
+```yaml
+# GitHub settings
+main:
+  protected: true
+  require_pull_request: true
+  required_approving_reviews: 2
+  dismiss_stale_reviews: true
+  require_code_owner_review: true
+  required_status_checks:
+    - ci/test
+    - ci/lint
+    - ci/security
+```
+
+---
+
+## CI/CD Pipeline Design
+
+### Pipeline Architecture
+
+```
+┌─────────────┐
+│   Commit    │
+│   to Git    │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│   Build     │◀─── Cache Dependencies
+│   Stage     │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│    Test     │
+│   Stage     │◀─── Unit, Integration, E2E
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│  Security   │
+│   Scan      │◀─── SAST, DAST, Dependencies
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│   Package   │
+│   Stage     │◀─── Build Docker Image
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│   Publish   │
+│   Stage     │◀─── Push to Registry
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│   Deploy    │
+│   Stage     │◀─── Update GitOps Repo
+└─────────────┘
+```
+
+---
+
+### Complete CI/CD Pipeline Example
+
+```yaml
+name: Complete CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  NODE_VERSION: '18'
+  JAVA_VERSION: '17'
+
+jobs:
+  # ====================
+  # CODE QUALITY STAGE
+  # ====================
+  lint:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run ESLint
+        run: npm run lint
+      
+      - name: Run Prettier
+        run: npm run format:check
+      
+      - name: Check commit messages
+        uses: wagoid/commitlint-github-action@v5
+  
+  # ====================
+  # TEST STAGE
+  # ====================
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16, 18, 20]
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run unit tests
+        run: npm run test:unit
+      
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+          REDIS_URL: redis://localhost:6379
+      
+      - name: Generate coverage report
+        if: matrix.node-version == '18'
+        run: npm run test:coverage
+      
+      - name: Upload coverage to Codecov
+        if: matrix.node-version == '18'
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+  
+  e2e-test:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+      
+      - name: Run E2E tests
+        run: npm run test:e2e
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report
+          path: playwright-report/
+  
+  # ====================
+  # SECURITY STAGE
+  # ====================
+  security:
+    name: Security Scans
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      contents: read
+      security-events: write
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scanner (filesystem)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-fs-results.sarif'
+      
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-fs-results.sarif'
+      
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+      
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+      
+      - name: Check for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+  # ====================
+  # BUILD STAGE
+  # ====================
+  build:
+    name: Build and Push Image
+    runs-on: ubuntu-latest
+    needs: [lint, test, security]
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      image-tags: ${{ steps.meta.outputs.tags }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+      
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
+      
+      - name: Run Trivy vulnerability scanner (image)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+          format: 'sarif'
+          output: 'trivy-image-results.sarif'
+      
+      - name: Upload Trivy image results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-image-results.sarif'
+      
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+      
+      - name: Sign image with Cosign
+        run: |
+          cosign sign --yes \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+      
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+      
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom
+          path: sbom.spdx.json
+  
+  # ====================
+  # DEPLOY STAGE
+  # ====================
+  deploy-dev:
+    name: Deploy to Development
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: development
+      url: https://dev.example.com
+    
+    steps:
+      - name: Checkout GitOps repo
+        uses: actions/checkout@v4
+        with:
+          repository: org/gitops-config
+          token: ${{ secrets.GITOPS_PAT }}
+          path: gitops
+      
+      - name: Update image tag
+        run: |
+          cd gitops/apps/myapp/overlays/dev
+          kustomize edit set image myapp=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build.outputs.image-digest }}
+      
+      - name: Commit and push
+        run: |
+          cd gitops
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore(dev): update myapp to ${{ github.sha }}"
+          git push
+  
+  deploy-staging:
+    name: Deploy to Staging
+    needs: [build, deploy-dev]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: staging
+      url: https://staging.example.com
+    
+    steps:
+      - name: Checkout GitOps repo
+        uses: actions/checkout@v4
+        with:
+          repository: org/gitops-config
+          token: ${{ secrets.GITOPS_PAT }}
+          path: gitops
+      
+      - name: Update image tag
+        run: |
+          cd gitops/apps/myapp/overlays/staging
+          kustomize edit set image myapp=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build.outputs.image-digest }}
+      
+      - name: Commit and push
+        run: |
+          cd gitops
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore(staging): update myapp to ${{ github.sha }}"
+          git push
+  
+  deploy-production:
+    name: Deploy to Production
+    needs: [build, deploy-staging]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    environment:
+      name: production
+      url: https://example.com
+    
+    steps:
+      - name: Checkout GitOps repo
+        uses: actions/checkout@v4
+        with:
+          repository: org/gitops-config
+          token: ${{ secrets.GITOPS_PAT }}
+          path: gitops
+      
+      - name: Update image tag
+        run: |
+          cd gitops/apps/myapp/overlays/prod
+          kustomize edit set image myapp=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.release.tag_name }}
+      
+      - name: Commit and push
+        run: |
+          cd gitops
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore(prod): deploy myapp ${{ github.event.release.tag_name }}"
+          git push
+      
+      - name: Create deployment record
+        uses: chrnorm/deployment-action@v2
+        with:
+          token: ${{ github.token }}
+          environment: production
+          ref: ${{ github.event.release.tag_name }}
+```
+
+---
+
+### Pipeline Optimization Strategies
+
+#### 1. Caching Dependencies
+
+```yaml
+- name: Cache Node modules
+  uses: actions/cache@v3
+  with:
+    path: ~/.npm
+    key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+    restore-keys: |
+      ${{ runner.os }}-node-
+
+- name: Cache Maven dependencies
+  uses: actions/cache@v3
+  with:
+    path: ~/.m2/repository
+    key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+    restore-keys: |
+      ${{ runner.os }}-maven-
+
+- name: Cache Docker layers
+  uses: docker/build-push-action@v5
+  with:
+    cache-from: type=gha
+    cache-to: type=gha,mode=max
+```
+
+#### 2. Parallel Execution
+
+```yaml
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [16, 18, 20]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm test
+```
+
+#### 3. Conditional Execution
+
+```yaml
+- name: Deploy to production
+  if: |
+    github.ref == 'refs/heads/main' &&
+    github.event_name == 'push' &&
+    !contains(github.event.head_commit.message, '[skip ci]')
+  run: ./deploy.sh
+```
+
+#### 4. Fail Fast
+
+```yaml
+jobs:
+  quick-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm run lint
+      - run: npm run typecheck
+  
+  expensive-tests:
+    needs: quick-checks
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm run test:integration
+```
+
+---
+
+## Infrastructure as Code
+
+### Terraform Deep Dive
+
+#### Project Structure
+
+```
+terraform/
+├── modules/
+│   ├── vpc/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   ├── outputs.tf
+│   │   ├── versions.tf
+│   │   └── README.md
+│   ├── eks/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   ├── outputs.tf
+│   │   ├── iam.tf
+│   │   ├── security-groups.tf
+│   │   └── README.md
+│   └── rds/
+│       ├── main.tf
+│       ├── variables.tf
+│       ├── outputs.tf
+│       └── README.md
+├── environments/
+│   ├── dev/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   ├── terraform.tfvars
+│   │   ├── backend.tf
+│   │   └── outputs.tf
+│   ├── staging/
+│   └── prod/
+└── global/
+    ├── iam/
+    └── route53/
+```
+
+#### Complete Module Example: VPC
+
+```hcl
+# modules/vpc/versions.tf
+terraform {
+  required_version = ">= 1.6.0"
+  
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+# modules/vpc/variables.tf
+variable "name" {
+  description = "Name to be used on all resources"
+  type        = string
+}
+
+variable "cidr" {
+  description = "The CIDR block for the VPC"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "azs" {
+  description = "Availability zones"
+  type        = list(string)
+}
+
+variable "private_subnets" {
+  description = "List of private subnet CIDR blocks"
+  type        = list(string)
+}
+
+variable "public_subnets" {
+  description = "List of public subnet CIDR blocks"
+  type        = list(string)
+}
+
+variable "enable_nat_gateway" {
+  description = "Enable NAT Gateway for private subnets"
+  type        = bool
+  default     = true
+}
+
+variable "single_nat_gateway" {
+  description = "Use single NAT Gateway for all private subnets"
+  type        = bool
+  default     = false
+}
+
+variable "enable_dns_hostnames" {
+  description = "Enable DNS hostnames in VPC"
+  type        = bool
+  default     = true
+}
+
+variable "enable_dns_support" {
+  description = "Enable DNS support in VPC"
+  type        = bool
+  default     = true
+}
+
+variable "tags" {
+  description = "Tags to apply to resources"
+  type        = map(string)
+  default     = {}
+}
+
+# modules/vpc/main.tf
+locals {
+  max_subnet_length = max(
+    length(var.private_subnets),
+    length(var.public_subnets)
+  )
+  nat_gateway_count = var.single_nat_gateway ? 1 : (
+    var.enable_nat_gateway ? local.max_subnet_length : 0
+  )
+}
+
+# VPC
+resource "aws_vpc" "this" {
+  cidr_block           = var.cidr
+  enable_dns_hostnames = var.enable_dns_hostnames
+  enable_dns_support   = var.enable_dns_support
+  
+  tags = merge(
+    var.tags,
+    {
+      Name = var.name
+    }
+  )
+}
+
+# Internet Gateway
+resource "aws_internet_gateway" "this" {
+  vpc_id = aws_vpc.this.id
+  
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.name}-igw"
+    }
+  )
+}
+
+# Public Subnets
+resource "aws_subnet" "public" {
+  count = length(var.public_subnets)
+  
+  vpc_id                  = aws_vpc.this.id
+  cidr_block              = var.public_subnets[count.index]
+  availability_zone       = var.azs[count.index]
+  map_public_ip_on_launch = true
+  
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.name}-public-${var.azs[count.index]}"
+      Type = "public"
+    }
+  )
+}
+
+# Private Subnets
+resource "aws_subnet" "private" {
+  count = length(var.private_subnets)
+  
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = var.private_subnets[count.index]
+  availability_zone = var.azs[count.index]
+  
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.name}-private-${var.azs[count.index]}"
+      Type = "private"
+      "kubernetes.io/role/internal-elb" = "1"
+    }
+  )
+}
+
+# Elastic IPs for NAT Gateways
+resource "aws_eip" "nat" {
+  count = local.nat_gateway_count
+  
+  domain = "vpc"
+  
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.name}-nat-${count.index + 1}"
+    }
+  )
+  
+  depends_on = [aws_internet_gateway.this]
+}
+
+# NAT Gateways
+resource "aws_nat_gateway" "this" {
+  count = local.nat_gateway_count
+  
+  allocation_id = aws_eip.nat[count.index].id
+  subnet_id     = aws_subnet.public[count.index].id
+  
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.name}-nat-${count.index + 1}"
+    }
+  )
+  
+  depends_on = [aws_internet_gateway.this]
+}
+
+# Public Route Table
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.this.id
+  
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.name}-public"
+    }
+  )
+}
+
+# Public Route
+resource "aws_route" "public_internet_gateway" {
+  route_table_id         = aws_route_table.public.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.this.id
+  
+  timeouts {
+    create = "5m"
+  }
+}
+
+# Public Route Table Associations
+resource "aws_route_table_association" "public" {
+  count = length(var.public_subnets)
+  
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
+}
+
+# Private Route Tables
+resource "aws_route_table" "private" {
+  count = length(var.private_subnets)
+  
+  vpc_id = aws_vpc.this.id
+  
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.name}-private-${var.azs[count.index]}"
+    }
+  )
+}
+
+# Private Routes to NAT Gateway
+resource "aws_route" "private_nat_gateway" {
+  count = var.enable_nat_gateway ? length(var.private_subnets) : 0
+  
+  route_table_id         = aws_route_table.private[count.index].id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = element(
+    aws_nat_gateway.this[*].id,
+    var.single_nat_gateway ? 0 : count.index
+  )
+  
+  timeouts {
+    create = "5m"
+  }
+}
+
+# Private Route Table Associations
+resource "aws_route_table_association" "private" {
+  count = length(var.private_subnets)
+  
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private[count.index].id
+}
+
+# VPC Flow Logs
+resource "aws_flow_log" "this" {
+  iam_role_arn    = aws_iam_role.flow_log.arn
+  log_destination = aws_cloudwatch_log_group.flow_log.arn
+  traffic_type    = "ALL"
+  vpc_id          = aws_vpc.this.id
+  
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.name}-flow-log"
+    }
+  )
+}
+
+resource "aws_cloudwatch_log_group" "flow_log" {
+  name              = "/aws/vpc/${var.name}"
+  retention_in_days = 30
+  
+  tags = var.tags
+}
+
+resource "aws_iam_role" "flow_log" {
+  name = "${var.name}-vpc-flow-log"
+  
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "vpc-flow-logs.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+  
+  tags = var.tags
+}
+
+resource "aws_iam_role_policy" "flow_log" {
+  name = "${var.name}-vpc-flow-log"
+  role = aws_iam_role.flow_log.id
+  
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogGroups",
+          "logs:DescribeLogStreams"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# modules/vpc/outputs.tf
+output "vpc_id" {
+  description = "The ID of the VPC"
+  value       = aws_vpc.this.id
+}
+
+output "vpc_cidr_block" {
+  description = "The CIDR block of the VPC"
+  value       = aws_vpc.this.cidr_block
+}
+
+output "private_subnets" {
+  description = "List of IDs of private subnets"
+  value       = aws_subnet.private[*].id
+}
+
+output "public_subnets" {
+  description = "List of IDs of public subnets"
+  value       = aws_subnet.public[*].id
+}
+
+output "nat_gateway_ids" {
+  description = "List of NAT Gateway IDs"
+  value       = aws_nat_gateway.this[*].id
+}
+
+output "internet_gateway_id" {
+  description = "The ID of the Internet Gateway"
+  value       = aws_internet_gateway.this.id
+}
+```
+
+#### Environment Configuration
+
+```hcl
+# environments/prod/backend.tf
+terraform {
+  backend "s3" {
+    bucket         = "mycompany-terraform-state"
+    key            = "prod/terraform.tfstate"
+    region         = "us-east-1"
+    encrypt        = true
+    dynamodb_table = "terraform-state-lock"
+    kms_key_id     = "arn:aws:kms:us-east-1:123456789:key/..."
+  }
+}
+
+# environments/prod/main.tf
+terraform {
+  required_version = ">= 1.6.0"
+  
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.23"
+    }
+  }
+}
+
+provider "aws" {
+  region = var.aws_region
+  
+  default_tags {
+    tags = {
+      Environment = "production"
+      ManagedBy   = "Terraform"
+      Project     = var.project_name
+    }
+  }
+}
+
+locals {
+  cluster_name = "${var.project_name}-prod-cluster"
+  
+  common_tags = {
+    Environment = "production"
+    Project     = var.project_name
+    CostCenter  = "engineering"
+  }
+}
+
+# VPC Module
+module "vpc" {
+  source = "../../modules/vpc"
+  
+  name = "${local.cluster_name}-vpc"
+  cidr = "10.0.0.0/16"
+  
+  azs             = ["us-east-1a", "us-east-1b", "us-east-1c"]
+  private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  public_subnets  = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+  
+  enable_nat_gateway   = true
+  single_nat_gateway   = false
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+  
+  tags = local.common_tags
+}
+
+# EKS Module
+module "eks" {
+  source = "../../modules/eks"
+  
+  cluster_name    = local.cluster_name
+  cluster_version = "1.28"
+  
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.private_subnets
+  
+  node_groups = {
+    general = {
+      desired_capacity = 3
+      max_capacity     = 10
+      min_capacity     = 2
+      instance_types   = ["t3.large"]
+      
+      labels = {
+        role = "general"
+      }
+      
+      tags = {
+        "k8s.io/cluster-autoscaler/enabled" = "true"
+      }
+    }
+  }
+  
+  tags = local.common_tags
+}
+
+# RDS Module
+module "rds" {
+  source = "../../modules/rds"
+  
+  identifier = "${var.project_name}-prod-db"
+  
+  engine         = "postgres"
+  engine_version = "15.4"
+  instance_class = "db.r6g.xlarge"
+  
+  allocated_storage = 100
+  storage_encrypted = true
+  
+  vpc_id                 = module.vpc.vpc_id
+  subnet_ids             = module.vpc.private_subnets
+  vpc_security_group_ids = [aws_security_group.rds.id]
+  
+  multi_az                = true
+  backup_retention_period = 30
+  
+  tags = local.common_tags
+}
+
+# environments/prod/outputs.tf
+output "vpc_id" {
+  description = "VPC ID"
+  value       = module.vpc.vpc_id
+}
+
+output "cluster_endpoint" {
+  description = "EKS cluster endpoint"
+  value       = module.eks.cluster_endpoint
+}
+
+output "cluster_name" {
+  description = "EKS cluster name"
+  value       = module.eks.cluster_name
+}
+
+output "database_endpoint" {
+  description = "RDS endpoint"
+  value       = module.rds.endpoint
+  sensitive   = true
+}
+```
+
+#### Terraform Workflow in GitOps
+
+```yaml
+# .github/workflows/terraform.yml
+name: Terraform
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'terraform/**'
+  push:
+    branches: [ main ]
+    paths:
+      - 'terraform/**'
+
+env:
+  TF_VERSION: 1.6.0
+  AWS_REGION: us-east-1
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [dev, staging, prod]
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+        working-directory: terraform
+      
+      - name: Terraform Init
+        run: terraform init -backend=false
+        working-directory: terraform/environments/${{ matrix.environment }}
+      
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: terraform/environments/${{ matrix.environment }}
+      
+      - name: Run TFLint
+        uses: terraform-linters/setup-tflint@v3
+      
+      - name: TFLint
+        run: |
+          tflint --init
+          tflint --recursive
+        working-directory: terraform
+      
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: terraform/environments/${{ matrix.environment }}
+          framework: terraform
+          soft_fail: false
+          output_format: sarif
+          output_file_path: checkov-${{ matrix.environment }}.sarif
+      
+      - name: Upload Checkov results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: checkov-${{ matrix.environment }}.sarif
+  
+  plan:
+    name: Plan
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    strategy:
+      matrix:
+        environment: [dev, staging, prod]
+    
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789:role/github-actions
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform/environments/${{ matrix.environment }}
+      
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -out=tfplan
+        working-directory: terraform/environments/${{ matrix.environment }}
+        continue-on-error: true
+      
+      - name: Save plan
+        uses: actions/upload-artifact@v3
+        with:
+          name: tfplan-${{ matrix.environment }}
+          path: terraform/environments/${{ matrix.environment }}/tfplan
+      
+      - name: Comment PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const output = `#### Terraform Plan for ${{ matrix.environment }} 📖
+            
+            <details><summary>Show Plan</summary>
+            
+            \`\`\`terraform
+            ${{ steps.plan.outputs.stdout }}
+            \`\`\`
+            
+            </details>
+            
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+  
+  apply:
+    name: Apply
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    strategy:
+      max-parallel: 1
+      matrix:
+        environment: [dev, staging, prod]
+    
+    environment:
+      name: ${{ matrix.environment }}
+    
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789:role/github-actions
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform/environments/${{ matrix.environment }}
+      
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: terraform/environments/${{ matrix.environment }}
+```
+
+---
+
+### Helm Charts
+
+#### Chart Structure
+
+```
+my-app/
+├── Chart.yaml
+├── values.yaml
+├── values-dev.yaml
+├── values-staging.yaml
+├── values-prod.yaml
+├── templates/
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   ├── ingress.yaml
+│   ├── configmap.yaml
+│   ├── secret.yaml
+│   ├── serviceaccount.yaml
+│   ├── hpa.yaml
+│   ├── pdb.yaml
+│   ├── servicemonitor.yaml
+│   ├── networkpolicy.yaml
+│   ├── _helpers.tpl
+│   └── NOTES.txt
+├── charts/
+└── .helmignore
+```
+
+#### Complete Helm Chart Example
+
+```yaml
+# Chart.yaml
+apiVersion: v2
+name: my-app
+description: A production-ready Helm chart for my application
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - application
+  - microservice
+maintainers:
+  - name: Platform Team
+    email: platform@example.com
+sources:
+  - https://github.com/org/my-app
+dependencies:
+  - name: postgresql
+    version: "12.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+
+# values.yaml
+replicaCount: 3
+
+image:
+  repository: ghcr.io/org/my-app
+  pullPolicy: IfNotPresent
+  tag: ""  # Defaults to chart appVersion
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8080"
+  prometheus.io/path: "/metrics"
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 2000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1001
+  capabilities:
+    drop:
+    - ALL
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+  annotations: {}
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+  hosts:
+    - host: app.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: app-tls
+      hosts:
+        - app.example.com
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - my-app
+          topologyKey: kubernetes.io/hostname
+
+livenessProbe:
+  httpGet:
+    path: /health/liveness
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /health/readiness
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+startupProbe:
+  httpGet:
+    path: /health/startup
+    port: http
+  failureThreshold: 30
+  periodSeconds: 10
+
+env:
+  - name: LOG_LEVEL
+    value: "INFO"
+  - name: PORT
+    value: "8080"
+
+envFrom:
+  - configMapRef:
+      name: my-app-config
+  - secretRef:
+      name: my-app-secrets
+
+volumeMounts:
+  - name: tmp
+    mountPath: /tmp
+  - name: cache
+    mountPath: /app/cache
+
+volumes:
+  - name: tmp
+    emptyDir: {}
+  - name: cache
+    emptyDir: {}
+
+postgresql:
+  enabled: true
+  auth:
+    username: myapp
+    password: changeme
+    database: myapp
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+
+networkPolicy:
+  enabled: true
+  policyTypes:
+    - Ingress
+    - Egress
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+```
+
+```yaml
+# templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "my-app.fullname" . }}
+  labels:
+    {{- include "my-app.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "my-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "my-app.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "my-app.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.targetPort }}
+          protocol: TCP
+        {{- with .Values.livenessProbe }}
+        livenessProbe:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+        {{- with .Values.readinessProbe }}
+        readinessProbe:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+        {{- with .Values.startupProbe }}
+        startupProbe:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+        {{- with .Values.env }}
+        env:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+        {{- with .Values.envFrom }}
+        envFrom:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+        {{- with .Values.volumeMounts }}
+        volumeMounts:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+```
+
+```yaml
+# templates/_helpers.tpl
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "my-app.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Create a default fully qualified app name.
+*/}}
+{{- define "my-app.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create chart name and version as used by the chart label.
+*/}}
+{{- define "my-app.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Common labels
+*/}}
+{{- define "my-app.labels" -}}
+helm.sh/chart: {{ include "my-app.chart" . }}
+{{ include "my-app.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "my-app.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "my-app.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "my-app.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "my-app.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
+```
+
+#### Environment-Specific---
+layout: post
+title: "GitOps: Deep Dive & Best Practices (Part 2)"
+date: 2025-01-15
+categories: [devops, gitops, ci-cd]
+tags: [gitops, git, github-actions, gitlab, kubernetes, infrastructure-as-code, ci-cd, automation]
+---
