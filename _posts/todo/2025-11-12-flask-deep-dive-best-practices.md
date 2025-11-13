@@ -2665,6 +2665,7 @@ app.config['COMPRESS_MIN_SIZE'] = 500
 
 ### Static File Optimization
 
+{% raw %}
 ```python
 # Use CDN for static files
 app.config['CDN_DOMAIN'] = 'cdn.example.com'
@@ -2701,6 +2702,7 @@ assets.register('js_all', js)
     <link rel="stylesheet" href="{{ ASSET_URL }}">
 {% endassets %}
 ```
+{% endraw %}
 
 ---
 
