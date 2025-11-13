@@ -1327,6 +1327,7 @@ Flask uses Jinja2 as its template engine.
 
 #### Template Filters
 
+{% raw %}
 ```python
 # Built-in filters
 {{ name|upper }}                          # UPPERCASE
@@ -1353,9 +1354,11 @@ def format_datetime(value, format='%Y-%m-%d %H:%M'):
 # Use in template
 {{ post.created_at|datetime('%B %d, %Y') }}
 ```
+{% endraw %}
 
 #### Template Context
 
+{% raw %}
 ```python
 # Inject variables into all templates
 @app.context_processor
@@ -1373,6 +1376,7 @@ def current_year():
 # Use in template
 <footer>&copy; {{ current_year() }} My Company</footer>
 ```
+{% endraw %}
 
 #### Template Macros
 
@@ -1406,6 +1410,7 @@ def current_year():
 
 ### Static Files
 
+{% raw %}
 ```python
 # Serve static files
 # Files in static/ directory are automatically served
@@ -1421,6 +1426,7 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Development only
 # Or use query string
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='1.0') }}">
 ```
+{% endraw %}
 
 ---
 
@@ -1428,6 +1434,7 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Development only
 
 ### Basic REST API
 
+{% raw %}
 ```python
 from flask import jsonify, request, abort
 
@@ -1489,9 +1496,11 @@ def delete_user(user_id):
     db.session.commit()
     return '', 204
 ```
+{% endraw %}
 
 ### RESTful API Structure
 
+{% raw %}
 ```python
 # app/api/resources.py
 from flask import request, jsonify
@@ -1570,9 +1579,11 @@ app.add_url_rule('/api/users', view_func=user_view, methods=['POST'])
 app.add_url_rule('/api/users/<int:user_id>', view_func=user_view,
                  methods=['GET', 'PUT', 'DELETE'])
 ```
+{% endraw %}
 
 ### Flask-RESTful Extension
 
+{% raw %}
 ```python
 # Install
 pip install flask-restful
@@ -1623,9 +1634,11 @@ class UserListResource(Resource):
 api.add_resource(UserListResource, '/api/users')
 api.add_resource(UserResource, '/api/users/<int:user_id>')
 ```
+{% endraw %}
 
 ### API Versioning
 
+{% raw %}
 ```python
 # URL versioning
 @app.route('/api/v1/users')
@@ -1644,9 +1657,11 @@ def api_users():
         return jsonify({'version': 'v2', 'users': []})
     return jsonify({'version': 'v1', 'users': []})
 ```
+{% endraw %}
 
 ### CORS (Cross-Origin Resource Sharing)
 
+{% raw %}
 ```python
 # Install
 pip install flask-cors
@@ -1677,6 +1692,7 @@ CORS(app, resources={
     }
 })
 ```
+{% endraw %}
 
 ---
 
@@ -1686,6 +1702,7 @@ CORS(app, resources={
 
 Flask-Login manages user sessions.
 
+{% raw %}
 ```python
 # Install
 pip install flask-login
@@ -1726,9 +1743,11 @@ class User(UserMixin, db.Model):
         """Check if user is anonymous"""
         return False
 ```
+{% endraw %}
 
 ### Login/Logout
 
+{% raw %}
 ```python
 from flask import flash, redirect, url_for
 from flask_login import login_user, logout_user, login_required
@@ -1766,9 +1785,11 @@ def logout():
 def dashboard():
     return f'Welcome, {current_user.username}!'
 ```
+{% endraw %}
 
 ### Role-Based Access Control
 
+{% raw %}
 ```python
 from functools import wraps
 from flask import abort
@@ -1810,9 +1831,11 @@ def role_required(role_name):
 def admin_panel():
     return 'Admin Panel'
 ```
+{% endraw %}
 
 ### JWT Authentication (API)
 
+{% raw %}
 ```python
 # Install
 pip install pyjwt
@@ -1886,6 +1909,7 @@ def api_login():
     
     return jsonify({'error': 'Invalid credentials'}), 401
 ```
+{% endraw %}
 
 ---
 
@@ -1893,6 +1917,7 @@ def api_login():
 
 ### Secret Key Management
 
+{% raw %}
 ```python
 # Generate strong secret key
 import secrets
@@ -1905,9 +1930,11 @@ SECRET_KEY=your-generated-secret-key
 # Never hardcode in source code
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 ```
+{% endraw %}
 
 ### Password Hashing
 
+{% raw %}
 ```python
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -1922,9 +1949,11 @@ class User(db.Model):
         """Verify password"""
         return check_password_hash(self.password_hash, password)
 ```
+{% endraw %}
 
 ### CSRF Protection
 
+{% raw %}
 ```python
 # Install
 pip install flask-wtf
@@ -1957,9 +1986,11 @@ class LoginForm(FlaskForm):
 def webhook():
     return jsonify({'status': 'received'})
 ```
+{% endraw %}
 
 ### Security Headers
 
+{% raw %}
 ```python
 @app.after_request
 def set_security_headers(response):
@@ -1981,6 +2012,7 @@ def set_security_headers(response):
     
     return response
 ```
+{% endraw %}
 
 ### SQL Injection Prevention
 
