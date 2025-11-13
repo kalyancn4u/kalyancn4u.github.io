@@ -9,7 +9,6 @@ description: "Concise, clear, and validated revision notes on Pandas — structu
 toc: true
 math: true
 mermaid: true
-data-visualization, machine-learning, data-science]
 ---
 
 # Streamlit: Deep Dive & Best Practices
