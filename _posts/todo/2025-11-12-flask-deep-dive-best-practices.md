@@ -766,57 +766,56 @@ if __name__ == '__main__':
 ## References
 
 <div style="line-height: 1.8;">
-
 1. <a href="https://flask.palletsprojects.com/" target="_blank">Flask Official Documentation</a>
-
+<br>
 2. <a href="https://flask.palletsprojects.com/en/stable/tutorial/" target="_blank">Flask Tutorial - Official</a>
-
+<br>
 3. <a href="https://flask.palletsprojects.com/en/stable/patterns/" target="_blank">Flask Patterns for Large Applications</a>
-
+<br>
 4. <a href="https://flask.palletsprojects.com/en/stable/blueprints/" target="_blank">Modular Applications with Blueprints</a>
-
+<br>
 5. <a href="https://flask.palletsprojects.com/en/stable/config/" target="_blank">Configuration Handling</a>
-
+<br>
 6. <a href="https://flask-sqlalchemy.palletsprojects.com/" target="_blank">Flask-SQLAlchemy Documentation</a>
-
+<br>
 7. <a href="https://flask-migrate.readthedocs.io/" target="_blank">Flask-Migrate Documentation</a>
-
+<br>
 8. <a href="https://flask-login.readthedocs.io/" target="_blank">Flask-Login Documentation</a>
-
+<br>
 9. <a href="https://flask-wtf.readthedocs.io/" target="_blank">Flask-WTF Documentation</a>
-
+<br>
 10. <a href="https://flask-restful.readthedocs.io/" target="_blank">Flask-RESTful Documentation</a>
-
+<br>
 11. <a href="https://flask-cors.readthedocs.io/" target="_blank">Flask-CORS Documentation</a>
-
+<br>
 12. <a href="https://werkzeug.palletsprojects.com/" target="_blank">Werkzeug Documentation</a>
-
+<br>
 13. <a href="https://jinja.palletsprojects.com/" target="_blank">Jinja2 Template Documentation</a>
-
+<br>
 14. <a href="https://flask.palletsprojects.com/en/stable/deploying/" target="_blank">Deployment Options - Flask</a>
-
+<br>
 15. <a href="https://docs.gunicorn.org/" target="_blank">Gunicorn Documentation</a>
-
+<br>
 16. <a href="https://flask.palletsprojects.com/en/stable/testing/" target="_blank">Testing Flask Applications</a>
-
+<br>
 17. <a href="https://flask.palletsprojects.com/en/stable/security/" target="_blank">Security Considerations</a>
-
+<br>
 18. <a href="https://flask.palletsprojects.com/en/stable/errorhandling/" target="_blank">Application Errors</a>
-
+<br>
 19. <a href="https://flask.palletsprojects.com/en/stable/logging/" target="_blank">Logging in Flask</a>
-
+<br>
 20. <a href="https://flask-caching.readthedocs.io/" target="_blank">Flask-Caching Documentation</a>
-
+<br>
 21. <a href="https://docs.celeryproject.org/" target="_blank">Celery Documentation</a>
-
+<br>
 22. <a href="https://pyjwt.readthedocs.io/" target="_blank">PyJWT Documentation</a>
-
+<br>
 23. <a href="https://flask.palletsprojects.com/en/stable/api/" target="_blank">Flask API Reference</a>
-
+<br>
 24. <a href="https://www.fullstackpython.com/flask.html" target="_blank">Full Stack Python - Flask</a>
-
+<br>
 25. <a href="https://realpython.com/tutorials/flask/" target="_blank">Real Python - Flask Tutorials</a>
-
+<br>
 </div>
 
 ---
