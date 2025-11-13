@@ -6645,10 +6645,4 @@ Create the name of the service account to use
 {{- end }}
 ```
 
-#### Environment-Specific---
-layout: post
-title: "GitOps: Deep Dive & Best Practices (Part 2)"
-date: 2025-01-15
-categories: [devops, gitops, ci-cd]
-tags: [gitops, git, github-actions, gitlab, kubernetes, infrastructure-as-code, ci-cd, automation]
----
+#### Environment-Specific
