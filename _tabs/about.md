@@ -14,3 +14,5 @@ order: 4                     # integer; controls tab position
 > # **[My Profile](/profile/)**{: .prompt-tip }
 
 > # **[My Portfolio](/portfolio/)**{: .prompt-tip }
+
+> # **[In-demand Skills](/assets/html/index_09_skill_icons_cards.html)**{:target="_blank"}
