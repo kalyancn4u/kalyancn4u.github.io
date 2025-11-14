@@ -15,10 +15,24 @@ order: 4                     # integer; controls tab position
 
 > # **[My Portfolio](/portfolio/){: .prompt-tip }**
 
+[//]: {% include link_heading.html text="In-demand Skills" url="/assets/html/index_09_skill_icons_cards.html" %}
+
 > # **[In-demand Skills](/assets/html/index_09_skill_icons_cards.html){: target="_blank" rel="noopener noreferrer" }**
 
-# **[My Profile](/profile/)**
+---
+
+# **[My Profile](/profile/){: target="_blank" }***
 {: .prompt-tip }
 
-> **[My Profile](/profile/)**
+> **[My Profile](/profile/){: target="_blank" }***
+{: .prompt-tip }
+
+---
+> **[In-demand Skills](/assets/html/index_09_skill_icons_cards.html){: target="_blank" rel="noopener noreferrer" }**
+
+# **[In-demand Skills](/assets/html/index_09_skill_icons_cards.html){: target="_blank" rel="noopener noreferrer" }**
+
+# <a href="/assets/html/index_09_skill_icons_cards.html" target="_blank" rel="noopener noreferrer">In-demand Skills</a>
+
+> # <a href="/assets/html/index_09_skill_icons_cards.html" target="_blank" rel="noopener noreferrer">In-demand Skills</a>
 {: .prompt-tip }
