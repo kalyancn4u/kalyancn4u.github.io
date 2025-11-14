@@ -15,8 +15,6 @@ order: 4                     # integer; controls tab position
 
 > # **[My Portfolio](/portfolio/){: .prompt-tip }**
 
-[//]: {% include link_heading.html text="In-demand Skills" url="/assets/html/index_09_skill_icons_cards.html" %}
-
 > # **[In-demand Skills](/assets/html/index_09_skill_icons_cards.html){: target="_blank" rel="noopener noreferrer" }**
 
 ---
