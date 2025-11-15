@@ -5,7 +5,7 @@ author: technical_notes
 date: 2025-11-12 00:00:00 +0530
 categories: [Notes, Streamlit]
 tags: [Streamlit, Python, MVP, Dashboards, Widgets, Data Apps, Interactive Apps, Data Visualization, Rapid Prototyping]
-description: "Concise, clear, and validated revision notes on Pandas — structured for beginners and practitioners."
+description: "Concise, clear, and validated revision notes on Streamlit — structured for beginners and practitioners."
 toc: true
 math: true
 mermaid: true
