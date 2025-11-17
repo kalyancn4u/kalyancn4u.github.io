@@ -3303,6 +3303,9 @@ app.use((req, res, next) => {
 
 ## 🎯 REST API Best Practices Summary
 
+![REST API Design Architecture](/assets/img/posts/rest-api-design-map.png){: width="960" height="480" }
+_REST API Design Architecture Illustrated_
+
 ### Design Principles
 
 1. **Consistency is Key**
