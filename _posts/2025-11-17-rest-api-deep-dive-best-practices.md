@@ -12,6 +12,7 @@ mermaid: true
 image:
   path: /assets/img/posts/rest-api-model.png
   alt: Comprehensive REST API Design and Best Practices Guide
+icon: fas fa-project-diagram
 ---
 
 ## Table of Contents
