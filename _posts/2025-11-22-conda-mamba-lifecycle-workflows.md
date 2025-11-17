@@ -9,7 +9,7 @@ comments: true
 math: false
 mermaid: true
 image:
-  path: /assets/img/conda-mamba-workflows-guide.webp
+  path: /assets/img/posts/conda-mamba-workflows-guide.webp
   alt: Comprehensive Conda and Mamba Environment Management Guide
 description: "A clear and structured revision guide covering Conda and Mamba fundamentals, key concepts, and workflows - for managing virtual environments during the DSML Project Lifecycle."
 ---
