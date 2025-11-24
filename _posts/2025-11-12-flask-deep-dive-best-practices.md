@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "🌊 Flask: Deep Dive & Best Practices"
-description: "Concise, clear, and validated revision notes on Docker technologies — containers, Dockerfile patterns, docker-compose, and practical best practices for beginners and practitioners."
+description: "Concise, clear, and validated revision notes on using Flask framework - application structure, request handling, template rendering, and essential security and deployment best practices."
 author: technical_notes
 date: 2025-11-12 00:01:00 +05:30
 categories: [Notes, Flask]
