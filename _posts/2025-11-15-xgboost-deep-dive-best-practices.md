@@ -6,6 +6,7 @@ author: technical_notes
 date: 2025-11-15 00:00:00 +05:30
 categories: [Notes, XGBoost]
 tags: [XGBoost, Python, Gradient Boosting, Ensemble Methods, Machine Learning, Best Practices]
+image: /assets/img/posts/xgboost-ml-library.png
 toc: true
 math: true
 mermaid: true
