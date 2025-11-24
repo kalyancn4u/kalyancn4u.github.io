@@ -1,9 +1,12 @@
 ---
+layout: post
 title: "🌊 LightGBM: Deep Dive & Best Practices"
+description: "A validated and novice-friendly guide to LightGBM, detailing its high-performance, leaf-wise tree growth algorithm, and histogram-based techniques. Learn best practices for achieving maximum speed, memory efficiency, and accuracy on large-scale datasets."
 date: 2025-11-24 00:00:00 +0530
 categories: [Notes, LightGBM]
-tags: [LightGBM, Gradient Boosting, Machine Learning, Ensemble-methods, GOSS, EFB, Histogram-based, Leaf-wise, Python]
+tags: [LightGBM, Python, Gradient Boosting, Machine Learning, Ensemble-methods, GOSS, EFB, Histogram-based, Leaf-wise]
 author: technical_notes
+image: /assets/img/posts/lightgbm-ml-library.png
 toc: true
 math: true
 mermaid: true
