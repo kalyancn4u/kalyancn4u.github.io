@@ -1,11 +1,12 @@
 ---
-title: "🌊 Statsmodels: Deep Dive & Best Practices"
 layout: post
-author: technical_notes
+title: "🌊 Statsmodels: Deep Dive & Best Practices"
+description: "Concise, clear, and validated revision notes on Statsmodels — structured for beginners and practitioners."
 date: 2025-11-15 00:00:00 +0530
 categories: [Notes, Statsmodels]
 tags: [Statsmodels, Python, Statistics, Data Science, Regression, Time-series, Statistical-modeling]
-description: "Concise, clear, and validated revision notes on Statsmodels — structured for beginners and practitioners."
+author: technical_notes
+image: /assets/img/posts/statsmodels-ml-library.png
 toc: true
 math: true
 mermaid: true
