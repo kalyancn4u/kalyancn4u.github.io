@@ -1,12 +1,12 @@
 ---
+layout: post
 title: "🌊 CatBoost: Deep Dive & Best Practices"
+description: "A validated and novice-friendly guide covering CatBoost's algorithm, efficient handling of categorical features, and how to tune parameters for superior performance and robustness in production-ready machine learning models."
 date: 2025-11-23 05:00:00 +0530
 categories: [Notes, CatBoost]
 tags: [CatBoost, Python, Gradient Boosting, Machine Learning, Ensemble Methods, Categorical-features, Ordered-boosting]
 author: technical_notes
-image:
-  path: /assets/img/posts/catboost-ml-library.png
-  alt: Comprehensive Conda and Mamba Environment Management Guide
+image: /assets/img/posts/catboost-ml-library.png
 toc: true
 math: true
 mermaid: true
