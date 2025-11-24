@@ -3,7 +3,7 @@ layout: post
 title: "🌊 HTML5: Deep Dive & Best Practices"
 date: 2025-11-24 05:00:00 +0530
 categories: [Notes, HTML5]
-tags: [HTML, Frontend, Web Development, Semantic-html, Accessibility, Best-practices]
+tags: [HTML, Frontend, Web Development, Semantic HTML, Accessibility, Best-practices]
 author: technical_notes
 toc: true
 math: true
