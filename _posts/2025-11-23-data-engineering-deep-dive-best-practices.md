@@ -42,7 +42,7 @@ Data engineering forms the backbone of modern data-driven organizations. It enco
 
 Data engineering focuses on the practical application of data collection and processing techniques. The primary goal is to design systems that consolidate, clean, and transform data into usable forms for analytical and operational use cases, ensuring data flows reliably from source to destination.
 
-![Data Engineer Responsibilities](/assets/img/posts/data-engineer-responsibilities.jpg)
+![Data Engineer Responsibilities](/assets/img/posts/data-engineer-responsibilities.jpg){: width="800" height="450" }
 _Data Engineer Responsibilities Illustrated!_
 
 ---
