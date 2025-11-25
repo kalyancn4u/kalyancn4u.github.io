@@ -24,6 +24,8 @@ mermaid: false
 
 - <a href="https://www.redpanda.com/guides/fundamentals-of-data-engineering" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Data Engineering 101 | Redpanda</mark></a>
 
+- <a href="https://roadmap.sh/data-engineer" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Data Engineer Roadmap | Roadmap.sh</mark></a>
+
 ## Table of Contents
 - [Introduction](#introduction)
 - [Core Concepts](#core-concepts)
