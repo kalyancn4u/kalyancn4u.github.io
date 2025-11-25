@@ -9,6 +9,14 @@ math: true
 mermaid: true
 ---
 
+<a href="https://blog.bytebytego.com/p/ep159-the-data-engineering-roadmap" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Data Engineering Roadmap - ByteByteGo</mark></a>
+<a href="https://andreaskretz.substack.com/" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">The Data Engineering Insider - Substack</mark></a>
+<a href="https://pipeline2insights.substack.com/" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Pipeline To Insights - Substack</mark></a>
+
+> # **[Data Engineering Roadmap - ByteByteGo](https://blog.bytebytego.com/p/ep159-the-data-engineering-roadmap){: target="_blank" rel="noopener noreferrer" }**
+> # **[The Data Engineering Insider - Substack](https://andreaskretz.substack.com/){: target="_blank" rel="noopener noreferrer" }**
+> # **[Pipeline To Insights - Substack](https://pipeline2insights.substack.com/){: target="_blank" rel="noopener noreferrer" }**
+
 ## Table of Contents
 - [Introduction](#introduction)
 - [Core Concepts](#core-concepts)
