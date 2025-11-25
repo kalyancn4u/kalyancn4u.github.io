@@ -1,4 +1,4 @@
-<img width="800" height="450" alt="image" src="https://github.com/user-attachments/assets/228505bc-a40f-4bab-9684-7ae5be0a6970" />---
+---
 layout: post
 title: "✨ Convert PNG → WebP on Linux"
 description: ""
