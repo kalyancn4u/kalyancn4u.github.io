@@ -1,5 +1,5 @@
 ---
-title: "📚 Python DS/ML/DL/NLP Libraries — Complete Categories Index"
+title: "📚 Python DS/ML/DL/NLP Libraries — Popular Categories Index"
 description: "Clean, structured, and beginner-friendly index of essential Python libraries across Data Science, Machine Learning, Deep Learning, NLP, Computer Vision, Databases, and more."
 author: technical_notes
 layout: post
@@ -11,7 +11,7 @@ math: false
 mermaid: false
 ---
 
-# 📚 Python DS/ML/DL/NLP Libraries — Categories Index
+# 📚 Python DS/ML/DL/NLP Libraries — Popular Categories Index
 
 A carefully structured, comprehensive overview of Python's most important libraries across Data Science, Machine Learning, Deep Learning, NLP, CV, Time Series, Testing, Web development, Databases, and more.
 
