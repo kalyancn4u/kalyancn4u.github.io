@@ -1,9 +1,12 @@
 ---
+layout: post
 title: "🌊 Data Engineering: Deep Dive & Best Practices"
+description: "A validated and novice-friendly guide to Data Engineering - covering essential concepts like ELT/ETL, Data Pipelines, Data Warehousing (e.g., Snowflake, BigQuery), Orchestration (e.g., Airflow), Data governance, and Implementing robust, scalable data architectures."
 date: 2025-11-23 07:00:00 +0530
 categories: [Notes, Data Engineering]
 tags: [Data Engineering, Big Data, Analytics, ETL, ELT, Data Pipelines, Data Modeling, API Integration, Parquet, Feather, Data Warehousing]
 author: technical_notes
+image: /assets/img/posts/data-engineering-roles.jpg
 toc: true
 math: true
 mermaid: true
@@ -38,6 +41,9 @@ mermaid: true
 Data engineering forms the backbone of modern data-driven organizations. It encompasses the design, construction, and maintenance of systems that collect, store, process, and analyze data at scale. With over 328 million terabytes of data generated daily and projections of 181 zettabytes per year by 2025, effective data engineering has become crucial for business success.
 
 Data engineering focuses on the practical application of data collection and processing techniques. The primary goal is to design systems that consolidate, clean, and transform data into usable forms for analytical and operational use cases, ensuring data flows reliably from source to destination.
+
+![Data Engineer Responsibilities](/assets/img/posts/data-engineer-responsibilities.jpg)
+_Data Engineer Responsibilities Illustrated!_
 
 ---
 
