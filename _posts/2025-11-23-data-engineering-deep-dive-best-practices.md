@@ -14,15 +14,15 @@ mermaid: false
 
 ## Data Engineering Resources
 
-- <a href="https://blog.bytebytego.com/p/ep159-the-data-engineering-roadmap" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Data Engineering Roadmap \| ByteByteGo</mark></a>
+- <a href="https://blog.bytebytego.com/p/ep159-the-data-engineering-roadmap" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Data Engineering Roadmap | ByteByteGo</mark></a>
 
-- <a href="https://andreaskretz.substack.com/" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">The Data Engineering Insider - Andreas Kretz \| Substack</mark></a>
+- <a href="https://andreaskretz.substack.com/" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">The Data Engineering Insider - Andreas Kretz | Substack</mark></a>
 
-- <a href="https://github.com/andkret/Cookbook/blob/master/README.md" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">The Data Engineering Cookbook - Andreas Kretz \| GitHub</mark></a>
+- <a href="https://github.com/andkret/Cookbook/blob/master/README.md" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">The Data Engineering Cookbook - Andreas Kretz | GitHub</mark></a>
 
-- <a href="https://pipeline2insights.substack.com/" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Pipeline To Insights - Erfan Hesami \| Substack</mark></a>
+- <a href="https://pipeline2insights.substack.com/" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Pipeline To Insights - Erfan Hesami | Substack</mark></a>
 
-- <a href="https://www.redpanda.com/guides/fundamentals-of-data-engineering" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Data Engineering 101 \| Redpanda</mark></a>
+- <a href="https://www.redpanda.com/guides/fundamentals-of-data-engineering" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Data Engineering 101 | Redpanda</mark></a>
 
 ## Table of Contents
 - [Introduction](#introduction)
