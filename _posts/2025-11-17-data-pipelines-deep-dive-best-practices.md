@@ -12,8 +12,8 @@ comments: false
 math: false
 mermaid: true
 image:
-  path: /assets/img/posts/data-pipelines-architecture-small.png
-  alt: Data Pipelines - Deep Dive and Best Practices
+  path: /assets/img/posts/data-pipelines.png
+  alt: Data Pipeline
 icon: fas fa-project-diagram
 ---
 
@@ -22,6 +22,9 @@ icon: fas fa-project-diagram
 ## Introduction
 
 Data pipelines form the backbone of modern data-driven organizations, enabling the automated flow of data from various sources to destinations where it can be analyzed, stored, and utilized for business intelligence and decision-making. As organizations generate exponentially growing volumes of data, efficient and reliable data pipeline architecture has become critical for maintaining data integrity, ensuring security, and delivering timely insights.
+
+![Data Pipelines Overview](/assets/img/posts/data-pipelines-architecture-small.png)
+_Data Pipelines Overview!_
 
 This comprehensive guide explores data pipeline architecture, lifecycle terminology, best practices for building secure and robust pipelines, and practical implementation strategies for data engineers and analysts.
 
