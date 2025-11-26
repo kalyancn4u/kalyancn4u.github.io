@@ -1,12 +1,16 @@
 ---
+layout: post
 title: "📚 Best Web Development Tools, IDEs & Editors in 2025"
-date: 2025-10-27
-categories: [Web Dev, Tools]
-tags: [Online, Editors, Standalone, IDEs]
 description: "A validated, comprehensive, and precise comparison of the best online code playgrounds and standalone IDE/editor alternatives to CodePen in 2025."
+author: technical_notes
+date: 2025-10-27 00:05:00 +05:30
+categories: [Web Dev, Tools]
+tags: [Online, Editors, Tools, Standalone, IDEs]
 toc: true
 toc_label: "Contents"
 toc_sticky: true
+math: false
+mermaid: false
 ---
 
 # 🧩 Best Web Development Online Tools, Editors & Standlone IDEs in 2025
