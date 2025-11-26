@@ -1,11 +1,17 @@
 ---
+layout: post
 title: "📔 Cloud Comparison: AWS vs Azure vs GCP — Architecture, Learning & Icons"
+# description: >
+#   A complete side-by-side comparison of AWS, Azure, and GCP — including architecture mappings, equivalents, platform strengths, and learning + icon resources — all neatly formatted for Chirpy.
+description: "A complete side-by-side comparison of AWS, Azure, and GCP — including architecture mappings, equivalents, platform strengths, and learning + icon resources."
+author: technical_notes
 date: 2025-11-03 04:00:00 +0530
 categories: [Cloud, Architecture]
 tags: [AWS, Azure, GCP, Comparison, Cloud-Computing, Architecture, DevOps, ML, Icons, Learning]
-description: >
-  A complete side-by-side comparison of AWS, Azure, and GCP — including architecture mappings, equivalents, platform strengths, and learning + icon resources — all neatly formatted for Chirpy.
-author: Kalyan Narayana
+image: /assets/img/posts/aws-azure-gcp-logos.png
+toc: true
+# math: true
+# mermaid: true
 ---
 
 # ☁️ Cloud Comparison: AWS vs Azure vs GCP — Architecture, Learning & Icons
