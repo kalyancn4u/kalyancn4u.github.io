@@ -1,11 +1,11 @@
 ---
-title: "🌊 MySQL: Deep Dive & Best Practices"
 layout: post
-author: Kalyan Narayana
+title: "🌊 MySQL: Deep Dive & Best Practices"
+description: "Concise, clear, and validated revision notes on MySQL — structured for beginners and practitioners."
+author: technical_notes
 date: 2025-11-10 2:30:00 +0530
 categories: [Notes, MySQL]
-tags: [MySQL, Database, Lifecycle, Best-practices, Normalization, Query, Transactions, ACID]
-description: "Concise, clear, and validated revision notes on MySQL — structured for beginners and practitioners."
+tags: [MySQL, Database, Lifecycle, Best Practices, Normalization, Query, Transactions, ACID]
 image: /assets/img/posts/mysql-rtm.png
 toc: true
 math: true
