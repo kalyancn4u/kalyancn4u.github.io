@@ -1,13 +1,15 @@
 ---
-title: "🌊 NumPy: Deep Dive & Best Practices"
 layout: post
-author: Kalyan Narayana
+title: "🌊 NumPy: Deep Dive & Best Practices"
+author: technical_notes
 date: 2025-11-10 5:30:00 +0530
 categories: [Notes, NumPy]
 tags: [NumPy, Python, Machine Learning, Data Science, Optimization, Best Practices]
 description: "Concise, clear, and validated revision notes on NumPy — structured for beginners and practitioners."
+image: /assets/img/posts/numpy-logo.png
 toc: true
 math: true
+mermaid: false
 ---
 
 ## Introduction
