@@ -1,9 +1,15 @@
 ---
+layout: post
 title: "📘 Git & GitHub Basics"
+description: "A clear and structured revision guide covering Git and GitHub fundamentals, key concepts, workflows, and collaboration practices."
+author: technical_notes
 date: 2025-10-22 04:00:00 +0530
 categories: [Notes, Git & GitHub]
 tags: [git, github, version-control]
-description: "A clear and structured revision guide covering Git and GitHub fundamentals, key concepts, workflows, and collaboration practices."
+image: /assets/img/posts/git-github-logo.png
+toc: true
+math: false
+mermaid: false
 ---
 
 # 🧠 Git & GitHub Basics
