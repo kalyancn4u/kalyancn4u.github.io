@@ -1,11 +1,11 @@
 ---
 layout: post
 title: "✨ Convert PNG → WebP on Linux"
-description: ""
-date: 2025-11-25 07:00:00 +0530
-categories: [Tips, WebP Conversion]
-tags: [PNG, WebP, Linux]
+description: "Concise, clear, and validated revision notes"
 author: technical_notes
+date: 2025-11-25 07:00:00 +0530
+categories: [Tasks, WebP Conversion]
+tags: [PNG, WebP, Linux]
 image: /assets/img/posts/png-to-webp.png
 toc: true
 math: false
