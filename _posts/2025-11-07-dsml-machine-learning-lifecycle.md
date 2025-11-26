@@ -2,10 +2,10 @@
 layout: post
 title: "📘 DSML: Machine Learning Workflow & Lifecycle Illustrated"
 description: "Concise, clear, and validated revision notes on the end-to-end Machine Learning Lifecycle — phases, checklists, pitfalls, and trusted references."
+author: technical_notes
 date: 2025-11-07 07:30:00 +0530
 categories: [Notes, Machine Learning]
-tags: [Machine Learning, Lifecycle, Workflow, MLOps]
-author: technical_notes
+tags: [Machine Learning, Lifecycle, Workflows, MLOps]
 image: /assets/img/posts/ml_workflow_lifecycle_small.png
 toc: true
 math: false
