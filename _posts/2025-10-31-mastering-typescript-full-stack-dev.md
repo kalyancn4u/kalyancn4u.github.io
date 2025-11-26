@@ -1,10 +1,15 @@
 ---
+layout: post
 title: "📗 Mastering TypeScript for Full-Stack Development"
-date: 2025-10-31
+description: "Step-wise roadmap to mastering TypeScript for full-stack web development — from core TS language to backend, frontend, deployment — structured with flagposts, rationale, examples, and trusted references."
+author: technical_notes
+date: 2025-10-31 00:05:00 +05:30
 categories: [Web Dev, TypeScript]
 tags: [TypeScript, Node.js, Express, React, Full-Stack]
-description: "Step-wise roadmap to mastering TypeScript for full-stack web development — from core TS language to backend, frontend, deployment — structured with flagposts, rationale, examples, and trusted references."
-author: "Kalyan Narayana"
+image: /assets/img/posts/typescript-logo.png
+toc: true
+math: false
+mermaid: false
 ---
 
 # 🚀 Mastering TypeScript for Full-Stack Development
