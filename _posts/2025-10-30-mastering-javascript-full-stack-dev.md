@@ -1,10 +1,15 @@
 ---
+layout: post
 title: "📗 Mastering JavaScript for Full-Stack Development"
-date: 2025-10-31
+description: "Comprehensive step-by-step roadmap to mastering JavaScript for Full-stack web development — validated from MDN, W3Schools, The Odin Project, and official documentation."
+author: technical_notes
+date: 2025-10-31 00:05:00 +05:30
 categories: [Web Dev, JavaScript]
 tags: [JavaScript, Node.js, Express, React, MongoDB, MERN, MEAN, Deployment]
-description: "Comprehensive step-by-step roadmap to mastering JavaScript for full-stack web development — validated from MDN, W3Schools, The Odin Project, and official documentation — designed for beginners aiming for professional readiness."
-author: "Kalyan Narayana"
+image: /assets/img/posts/javascript-logo.jpg
+toc: true
+math: false
+mermaid: false
 ---
 
 # 🚀 Mastering JavaScript for Full-Stack Development
