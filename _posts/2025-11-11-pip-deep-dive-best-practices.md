@@ -5,7 +5,7 @@ description: "Concise, clear, and validated revision notes on Pip installer for 
 author: technical_notes
 date: 2025-11-11 00:00:00 +0530
 categories: [Notes, Pip]
-tags: [Python, Package Management, Pip, Environment Management, DevOps, pypi, requirements, wheels, sdist]
+tags: [Python, Package Management, Pip, Environment Management, DevOps, Best Practices, pypi, requirements, wheels, sdist]
 image: /assets/img/posts/pip-logo.png
 toc: true
 math: true
