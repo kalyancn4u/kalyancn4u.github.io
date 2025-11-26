@@ -5,7 +5,7 @@ description: "Concise, clear, and validated revision notes on Streamlit — stru
 author: technical_notes
 date: 2025-11-12 00:00:00 +0530
 categories: [Notes, Streamlit]
-tags: [Streamlit, Python, MVP, Dashboards, Widgets, Data Apps, Interactive Apps, Data Visualization, Rapid Prototyping]
+tags: [Streamlit, Python, MVP, Dashboards, Widgets, Data Apps, Interactive Apps, Data Visualization, Rapid Prototyping, Best Practices]
 image: /assets/img/posts/streamlit-logo.png
 toc: true
 math: true
