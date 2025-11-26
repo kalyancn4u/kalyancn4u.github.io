@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-10-30 00:05:00 +05:30
 categories: [Web Dev, Java - Spring Boot]
 tags: [Java, Spring Boot, REST API, Full-stack, Back-end, React, Angular, DevOps]
-image: /assets/img/posts/docker-logo.png
+image: /assets/img/posts/java-springboot-logos.png
 toc: true
 math: false
 mermaid: false
