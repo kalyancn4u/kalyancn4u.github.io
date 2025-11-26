@@ -1,9 +1,15 @@
 ---
+layout: post
 title: "📘 Git & GitHub Workflows"
+description: "A clear and structured revision guide covering Git and GitHub fundamentals, key concepts, workflows, and collaboration practices."
+author: technical_notes
 date: 2025-10-22 05:00:00 +0530
 categories: [Workflows, Git & GitHub]
 tags: [git, github, version-control, workflows, TODO]
-description: "A clear and structured revision guide covering Git and GitHub fundamentals, key concepts, workflows, and collaboration practices."
+image: /assets/img/posts/git-github-logo.png
+toc: true
+math: false
+mermaid: false
 ---
 
 # 🧠 Git & GitHub Workflows
