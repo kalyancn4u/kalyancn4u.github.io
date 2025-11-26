@@ -2,7 +2,7 @@
 title: "📗 Mastering TypeScript for Full-Stack Development"
 date: 2025-10-31
 categories: [Web Dev, TypeScript]
-tags: [TypeScript, Node.js, Express, React, Full-Stack, TS]
+tags: [TypeScript, Node.js, Express, React, Full-Stack]
 description: "Step-wise roadmap to mastering TypeScript for full-stack web development — from core TS language to backend, frontend, deployment — structured with flagposts, rationale, examples, and trusted references."
 author: "Kalyan Narayana"
 ---
