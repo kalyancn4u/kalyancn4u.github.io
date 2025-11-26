@@ -68,6 +68,11 @@ _Machine Learning Lifecycle Illustrated_
 > 🧠 *Lifecycle = Iterative Feedback Loop*  
 Each stage informs and improves the next — fostering a continuous learning system.
 
+![Supervised Learning Steps](/assets/img/posts/ml-supervised-learning-steps.png)
+_Supervised Learning Steps... Illustrated!_
+
+- Courtesy: <a href="https://sebastianraschka.com/" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Sebastian Raschka | Substack</mark></a>
+
 ---
 
 ## 🔤 Jargon Mapping Table
