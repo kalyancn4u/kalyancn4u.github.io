@@ -1,9 +1,12 @@
 ---
+layout: post
 title: "🌊 FastAPI: Deep Dive & Best Practices"
+description: "Concise, clear, and validated revision notes on FastAPI — Pydantic schemas, dependency injection, async patterns, and practical best practices on building high-performance APIs."
+author: technical_notes
 date: 2025-11-11 22:00:00 +0530
 categories: [Notes, FastAPI]
 tags: [FastAPI, Python, Web Framework, ASYNC, REST API, API Development, Web Development, OpenAPI, Swagger, pydantic, dependency-injection, microservices, async-await]
-author: technical_notes
+image: /assets/img/posts/fastapi-logo.png
 toc: true
 math: true
 mermaid: true
