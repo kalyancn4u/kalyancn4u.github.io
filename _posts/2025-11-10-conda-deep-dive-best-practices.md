@@ -1,11 +1,12 @@
 ---
-title: "🌊 Conda: Deep Dive & Best Practices"
 layout: post
-author: Kalyan Narayana
+title: "🌊 Conda: Deep Dive & Best Practices"
+description: "Concise, clear, and validated revision notes on Conda — structured for beginners and practitioners."
+author: technical_notes
 date: 2025-11-10 16:30:00 +0530
 categories: [Notes, Conda]
 tags: [Python, Package Management, Conda, Mamba, Anaconda, Miniconda, Miniforge, Environment Management, DevOps]
-description: "Concise, clear, and validated revision notes on Conda — structured for beginners and practitioners."
+image: /assets/img/posts/conda-packaging.png
 toc: true
 math: true
 mermaid: true
