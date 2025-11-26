@@ -5,7 +5,7 @@ description: "Concise, clear, and validated revision notes on using Flask framew
 author: technical_notes
 date: 2025-11-12 00:01:00 +05:30
 categories: [Notes, Flask]
-tags: [Flask, Python, REST API, SQL Alchemy, Web Development, Framework, Blue print]
+tags: [Flask, Python, REST API, SQL Alchemy, Web Development, Framework, Blueprint, Best Practices]
 image: /assets/img/posts/flask-logo.png
 toc: true
 math: true
