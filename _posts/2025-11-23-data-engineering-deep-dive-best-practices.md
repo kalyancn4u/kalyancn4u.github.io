@@ -2,10 +2,10 @@
 layout: post
 title: "🌊 Data Engineering: Deep Dive & Best Practices"
 description: "A validated and novice-friendly guide to Data Engineering - covering essential concepts like ELT/ETL, Data Pipelines, Data Warehousing (e.g., Snowflake, BigQuery), Orchestration (e.g., Airflow), Data governance, and Implementing robust, scalable data architectures."
+author: technical_notes
 date: 2025-11-23 07:00:00 +0530
 categories: [Notes, Data Engineering]
-tags: [Data Engineering, Big Data, Analytics, ETL, ELT, Data Pipelines, Data Modeling, API Integration, Parquet, Feather, Data Warehousing]
-author: technical_notes
+tags: [Data Engineering, Big Data, Analytics, ETL, ELT, Data Pipelines, Data Modeling, API Integration, Parquet, Feather, Data Warehousing, Best Practices]
 image: /assets/img/posts/data-engineering-roles.jpg
 toc: true
 math: false
@@ -73,6 +73,9 @@ Data engineers are responsible for:
 4. **Data Quality Assurance**: Implementing validation rules and data integrity checks
 5. **Infrastructure Management**: Maintaining cloud-based or on-premises data platforms
 6. **Collaboration**: Working with data scientists, analysts, and business stakeholders
+
+![Data Scientist Workflow Illustrated](/assets/img/posts/data-scientist-workflow-small.jpg)
+_Data Scientist Workflow Illustrated_
 
 ---
 
