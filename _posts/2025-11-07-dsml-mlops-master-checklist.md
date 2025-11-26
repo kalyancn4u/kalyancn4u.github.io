@@ -1,17 +1,20 @@
 ---
-title: "☑️ DSML: MLOps Lifecycle Checklist"
 layout: post
+title: "☑️ DSML: MLOps Lifecycle Checklist"
 description: "A validated and novice-friendly master checklist for the DSML lifecycle — Plan, Data, Model, and Deploy — aligned with Google, AWS, and Microsoft MLOps frameworks."
+author: technical_notes
+date: 2025-11-07 17:30:00 +0530
 categories: [Notes, MLOps]
-tags: [MLOps, Checklists, Best-Practices, Machine Learning, Lifecycle]
+tags: [MLOps, Checklist, Best Practices, Machine Learning, Lifecycle]
 image: /assets/img/posts/ml_workflow_iterations_bg_white.png
 icon: fas fa-project-diagram
 toc: true
-author: Kalyan Narayana
-date: 2025-11-07 17:30:00 +0530
+# math: true
+# mermaid: true
 ---
 
 # ☑️ DSML: MLOps Lifecycle Checklist
+
 *Plan → Data → Model → Deploy*
 
 > 🧭 *A complete, validated, and easy-to-follow roadmap of the Machine Learning lifecycle — harmonized from Google, AWS, Microsoft, Deepchecks, and Neptune.ai frameworks.*
