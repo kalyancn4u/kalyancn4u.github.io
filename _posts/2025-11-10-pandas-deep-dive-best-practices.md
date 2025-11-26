@@ -1,11 +1,12 @@
 ---
-title: "🌊 Pandas: Deep Dive & Best Practices"
 layout: post
-author: Kalyan Narayana
+title: "🌊 Pandas: Deep Dive & Best Practices"
+author: technical_notes
 date: 2025-11-10 7:30:00 +0530
 categories: [Notes, Pandas]
 tags: [Pandas, Machine Learning, Python, Data Analysis, Data Science, Data Cleaning, Optimization, Best Practices]
 description: "Concise, clear, and validated revision notes on Pandas — structured for beginners and practitioners."
+image: /assets/img/posts/pandas-logo.png
 toc: true
 math: true
 mermaid: true
