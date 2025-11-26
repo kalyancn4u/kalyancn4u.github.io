@@ -1,18 +1,23 @@
 ---
-# layout: profile
-layout: page
+# layout: default page portfolio post profile
+layout: default
 title: "🧑‍💻 My Profile"
 description: "Kalyan Narayana — Data Science, ML, and Full-Stack Engineer (Aspirant)"
-permalink: /profile/
-# TODO - image: /assets/img/profile/kalyan.jpg   # 🔁 add your headshot
+author: "Kalyan Narayana"
+# date: 2025-11-11 00:05:00 +05:30
+# categories: []
+# tags: []
 image: /assets/img/avatar/profile.png   # 🔁 add your headshot
 toc: true
+# math: true
+# mermaid: true
 nav_order: 1
 # published: true
+permalink: /profile/
 pin: true
 ---
 
-# 👋 Hi, I’m **Kalyan Narayana** - WORK IN PROGRESS
+# 👋 Hi, I’m **Kalyan Narayana** - WORK IN PROGRESS - TODO
 
 **Aspiring** Data Scientist & Full-Stack Engineer focused on **ML systems**, **product analytics**, and **production-grade pipelines**.  
 I design, build, and ship: from **EDA & modeling** → **APIs & dashboards** → **MLOps & monitoring**.
