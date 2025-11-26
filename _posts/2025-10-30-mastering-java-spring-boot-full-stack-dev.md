@@ -1,10 +1,15 @@
 ---
+layout: post
 title: "📗 Mastering Java & Spring Boot for Full-Stack Development"
-date: 2025-10-30
-categories: [Web Dev, Java, Spring Boot]
-tags: [Java, Spring Boot, REST API, Full Stack, React, Angular, DevOps]
-description: "Comprehensive, step-wise roadmap for mastering Java and Spring Boot for full-stack web development — validated from Oracle, Spring, Baeldung, Microsoft Learn, and GeeksforGeeks — written in a clear, concise, and precise manner for beginners."
-author: "Kalyan Narayana"
+description: "Comprehensive, step-wise roadmap for mastering Java and Spring Boot for full-stack web development — validated from trusted sources — written in a clear, concise, and precise manner for beginners."
+author: technical_notes
+date: 2025-10-30 00:05:00 +05:30
+categories: [Web Dev, Java - Spring Boot]
+tags: [Java, Spring Boot, REST API, Full-stack, Back-end, React, Angular, DevOps]
+image: /assets/img/posts/docker-logo.png
+toc: true
+math: false
+mermaid: false
 ---
 
 # 🚀 Mastering Java & Spring Boot for Full-Stack Development
