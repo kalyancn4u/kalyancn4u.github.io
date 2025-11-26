@@ -1,16 +1,24 @@
 ---
 layout: post
 title: "🌈 The Important Things in Life"
-date: 2025-11-01
+description: "A novice-friendly, Maslow's Hierarchy of Needs - inspired map of life priorities — from foundations to fulfillment."
+author: technical_notes
+date: 2025-11-11 00:05:00 +05:30
 categories: [Life, Important things]
-tags: [Maslow, Hierarchy, Priorities, Wellbeing, Clarity]
-description: "A novice-friendly, Maslow-inspired map of life priorities—from foundations to fulfillment."
+tags: [Maslow, Priorities, Well-being, Clarity]
+image: /assets/img/posts/life.png
+toc: true
+math: false
+mermaid: false
 ---
 # 🌈 The Important Things in Life
 
 > **TL;DR**  
 > Build from **Health → Safety → Belonging → Esteem/Growth → Purpose & Peace**.  
 > Meet lower levels first; they power the higher ones.
+
+![Love Life Work](/assets/img/posts/choose-love-life-work.png)
+_Love, Life & Work!_
 
 ---
 
