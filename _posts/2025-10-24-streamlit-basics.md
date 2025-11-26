@@ -1,9 +1,15 @@
 ---
+layout: post
 title: "📘 Streamlit and Model Serialization in Python"
+description: "An introductory guide to building interactive web apps with Streamlit and deploying machine learning models through serialization using Pickle."
+author: technical_notes
 date: 2025-10-25 04:00:00 +0530
 categories: [Notes, Streamlit]
 tags: [streamlit, model-serialization, pickle, ml-deployment, python-tools]
-description: "An introductory guide to building interactive web apps with Streamlit and deploying machine learning models through serialization using Pickle."
+image: /assets/img/posts/streamlit-logo.png
+toc: true
+math: true
+mermaid: true
 ---
 
 # 🌐 Streamlit and Model Serialization in Python
