@@ -6,6 +6,7 @@ author: technical_notes
 date: 2025-11-11 00:06:00 +05:30
 categories: [Notes, Scikit-learn]
 tags: [Scikit-learn, Sklearn, Machine Learning, Data Preprocessing, Pipelines, Model Evaluation, Best Practices]
+image: /assets/img/posts/scikit-learn-logo.png
 toc: true
 math: true
 mermaid: true
