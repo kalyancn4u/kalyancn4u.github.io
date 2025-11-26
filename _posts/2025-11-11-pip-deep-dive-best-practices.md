@@ -1,11 +1,12 @@
 ---
+layout: post
 title: "🌊 Pip: Deep Dive & Best Practices"
 description: "Concise, clear, and validated revision notes on Pip installer for Python — structured for beginners and practitioners."
-layout: post
+author: technical_notes
 date: 2025-11-11 00:00:00 +0530
 categories: [Notes, Pip]
 tags: [Python, Package Management, Pip, Environment Management, DevOps, pypi, requirements, wheels, sdist]
-author: Kalyan Narayana
+image: /assets/img/posts/pip-logo.png
 toc: true
 math: true
 mermaid: true
