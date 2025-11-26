@@ -1,10 +1,18 @@
 ---
+layout: post
 title: "📔 REST API Architecture Principles & Best Practices"
-date: 2025-10-30
-categories: [Web Dev, API, Architecture]
-tags: [REST, API Design, Best Practices, HTTP, JSON]
-description: "Comprehensive guide to REST API architecture principles and best practices — validated from top trusted sources like Wikipedia, IBM, Microsoft Learn, and GeeksforGeeks — explained clearly, concisely, and precisely for beginners and professionals alike."
-author: "Kalyan Narayana"
+description: "Comprehensive guide to REST API architecture principles and best practices — validated from top trusted sources — explained clearly, concisely, and precisely."
+author: technical_notes
+date: 2025-10-29 00:05:00 +05:30
+categories: [Web Dev, REST API]
+tags: [RESTful, REST API, Architecture, API Design, Best Practices, HTTP, JSON]
+image:
+  path: /assets/img/posts/rest-api-model.png
+  alt: REST API Model
+icon: fas fa-project-diagram
+toc: true
+math: false
+mermaid: false
 ---
 
 # 🧭 REST API Architecture Principles & Best Practices
@@ -288,6 +296,9 @@ GET /users?page=2&limit=10&sort=name&filter=active
 | Uniform Interface  | Consistent and predictable     | CRUD methods          |
 | Layered            | Multi-tiered architecture      | API Gateway → Backend |
 | Secure & Versioned | Maintain stability             | `/api/v1/` with JWT   |
+
+![REST API Design Architecture](/assets/img/posts/rest-api-design-map.png){: width="960" height="480" }
+_REST API Design Architecture Illustrated_
 
 ---
 
