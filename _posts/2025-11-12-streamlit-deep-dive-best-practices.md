@@ -1,11 +1,12 @@
 ---
-title: "🌊 Streamlit: Deep Dive & Best Practices"
 layout: post
+title: "🌊 Streamlit: Deep Dive & Best Practices"
+description: "Concise, clear, and validated revision notes on Streamlit — structured for beginners and practitioners."
 author: technical_notes
 date: 2025-11-12 00:00:00 +0530
 categories: [Notes, Streamlit]
 tags: [Streamlit, Python, MVP, Dashboards, Widgets, Data Apps, Interactive Apps, Data Visualization, Rapid Prototyping]
-description: "Concise, clear, and validated revision notes on Streamlit — structured for beginners and practitioners."
+image: /assets/img/posts/streamlit-logo.png
 toc: true
 math: true
 mermaid: true
