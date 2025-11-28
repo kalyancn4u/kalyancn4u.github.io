@@ -10,8 +10,8 @@ toc: true
 comments: false
 math: true
 mermaid: true
-image: /assets/img/posts/css3-banner.jpg
-  path: /assets/img/
+image:
+  path: /assets/img/posts/css3-banner.jpg
   alt: CSS3 Deep Dive & Best Practices
 ---
 
