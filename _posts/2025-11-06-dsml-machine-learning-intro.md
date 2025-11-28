@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-11-06 18:00:00 +0530
 categories: [Notes, Machine Learning]
 tags: [Machine Learning, Data Science, Intro, DSML]
-image: /assets/img/posts/
+image: /assets/img/posts/ml-intro.jpg
 toc: true
 math: true
 mermaid: true
