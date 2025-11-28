@@ -1,13 +1,15 @@
 ---
-title: "📘 DSML: Introduction to Machine Learning"
 layout: post
+title: "📘 DSML: Introduction to Machine Learning"
 description: "A clear, concise, and validated introduction to Machine Learning — structured for beginners with definitions, examples, and authoritative references."
-categories: [Notes, Machine Learning]
-tags: [Machine-Learning, Data-Science, Intro, DSML]
-author: Kalyan Narayana
+author: technical_notes
 date: 2025-11-06 18:00:00 +0530
+categories: [Notes, Machine Learning]
+tags: [Machine Learning, Data Science, Intro, DSML]
+image: /assets/img/posts/
 toc: true
 math: true
+mermaid: true
 ---
 
 # 📘 DSML: Introduction to Machine Learning
@@ -31,6 +33,9 @@ Think of ML as teaching a child rather than writing exact rules for them to foll
 
 * Learn patterns, make predictions, or decide without humans manually writing every rule.
 * The key objective is **generalisation** — good performance on new/unseen data, not just the training data.
+
+![Machine Learning Overview](/assets/img/posts/ml-overview.png)
+_[Machine Learning Overview](https://www.upgrad.com/blog/top-10-real-time-ml-projects-for-students-professionals/)_
 
 ---
 
