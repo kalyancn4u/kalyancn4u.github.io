@@ -6,8 +6,7 @@ author: technical_notes
 date: 2025-11-07 17:30:00 +0530
 categories: [Notes, MLOps]
 tags: [MLOps, Checklist, Best Practices, Machine Learning, Lifecycle]
-image: /assets/img/posts/ml_workflow_iterations_bg_white.png
-icon: fas fa-project-diagram
+image: /assets/img/posts/DSLifeCycle.png
 toc: true
 # math: true
 # mermaid: true
