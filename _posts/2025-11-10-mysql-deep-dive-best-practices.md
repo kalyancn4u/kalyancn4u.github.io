@@ -18,6 +18,9 @@ mermaid: true
 
 Understanding how MySQL processes SQL queries is fundamental to writing efficient, optimized database applications. This comprehensive guide explores the complete lifecycle of SQL queries in MySQL, from submission to result delivery, along with industry best practices for optimal database design and performance.
 
+![SQL in Data Science](/assets/img/posts/sql-banner.webp)
+_SQL in Data Science Illustrated!_
+
 ---
 
 ## Table 1: SQL Lifecycle Phase Terminology Mapping
