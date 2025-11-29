@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-11-29 12:00:00 +0530
 categories: [Notes, Tailwind CSS]
 tags: [Web Development, CSS Frameworks, Tailwind, CSS, Front-end, Web Design, Utility-first]
-# image: /assets/img/posts/docker-logo.png
+image: /assets/img/posts/tailwind-css.jpg
 toc: true
 math: true
 mermaid: true
