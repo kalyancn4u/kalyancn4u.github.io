@@ -3,7 +3,7 @@ layout: post
 title: "🌊 Tailwind CSS: Deep Dive & Best Practices"
 description: "Comprehensive guide to mastering Tailwind CSS with best practices, lifecycle terminology, and advanced techniques"
 author: technical_notes
-date: 2025-11-29 12:00:00 +0530
+date: 2025-11-29 00:00:00 +0530
 categories: [Notes, Tailwind CSS]
 tags: [Web Development, CSS Frameworks, Tailwind, CSS, Front-end, Web Design, Utility-first]
 image: /assets/img/posts/tailwind-css.jpg
