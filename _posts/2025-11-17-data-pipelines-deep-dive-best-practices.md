@@ -4,7 +4,7 @@ title: "🌊 Data Pipelines: Deep Dive & Best Practices"
 description: "Concise, clear, and validated revision notes on Data Pipelines — practical best practices for beginners and practitioners."
 author: technical_notes
 date: 2025-11-17 05:00:00 +0530
-categories: [Notes, Data Pipelines]
+categories: [Guides, Data Pipelines]
 tags: [Data Pipelines, ETL, ELT, Data Engineering, Security, Monitoring, Data Quality, Best Practices]
 author: technical_notes
 toc: true
