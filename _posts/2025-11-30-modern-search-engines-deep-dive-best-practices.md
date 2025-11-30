@@ -3,7 +3,7 @@ layout: post
 title: "🌊 Modern Search Engines: Deep Dive & Best-Practices"
 description: "Modern Search Engines - A Deep Dive!"
 author: technical_notes
-date: 2024-11-30 00:00:00 +0530
+date: 2025-11-30 00:00:00 +0530
 categories: [Guides, Modern Search Engines]
 tags: [Search, Back-end, Web Development, Python, ElasticSearch, Algolia, TypeSense]
 # image: /assets/img/posts/modern-search-engines.png
