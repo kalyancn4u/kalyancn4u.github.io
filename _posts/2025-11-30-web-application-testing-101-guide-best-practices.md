@@ -3,7 +3,7 @@ layout: post
 title: "🌊 Web Application Testing 101: Deep Dive & Best Practices"
 description: "Concise, clear, and validated revision notes on Web Application Testing — Types, Tools & Best Practices — practical best practices for beginners and practitioners."
 author: technical_notes
-date: 2024-11-30 00:00:00 +0530
+date: 2025-11-30 00:00:00 +0530
 categories: [Notes, Web Application Testing 101]
 tags: [Web Development, Web Application, Testing, Automation, QA, Best Practices]
 # image: /assets/img/posts/web-app-testing.png
