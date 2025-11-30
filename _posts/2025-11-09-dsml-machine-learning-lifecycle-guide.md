@@ -4,7 +4,7 @@ layout: post
 author: Kalyan Narayana
 description: "Concise, clear, and validated Comprehesive guide revision notes on Machine Learning Lifecycle, MLOps, Metrics, Code Snippets — structured for beginners and practitioners."
 date: 2025-11-09 05:30:00 +0530
-categories: [Notes, Machine Learning]
+categories: [Guides, Machine Learning]
 tags: [Machine Learning, Lifecycle, Metrics, MLOps]
 image: /assets/img/posts/ml_ops_dev_ops_data_ml_lifecycle.png
 icon: fas fa-project-diagram
