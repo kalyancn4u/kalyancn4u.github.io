@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-11-30 00:00:00 +0530
 categories: [Guides, Web Application Testing 101]
 tags: [Web Development, Web Application, Testing, Automation, QA, Best Practices]
-# image: /assets/img/posts/web-app-testing.png
+image: /assets/img/posts/web_app_testing_tools.png
 toc: true
 math: false
 mermaid: false
