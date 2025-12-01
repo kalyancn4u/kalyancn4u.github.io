@@ -4,7 +4,7 @@ title: "🌊 Modern Site Search Engines: Deep Dive & Best-Practices"
 description: "Modern Site Search Engines - A Deep Dive & Best-Practices Guide!"
 author: technical_notes
 date: 2025-11-30 00:00:00 +0530
-categories: [Guides, Modern Search Engines]
+categories: [Guides, Site Search Engines]
 tags: [Search, Back-end, Web Development, Python, ElasticSearch, Algolia, TypeSense, Meilisearch]
 # image: /assets/img/posts/site-search-engines.png
 toc: true
