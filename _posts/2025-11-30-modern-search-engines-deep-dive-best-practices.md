@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-11-30 00:00:00 +0530
 categories: [Guides, Site Search Engines]
 tags: [Search, Back-end, Web Development, Python, ElasticSearch, Algolia, TypeSense, Meilisearch]
-# image: /assets/img/posts/site-search-engines.png
+image: /assets/img/posts/site-search-engines.png
 toc: true
 math: false
 mermaid: false
