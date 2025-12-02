@@ -5,7 +5,7 @@ description: "Comprehensive guide to mastering NginX Configurations for Micro-se
 author: technical_notes
 date: 2025-12-02 00:00:00 +0530
 categories: [Notes, NGINX]
-tags: [NGINX, Reverse-proxy, Load Balancing, Caching, FastCGI, Optimization, Web Server, Performance, Cache, API Gateway, TLS, Compression, Security, Logging, Monitoring]
+tags: [NGINX, Reverse-proxy, Load Balancing, FastCGI, Web Server, Web Cache, WAF, API Gateway, API Security, TLS, Optimization, Compression, Logging, Monitoring]
 image: /assets/img/posts/nginx_setup.jpg
 toc: true
 math: false
@@ -42,6 +42,9 @@ Nginx (pronounced "engine-x") is a high-performance web server, reverse proxy, l
 - **Compression**: Reduce bandwidth usage
 - **SSL/TLS termination**: Handle encrypted connections
 - **FastCGI support**: Interface with PHP and other languages
+
+![NGINX Features Elucidated](/assets/img/posts/nginx_functionalities_n_configurations.png)
+_NGINX Features Elucidated!_
 
 ---
 
