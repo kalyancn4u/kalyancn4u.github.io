@@ -346,6 +346,545 @@ http {
 }
 ```
 
+### Advanced Load Balancing Configurations
+
+#### Least Connections
+
+```nginx
+upstream backend {
+    least_conn;
+    
+    server backend1.example.com:8080;
+    server backend2.example.com:8080;
+    server backend3.example.com:8080;
+}
+```
+
+#### IP Hash (Session Persistence)
+
+```nginx
+upstream backend {
+    ip_hash;
+    
+    server backend1.example.com:8080;
+    server backend2.example.com:8080;
+    server backend3.example.com:8080;
+}
+```
+
+#### Weighted Distribution
+
+```nginx
+upstream backend {
+    server backend1.example.com:8080 weight=3;  # 60% of traffic
+    server backend2.example.com:8080 weight=2;  # 40% of traffic
+    server backend3.example.com:8080 weight=1 backup;  # Backup server
+}
+```
+
+#### Generic Hash with Consistent Hashing
+
+```nginx
+upstream backend {
+    hash $request_uri consistent;  # Route based on URI
+    
+    server backend1.example.com:8080;
+    server backend2.example.com:8080;
+    server backend3.example.com:8080;
+}
+```
+
+### Server Parameters
+
+| Parameter | Purpose | Example |
+|-----------|---------|---------|
+| `weight=N` | Server weight (default: 1) | `weight=5` |
+| `max_fails=N` | Failed attempts before marking down (default: 1) | `max_fails=3` |
+| `fail_timeout=T` | Time to mark server unavailable (default: 10s) | `fail_timeout=30s` |
+| `backup` | Backup server (only used when primary servers down) | `backup` |
+| `down` | Permanently mark server as unavailable | `down` |
+| `max_conns=N` | Maximum concurrent connections | `max_conns=100` |
+
+### Health Checks
+
+```nginx
+upstream backend {
+    server backend1.example.com:8080 max_fails=3 fail_timeout=30s;
+    server backend2.example.com:8080 max_fails=3 fail_timeout=30s;
+    server backend3.example.com:8080 max_fails=3 fail_timeout=30s;
+    
+    # Connection limits
+    keepalive 32;  # Keep 32 idle connections per worker
+    keepalive_requests 100;  # Max requests per connection
+    keepalive_timeout 60s;  # Connection timeout
+}
+```
+
+### Load Balancing Best Practices
+
+1. **Choose appropriate algorithm**: Match algorithm to application requirements
+2. **Set reasonable health check parameters**: Balance responsiveness with stability
+3. **Use backup servers**: Ensure high availability
+4. **Enable keepalive connections**: Reduce connection overhead to backends
+5. **Monitor backend health**: Track failed requests and response times
+6. **Implement gradual rollouts**: Use weighted distribution for deployments
+7. **Consider session affinity**: Use IP hash or hash when sessions matter
+
+---
+
+## Caching Strategies
+
+Nginx can cache both static and dynamic content to reduce backend load and improve response times.
+
+### Cache Types
+
+| Type | Purpose | Configuration Directive |
+|------|---------|------------------------|
+| **Proxy Cache** | Cache proxied responses | `proxy_cache` |
+| **FastCGI Cache** | Cache FastCGI responses | `fastcgi_cache` |
+| **uWSGI Cache** | Cache uWSGI responses | `uwsgi_cache` |
+| **SCGI Cache** | Cache SCGI responses | `scgi_cache` |
+
+### Proxy Cache Configuration
+
+```nginx
+http {
+    # Define cache path
+    proxy_cache_path /var/cache/nginx/proxy
+                     levels=1:2
+                     keys_zone=PROXY_CACHE:10m
+                     max_size=1g
+                     inactive=60m
+                     use_temp_path=off;
+    
+    # Cache key definition
+    proxy_cache_key "$scheme$request_method$host$request_uri";
+    
+    server {
+        location / {
+            proxy_pass http://backend;
+            
+            # Enable caching
+            proxy_cache PROXY_CACHE;
+            proxy_cache_valid 200 302 10m;
+            proxy_cache_valid 404 1m;
+            proxy_cache_valid any 5m;
+            
+            # Cache control
+            proxy_cache_methods GET HEAD;
+            proxy_cache_min_uses 2;
+            proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+            proxy_cache_background_update on;
+            proxy_cache_lock on;
+            
+            # Headers
+            add_header X-Cache-Status $upstream_cache_status;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+    }
+}
+```
+
+### Cache Path Parameters
+
+| Parameter | Purpose | Example |
+|-----------|---------|---------|
+| `levels` | Directory hierarchy depth | `levels=1:2` creates `/a/bc/...` |
+| `keys_zone` | Shared memory zone name and size | `keys_zone=CACHE:10m` |
+| `max_size` | Maximum cache size | `max_size=10g` |
+| `inactive` | Remove items not accessed within time | `inactive=60m` |
+| `use_temp_path` | Use separate temp directory | `use_temp_path=off` (recommended) |
+| `loader_files` | Files loaded per cache loader iteration | `loader_files=100` |
+
+### Cache Control Directives
+
+```nginx
+location /api/ {
+    proxy_pass http://backend;
+    proxy_cache PROXY_CACHE;
+    
+    # Valid response caching
+    proxy_cache_valid 200 30m;
+    proxy_cache_valid 404 5m;
+    proxy_cache_valid any 1m;
+    
+    # Cache bypass conditions
+    proxy_cache_bypass $http_pragma $http_authorization;
+    proxy_no_cache $http_pragma $http_authorization;
+    
+    # Minimum uses before caching
+    proxy_cache_min_uses 3;
+    
+    # Stale content serving
+    proxy_cache_use_stale error timeout invalid_header updating http_500 http_502 http_503 http_504;
+    proxy_cache_background_update on;
+    
+    # Cache locking
+    proxy_cache_lock on;
+    proxy_cache_lock_timeout 5s;
+    proxy_cache_lock_age 10s;
+    
+    # Revalidation
+    proxy_cache_revalidate on;
+}
+```
+
+### Cache Status Values
+
+| Status | Meaning |
+|--------|---------|
+| `MISS` | Response not in cache, fetched from backend |
+| `HIT` | Response served from cache |
+| `EXPIRED` | Cached item expired, revalidated with backend |
+| `STALE` | Expired cached item served due to backend issues |
+| `UPDATING` | Stale content served while cache updates |
+| `REVALIDATED` | Expired item still valid (304 Not Modified) |
+| `BYPASS` | Cache bypassed due to conditions |
+
+### Selective Caching with Variables
+
+```nginx
+# Define cache bypass conditions
+map $request_uri $skip_cache {
+    default 0;
+    ~*/admin/ 1;
+    ~*/api/user/ 1;
+}
+
+map $http_cookie $skip_cache_cookie {
+    default 0;
+    ~*session 1;
+    ~*logged_in 1;
+}
+
+server {
+    location / {
+        proxy_pass http://backend;
+        proxy_cache PROXY_CACHE;
+        
+        # Skip cache based on conditions
+        proxy_cache_bypass $skip_cache $skip_cache_cookie $arg_nocache;
+        proxy_no_cache $skip_cache $skip_cache_cookie;
+    }
+}
+```
+
+### Cache Purging
+
+```nginx
+# Requires ngx_cache_purge module
+location ~ /purge(/.*) {
+    allow 127.0.0.1;
+    allow 192.168.1.0/24;
+    deny all;
+    
+    proxy_cache_purge PROXY_CACHE "$scheme$request_method$host$1";
+}
+```
+
+### Microcaching for Dynamic Content
+
+```nginx
+# Cache dynamic content for very short periods
+proxy_cache_path /var/cache/nginx/micro
+                 levels=1:2
+                 keys_zone=MICROCACHE:5m
+                 max_size=1g
+                 inactive=1m;
+
+location / {
+    proxy_pass http://backend;
+    proxy_cache MICROCACHE;
+    proxy_cache_valid 200 1s;  # Cache for 1 second
+    proxy_cache_use_stale updating;
+    proxy_cache_background_update on;
+    proxy_cache_lock on;
+}
+```
+
+### Caching Best Practices
+
+1. **Use appropriate cache keys**: Include relevant request attributes
+2. **Set realistic TTLs**: Balance freshness with cache efficiency
+3. **Implement cache bypass**: Allow cache invalidation when needed
+4. **Enable stale content serving**: Improve availability during backend issues
+5. **Use cache locking**: Prevent thundering herd problem
+6. **Monitor cache performance**: Track hit ratios and storage usage
+7. **Consider microcaching**: Even 1-second caching can dramatically reduce load
+8. **Respect Cache-Control headers**: Use `proxy_cache_revalidate on`
+
+---
+
+## Compression
+
+Compression reduces bandwidth usage and improves page load times by compressing response bodies before transmission.
+
+### Gzip Compression
+
+```nginx
+http {
+    # Enable gzip
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_types
+        text/plain
+        text/css
+        text/xml
+        text/javascript
+        application/json
+        application/javascript
+        application/xml+rss
+        application/atom+xml
+        image/svg+xml;
+    gzip_min_length 256;
+    gzip_disable "msie6";
+}
+```
+
+### Gzip Directives
+
+| Directive | Purpose | Recommended Value |
+|-----------|---------|-------------------|
+| `gzip` | Enable/disable compression | `on` |
+| `gzip_comp_level` | Compression level (1-9) | `5` or `6` |
+| `gzip_types` | MIME types to compress | See above list |
+| `gzip_min_length` | Minimum response size to compress | `256` |
+| `gzip_vary` | Add Vary: Accept-Encoding header | `on` |
+| `gzip_proxied` | Compress proxied responses | `any` |
+| `gzip_disable` | Disable for specific user agents | `"msie6"` |
+| `gzip_buffers` | Number and size of buffers | `16 8k` |
+
+### Brotli Compression (Requires Module)
+
+Brotli provides better compression than gzip but requires additional module installation.
+
+```nginx
+http {
+    # Enable Brotli
+    brotli on;
+    brotli_comp_level 6;
+    brotli_types
+        text/plain
+        text/css
+        text/xml
+        text/javascript
+        application/json
+        application/javascript
+        application/xml+rss
+        application/atom+xml
+        image/svg+xml;
+    brotli_min_length 256;
+    
+    # Static Brotli (pre-compressed files)
+    brotli_static on;
+}
+```
+
+### Pre-compression Strategy
+
+For static content, pre-compress files and serve them directly:
+
+```bash
+# Pre-compress files
+find /var/www/html -type f \( -name '*.css' -o -name '*.js' -o -name '*.svg' \) -exec gzip -k9 {} \;
+find /var/www/html -type f \( -name '*.css' -o -name '*.js' -o -name '*.svg' \) -exec brotli -k {} \;
+```
+
+```nginx
+location ~* \.(css|js|svg)$ {
+    # Try to serve pre-compressed version first
+    gzip_static on;
+    brotli_static on;
+    
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+}
+```
+
+### Compression Best Practices
+
+1. **Choose appropriate compression level**: Balance CPU usage vs. compression ratio (5-6 is optimal)
+2. **Compress selectively**: Only compress text-based formats
+3. **Set minimum size threshold**: Skip compression for tiny files (< 256 bytes)
+4. **Use pre-compression for static files**: Compress once, serve many times
+5. **Enable Vary header**: Ensure proper caching with `gzip_vary on`
+6. **Consider Brotli**: Better compression ratios than gzip
+7. **Avoid double compression**: Don't compress already-compressed formats (images, videos)
+
+---
+
+## Reverse Proxy Configuration
+
+A reverse proxy sits between clients and backend servers, forwarding requests and managing responses.
+
+### Basic Reverse Proxy
+
+```nginx
+server {
+    listen 80;
+    server_name example.com;
+    
+    location / {
+        proxy_pass http://backend_server:8080;
+        
+        # Preserve original request headers
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+    }
+}
+```
+
+### Essential Proxy Directives
+
+| Directive | Purpose | Recommended Setting |
+|-----------|---------|---------------------|
+| `proxy_pass` | Backend server URL | `http://backend:8080` |
+| `proxy_set_header` | Set request header | `proxy_set_header Host $host;` |
+| `proxy_buffering` | Enable response buffering | `on` (default) |
+| `proxy_buffer_size` | Header buffer size | `4k` or `8k` |
+| `proxy_buffers` | Response body buffers | `8 4k` or `8 8k` |
+| `proxy_busy_buffers_size` | Size for sending to client | `16k` |
+| `proxy_connect_timeout` | Backend connection timeout | `60s` |
+| `proxy_send_timeout` | Sending request timeout | `60s` |
+| `proxy_read_timeout` | Reading response timeout | `60s` |
+
+### Advanced Proxy Configuration
+
+```nginx
+location / {
+    proxy_pass http://backend;
+    
+    # Headers
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    
+    # Buffering
+    proxy_buffering on;
+    proxy_buffer_size 4k;
+    proxy_buffers 8 4k;
+    proxy_busy_buffers_size 16k;
+    proxy_max_temp_file_size 1024m;
+    
+    # Timeouts
+    proxy_connect_timeout 60s;
+    proxy_send_timeout 60s;
+    proxy_read_timeout 60s;
+    
+    # HTTP version and connection handling
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+    
+    # Error handling
+    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+    proxy_next_upstream_tries 3;
+    proxy_next_upstream_timeout 10s;
+    
+    # Redirects
+    proxy_redirect off;
+    
+    # Request body
+    client_max_body_size 100m;
+    client_body_buffer_size 128k;
+}
+```
+
+### WebSocket Proxying
+
+```nginx
+location /websocket/ {
+    proxy_pass http://backend;
+    
+    # WebSocket-specific headers
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    
+    # Standard headers
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    
+    # Timeouts for long-lived connections
+    proxy_read_timeout 3600s;
+    proxy_send_timeout 3600s;
+}
+```
+
+### SSL/TLS Termination
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name example.com;
+    
+    # SSL certificates
+    ssl_certificate /etc/nginx/ssl/example.com.crt;
+    ssl_certificate_key /etc/nginx/ssl/example.com.key;
+    
+    # SSL configuration
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
+    ssl_prefer_server_ciphers off;
+    
+    # SSL session caching
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    ssl_session_tickets off;
+    
+    # OCSP stapling
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    
+    # HSTS
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    
+    location / {
+        proxy_pass http://backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### Proxy Caching Integration
+
+```nginx
+http {
+    proxy_cache_path /var/cache/nginx/proxy
+                     levels=1:2
+                     keys_zone=PROXY_CACHE:10m
+                     max_size=1g
+                     inactive=60m;
+    
+    server {
+        location / {
+            proxy_pass http://backend;
+            proxy_cache PROXY_CACHE;
+            proxy_cache_valid 200 10m;
+            proxy_cache_use_stale error timeout updating http_500 http_502 http_503;
+            add_header X-Cache-Status $upstream_cache_status;
+            
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+}
+```
+
+
 ### Reverse Proxy Best Practices
 
 1. **Set proper headers**: Always forward client information to backends
@@ -2481,542 +3020,4 @@ server {
 7. [Nginx FastCGI Module](https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html){:target="_blank"}
 8. [OWASP Nginx Security Headers](https://owasp.org/www-project-secure-headers/){:target="_blank"}
 9. [Nginx Performance Tuning](https://www.nginx.com/blog/tuning-nginx/){:target="_blank"}
-10. [HTTP/2 Server Push with Nginx](https://www.nginx.com/blog/nginx-1-13-9-http2-server-push/){:target="_blank"}_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-    }
-}
-```
-
-### Advanced Load Balancing Configurations
-
-#### Least Connections
-
-```nginx
-upstream backend {
-    least_conn;
-    
-    server backend1.example.com:8080;
-    server backend2.example.com:8080;
-    server backend3.example.com:8080;
-}
-```
-
-#### IP Hash (Session Persistence)
-
-```nginx
-upstream backend {
-    ip_hash;
-    
-    server backend1.example.com:8080;
-    server backend2.example.com:8080;
-    server backend3.example.com:8080;
-}
-```
-
-#### Weighted Distribution
-
-```nginx
-upstream backend {
-    server backend1.example.com:8080 weight=3;  # 60% of traffic
-    server backend2.example.com:8080 weight=2;  # 40% of traffic
-    server backend3.example.com:8080 weight=1 backup;  # Backup server
-}
-```
-
-#### Generic Hash with Consistent Hashing
-
-```nginx
-upstream backend {
-    hash $request_uri consistent;  # Route based on URI
-    
-    server backend1.example.com:8080;
-    server backend2.example.com:8080;
-    server backend3.example.com:8080;
-}
-```
-
-### Server Parameters
-
-| Parameter | Purpose | Example |
-|-----------|---------|---------|
-| `weight=N` | Server weight (default: 1) | `weight=5` |
-| `max_fails=N` | Failed attempts before marking down (default: 1) | `max_fails=3` |
-| `fail_timeout=T` | Time to mark server unavailable (default: 10s) | `fail_timeout=30s` |
-| `backup` | Backup server (only used when primary servers down) | `backup` |
-| `down` | Permanently mark server as unavailable | `down` |
-| `max_conns=N` | Maximum concurrent connections | `max_conns=100` |
-
-### Health Checks
-
-```nginx
-upstream backend {
-    server backend1.example.com:8080 max_fails=3 fail_timeout=30s;
-    server backend2.example.com:8080 max_fails=3 fail_timeout=30s;
-    server backend3.example.com:8080 max_fails=3 fail_timeout=30s;
-    
-    # Connection limits
-    keepalive 32;  # Keep 32 idle connections per worker
-    keepalive_requests 100;  # Max requests per connection
-    keepalive_timeout 60s;  # Connection timeout
-}
-```
-
-### Load Balancing Best Practices
-
-1. **Choose appropriate algorithm**: Match algorithm to application requirements
-2. **Set reasonable health check parameters**: Balance responsiveness with stability
-3. **Use backup servers**: Ensure high availability
-4. **Enable keepalive connections**: Reduce connection overhead to backends
-5. **Monitor backend health**: Track failed requests and response times
-6. **Implement gradual rollouts**: Use weighted distribution for deployments
-7. **Consider session affinity**: Use IP hash or hash when sessions matter
-
----
-
-## Caching Strategies
-
-Nginx can cache both static and dynamic content to reduce backend load and improve response times.
-
-### Cache Types
-
-| Type | Purpose | Configuration Directive |
-|------|---------|------------------------|
-| **Proxy Cache** | Cache proxied responses | `proxy_cache` |
-| **FastCGI Cache** | Cache FastCGI responses | `fastcgi_cache` |
-| **uWSGI Cache** | Cache uWSGI responses | `uwsgi_cache` |
-| **SCGI Cache** | Cache SCGI responses | `scgi_cache` |
-
-### Proxy Cache Configuration
-
-```nginx
-http {
-    # Define cache path
-    proxy_cache_path /var/cache/nginx/proxy
-                     levels=1:2
-                     keys_zone=PROXY_CACHE:10m
-                     max_size=1g
-                     inactive=60m
-                     use_temp_path=off;
-    
-    # Cache key definition
-    proxy_cache_key "$scheme$request_method$host$request_uri";
-    
-    server {
-        location / {
-            proxy_pass http://backend;
-            
-            # Enable caching
-            proxy_cache PROXY_CACHE;
-            proxy_cache_valid 200 302 10m;
-            proxy_cache_valid 404 1m;
-            proxy_cache_valid any 5m;
-            
-            # Cache control
-            proxy_cache_methods GET HEAD;
-            proxy_cache_min_uses 2;
-            proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
-            proxy_cache_background_update on;
-            proxy_cache_lock on;
-            
-            # Headers
-            add_header X-Cache-Status $upstream_cache_status;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-        }
-    }
-}
-```
-
-### Cache Path Parameters
-
-| Parameter | Purpose | Example |
-|-----------|---------|---------|
-| `levels` | Directory hierarchy depth | `levels=1:2` creates `/a/bc/...` |
-| `keys_zone` | Shared memory zone name and size | `keys_zone=CACHE:10m` |
-| `max_size` | Maximum cache size | `max_size=10g` |
-| `inactive` | Remove items not accessed within time | `inactive=60m` |
-| `use_temp_path` | Use separate temp directory | `use_temp_path=off` (recommended) |
-| `loader_files` | Files loaded per cache loader iteration | `loader_files=100` |
-
-### Cache Control Directives
-
-```nginx
-location /api/ {
-    proxy_pass http://backend;
-    proxy_cache PROXY_CACHE;
-    
-    # Valid response caching
-    proxy_cache_valid 200 30m;
-    proxy_cache_valid 404 5m;
-    proxy_cache_valid any 1m;
-    
-    # Cache bypass conditions
-    proxy_cache_bypass $http_pragma $http_authorization;
-    proxy_no_cache $http_pragma $http_authorization;
-    
-    # Minimum uses before caching
-    proxy_cache_min_uses 3;
-    
-    # Stale content serving
-    proxy_cache_use_stale error timeout invalid_header updating http_500 http_502 http_503 http_504;
-    proxy_cache_background_update on;
-    
-    # Cache locking
-    proxy_cache_lock on;
-    proxy_cache_lock_timeout 5s;
-    proxy_cache_lock_age 10s;
-    
-    # Revalidation
-    proxy_cache_revalidate on;
-}
-```
-
-### Cache Status Values
-
-| Status | Meaning |
-|--------|---------|
-| `MISS` | Response not in cache, fetched from backend |
-| `HIT` | Response served from cache |
-| `EXPIRED` | Cached item expired, revalidated with backend |
-| `STALE` | Expired cached item served due to backend issues |
-| `UPDATING` | Stale content served while cache updates |
-| `REVALIDATED` | Expired item still valid (304 Not Modified) |
-| `BYPASS` | Cache bypassed due to conditions |
-
-### Selective Caching with Variables
-
-```nginx
-# Define cache bypass conditions
-map $request_uri $skip_cache {
-    default 0;
-    ~*/admin/ 1;
-    ~*/api/user/ 1;
-}
-
-map $http_cookie $skip_cache_cookie {
-    default 0;
-    ~*session 1;
-    ~*logged_in 1;
-}
-
-server {
-    location / {
-        proxy_pass http://backend;
-        proxy_cache PROXY_CACHE;
-        
-        # Skip cache based on conditions
-        proxy_cache_bypass $skip_cache $skip_cache_cookie $arg_nocache;
-        proxy_no_cache $skip_cache $skip_cache_cookie;
-    }
-}
-```
-
-### Cache Purging
-
-```nginx
-# Requires ngx_cache_purge module
-location ~ /purge(/.*) {
-    allow 127.0.0.1;
-    allow 192.168.1.0/24;
-    deny all;
-    
-    proxy_cache_purge PROXY_CACHE "$scheme$request_method$host$1";
-}
-```
-
-### Microcaching for Dynamic Content
-
-```nginx
-# Cache dynamic content for very short periods
-proxy_cache_path /var/cache/nginx/micro
-                 levels=1:2
-                 keys_zone=MICROCACHE:5m
-                 max_size=1g
-                 inactive=1m;
-
-location / {
-    proxy_pass http://backend;
-    proxy_cache MICROCACHE;
-    proxy_cache_valid 200 1s;  # Cache for 1 second
-    proxy_cache_use_stale updating;
-    proxy_cache_background_update on;
-    proxy_cache_lock on;
-}
-```
-
-### Caching Best Practices
-
-1. **Use appropriate cache keys**: Include relevant request attributes
-2. **Set realistic TTLs**: Balance freshness with cache efficiency
-3. **Implement cache bypass**: Allow cache invalidation when needed
-4. **Enable stale content serving**: Improve availability during backend issues
-5. **Use cache locking**: Prevent thundering herd problem
-6. **Monitor cache performance**: Track hit ratios and storage usage
-7. **Consider microcaching**: Even 1-second caching can dramatically reduce load
-8. **Respect Cache-Control headers**: Use `proxy_cache_revalidate on`
-
----
-
-## Compression
-
-Compression reduces bandwidth usage and improves page load times by compressing response bodies before transmission.
-
-### Gzip Compression
-
-```nginx
-http {
-    # Enable gzip
-    gzip on;
-    gzip_vary on;
-    gzip_proxied any;
-    gzip_comp_level 6;
-    gzip_types
-        text/plain
-        text/css
-        text/xml
-        text/javascript
-        application/json
-        application/javascript
-        application/xml+rss
-        application/atom+xml
-        image/svg+xml;
-    gzip_min_length 256;
-    gzip_disable "msie6";
-}
-```
-
-### Gzip Directives
-
-| Directive | Purpose | Recommended Value |
-|-----------|---------|-------------------|
-| `gzip` | Enable/disable compression | `on` |
-| `gzip_comp_level` | Compression level (1-9) | `5` or `6` |
-| `gzip_types` | MIME types to compress | See above list |
-| `gzip_min_length` | Minimum response size to compress | `256` |
-| `gzip_vary` | Add Vary: Accept-Encoding header | `on` |
-| `gzip_proxied` | Compress proxied responses | `any` |
-| `gzip_disable` | Disable for specific user agents | `"msie6"` |
-| `gzip_buffers` | Number and size of buffers | `16 8k` |
-
-### Brotli Compression (Requires Module)
-
-Brotli provides better compression than gzip but requires additional module installation.
-
-```nginx
-http {
-    # Enable Brotli
-    brotli on;
-    brotli_comp_level 6;
-    brotli_types
-        text/plain
-        text/css
-        text/xml
-        text/javascript
-        application/json
-        application/javascript
-        application/xml+rss
-        application/atom+xml
-        image/svg+xml;
-    brotli_min_length 256;
-    
-    # Static Brotli (pre-compressed files)
-    brotli_static on;
-}
-```
-
-### Pre-compression Strategy
-
-For static content, pre-compress files and serve them directly:
-
-```bash
-# Pre-compress files
-find /var/www/html -type f \( -name '*.css' -o -name '*.js' -o -name '*.svg' \) -exec gzip -k9 {} \;
-find /var/www/html -type f \( -name '*.css' -o -name '*.js' -o -name '*.svg' \) -exec brotli -k {} \;
-```
-
-```nginx
-location ~* \.(css|js|svg)$ {
-    # Try to serve pre-compressed version first
-    gzip_static on;
-    brotli_static on;
-    
-    expires 1y;
-    add_header Cache-Control "public, immutable";
-}
-```
-
-### Compression Best Practices
-
-1. **Choose appropriate compression level**: Balance CPU usage vs. compression ratio (5-6 is optimal)
-2. **Compress selectively**: Only compress text-based formats
-3. **Set minimum size threshold**: Skip compression for tiny files (< 256 bytes)
-4. **Use pre-compression for static files**: Compress once, serve many times
-5. **Enable Vary header**: Ensure proper caching with `gzip_vary on`
-6. **Consider Brotli**: Better compression ratios than gzip
-7. **Avoid double compression**: Don't compress already-compressed formats (images, videos)
-
----
-
-## Reverse Proxy Configuration
-
-A reverse proxy sits between clients and backend servers, forwarding requests and managing responses.
-
-### Basic Reverse Proxy
-
-```nginx
-server {
-    listen 80;
-    server_name example.com;
-    
-    location / {
-        proxy_pass http://backend_server:8080;
-        
-        # Preserve original request headers
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Port $server_port;
-    }
-}
-```
-
-### Essential Proxy Directives
-
-| Directive | Purpose | Recommended Setting |
-|-----------|---------|---------------------|
-| `proxy_pass` | Backend server URL | `http://backend:8080` |
-| `proxy_set_header` | Set request header | `proxy_set_header Host $host;` |
-| `proxy_buffering` | Enable response buffering | `on` (default) |
-| `proxy_buffer_size` | Header buffer size | `4k` or `8k` |
-| `proxy_buffers` | Response body buffers | `8 4k` or `8 8k` |
-| `proxy_busy_buffers_size` | Size for sending to client | `16k` |
-| `proxy_connect_timeout` | Backend connection timeout | `60s` |
-| `proxy_send_timeout` | Sending request timeout | `60s` |
-| `proxy_read_timeout` | Reading response timeout | `60s` |
-
-### Advanced Proxy Configuration
-
-```nginx
-location / {
-    proxy_pass http://backend;
-    
-    # Headers
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    
-    # Buffering
-    proxy_buffering on;
-    proxy_buffer_size 4k;
-    proxy_buffers 8 4k;
-    proxy_busy_buffers_size 16k;
-    proxy_max_temp_file_size 1024m;
-    
-    # Timeouts
-    proxy_connect_timeout 60s;
-    proxy_send_timeout 60s;
-    proxy_read_timeout 60s;
-    
-    # HTTP version and connection handling
-    proxy_http_version 1.1;
-    proxy_set_header Connection "";
-    
-    # Error handling
-    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
-    proxy_next_upstream_tries 3;
-    proxy_next_upstream_timeout 10s;
-    
-    # Redirects
-    proxy_redirect off;
-    
-    # Request body
-    client_max_body_size 100m;
-    client_body_buffer_size 128k;
-}
-```
-
-### WebSocket Proxying
-
-```nginx
-location /websocket/ {
-    proxy_pass http://backend;
-    
-    # WebSocket-specific headers
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    
-    # Standard headers
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    
-    # Timeouts for long-lived connections
-    proxy_read_timeout 3600s;
-    proxy_send_timeout 3600s;
-}
-```
-
-### SSL/TLS Termination
-
-```nginx
-server {
-    listen 443 ssl http2;
-    server_name example.com;
-    
-    # SSL certificates
-    ssl_certificate /etc/nginx/ssl/example.com.crt;
-    ssl_certificate_key /etc/nginx/ssl/example.com.key;
-    
-    # SSL configuration
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
-    ssl_prefer_server_ciphers off;
-    
-    # SSL session caching
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 10m;
-    ssl_session_tickets off;
-    
-    # OCSP stapling
-    ssl_stapling on;
-    ssl_stapling_verify on;
-    
-    # HSTS
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-    
-    location / {
-        proxy_pass http://backend;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-### Proxy Caching Integration
-
-```nginx
-http {
-    proxy_cache_path /var/cache/nginx/proxy
-                     levels=1:2
-                     keys_zone=PROXY_CACHE:10m
-                     max_size=1g
-                     inactive=60m;
-    
-    server {
-        location / {
-            proxy_pass http://backend;
-            proxy_cache PROXY_CACHE;
-            proxy_cache_valid 200 10m;
-            proxy_cache_use_stale error timeout updating http_500 http_502 http_503;
-            add_header X-Cache-Status $upstream_cache_status;
-            
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote
+10. [HTTP/2 Server Push with Nginx](https://www.nginx.com/blog/nginx-1-13-9-http2-server-push/){:target="_blank"}
