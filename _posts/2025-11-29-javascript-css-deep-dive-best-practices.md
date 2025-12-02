@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "🌊 JavaScript ES2024: Deep Dive & Best Practices"
-description: "Comprehensive guide to mastering Tailwind CSS with best practices, lifecycle terminology, and advanced techniques"
+title: "🌊 JavaScript: Deep Dive & Best Practices (ES2024)"
+description: "Comprehensive guide to JavaScript covering fundamental concepts, advanced patterns, and industry best practices for ES2024"
 author: technical_notes
 date: 2025-11-29 00:00:00 +0530
 categories: [Notes, JavaScript]
