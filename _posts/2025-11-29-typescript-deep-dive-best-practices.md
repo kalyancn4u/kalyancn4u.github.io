@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "🌊 TypeScript Deep Dive & Best Practices (2025)"
+title: "🌊 TypeScript: Deep Dive & Best Practices (2025)"
 description: "A comprehensive guide to TypeScript covering fundamental concepts, advanced patterns, and industry best practices for 2025"
 author: technical_notes
 date: 2025-11-29 00:00:00 +0530
