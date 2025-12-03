@@ -178,17 +178,6 @@ Your one-stop bookmark collection for EVERY stage of React development! 🎯
 
 ---
 
-## **📋 Table of Contents**
-1. [Planning & Design](#-1-planning--design)
-2. [Environment Setup](#-2-environment-setup)
-3. [Development](#-3-development)
-4. [Testing](#-4-testing)
-5. [Deployment](#-5-deployment)
-6. [Maintenance & Monitoring](#-6-maintenance--monitoring)
-7. [Bonus Resources](#-7-bonus-resources)
-
----
-
 ## **🎨 1. Planning & Design**
 
 ### **Component Architecture & Design Patterns**
