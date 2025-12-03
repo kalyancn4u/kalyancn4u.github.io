@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "🌊 Data Pipelines: Deep Dive & Best Practices"
-description: "Concise, clear, and validated revision notes on Data Pipelines — practical best practices for beginners and practitioners."
+title: "🧭 Data Pipelines: Quick Guide, References & Best Practices"
+description: "Data Pipelines — A Quick Guide, List of References and Best Practices for beginners and practitioners."
 author: technical_notes
 date: 2025-11-17 05:00:00 +0530
 categories: [Guides, Data Pipelines]
