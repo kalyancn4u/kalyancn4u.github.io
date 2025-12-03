@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "🌊 Databases 101: Deep Dive"
-description: "Databases - Complete Functional Categorization, Best Choices, Differences, Cloud Support, Python Connectivity & Analytical Comparison — A Deep Dive!"
+title: "🧭 Databases 101: Quick Guide & References"
+description: "Databases - A Quick Guide - Complete Functional Categorization, Best Choices, Differences, Cloud Support, Python Connectivity & Analytical Comparison!"
 author: technical_notes
 date: 2025-11-29 00:00:00 +0530
 categories: [Guides, Databases 101]
