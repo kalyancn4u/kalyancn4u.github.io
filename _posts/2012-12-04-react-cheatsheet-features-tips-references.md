@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "🌊 React: Cheatsheet, Features, Tips & References"
+title: "🧭 React: Cheatsheet, Features, Tips & References"
 description: "A Quick Guide to React Features, Tips & References!"
 author: technical_notes
 date: 2025-12-04 00:00:00 +0530
