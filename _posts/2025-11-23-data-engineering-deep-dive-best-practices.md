@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "🌊 Data Engineering: Deep Dive & Best Practices"
+title: "🧭 Data Engineering: Quick Guide, References & Best Practices"
 description: "A validated and novice-friendly guide to Data Engineering - covering essential concepts like ELT/ETL, Data Pipelines, Data Warehousing (e.g., Snowflake, BigQuery), Orchestration (e.g., Airflow), Data governance, and Implementing robust, scalable data architectures."
 author: technical_notes
 date: 2025-11-23 07:00:00 +0530
