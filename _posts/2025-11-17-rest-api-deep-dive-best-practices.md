@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "🌊 REST API: Deep Dive & Best Practices"
+title: "🧭 REST API: Deep Dive & Best Practices"
 description: "Concise, clear, and validated revision notes on REST API — practical best practices for beginners and practitioners."
 author: technical_notes
 date: 2025-11-17 00:00:00 +0530
