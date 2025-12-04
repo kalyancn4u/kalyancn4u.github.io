@@ -6,7 +6,7 @@ tags: [Conda, Mamba, Python, Data Science, DevOps, MLOps, Workflows]
 author: technical_notes
 toc: true
 comments: true
-math: false
+math: true
 mermaid: true
 image:
   path: /assets/img/posts/conda-mamba-workflows-guide.png
