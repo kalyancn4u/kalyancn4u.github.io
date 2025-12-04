@@ -15,6 +15,6 @@ order: 4                     # integer; controls tab position
 
 > # **[My Portfolio](/portfolio/){: .prompt-tip }**
 
-> # **[In-demand Skills](/assets/html/index_09_skill_icons_cards.html){: target="_blank" rel="noopener noreferrer" }**
+> # **[In-demand Skills](/assets/html/in_demand_skills.html){: target="_blank" rel="noopener noreferrer" }**
 
 ---
