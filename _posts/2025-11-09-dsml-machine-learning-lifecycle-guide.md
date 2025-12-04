@@ -1,5 +1,5 @@
 ---
-title: "📔 DSML: Machine Learning Lifecycle - Comprehensive Guide"
+title: "🧭 DSML: Machine Learning Lifecycle - Comprehensive Guide"
 layout: post
 author: Kalyan Narayana
 description: "Concise, clear, and validated Comprehesive guide revision notes on Machine Learning Lifecycle, MLOps, Metrics, Code Snippets — structured for beginners and practitioners."
@@ -10,6 +10,7 @@ image: /assets/img/posts/ml_ops_dev_ops_data_ml_lifecycle.png
 icon: fas fa-project-diagram
 toc: true
 math: true
+mermaid: true
 ---
 
 ## Introduction
