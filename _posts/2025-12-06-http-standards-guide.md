@@ -2268,37 +2268,36 @@ A: Yes, when implemented correctly. Use RS256/ES256, short expiration, validate 
 ## References
 
 <div class="references" style="font-size: 0.9em; line-height: 1.6;">
-
 1. <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP" target="_blank" rel="noopener noreferrer">MDN Web Docs - HTTP</a>
-
+<br>
 2. <a href="https://www.rfc-editor.org/rfc/rfc9110.html" target="_blank" rel="noopener noreferrer">RFC 9110 - HTTP Semantics</a>
-
+<br>
 3. <a href="https://www.rfc-editor.org/rfc/rfc9113.html" target="_blank" rel="noopener noreferrer">RFC 9113 - HTTP/2</a>
-
+<br>
 4. <a href="https://www.rfc-editor.org/rfc/rfc9114.html" target="_blank" rel="noopener noreferrer">RFC 9114 - HTTP/3</a>
-
+<br>
 5. <a href="https://datatracker.ietf.org/doc/html/rfc7519" target="_blank" rel="noopener noreferrer">RFC 7519 - JSON Web Token</a>
-
+<br>
 6. <a href="https://datatracker.ietf.org/doc/html/rfc6749" target="_blank" rel="noopener noreferrer">RFC 6749 - OAuth 2.0</a>
-
+<br>
 7. <a href="https://datatracker.ietf.org/doc/html/rfc8297" target="_blank" rel="noopener noreferrer">RFC 8297 - 103 Early Hints</a>
-
+<br>
 8. <a href="https://owasp.org/www-project-api-security/" target="_blank" rel="noopener noreferrer">OWASP API Security Project</a>
-
+<br>
 9. <a href="https://swagger.io/specification/" target="_blank" rel="noopener noreferrer">OpenAPI Specification</a>
-
+<br>
 10. <a href="https://restfulapi.net/" target="_blank" rel="noopener noreferrer">RESTful API Best Practices</a>
-
+<br>
 11. <a href="https://curl.se/docs/" target="_blank" rel="noopener noreferrer">cURL Documentation</a>
-
+<br>
 12. <a href="https://www.postman.com/" target="_blank" rel="noopener noreferrer">Postman API Platform</a>
-
+<br>
 13. <a href="https://expressjs.com/en/advanced/best-practice-security.html" target="_blank" rel="noopener noreferrer">Express.js Security Best Practices</a>
-
+<br>
 14. <a href="https://12factor.net/" target="_blank" rel="noopener noreferrer">The Twelve-Factor App</a>
-
+<br>
 15. <a href="https://martinfowler.com/articles/richardsonMaturityModel.html" target="_blank" rel="noopener noreferrer">Richardson Maturity Model</a>
-
+<br>
 </div>
 
 ---
