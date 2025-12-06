@@ -17,6 +17,7 @@ mermaid: false
 Blueprint for Emotional Intelligence and Self-mastery, and Psychological Freedom! Choose Self without guilt! A Stoic Guide for Recovering People-Pleasers!
 
 > **TL;DR**
+>
 > Stop breaking yourself to keep others comfortable.
 >
 > * Every time you people-please, you **abandon yourself** and teach your mind that your needs don’t matter.
@@ -59,18 +60,18 @@ While you keep everyone else comfortable, you slowly **suffocate under your own 
 
 There is **nothing noble** about:
 
-- shrinking yourself to make others feel big  
+- shrinking yourself to make others feel big
 - being exhausted, drained, and emotionally bankrupt just to be “easy to love”
 
-You were **not** put here to be liked.  
+You were **not** put here to be liked.
 You were put here to become:
 
-- whole  
-- strong  
-- self-governed  
-- someone whose life reflects **self-worth**, not fear  
+- whole
+- strong
+- self-governed
+- someone whose life reflects **self-worth**, not fear
 
-This is the turning point.
+This is the turning point: from over-pleasing others to living with *self-respect* **and** more honest, mutual relationships.
 
 ---
 
@@ -78,14 +79,15 @@ This is the turning point.
 
 There is a **silent burden** that chronic people-pleasers carry:
 
-- The exhaustion that hits you at night  
-- The frustration you swallow but never express  
-- The resentment that grows even while you say:  
+- The exhaustion that hits you at night
+- The frustration you swallow but never express
+- The resentment that grows even while you say:
+
   > “I’m fine. It’s nothing. I don’t want to cause trouble.”
 
 ### The truth you’ve avoided:
 
-> You’re not tired of people.  
+> You’re not tired of people.
 > You’re tired of **abandoning yourself** for them.
 
 You became “the good one” not because it’s your true nature, but because:
@@ -95,16 +97,18 @@ You became “the good one” not because it’s your true nature, but because:
 
 Maybe:
 
-- You were praised only when you were quiet, helpful, obedient.  
-- You learned that conflict leads to punishment.  
+- You were praised only when you were quiet, helpful, obedient.
+- You learned that conflict leads to punishment.
 - You were told your emotions were “too much”, so you trained yourself to be less.
 
 Now, as an adult, you’re still playing the same role:
 
-- You absorb people’s moods.  
-- You monitor their tone.  
-- You walk on emotional eggshells.  
+- You absorb people’s moods.
+- You monitor their tone.
+- You walk on emotional eggshells.
 - You avoid disappointing people who have disappointed you a thousand times.
+
+*This doesn’t mean you have to stop being kind; it means your kindness needs to include you too.*
 
 ---
 
@@ -114,30 +118,32 @@ Now, as an adult, you’re still playing the same role:
 
 Every time you silence your needs to keep the peace, your mind learns:
 
-- “My emotions don’t matter.”  
-- “My standards don’t matter.”  
+- “My emotions don’t matter.”
+- “My standards don’t matter.”
 - “Other people’s comfort is more important than my inner peace.”
 
 The impact:
 
-- Your **self-respect erodes**.  
-- Your **psychological boundaries weaken**.  
+- Your **self-respect erodes**.
+- Your **psychological boundaries weaken**.
 - You live **reactively**, not intentionally.
 
-People-pleasing is rarely about love.  
+People-pleasing is rarely about love.
 It’s about **fear**:
 
-- Fear of rejection  
-- Fear of disappointing others  
-- Fear of being alone with yourself  
+- Fear of rejection
+- Fear of disappointing others
+- Fear of being alone with yourself
 
 You build a cage:
 
-- polite  
-- respectful  
-- well-intentioned  
+- polite
+- respectful
+- well-intentioned
 
 …but still a **cage you locked from the inside**.
+
+Healthy self-worth means learning to care for others **without** repeatedly **abandoning yourself**.
 
 ---
 
@@ -145,108 +151,119 @@ You build a cage:
 
 Stoic philosophy is clear:
 
-- Your worth is **not** determined by how others feel about you.  
+- Your worth is **not** determined by how others feel about you.
 - It’s determined by how well you **govern yourself**:
 
-  - How clearly you hold your **boundaries**  
-  - How fiercely you protect your **inner peace**  
+  - How clearly you hold your **boundaries**
+  - How fiercely you protect your **inner peace**
   - How uncompromising you are with your **standards**
 
-> There is nothing noble about destroying yourself to be easy for others.  
+> There is nothing noble about destroying yourself to be easy for others.
+> 
 > **Real nobility** comes from:
-> - Saying **no**  
-> - Walking away when necessary  
-> - Prioritizing your energy  
+>
+> - Saying **no** when needed
+> - Walking away when necessary
+> - Prioritizing your energy
 > - Recognizing that people-pleasing is not love, it’s **self-neglect**
 
-The world doesn’t need another people-pleaser.  
-It needs the version of you that **finally stops leaving yourself.**
+The world doesn’t need another (exhausted, resentful) people-pleaser.
+It needs the version of you that **finally stops leaving yourself** and shows up with honesty, courage, and respect—for yourself *and* others.
 
 ---
 
 ## 5. Self-Betrayal: The Hidden War Inside
 
-The biggest war is not “out there”.  
+The biggest war is not “out there”.
 It’s inside you:
 
-- You smile when you’re hurting.  
-- You say “it’s okay” while your boundaries bleed.  
+- You smile when you’re hurting.
+- You say “it’s okay” while your boundaries bleed.
 - You nod politely while your spirit screams for honesty.
 
 That’s **self-betrayal**.
 
 We learned early:
 
-- Being liked = safety  
-- Approval = belonging  
-- Compliance = survival  
+- Being liked = safety
+- Approval = belonging
+- Compliance = survival
 
 So we:
 
-- Make ourselves digestible  
-- Polish our edges  
-- Shrink our needs  
-- Soften our truth  
+- Make ourselves digestible
+- Polish our edges
+- Shrink our needs
+- Soften our truth
 
 Survival mode becomes a prison when you forget the door is open.
 
 > **Peace is not earned by pleasing others. It’s earned by not abandoning yourself.**
 
-Every time you hide what you feel to keep others comfortable, you reinforce:
+Every time you hide what you feel to keep others comfortable (or someone else doesn’t feel uncomfortable), you reinforce:
 
-- “My feelings are an inconvenience.”  
-- “My needs are too much.”  
-- “I must be edited to be loved.”
+- “My feelings are an inconvenience.”
+- “My needs are too much.”
+- “Who I am must be edited to be loved.”
 
-You become an expert at reading the room…  
+You become an expert at reading the room…
 and a stranger at reading yourself.
+
+True social mastery starts when you stop lying to yourself **and** stop lying to others about what you really feel and need.
 
 ---
 
 ## 6. Approval vs Love: What Are You Actually Chasing?
 
-Most people don’t want **you**.  
+Most people don’t want **you**. In other words:
+
+Most of the time, people don’t want **all of you**. 
 They want the version of you that makes their life easier.
 
-- When you’re **available**, they love you.  
-- When you **sacrifice**, they praise you.  
+- When you’re **available**, they love you.
+- When you **sacrifice**, they praise you.
 - When you start setting **standards**, you suddenly become “too much”.
 
 You confuse **approval** with **love**:
 
-- **Approval** says:  
+- **Approval** says:
   > “Stay quiet. Stay soft. Give me what I want and I’ll keep you close.”
-- **Love** says:  
+
+- **Love** says:
   > “I want to see all of you, even the parts that challenge me.”
 
-- Approval requires **performance**.  
+- Approval requires **performance**.
 - Love requires **presence**.
 
 You’ve spent years performing:
 
-- Predicting moods  
-- Anticipating needs  
-- Carrying emotional burdens that were never yours  
+- Predicting moods
+- Anticipating needs
+- Carrying emotional burdens that were never yours
 
-> If someone only values you when you abandon yourself,  
+> If someone only values you when you abandon yourself,
 > **they don’t value you at all.**
 
 Marcus Aurelius said:
 
 > “It’s a sign of self-respect to allow others to think what they choose.”
 
-Translation:  
+Translation:
 Your life cannot revolve around other people’s opinions.
 
 Real love:
 
-- **Challenges** your boundaries, but doesn’t **violate** them  
-- **Communicates**, doesn’t **manipulate**  
-- **Remains**, doesn’t disappear when you stop pleasing  
+- **Challenges** your boundaries, but doesn’t **violate** them
+- **Communicates**, doesn’t **manipulate**
+- **Remains**, doesn’t disappear when you stop pleasing
 
 **Ask yourself:**
 
 > Are they treating you well — or treating you conveniently?
+
+And equally important:
+
+> Am I relating honestly — or performing for approval?
 
 ---
 
@@ -260,15 +277,15 @@ Where your attention goes, your life follows.
 
 Your emotional energy:
 
-- fuels every relationship  
-- feeds every habit  
-- shapes your destiny  
+- fuels every relationship
+- feeds every habit
+- shapes your destiny
 
 Most people waste their attention on:
 
-- Managing other people’s emotions  
-- Conversations that drain peace  
-- People who remember your worth only when they need something  
+- Managing other people’s emotions
+- Conversations that drain peace
+- People who remember (or notice) your worth only when they need something
 
 Then wonder why they feel empty.
 
@@ -278,40 +295,43 @@ Stoicism teaches:
 
 Whatever you:
 
-- constantly think about  
-- emotionally react to  
-- allow into your mental space  
+- constantly think about
+- emotionally react to
+- allow into your mental space
 
 …becomes your **master**.
 
 That’s why manipulators love people-pleasers:
 
-- Not because you’re weak  
+- Not because you’re weak
 - But because you can be controlled through **guilt**, **validation**, and **approval**
 
-> Not everyone deserves access to your mind.  
+> Not everyone deserves access to your mind.
 > Not everyone earns the right to influence how you feel.
+> Not everyone should be a priority in your inner world.
 
 Every **yes** you give others is a **no** you give yourself.
 
 When you redirect your attention inward:
 
-- You stop chasing  
-- You stop proving  
-- You stop begging for validation  
+- You stop chasing
+- You stop proving
+- You stop begging for validation
 
 Your:
 
-- **Energy becomes magnetic**  
-- **Presence becomes undeniable**  
+- **Energy becomes magnetic**
+- **Presence becomes undeniable**
 
-Silence becomes a **weapon**.  
-Focus becomes a **shield**.  
+Silence becomes a **weapon**.
+Focus becomes a **shield**.
 Boundaries become a **throne**.
 
-> The day you decide  
-> **“I am no longer available for anything that costs me my peace,”**  
+> The day you decide
+> **“I am no longer available for anything that costs me my peace,”**
 > is the day your real transformation begins.
+
+This also makes your “yes” more powerful and sincere when you *do* choose to give it.
 
 ---
 
@@ -321,70 +341,70 @@ One reason people-pleasers break:
 
 > **Healthy people have boundaries. Exhausted people have none.**
 
-You weren’t born without boundaries.  
+You weren’t born without boundaries.
 You were **conditioned out of them**:
 
-- Saying no was “disrespectful”  
-- Your needs were dismissed  
+- Saying no was “disrespectful”
+- Your needs were dismissed
 - You learned peace comes from **compliance**, not **honesty**
 
 So you became:
 
-- The flexible one  
-- The forgiving one  
-- The one who absorbs everything and complains about nothing  
+- The flexible one
+- The forgiving one
+- The one who absorbs everything and complains about nothing
 
-> When you don’t set boundaries,  
+> When you don’t set boundaries,
 > you train people to believe you have none.
 
 Stoicism says:
 
-- Your inner world is a **citadel**  
+- Your inner world is a **citadel**
 - No one enters without your **permission**
 
 But life taught you:
 
-- Let everyone in  
-- Keep everyone happy  
-- Never disappoint anyone  
+- Let everyone in
+- Keep everyone happy
+- Never disappoint anyone
 
 That programming ends now.
 
 ### What boundaries really are:
 
-- Not walls to keep people out  
-- **Doors you control**:  
-  - Who gets access  
-  - When they get access  
-  - What part of you they get access to  
+- Not walls to keep people out
+- **Doors you control**:
+  - Who gets access
+  - When they get access
+  - What part of you they get access to
 
 Boundaries say:
 
-> “This I accept.  
-> This I do not accept.  
+> “This I accept.
+> This I do not accept.
 > I don’t need to justify either.”
 
 When you enforce them:
 
-- People who **benefited** from your lack of boundaries get angry  
-- People who **manipulated** your kindness feel offended  
-- People who relied on your **silence** call you selfish  
+- People who **benefited** from your lack of boundaries get angry
+- People who **manipulated** your kindness feel offended
+- People who relied on your **silence** call you selfish
 
-Their discomfort doesn’t mean you’re wrong.  
+Their discomfort doesn’t mean you’re wrong.
 It means you **stopped allowing** what never should’ve been allowed.
 
-> Boundaries don’t push away the right people.  
+> Boundaries don’t push away the right people.
 > They **filter out** the wrong ones.
 
 Over time:
 
-- Your time becomes intentional  
-- Your relationships become balanced  
-- Your energy becomes protected  
-- Your mind becomes clear  
+- Your time becomes intentional
+- Your relationships become balanced
+- Your energy becomes protected
+- Your mind becomes clear
 
-People who love you will adjust.  
-People who use you will leave.  
+People who love you will adjust.
+People who use you will leave.
 **Both outcomes are blessings.**
 
 ---
@@ -393,60 +413,60 @@ People who use you will leave.
 
 There comes a point when:
 
-> Silence stops feeling like loneliness  
+> Silence stops feeling like loneliness
 > and starts feeling like **clarity**.
 
 Most people run from solitude because:
 
-- It forces them to meet the **unfiltered** version of themselves  
-- No distractions, no approval, no noise  
+- It forces them to meet the **unfiltered** version of themselves
+- No distractions, no approval, no noise
 
 But that is where transformation begins.
 
-Solitude is not isolation.  
+Solitude is not isolation.
 It is **recalibration**:
 
-- Cleansing the energy you absorbed from others’ expectations  
-- Finally hearing your own thoughts  
-- Realizing how many beliefs were never truly yours  
+- Cleansing the energy you absorbed from others’ expectations
+- Finally hearing your own thoughts
+- Realizing how many beliefs were never truly yours
 
 You begin to see:
 
-- How much of your identity was shaped by rooms that never understood you  
-- How often you tried to earn love from the emotionally unavailable  
-- How many standards you followed that never aligned with your soul  
+- How much of your identity was shaped by rooms that never understood you
+- How often you tried to earn love from the emotionally unavailable
+- How many standards you followed that never aligned with your soul
 
 Solitude reveals this **not to break you**, but to **free you**.
 
 In solitude, you learn:
 
-- Self-direction: what to pursue, what to release, what to protect  
-- Your patterns: who you overgave to, what you tolerated, where you lacked boundaries  
-- How to reclaim your power  
+- Self-direction: what to pursue, what to release, what to protect
+- Your patterns: who you overgave to, what you tolerated, where you lacked boundaries
+- How to reclaim your power
 
 You:
 
-- Rediscover abandoned hobbies  
-- Reconnect with postponed dreams  
-- Rebuild drained confidence  
+- Rediscover abandoned hobbies
+- Reconnect with postponed dreams
+- Rebuild drained confidence (i.e., confidence drained by years of seeking validation)
 
-You stop asking:  
-> “Do they approve of me?”  
+You stop asking:
+> “Do they approve of me?”
 
-And start asking:  
+And start asking:
 > “Does this align with my principles?”
 
-This is Stoic wisdom at its core:  
+This is Stoic wisdom at its core:
 **Live according to your highest values, not the world’s shifting expectations.**
 
 The more comfortable you become with solitude:
 
-- The calmer your presence  
-- The clearer your boundaries  
-- The stronger your silence  
-- The sharper your mind  
+- The calmer your presence
+- The clearer your boundaries
+- The stronger your silence
+- The sharper your mind
 
-You become **unshakable**, not untouchable.
+You become **unshakable**, not untouchable — capable of deeper, healthier connection because you’re no longer afraid to be on your own.
 
 ---
 
@@ -456,13 +476,13 @@ A quiet inner earthquake happens when you ask:
 
 > “Why am I carrying expectations that were never mine to hold?”
 
-Most of your pain comes not from what people did,  
+Most of your pain comes not from what people did,
 but from what you **expected** them to do:
 
-- Loyalty from the disloyal  
-- Maturity from the emotionally stunted  
-- Respect from those who don’t respect themselves  
-- Love from the unavailable  
+- Loyalty from the disloyal
+- Maturity from the emotionally stunted
+- Respect from those who don’t respect themselves
+- Love from the unavailable
 
 When they fall short, you blame yourself.
 
@@ -472,26 +492,26 @@ Stoicism teaches:
 
 When you expect people to:
 
-- Act a certain way  
-- Appreciate you  
-- Choose you  
-- Understand you  
+- Act a certain way
+- Appreciate you
+- Choose you
+- Understand you
 
 …you hand them power over your emotional state.
 
 Detachment breaks that contract:
 
-- It’s not coldness or shutting down  
+- It’s not coldness or shutting down
 - It’s **radical acceptance of reality**
 
-You cannot control who they choose to be.  
+You cannot control who they choose to be.
 You can control who **you** become in response.
 
 When you detach:
 
-- You stop waiting for apologies  
-- You stop trying to fix people who avoid themselves  
-- You stop replaying conversations, trying to rewrite the past  
+- You stop waiting for apologies
+- You stop trying to fix people who avoid themselves
+- You stop replaying conversations, trying to rewrite the past
 
 You reclaim the energy you poured into being “enough” for those who couldn’t see you.
 
@@ -499,17 +519,17 @@ You reclaim the energy you poured into being “enough” for those who couldn�
 
 You:
 
-- No longer give it to those who drain you  
-- No longer abandon yourself just to stay connected  
-- No longer negotiate your worth in rooms you’ve outgrown  
+- No longer give it to those who drain you
+- No longer abandon yourself just to stay connected
+- No longer negotiate your worth in rooms you’ve outgrown
 
 Emotional independence is:
 
-- Stable  
-- Centered  
-- Quietly powerful  
+- Stable
+- Centered
+- Quietly powerful
 
-This is where transformation truly begins.
+This is where transformation truly begins — and where healthier, more honest relationships become possible.
 
 ---
 
@@ -517,10 +537,10 @@ This is where transformation truly begins.
 
 There comes a point where you **stop waiting**:
 
-- For validation  
-- For apologies  
-- For understanding  
-- For permission  
+- For validation
+- For apologies
+- For understanding
+- For permission
 
 You give those things to yourself.
 
@@ -530,54 +550,54 @@ It’s not about becoming hard — it’s about becoming **whole**.
 
 You accept:
 
-- Your peace is your responsibility  
-- Your emotional state is your responsibility  
-- Your healing is your responsibility  
-- Your growth is your responsibility  
+- Your peace is your responsibility
+- Your emotional state is your responsibility
+- Your healing is your responsibility
+- Your growth is your responsibility
 
 When you take that seriously, you change:
 
-- You move differently  
-- You speak with calm precision  
-- You observe instead of absorb  
-- You respond instead of react  
+- You move differently
+- You speak with calm precision
+- You observe instead of absorb
+- You respond instead of react
 
 You stop:
 
-- Breaking yourself to keep others comfortable  
-- Dimming your light so others don’t feel threatened  
-- Negotiating your worth for temporary acceptance  
+- Breaking yourself to keep others comfortable
+- Dimming your light so others don’t feel threatened
+- Negotiating your worth for temporary acceptance
 
 Self-mastery is:
 
-- Emotional intelligence  
-- Boundaries  
-- Spiritual discipline  
-- A high-performance mindset  
+- Emotional intelligence
+- Boundaries
+- Spiritual discipline
+- A high-performance mindset
 
 And once you master yourself:
 
-- You cannot be controlled by guilt, flattery, pressure, abandonment, rejection — not even your own fear.  
+- You cannot be controlled by guilt, flattery, pressure, abandonment, rejection — not even your own fear.
 
-People who once used your soft heart lose access.  
-Those who fed on your approval starve.  
+People who once used your soft heart lose access.
+Those who fed on your approval starve.
 Those who dictated your emotions find nothing left to command.
 
-> Self-focus is not selfishness.  
+> Self-focus is not selfishness.
 > It is **sovereignty**.
 
 You are:
 
-- Gatekeeper of your energy  
-- Architect of your boundaries  
-- Protector of your inner peace  
-- Author of your destiny  
+- Gatekeeper of your energy
+- Architect of your boundaries
+- Protector of your inner peace
+- Author of your destiny
 
-You stop chasing and start **attracting**.  
-You stop performing and start **embodying**.  
+You stop chasing and start **attracting**.
+You stop performing and start **embodying**.
 You stop pleasing and start **leading**.
 
-You become the version of you your younger self desperately needed.
+You become the version of you - your younger self desperately needed — and the kind of person who can form healthier, clearer, more mutual bonds.
 
 ---
 
@@ -585,36 +605,114 @@ You become the version of you your younger self desperately needed.
 
 In the end, life becomes clearer when you:
 
-- Stop performing for the world  
-- Start returning home to yourself  
+- Stop performing for the world
+- Start returning home to yourself
 
 You were never meant to live exhausted from pleasing people who don’t understand themselves.
 
 You were meant to live:
 
-- Anchored  
-- Focused  
-- Aligned with your purpose  
+- Anchored
+- Focused
+- Aligned with your purpose
 
-> The moment you redirect your attention inward and reclaim your power from opinions, expectations, and noise…  
+> The moment you redirect your attention inward and reclaim your power from opinions, expectations, and noise…
 > **your real life begins.**
 
 If this resonates, make this your declaration:
 
 > **I choose myself without guilt.**
 
-Say it.  
-Write it.  
+Say it.
+Write it.
 Live it.
 
-Because the moment you truly choose yourself,  
+Because the moment you truly choose yourself,
 the world has no choice but to adjust.
+
+And the people who are capable of real love will adjust **with** you.
 
 ---
 
 ### 🔁 Affirmation
 
-> **I choose myself without guilt.  
-> I protect my peace.  
-> I honor my boundaries.  
+> **I choose myself without guilt.
+> I protect my peace.
+> I honor my boundaries.
 > I no longer abandon myself to be loved.**
+
+> **I choose relationships that respect my truth, not my silence.**
+
+---
+
+## 📚 Appendix – References
+
+### 🏛️ Classical Stoic Sources
+
+#### 1. *Meditations* — **Marcus Aurelius**
+- Private reflections on self-governance, inner peace, and emotional discipline.  
+- Reinforces Stoic principles such as:
+  - Focusing only on what is within your control,  
+  - Remaining indifferent to external praise or criticism,  
+  - Living according to virtue and inner values.
+
+#### 2. *Enchiridion (Handbook)* — **Epictetus**
+- A concise Stoic guide teaching:
+  - Freedom comes from governing your judgments, not circumstances.  
+  - Suffering comes from misinterpreting events, not the events themselves.  
+- Strongly supports emotional independence and detachment from outcomes.
+
+#### 3. *Letters from a Stoic* — **Seneca**
+- Essays on wise friendship, self-possession, and the strength of principles.  
+- Emphasizes:
+  - Emotional regulation,  
+  - Conscious living,  
+  - Grounding oneself in virtue rather than public opinion.
+
+---
+
+### 🧠 Psychology & Mental Health  
+**(Boundaries, People-Pleasing, Emotional Independence)**
+
+#### 4. **Dialectical Behavior Therapy (DBT)** — Marsha Linehan
+- *Interpersonal Effectiveness* module teaches balance between:
+  - **Self-respect**,  
+  - **Relationship harmony**,  
+  - **Getting needs met** effectively.  
+- Aligns closely with your message on boundaries and self-honor.
+
+#### 5. **Acceptance and Commitment Therapy (ACT)** — Steven C. Hayes & Colleagues
+- Focuses on:
+  - Clarifying **personal values**,  
+  - Increasing **psychological flexibility**,  
+  - Taking action aligned with values rather than fear or approval-seeking.  
+- Reinforces your sections on purpose, alignment, and conscious living.
+
+#### 6. **Trauma-Informed Psychology – “Fawn Response”**
+- Research describes people-pleasing as a survival response formed in unsafe environments.  
+- Validates patterns such as:
+  - Chronic self-abandonment,  
+  - Fear-based compliance,  
+  - Emotional exhaustion.
+
+#### 7. **Brené Brown — *Daring Greatly*, *Atlas of the Heart*, TED Talks**
+- Emphasizes:
+  - Vulnerability with discernment,  
+  - Emotional clarity,  
+  - Healthy boundaries (“**Clear is kind**”).  
+- Supports your themes of honesty, courage, and relational integrity.
+
+#### 8. *Set Boundaries, Find Peace* — **Nedra Glover Tawwab**
+- Practical, research-informed guide to healthy boundaries.  
+- Confirms that:
+  - People-pleasing leads to resentment and burnout,  
+  - Boundaries create healthier, more reciprocal relationships.
+
+#### 9. **American Psychological Association (APA)**  
+**Topics: Assertiveness, Communication, Healthy Relationships**
+- APA resources show:
+  - Assertiveness improves mental health and reduces stress,  
+  - Over-accommodation correlates with anxiety, low self-esteem, and emotional suppression,  
+  - Healthy relationships require **mutual respect**, not self-erasure.
+
+---
