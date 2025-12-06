@@ -2267,37 +2267,37 @@ A: Yes, when implemented correctly. Use RS256/ES256, short expiration, validate 
 
 ## References
 
-<div class="references">
+<div class="references" style="font-size: 0.9em; line-height: 1.6;">
 
-- <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP" target="_blank" rel="noopener noreferrer">MDN Web Docs - HTTP</a>
+1. <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP" target="_blank" rel="noopener noreferrer">MDN Web Docs - HTTP</a>
 
-- <a href="https://www.rfc-editor.org/rfc/rfc9110.html" target="_blank" rel="noopener noreferrer">RFC 9110 - HTTP Semantics</a>
+2. <a href="https://www.rfc-editor.org/rfc/rfc9110.html" target="_blank" rel="noopener noreferrer">RFC 9110 - HTTP Semantics</a>
 
-- <a href="https://www.rfc-editor.org/rfc/rfc9113.html" target="_blank" rel="noopener noreferrer">RFC 9113 - HTTP/2</a>
+3. <a href="https://www.rfc-editor.org/rfc/rfc9113.html" target="_blank" rel="noopener noreferrer">RFC 9113 - HTTP/2</a>
 
-- <a href="https://www.rfc-editor.org/rfc/rfc9114.html" target="_blank" rel="noopener noreferrer">RFC 9114 - HTTP/3</a>
+4. <a href="https://www.rfc-editor.org/rfc/rfc9114.html" target="_blank" rel="noopener noreferrer">RFC 9114 - HTTP/3</a>
 
-- <a href="https://datatracker.ietf.org/doc/html/rfc7519" target="_blank" rel="noopener noreferrer">RFC 7519 - JSON Web Token</a>
+5. <a href="https://datatracker.ietf.org/doc/html/rfc7519" target="_blank" rel="noopener noreferrer">RFC 7519 - JSON Web Token</a>
 
-- <a href="https://datatracker.ietf.org/doc/html/rfc6749" target="_blank" rel="noopener noreferrer">RFC 6749 - OAuth 2.0</a>
+6. <a href="https://datatracker.ietf.org/doc/html/rfc6749" target="_blank" rel="noopener noreferrer">RFC 6749 - OAuth 2.0</a>
 
-- <a href="https://datatracker.ietf.org/doc/html/rfc8297" target="_blank" rel="noopener noreferrer">RFC 8297 - 103 Early Hints</a>
+7. <a href="https://datatracker.ietf.org/doc/html/rfc8297" target="_blank" rel="noopener noreferrer">RFC 8297 - 103 Early Hints</a>
 
-- <a href="https://owasp.org/www-project-api-security/" target="_blank" rel="noopener noreferrer">OWASP API Security Project</a>
+8. <a href="https://owasp.org/www-project-api-security/" target="_blank" rel="noopener noreferrer">OWASP API Security Project</a>
 
-- <a href="https://swagger.io/specification/" target="_blank" rel="noopener noreferrer">OpenAPI Specification</a>
+9. <a href="https://swagger.io/specification/" target="_blank" rel="noopener noreferrer">OpenAPI Specification</a>
 
-- <a href="https://restfulapi.net/" target="_blank" rel="noopener noreferrer">RESTful API Best Practices</a>
+10. <a href="https://restfulapi.net/" target="_blank" rel="noopener noreferrer">RESTful API Best Practices</a>
 
-- <a href="https://curl.se/docs/" target="_blank" rel="noopener noreferrer">cURL Documentation</a>
+11. <a href="https://curl.se/docs/" target="_blank" rel="noopener noreferrer">cURL Documentation</a>
 
-- <a href="https://www.postman.com/" target="_blank" rel="noopener noreferrer">Postman API Platform</a>
+12. <a href="https://www.postman.com/" target="_blank" rel="noopener noreferrer">Postman API Platform</a>
 
-- <a href="https://expressjs.com/en/advanced/best-practice-security.html" target="_blank" rel="noopener noreferrer">Express.js Security Best Practices</a>
+13. <a href="https://expressjs.com/en/advanced/best-practice-security.html" target="_blank" rel="noopener noreferrer">Express.js Security Best Practices</a>
 
-- <a href="https://12factor.net/" target="_blank" rel="noopener noreferrer">The Twelve-Factor App</a>
+14. <a href="https://12factor.net/" target="_blank" rel="noopener noreferrer">The Twelve-Factor App</a>
 
-- <a href="https://martinfowler.com/articles/richardsonMaturityModel.html" target="_blank" rel="noopener noreferrer">Richardson Maturity Model</a>
+15. <a href="https://martinfowler.com/articles/richardsonMaturityModel.html" target="_blank" rel="noopener noreferrer">Richardson Maturity Model</a>
 
 </div>
 
@@ -2305,7 +2305,7 @@ A: Yes, when implemented correctly. Use RS256/ES256, short expiration, validate 
 
 ## Document Validation Summary
 
-**Validation Date:** December 2024  
+**Validation Date:** December 2025
 **Status:** Production Ready ✅  
 **Total Word Count:** 20,000+ words  
 **Code Examples:** 70+ validated snippets  
