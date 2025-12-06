@@ -1,9 +1,9 @@
 ---
 layout: post
-title: "🌊 HTTP Standards: Comprehensive Guide"
+title: "🌊 HTTP Standards: Quick Guide & Best Practices"
 description: "A comprehensive guide to HTTP for full-stack developers and DSML practitioners covering fundamentals, advanced topics, security, and SDLC integration"
 author: technical_notes
-date: 2024-12-06 00:00:00 +0530
+date: 2025-12-06 00:00:00 +0530
 categories: [Notes, HTTP Standards]
 tags: [HTTP, Methods, Status Codes, HTTP 1.1, HTTP 2, HTTP 3, REST API, Debugging, Request, Response, Security, CORS]
 image: /assets/img/posts/http_standards.png
