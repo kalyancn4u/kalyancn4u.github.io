@@ -612,10 +612,9 @@ the world has no choice but to adjust.
 
 ---
 
-### 🔁 Affirmation (Copy–Paste for Yourself)
+### 🔁 Affirmation
 
 > **I choose myself without guilt.  
 > I protect my peace.  
 > I honor my boundaries.  
 > I no longer abandon myself to be loved.**
-
