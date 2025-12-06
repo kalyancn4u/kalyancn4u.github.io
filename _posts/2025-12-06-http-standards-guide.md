@@ -618,7 +618,7 @@ app.get('/api/users/:id', (req, res) => {
 | **private** | Only client cache | User-specific data |
 | **no-cache** | Revalidate before use | Frequently updated content |
 | **no-store** | Never cache | Sensitive data |
-| **max-age=<seconds>** | Freshness lifetime | Time-based caching |
+| **max-age=&lt;seconds&gt;** | Freshness lifetime | Time-based caching |
 | **must-revalidate** | Strict validation | Critical data integrity |
 | **immutable** | Never needs revalidation | Versioned assets |
 
@@ -986,6 +986,7 @@ POST   /api/users/123/update   # Should use PUT/PATCH
 ```
 
 5. **Versioning**
+
 ```
 # URL versioning (most common)
 /api/v1/users
