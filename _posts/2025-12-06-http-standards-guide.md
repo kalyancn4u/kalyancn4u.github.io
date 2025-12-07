@@ -2267,7 +2267,7 @@ A: Yes, when implemented correctly. Use RS256/ES256, short expiration, validate 
 
 ## References
 
-<div class="references" style="font-size: 0.9em; line-height: 1.6;">
+<div class="references" line-height: 1.8;">
 1. <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP" target="_blank" rel="noopener noreferrer">MDN Web Docs - HTTP</a>
 <br>
 2. <a href="https://www.rfc-editor.org/rfc/rfc9110.html" target="_blank" rel="noopener noreferrer">RFC 9110 - HTTP Semantics</a>
