@@ -6,7 +6,7 @@ date: 2025-12-06 00:00:00 +0530
 categories: [Notes, Time Series]
 tags: [TS, TSA, TSAF, Time Series, Analysis, Forecasting, Python, Regression, Statistical Modeling, StatsModels, Prophet, Scikit-Learn, Ruptures, ARIMA, SARIMA, SARIMAX]
 author: technical_notes
-image: /assets/img/posts/statsmodels-ml-library.png
+image: /assets/img/posts/time_series_small.webp
 toc: true
 math: true
 mermaid: true
