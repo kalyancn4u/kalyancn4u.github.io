@@ -7,7 +7,7 @@ date: 2025-12-09 00:00:00 +0530
 categories: [Notes, CO-STAR]
 tags: [CO-STAR, Prompting, Technique, Prompt Engineering]
 image:
-  path: /assets/img/posts/costar_framework.svg
+  path: /assets/img/posts/costar_framework.svg{: w="700" h="400" }
   alt: "CO-STAR Framework Diagram"
   class: img-center
 css: ["/assets/css/custom.css"]
