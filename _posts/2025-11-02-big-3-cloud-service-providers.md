@@ -8,7 +8,7 @@ author: technical_notes
 date: 2025-11-03 04:00:00 +0530
 categories: [Cloud, Architecture]
 tags: [AWS, Azure, GCP, Comparison, Cloud-Computing, Architecture, DevOps, ML, Icons, Learning]
-image: /assets/img/posts/aws-azure-gcp-logos.png
+image: /assets/img/posts/aws-azure-gcp-logos.webp
 toc: true
 # math: true
 # mermaid: true
