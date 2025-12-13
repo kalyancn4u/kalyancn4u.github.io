@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-10-25 04:00:00 +0530
 categories: [Notes, Streamlit]
 tags: [streamlit, model-serialization, pickle, ml-deployment, python-tools]
-image: /assets/img/posts/streamlit-logo.png
+image: /assets/img/posts/streamlit-logo.webp
 toc: true
 math: true
 mermaid: true
