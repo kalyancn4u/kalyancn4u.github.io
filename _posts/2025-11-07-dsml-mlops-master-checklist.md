@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-11-07 17:30:00 +0530
 categories: [Notes, MLOps]
 tags: [MLOps, Checklist, Best Practices, Machine Learning, Lifecycle]
-image: /assets/img/posts/DSLifeCycle.png
+image: /assets/img/posts/DSLifeCycle.webp
 toc: true
 # math: true
 # mermaid: true
@@ -18,7 +18,7 @@ toc: true
 
 > 🧭 *A complete, validated, and easy-to-follow roadmap of the Machine Learning lifecycle — harmonized from Google, AWS, Microsoft, Deepchecks, and Neptune.ai frameworks.*
 
-![MLOps Illustrated](/assets/img/posts/ml_ops_dev_ops_data_ml_lifecycle.png){: width="960" height="480" }
+![MLOps Illustrated](/assets/img/posts/ml_ops_dev_ops_data_ml_lifecycle.webp){: width="960" height="480" }
 _MLOps Illustrated: MLOps = Data + ML + Dev + Sec + Ops_
 
 ---
