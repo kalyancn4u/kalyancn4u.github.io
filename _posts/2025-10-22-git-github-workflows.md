@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-10-22 05:00:00 +0530
 categories: [Workflows, Git & GitHub]
 tags: [Git, GitHub, Version Control, Workflows, TODO]
-image: /assets/img/posts/git-github-logo.png
+image: /assets/img/posts/git-github-logo.webp
 toc: true
 math: false
 mermaid: false
