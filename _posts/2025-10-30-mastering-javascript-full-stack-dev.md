@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-10-31 00:05:00 +05:30
 categories: [Web Dev, JavaScript]
 tags: [JavaScript, Node.js, Express, React, MongoDB, MERN, MEAN, Deployment]
-image: /assets/img/posts/javascript-logo.jpg
+image: /assets/img/posts/javascript-logo.webp
 toc: true
 math: false
 mermaid: false
