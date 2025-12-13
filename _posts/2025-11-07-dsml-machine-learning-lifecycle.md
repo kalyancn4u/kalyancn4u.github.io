@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-11-07 07:30:00 +0530
 categories: [Notes, Machine Learning]
 tags: [Machine Learning, Lifecycle, Workflows, MLOps]
-image: /assets/img/posts/ml_workflow_lifecycle_small.png
+image: /assets/img/posts/ml_workflow_lifecycle_small.webp
 toc: true
 math: false
 mermaid: false
@@ -24,7 +24,7 @@ _— Comprehensive Notes: Phases, Jargon, and Best Practices_
 
 The **Machine Learning (ML) lifecycle** is a structured, iterative process that defines how ML projects move from **concept → deployment → continuous improvement**.  
 
-![Machine Learning Lifecycle Illustrated](/assets/img/posts/ml_workflow_iterations_bg_white.png){: width="800" height="640" }
+![Machine Learning Lifecycle Illustrated](/assets/img/posts/ml_workflow_iterations_bg_white.webp){: width="800" height="640" }
 _Machine Learning Lifecycle Illustrated_
 
 ### 🧭 Workflow of Machine Learning
@@ -68,7 +68,7 @@ _Machine Learning Lifecycle Illustrated_
 > 🧠 *Lifecycle = Iterative Feedback Loop*  
 Each stage informs and improves the next — fostering a continuous learning system.
 
-![Supervised Learning Steps](/assets/img/posts/ml-supervised-learning-steps.png)
+![Supervised Learning Steps](/assets/img/posts/ml-supervised-learning-steps.webp)
 _Supervised Learning Steps... Illustrated!_
 
 - Courtesy: <a href="https://sebastianraschka.com/" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Sebastian Raschka | Substack</mark></a>
