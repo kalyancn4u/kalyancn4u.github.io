@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-10-22 04:00:00 +0530
 categories: [Notes, Git & GitHub]
 tags: [git, github, version-control]
-image: /assets/img/posts/git-github-logo.png
+image: /assets/img/posts/git-github-logo.webp
 toc: true
 math: false
 mermaid: false
