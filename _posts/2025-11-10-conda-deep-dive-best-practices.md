@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-11-10 16:30:00 +0530
 categories: [Notes, Conda]
 tags: [Python, Package Management, Conda, Mamba, Anaconda, Miniconda, Miniforge, Environment Management, DevOps]
-image: /assets/img/posts/conda-packaging.jpg
+image: /assets/img/posts/conda-packaging.webp
 toc: true
 math: true
 mermaid: true
