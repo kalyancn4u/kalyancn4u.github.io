@@ -297,7 +297,7 @@ GET /users?page=2&limit=10&sort=name&filter=active
 | Layered            | Multi-tiered architecture      | API Gateway → Backend |
 | Secure & Versioned | Maintain stability             | `/api/v1/` with JWT   |
 
-![REST API Design Architecture](/assets/img/posts/rest-api-design-map.png){: width="960" height="480" }
+![REST API Design Architecture](/assets/img/posts/rest-api-design-map.webp){: width="960" height="480" }
 _REST API Design Architecture Illustrated_
 
 ---
