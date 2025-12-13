@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-10-31 00:05:00 +05:30
 categories: [Web Dev, TypeScript]
 tags: [TypeScript, Node.js, Express, React, Full-Stack]
-image: /assets/img/posts/typescript-logo.png
+image: /assets/img/posts/typescript-logo.webp
 toc: true
 math: false
 mermaid: false
