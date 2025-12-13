@@ -7,7 +7,7 @@ date: 2025-10-29 00:05:00 +05:30
 categories: [Web Dev, REST API]
 tags: [RESTful, REST API, Architecture, API Design, Best Practices, HTTP, JSON]
 image:
-  path: /assets/img/posts/rest-api-model.png
+  path: /assets/img/posts/rest-api-model.webp
   alt: REST API Model
 icon: fas fa-project-diagram
 toc: true
