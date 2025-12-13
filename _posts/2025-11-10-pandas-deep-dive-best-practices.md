@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-11-10 7:30:00 +0530
 categories: [Notes, Pandas]
 tags: [Pandas, Machine Learning, Python, Data Analysis, Data Science, Data Cleaning, Optimization, Best Practices]
-image: /assets/img/posts/pandas-logo.png
+image: /assets/img/posts/pandas-logo.webp
 toc: true
 math: true
 mermaid: true
