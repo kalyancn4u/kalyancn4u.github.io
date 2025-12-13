@@ -7,7 +7,7 @@ author: "Kalyan Narayana"
 # date: 2025-11-11 00:05:00 +05:30
 # categories: []
 # tags: []
-image: /assets/img/avatar/portfolio.png   # 🔁 add your headshot
+image: /assets/img/avatar/portfolio.webp   # 🔁 add your headshot
 toc: true
 # math: true
 # mermaid: true
