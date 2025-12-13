@@ -6,7 +6,7 @@ description: "Concise, clear, and validated Comprehesive guide revision notes on
 date: 2025-11-09 05:30:00 +0530
 categories: [Guides, Machine Learning]
 tags: [Machine Learning, Lifecycle, Metrics, MLOps]
-image: /assets/img/posts/ml_ops_dev_ops_data_ml_lifecycle.png
+image: /assets/img/posts/ml_ops_dev_ops_data_ml_lifecycle.webp
 icon: fas fa-project-diagram
 toc: true
 math: true
@@ -19,7 +19,7 @@ The **Machine Learning Lifecycle** is a structured, iterative framework that gui
 
 The lifecycle is fundamentally **cyclical and iterative** rather than linear—models are never truly "finished" but require ongoing refinement, retraining, and optimization based on real-world performance, evolving data patterns, and changing business requirements.
 
-![Machine Learning Lifecycle Illustrated](/assets/img/posts/ml_workflow_iterations_bg_white.png){: width="960" height="480" }
+![Machine Learning Lifecycle Illustrated](/assets/img/posts/ml_workflow_iterations_bg_white.webp){: width="960" height="480" }
 _Machine Learning Lifecycle Illustrated_
 
 ### Key Characteristics
