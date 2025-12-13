@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-11-10 2:30:00 +0530
 categories: [Notes, MySQL]
 tags: [MySQL, Database, Lifecycle, Best Practices, Normalization, Query, Transactions, ACID]
-image: /assets/img/posts/mysql-rtm.png
+image: /assets/img/posts/mysql-rtm.webp
 toc: true
 math: true
 mermaid: true
