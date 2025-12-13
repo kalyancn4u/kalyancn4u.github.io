@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-11-06 18:00:00 +0530
 categories: [Notes, Machine Learning]
 tags: [Machine Learning, Data Science, Intro, DSML]
-image: /assets/img/posts/ml-intro.jpg
+image: /assets/img/posts/ml-intro.webp
 toc: true
 math: true
 mermaid: true
@@ -34,7 +34,7 @@ Think of ML as teaching a child rather than writing exact rules for them to foll
 * Learn patterns, make predictions, or decide without humans manually writing every rule.
 * The key objective is **generalisation** — good performance on new/unseen data, not just the training data.
 
-![Machine Learning Overview](/assets/img/posts/ml-overview.png)
+![Machine Learning Overview](/assets/img/posts/ml-overview.webp)
 _[Machine Learning Overview](https://www.upgrad.com/blog/top-10-real-time-ml-projects-for-students-professionals/)_
 
 ---
