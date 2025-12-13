@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-11-11 00:05:00 +05:30
 categories: [Life, Important things]
 tags: [Maslow, Priorities, Well-being, Clarity]
-image: /assets/img/posts/life.png
+image: /assets/img/posts/life.webp
 toc: true
 math: false
 mermaid: false
@@ -17,7 +17,7 @@ mermaid: false
 > Build from **Health → Safety → Belonging → Esteem/Growth → Purpose & Peace**.  
 > Meet lower levels first; they power the higher ones.
 
-![Love Life Work](/assets/img/posts/choose-love-life-work.png)
+![Love Life Work](/assets/img/posts/choose-love-life-work.webp)
 _Love, Life & Work!_
 
 ---
