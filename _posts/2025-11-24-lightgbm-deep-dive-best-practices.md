@@ -6,7 +6,7 @@ date: 2025-11-24 00:00:00 +0530
 categories: [Notes, LightGBM]
 tags: [LightGBM, Python, Gradient Boosting, Machine Learning, Ensemble-methods, GOSS, EFB, Histogram-based, Leaf-wise]
 author: technical_notes
-image: /assets/img/posts/lightgbm-ml-library.png
+image: /assets/img/posts/lightgbm-ml-library.webp
 toc: true
 math: true
 mermaid: true
