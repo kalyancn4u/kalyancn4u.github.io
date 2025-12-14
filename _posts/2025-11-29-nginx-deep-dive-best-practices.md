@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-12-02 00:00:00 +0530
 categories: [Notes, NGINX]
 tags: [NGINX, Reverse-proxy, Load Balancing, FastCGI, Web Server, Web Cache, WAF, API Gateway, API Security, TLS, Optimization, Compression, Logging, Monitoring]
-image: /assets/img/posts/nginx_setup.jpg
+image: /assets/img/posts/nginx_setup.webp
 toc: true
 math: false
 mermaid: false
@@ -43,7 +43,7 @@ Nginx (pronounced "engine-x") is a high-performance web server, reverse proxy, l
 - **SSL/TLS termination**: Handle encrypted connections
 - **FastCGI support**: Interface with PHP and other languages
 
-![NGINX Features Elucidated](/assets/img/posts/nginx_functionalities_n_configurations.png)
+![NGINX Features Elucidated](/assets/img/posts/nginx_functionalities_n_configurations.webp)
 _NGINX Features Elucidated!_
 
 ---
