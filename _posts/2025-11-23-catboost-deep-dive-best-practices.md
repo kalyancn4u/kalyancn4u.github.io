@@ -6,7 +6,7 @@ date: 2025-11-23 05:00:00 +0530
 categories: [Notes, CatBoost]
 tags: [CatBoost, Python, Gradient Boosting, Machine Learning, Ensemble Methods, Categorical-features, Ordered-boosting]
 author: technical_notes
-image: /assets/img/posts/catboost-ml-library.png
+image: /assets/img/posts/catboost-ml-library.webp
 toc: true
 math: true
 mermaid: true
