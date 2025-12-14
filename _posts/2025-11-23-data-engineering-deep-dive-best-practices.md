@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-11-23 07:00:00 +0530
 categories: [Guides, Data Engineering]
 tags: [Data Engineering, Big Data, Analytics, ETL, ELT, Data Pipelines, Data Modeling, API Integration, Parquet, Feather, Data Warehousing, Best Practices]
-image: /assets/img/posts/data-engineering-roles.jpg
+image: /assets/img/posts/data-engineering-roles.webp
 toc: true
 math: false
 mermaid: false
@@ -48,7 +48,7 @@ Data engineering forms the backbone of modern data-driven organizations. It enco
 
 Data engineering focuses on the practical application of data collection and processing techniques. The primary goal is to design systems that consolidate, clean, and transform data into usable forms for analytical and operational use cases, ensuring data flows reliably from source to destination.
 
-![Data Engineer Responsibilities](/assets/img/posts/data-engineer-responsibilities.jpg){: width="800" height="450" }
+![Data Engineer Responsibilities](/assets/img/posts/data-engineer-responsibilities.webp){: width="800" height="450" }
 _Data Engineer Responsibilities Illustrated!_
 
 ---
@@ -76,7 +76,7 @@ Data engineers are responsible for:
 5. **Infrastructure Management**: Maintaining cloud-based or on-premises data platforms
 6. **Collaboration**: Working with data scientists, analysts, and business stakeholders
 
-![Data Scientist Workflow Illustrated](/assets/img/posts/data-scientist-workflow-small.jpg)
+![Data Scientist Workflow Illustrated](/assets/img/posts/data-scientist-workflow-small.webp)
 _Data Scientist Workflow Illustrated_
 
 ---
