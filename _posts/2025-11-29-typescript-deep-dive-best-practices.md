@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-11-29 00:00:00 +0530
 categories: [Notes, TypeScript]
 tags: [Programming, TypeScript, JavaScript, Type System, Best Practices, Web Development]
-image: /assets/img/posts/typescript-logo.png
+image: /assets/img/posts/typescript-logo.webp
 toc: true
 math: true
 mermaid: true
