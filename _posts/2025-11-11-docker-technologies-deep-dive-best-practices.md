@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-11-11 00:05:00 +05:30
 categories: [Notes, Docker]
 tags: [Docker, Dockerfile, Docker-compose, DevOps, Containerization, Best Practices]
-image: /assets/img/posts/docker-logo.png
+image: /assets/img/posts/docker-logo.webp
 toc: true
 math: true
 mermaid: true
