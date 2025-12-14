@@ -2719,58 +2719,30 @@ As data becomes increasingly central to business operations, the importance of w
 
 ## References
 
-<div class="references" style="font-size: 0.9em; line-height: 1.6;">
-
 1. <a href="https://aws.amazon.com/what-is/data-pipeline/" target="_blank" rel="noopener noreferrer">AWS - What is a Data Pipeline?</a>
-<br>
 2. <a href="https://www.databricks.com/glossary/data-pipelines" target="_blank" rel="noopener noreferrer">Databricks - Data Pipelines Glossary</a>
-<br>
 3. <a href="https://cloud.google.com/learn/what-is-a-data-pipeline" target="_blank" rel="noopener noreferrer">Google Cloud - What is a Data Pipeline?</a>
-<br>
 4. <a href="https://www.snowflake.com/guides/data-pipeline" target="_blank" rel="noopener noreferrer">Snowflake - Data Pipeline Guide</a>
-<br>
 5. <a href="https://www.oreilly.com/library/view/fundamentals-of-data/9781098108298/" target="_blank" rel="noopener noreferrer">O'Reilly - Fundamentals of Data Engineering</a>
-<br>
 6. <a href="https://www.getdbt.com/analytics-engineering/transformation/" target="_blank" rel="noopener noreferrer">dbt - Analytics Engineering and Transformation</a>
-<br>
 7. <a href="https://kafka.apache.org/documentation/" target="_blank" rel="noopener noreferrer">Apache Kafka - Official Documentation</a>
-<br>
 8. <a href="https://spark.apache.org/docs/latest/" target="_blank" rel="noopener noreferrer">Apache Spark - Official Documentation</a>
-<br>
 9. <a href="https://airflow.apache.org/docs/" target="_blank" rel="noopener noreferrer">Apache Airflow - Official Documentation</a>
-<br>
 10. <a href="https://greatexpectations.io/expectations" target="_blank" rel="noopener noreferrer">Great Expectations - Data Quality Framework</a>
-<br>
 11. <a href="https://www.microsoft.com/en-us/security/business/security-101/what-is-encryption" target="_blank" rel="noopener noreferrer">Microsoft - What is Encryption?</a>
-<br>
 12. <a href="https://www.databricks.com/glossary/medallion-architecture" target="_blank" rel="noopener noreferrer">Databricks - Medallion Architecture</a>
-<br>
 13. <a href="https://martinfowler.com/articles/data-mesh-principles.html" target="_blank" rel="noopener noreferrer">Martin Fowler - Data Mesh Principles</a>
-<br>
 14. <a href="https://www.confluent.io/learn/change-data-capture/" target="_blank" rel="noopener noreferrer">Confluent - Change Data Capture (CDC)</a>
-<br>
 15. <a href="https://delta.io/" target="_blank" rel="noopener noreferrer">Delta Lake - Official Website</a>
-<br>
 16. <a href="https://iceberg.apache.org/" target="_blank" rel="noopener noreferrer">Apache Iceberg - Official Documentation</a>
-<br>
 17. <a href="https://hudi.apache.org/" target="_blank" rel="noopener noreferrer">Apache Hudi - Official Documentation</a>
-<br>
 18. <a href="https://www.fivetran.com/blog/elt-vs-etl" target="_blank" rel="noopener noreferrer">Fivetran - ELT vs ETL Comparison</a>
-<br>
 19. <a href="https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html" target="_blank" rel="noopener noreferrer">AWS Well-Architected Framework</a>
-<br>
 20. <a href="https://cloud.google.com/architecture/data-lifecycle-cloud-platform" target="_blank" rel="noopener noreferrer">Google Cloud - Data Lifecycle Management</a>
-<br>
 21. <a href="https://prometheus.io/docs/introduction/overview/" target="_blank" rel="noopener noreferrer">Prometheus - Monitoring Documentation</a>
-<br>
 22. <a href="https://grafana.com/docs/" target="_blank" rel="noopener noreferrer">Grafana - Visualization Documentation</a>
-<br>
 23. <a href="https://www.cisecurity.org/controls" target="_blank" rel="noopener noreferrer">CIS - Security Controls</a>
-<br>
 24. <a href="https://gdpr.eu/" target="_blank" rel="noopener noreferrer">GDPR - Official Information Portal</a>
-<br>
 25. <a href="https://www.heavybit.com/library/article/modern-data-stack" target="_blank" rel="noopener noreferrer">Heavybit - Modern Data Stack</a>
-
-</div>
 
 ---
