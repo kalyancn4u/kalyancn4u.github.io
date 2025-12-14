@@ -111,6 +111,6 @@ I design, build, and ship: from **EDA & modeling** → **APIs & dashboards** →
 
 ## 🧭 Site Notes (Theme Tips)
 
-- **Chirpy:** put this file as `/about.md`. Headshot at `/assets/img/profile/kalyan.jpg`.  
+- **Chirpy:** put this file as `/about.md`. Headshot at `/assets/img/profile/profile.jpg`.  
 - **Minimal Mistakes:** use `layout: single` or `page`, and place under `/_pages/about.md` with `permalink: /about/`.  
 - Add social links in `_config.yml` (Chirpy: `social:`; MM: `author:` map).
