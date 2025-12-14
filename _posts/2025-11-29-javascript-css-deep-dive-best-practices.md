@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-11-29 00:00:00 +0530
 categories: [Notes, JavaScript]
 tags: [JavaScript, ES2024, ECMAScript, Web Development, Programming, Best Practices, Performance]
-image: /assets/img/posts/javascript-logo.jpg
+image: /assets/img/posts/javascript-logo.webp
 toc: true
 math: true
 mermaid: true
