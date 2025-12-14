@@ -7,7 +7,7 @@ date: 2025-11-17 00:00:00 +0530
 categories: [Guides, REST API]
 tags: [REST API, API Design, Web Development, Web Services, HTTP, Authentication]
 image:
-  path: /assets/img/posts/rest-api-model.png
+  path: /assets/img/posts/rest-api-model.webp
   alt: REST API Model
 icon: fas fa-project-diagram
 toc: true
@@ -36,7 +36,7 @@ This comprehensive guide covers everything from fundamental concepts to advanced
 > **Key Point**: REST is not a protocol or standard—it's an architectural style. During development, REST can be implemented in various ways while adhering to its core principles.
 {: .prompt-info }
 
-![REST API Design Illustrated](/assets/img/posts/rest-api-design.png){: width="960" height="480" }
+![REST API Design Illustrated](/assets/img/posts/rest-api-design.webp){: width="960" height="480" }
 _REST API Design Illustrated_
 
 ### Why REST?
@@ -3303,7 +3303,7 @@ app.use((req, res, next) => {
 
 ## 🎯 REST API Best Practices Summary
 
-![REST API Design Architecture](/assets/img/posts/rest-api-design-map.png){: width="960" height="480" }
+![REST API Design Architecture](/assets/img/posts/rest-api-design-map.webp){: width="960" height="480" }
 _REST API Design Architecture Illustrated_
 
 ### Design Principles
