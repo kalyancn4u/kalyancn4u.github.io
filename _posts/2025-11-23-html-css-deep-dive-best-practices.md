@@ -7,7 +7,7 @@ date: 2025-11-23 05:00:00 +0530
 categories: [Notes, HTML5 CSS3]
 tags: [HTML5, CSS3, RWD, Flexbox, Grid, Accessibility, Performance, Web Development, Frontend]
 author: technical_notes
-image: /assets/img/posts/html5-css3-js.png
+image: /assets/img/posts/html5-css3-js.webp
 toc: true
 comments: false
 math: false
