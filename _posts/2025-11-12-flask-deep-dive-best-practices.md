@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-11-12 00:01:00 +05:30
 categories: [Notes, Flask]
 tags: [Flask, Python, REST API, SQL Alchemy, Web Development, Framework, Blueprint, Best Practices]
-image: /assets/img/posts/flask-logo.png
+image: /assets/img/posts/flask-logo.webp
 toc: true
 math: true
 mermaid: true
