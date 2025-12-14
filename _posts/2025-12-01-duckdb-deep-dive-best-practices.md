@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-12-01 00:00:00 +05:30
 categories: [Notes, DuckDB]
 tags: [DuckDB, Python, OLAP, SQL, Database, Analytics, Data Engineering, Best Practices]
-image: /assets/img/posts/duckdb-logo.png
+image: /assets/img/posts/duckdb-logo.webp
 toc: true
 math: false
 mermaid: false
