@@ -6,7 +6,7 @@ layout: post
 date: 2025-11-13 00:01:00 +05:30
 categories: [Notes, Python Libraries]
 tags: [Python Libraries, Python, Data Science, Machine Learning, Deep Learning, NLP, CV, Databases, Tools]
-image: /assets/img/posts/python-dsml-libraries.png
+image: /assets/img/posts/python-dsml-libraries.webp
 toc: true
 math: false
 mermaid: false
