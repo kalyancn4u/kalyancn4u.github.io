@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-11-25 07:00:00 +0530
 categories: [Tasks, WebP Conversion]
 tags: [PNG, WebP, Linux]
-image: /assets/img/posts/png-to-webp.png
+image: /assets/img/posts/png-to-webp.webp
 toc: true
 math: false
 mermaid: false
