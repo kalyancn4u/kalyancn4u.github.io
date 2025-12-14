@@ -11,7 +11,7 @@ comments: false
 math: true
 mermaid: true
 image:
-  path: /assets/img/posts/css3-banner.jpg
+  path: /assets/img/posts/css3-banner.webp
   alt: CSS3 Deep Dive & Best Practices
 ---
 
