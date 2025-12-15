@@ -48,6 +48,7 @@ mermaid: false
         /* border-left: 5px solid #e6b566; */
         /* padding: 1.2rem 1.4rem; */
         /* padding: 1rem; */
+        padding: 6px;
         border-radius: 6px;
         color: #3a2f1b;
     }
@@ -86,7 +87,7 @@ mermaid: false
 స్త్రీలనేర్పులు భువి చీకు రాయితపము
 విశ్వదాభిరామ వినర వేమ!
 </div>
-<div class="takeaway" markdown="1">
+<div class="telugu" markdown="1">
 
 ఆడది తన లోపలి కపటాన్ని గోడ వెనక దాచినట్లుగా దాచుతుంది. పూలదండలతో పురుషుడి బలహీనతను ముసుగుపెడుతుంది. స్త్రీల ఈ నేర్పులు భూమికే చేటు కలిగించేంత తీవ్రమైనవి.
 
@@ -105,7 +106,7 @@ Just as decorating a wall does not strengthen the house itself! Adornment and pr
 చిత్త శుద్ధి లేని శివపూజ లేలరా
 విశ్వదాభిరామ వినర వేమ!
 </div>
-<div class="takeaway" markdown="1">
+<div class="telugu" markdown="1">
 
 **భావం:** మనసు నిర్మలముగా లేనట్లయితే ఆచారములు పాటించడంవల్ల ప్రయోజనం లేదు. పాత్రలు శుభ్రముగాలేని వంట, మనసు స్థిరముగా లేని శివ పూజ వ్యర్థములే అవుతాయి. ఏమీ ప్రయోజనముండదు.
 </div>
