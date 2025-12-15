@@ -48,7 +48,7 @@ mermaid: false
         /* border-left: 5px solid #e6b566; */
         /* padding: 1.2rem 1.4rem; */
         /* padding: 0.75rem 0.5rem 0.5rem 1.5rem; /* clock-wise: top | right | bottom | left */ */
-        padding: 1.5rem;
+        padding: 1.5rem 1.5rem 1.5rem 1.5rem ;
         border-radius: 6px;
         color: #3a2f1b;
     }
@@ -72,14 +72,12 @@ mermaid: false
 
 ## విద్య లేనివాడు
 </div>
+
 <div class="telugu-poem" markdown="1">
 
 విద్య లేనివాడు వృథా జన్మడు,
-
 విద్య కలవాడు విజ్ఞుడు,
-
 విద్య వలననే వివేకము కలుగును,
-
 వివేకము వలననే విముక్తి కలుగును.
 <div class="poet"> — వేమన </div>
 </div>
@@ -87,17 +85,15 @@ mermaid: false
 A life without **learning** is a wasted birth. One who possesses **knowledge** alone is truly wise. From learning arises **discernment**, And from discernment comes **liberation**.
 
 "**Discretion** will watch over you, **understanding** will guard you, delivering you from the way of evil, from men of perverted speech".
+
 _- Proverbs 2:11-12, ESV Bible_
 
 ---
 <div class="telugu-poem" markdown="1">
 
 ఆత్మశుద్ధి లేని యాచారమది యేల
-
 భాండ శుద్ధి లేని పాకమది యేల
-
 చిత్త శుద్ధి లేని శివపూజ లేలరా
-
 విశ్వదాభిరామ వినర వేమ!
 </div>
 <div class="telugu" markdown="1">
