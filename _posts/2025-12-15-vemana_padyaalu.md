@@ -84,6 +84,11 @@ mermaid: false
 <div class="poet"> — వేమన </div>
 </div>
 
+A life without **learning** is a wasted birth. One who possesses **knowledge** alone is truly wise. From learning arises **discernment**, And from discernment comes **liberation**.
+
+"**Discretion** will watch over you, **understanding** will guard you, delivering you from the way of evil, from men of perverted speech".
+_- Proverbs 2:11-12, ESV Bible_
+
 ---
 <div class="telugu-poem" markdown="1">
 
