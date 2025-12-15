@@ -33,10 +33,7 @@ mermaid: false
     /* Telugu block */
     .telugu {
         font-family: 'Suranna', 'Noto Serif', serif;
-        font-size: 1.5rem;
-        line-height: 1.9;
-        padding: 1.2rem 1.4rem;
-        margin: 1.5rem 0;
+        line-height: 1.6;
     }
 
     /* Telugu poem block */
