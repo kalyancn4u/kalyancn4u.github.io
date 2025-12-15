@@ -4,7 +4,7 @@ title: "💡 Prompting: CO-STAR Framework"
 description: "CO-STAR framework prompting technique"
 author: technical_notes
 date: 2025-12-09 00:00:00 +0530
-categories: [Notes, CO-STAR]
+categories: [Notes, Prompting]
 tags: [CO-STAR, Prompting, Technique, Prompt Engineering]
 image:
   path: /assets/img/posts/costar_framework.webp
