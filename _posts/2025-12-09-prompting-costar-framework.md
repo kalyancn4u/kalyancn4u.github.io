@@ -227,6 +227,42 @@ you turn up details when debugging, and turn them down in production.
 - **TRACE** – Extremely fine-grained, step-by-step execution details.
 - **OFF** – Turns logging completely off.
 
+<div class="msg msg-danger">
+<strong>CRITICAL / FATAL - </strong> Something went terribly wrong. The app may not continue.
+</div>
+
+<div class="msg msg-danger">
+<strong>ERROR – </strong> A serious problem affecting functionality that needs fixing.
+</div>
+
+<div class="msg msg-warning">
+<strong>WARNING (WARN) - </strong> Something looks off; not broken yet, but could become a problem.
+</div>
+
+<div class="msg msg-info">
+<strong>INFO - </strong> Normal, useful updates (app started, user logged in, task completed).
+</div>
+
+<div class="msg msg-debug">
+<strong>DEBUG - </strong> Detailed information for developers to investigate issues.
+</div>
+
+<div class="msg msg-success">
+<strong>SUCCESS - </strong> Everything is okay.
+</div>
+
+<div class="msg msg-note">
+<strong>TRACE - </strong> Extremely fine-grained, step-by-step execution details.
+</div>
+
+<div class="msg msg-tip">
+<strong>OFF / TIP - </strong> Turns logging completely off / just highlight.
+</div>
+
+<div class="msg msg-quote">
+<strong>QUOTE - </strong> Just highlight with visual demarcation for distinction for Reading.
+</div>
+
 ---
 
 ✨ **Why Developers Use Log Levels**
