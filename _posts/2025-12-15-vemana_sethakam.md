@@ -1,12 +1,12 @@
 ---
 layout: post
-title: "📜 Vemana Sethakam"
+title: "📜 Vemana Padyaalu"
 description: "Vemana Sethakam – Suranna & Telugu Typography"
 author: literary_notes
 date: 2025-12-15 00:05:00 +05:30
 categories: [Literature, Telugu]
 tags: [Vemana, Telugu Poetry, Suranna, Google Fonts, Typography]
-image: /assets/img/posts/vemana_sethakam.webp
+image: /assets/img/posts/vemana_padyaalu.webp
 toc: true
 math: false
 mermaid: false
