@@ -83,7 +83,7 @@ mermaid: false
 A life without **learning** is a wasted birth. One who possesses **knowledge** alone is truly wise. From learning arises **discernment**, And from discernment comes **liberation**.
 
 "**Discretion** will watch over you, **understanding** will guard you, delivering you from the way of evil, from men of perverted speech".
-_- Proverbs 2:11-12, ESV Bible_
+<br>_- Proverbs 2:11-12, ESV Bible_
 
 ---
 <div class="telugu-poem">
@@ -97,8 +97,9 @@ _- Proverbs 2:11-12, ESV Bible_
 <br><b>భావం:</b> మనసు నిర్మలముగా లేనట్లయితే ఆచారములు పాటించడంవల్ల ప్రయోజనం లేదు. పాత్రలు శుభ్రముగాలేని వంట, మనసు స్థిరముగా లేని శివ పూజ వ్యర్థములే అవుతాయి. ఏమీ ప్రయోజనముండదు.
 </div>
 
-<br> Inner purity matters more than outer practice. Without inner purity, rituals are empty acts, O all-pervading Rama — listen, says Vemana.
-<br> Inner purity means purity in thought (intention / emotion / heart), clarity in mind and sincerity in action!
+Inner purity matters more than outer practice. Without inner purity, rituals are empty acts, O all-pervading Rama — listen, says Vemana.
+
+Inner purity means purity in thought (intention / emotion / heart), clarity in mind and sincerity in action!
 
 Purity can be ethical self-restraint viz., non-violence, truthfulness, non-covetousness, chastity and moderation! Plus, Moral excellence in cardinal virtues - Justice, Fortitude, Temperance and Prudence!
 
