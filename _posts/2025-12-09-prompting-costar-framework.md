@@ -10,9 +10,7 @@ image:
   path: /assets/img/posts/costar_framework.svg
   alt: "CO-STAR Framework Diagram"
   class: img-center
-css:
-  - /assets/css/custom.css
-  - /assets/css/msg-types.css
+css: [ "/assets/css/custom.css" ]
 toc: true
 math: false
 mermaid: false
