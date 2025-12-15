@@ -94,7 +94,7 @@ _- Proverbs 2:11-12, ESV Bible_
 </div>
 
 <div class="telugu">
-<b>భావం:</b> మనసు నిర్మలముగా లేనట్లయితే ఆచారములు పాటించడంవల్ల ప్రయోజనం లేదు. పాత్రలు శుభ్రముగాలేని వంట, మనసు స్థిరముగా లేని శివ పూజ వ్యర్థములే అవుతాయి. ఏమీ ప్రయోజనముండదు.
+<br><b>భావం:</b> మనసు నిర్మలముగా లేనట్లయితే ఆచారములు పాటించడంవల్ల ప్రయోజనం లేదు. పాత్రలు శుభ్రముగాలేని వంట, మనసు స్థిరముగా లేని శివ పూజ వ్యర్థములే అవుతాయి. ఏమీ ప్రయోజనముండదు.
 </div>
 
 Inner purity matters more than outer practice. Without inner purity, rituals are empty acts, O all-pervading Rama — listen, says Vemana.
@@ -104,7 +104,7 @@ Inner purity means purity in thought (intention / emotion / heart), clarity in m
 Purity can be ethical self-restraint viz., non-violence, truthfulness, non-covetousness, chastity and moderation! Plus, Moral excellence in cardinal virtues - Justice, Fortitude, Temperance and Prudence!
 
 <div class="takeaway">
-Purity is not mere abstinence, but right measure — expressed as restraint in desire and excellence in virtue.
+Purity is <b>not</b> mere abstinence, but right measure — expressed as restraint in desire and excellence in virtue.
 <br>
 <br>Purity = restraint governed by wisdom.
 <br>
