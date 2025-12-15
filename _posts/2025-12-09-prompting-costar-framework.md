@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Prompting: CO-STAR Framework"
+title: "💡 Prompting: CO-STAR Framework"
 description: "CO-START framework prompting technique"
 author: technical_notes
 date: 2025-12-09 00:00:00 +0530
