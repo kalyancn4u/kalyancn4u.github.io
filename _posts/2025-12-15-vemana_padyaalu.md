@@ -62,7 +62,7 @@ mermaid: false
     }
 
     .takeaway {
-        color: #3a2f1b;
+        color: #880015;
     }
 </style>
 
@@ -93,15 +93,29 @@ _- Proverbs 2:11-12, ESV Bible_
 <br>విశ్వదాభిరామ వినర వేమ!
 </div>
 
-<div class="telugu" markdown="1">
-**భావం:** మనసు నిర్మలముగా లేనట్లయితే ఆచారములు పాటించడంవల్ల ప్రయోజనం లేదు. పాత్రలు శుభ్రముగాలేని వంట, మనసు స్థిరముగా లేని శివ పూజ వ్యర్థములే అవుతాయి. ఏమీ ప్రయోజనముండదు.
+<div class="telugu">
+<b>భావం:</b> మనసు నిర్మలముగా లేనట్లయితే ఆచారములు పాటించడంవల్ల ప్రయోజనం లేదు. పాత్రలు శుభ్రముగాలేని వంట, మనసు స్థిరముగా లేని శివ పూజ వ్యర్థములే అవుతాయి. ఏమీ ప్రయోజనముండదు.
 </div>
 
 Inner purity matters more than outer practice. Without inner purity, rituals are empty acts, O all-pervading Rama — listen, says Vemana.
 
 Inner purity means purity in thought (intention / emotion / heart), clarity in mind and sincerity in action!
 
-Purity can be ethical self-restraint viz., non-violence, truthfulness, non-covetousness, chastity and moderation! ...OR... Moral excellence viz., observance of cardinal virtues - Justice, Fortitude, Temperance and Prudence!
+Purity can be ethical self-restraint viz., non-violence, truthfulness, non-covetousness, chastity and moderation! Plus, Moral excellence in cardinal virtues - Justice, Fortitude, Temperance and Prudence!
+
+<div class="takeaway">
+Purity is not mere abstinence, but right measure — expressed as restraint in desire and excellence in virtue.
+<br>
+<br>Purity = restraint governed by wisdom.
+<br>
+<br>Purity is harmony: no excess, no falsehood, no harm.
+<br>
+<br>Purity lies where discipline meets virtue.
+<br>
+<br>Purity is strength with measure.
+<br>
+<br><b>Knowing the truth is good! Awareness of the truth is better! Living the truth is the best!</b>
+</div>
 
 ---
 
