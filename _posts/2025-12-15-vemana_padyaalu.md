@@ -44,7 +44,7 @@ mermaid: false
         font-size: 1.25rem;
         line-height: 1.6;
         background: #fdf6ec;
-        padding: 1.5rem 1.5rem 1.5rem 1.5rem; /* clock-wise: top | right | bottom | left */
+        padding: 1rem 1rem 1rem 1rem; /* clock-wise: top | right | bottom | left */
         border-radius: 6px;
         color: #3a2f1b;
         /* line-height: 1.9; */
@@ -72,13 +72,14 @@ mermaid: false
 ## విద్య లేనివాడు
 </div>
 
-<div class="telugu-poem" markdown="1">
+<div class="telugu-poem">
 విద్య లేనివాడు వృథా జన్మడు,
-విద్య కలవాడు విజ్ఞుడు,
-విద్య వలననే వివేకము కలుగును,
-వివేకము వలననే విముక్తి కలుగును.
+<br>విద్య కలవాడు విజ్ఞుడు,
+<br>విద్య వలననే వివేకము కలుగును,
+<br>వివేకము వలననే విముక్తి కలుగును.
+<br><span class="poet"> — వేమన </span>
 </div>
-<div class="poet"> — వేమన </div>
+
 
 A life without **learning** is a wasted birth. One who possesses **knowledge** alone is truly wise. From learning arises **discernment**, And from discernment comes **liberation**.
 
@@ -87,12 +88,13 @@ A life without **learning** is a wasted birth. One who possesses **knowledge** a
 _- Proverbs 2:11-12, ESV Bible_
 
 ---
-<div class="telugu-poem" markdown="1">
+<div class="telugu-poem"">
 ఆత్మశుద్ధి లేని యాచారమది యేల
-భాండ శుద్ధి లేని పాకమది యేల
-చిత్త శుద్ధి లేని శివపూజ లేలరా
-విశ్వదాభిరామ వినర వేమ!
+<br>భాండ శుద్ధి లేని పాకమది యేల
+<br>చిత్త శుద్ధి లేని శివపూజ లేలరా
+<br>విశ్వదాభిరామ వినర వేమ!
 </div>
+
 <div class="telugu" markdown="1">
 **భావం:** మనసు నిర్మలముగా లేనట్లయితే ఆచారములు పాటించడంవల్ల ప్రయోజనం లేదు. పాత్రలు శుభ్రముగాలేని వంట, మనసు స్థిరముగా లేని శివ పూజ వ్యర్థములే అవుతాయి. ఏమీ ప్రయోజనముండదు.
 </div>
