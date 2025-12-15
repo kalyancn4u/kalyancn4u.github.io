@@ -62,18 +62,19 @@ h1, h2, h3 {
 # [వేమన పద్యాలు](https://te.wikisource.org/wiki/%E0%B0%B5%E0%B1%87%E0%B0%AE%E0%B0%A8_%E0%B0%AA%E0%B0%A6%E0%B1%8D%E0%B0%AF%E0%B0%BE%E0%B0%B2%E0%B1%81)
 </div>
 
-<div class="telugu-poem" markdown="1">
-## విద్య లేనివాడు 
+<div class="telugu-poem">
+## విద్య లేనివాడు
 
-విద్య లేనివాడు వృథా జన్మడు  
-విద్య కలవాడు విజ్ఞుడు  
-విద్య వలననే వివేకము కలుగును  
-వివేకము వలననే విముక్తి కలుగును
+విద్య లేనివాడు వృథా జన్మడు, విద్య కలవాడు విజ్ఞుడు,
+విద్య వలననే వివేకము కలుగును,
+వివేకము వలననే విముక్తి కలుగును.
 <div class="poet">
 — వేమన
 </div>
+</div>
 
 ---
+
 <strong>
 ఆఁడు దానిబొంకు గోడపెట్టినయట్టు
 పురుషవరుని బొంకు పూలతడిక
@@ -87,9 +88,8 @@ h1, h2, h3 {
 విశ్వమంతటినీ ఆనందింపజేసే రామా! వేమన మాట వినుము.
 
 <b>బయట చాలా బాగుంది అని చూసి నమ్మొద్దు. లోపల ఏముందో చూడాలి. మాటలతో, వేషాలతో, అందంతో మోసపోవడం మనిషి బలహీనత.</b>
-
-As a wall conceals hidden decay, woman hides her guile within. With garlands she adorns even a noble man’s weakness. Such arts corrode the very earth. O Rama who delights the universe, hear Vemana’s word.
 </div>
+As a wall conceals hidden decay, woman hides her guile within. With garlands she adorns even a noble man’s weakness. Such arts corrode the very earth. O Rama who delights the universe, hear Vemana’s word.
 
 ---
 
