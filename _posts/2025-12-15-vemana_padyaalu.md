@@ -94,8 +94,8 @@ A life without **learning** is a wasted birth. One who possesses **knowledge** a
 </div>
 <div class="telugu">
 <b>భావం:</b> మనసు నిర్మలముగా లేనట్లయితే ఆచారములు పాటించడంవల్ల ప్రయోజనం లేదు. పాత్రలు శుభ్రముగాలేని వంట, మనసు స్థిరముగా లేని శివ పూజ వ్యర్థములే అవుతాయి. ఏమీ ప్రయోజనముండదు.
-<br>
 </div>
+<br>
 
 Inner purity matters more than outer practice. Without inner purity, rituals are empty acts, O all-pervading Rama — listen, says Vemana.
 
