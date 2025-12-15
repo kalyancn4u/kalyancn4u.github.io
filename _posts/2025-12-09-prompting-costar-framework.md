@@ -167,16 +167,6 @@ CO-STAR brings *discipline* to creativity — structure without suffocation.
 
 ---
 
-<pre>
-image: /assets/img/posts/costar_framework.svg
-
-image:
-  path: /assets/img/posts/costar_framework.svg
-  alt: "CO-STAR Framework Diagram"
-  class: img-center
-css: ["/assets/css/custom.css", "/assets/css/msg-types.css"]
-</pre>
-
 ![Co-star framework](/assets/img/posts/costar_framework.svg){: w="400" h="200" }
 _Prompting: Co-star framework Illustrated!_
 
@@ -191,6 +181,30 @@ _Prompting: Co-star framework Illustrated!_
 <div class="msg msg-tip">Tip: Prefer Markdown includes for reuse.</div>
 <div class="msg msg-debug">Debug: x=42, mode="test"</div>
 <div class="msg msg-quote">“Good code is simple code.”</div>
+
+---
+
+<pre>
+image: /assets/img/posts/costar_framework.svg
+
+---
+layout: post
+title: "💡 Prompting: CO-STAR Framework"
+description: "CO-STAR framework prompting technique"
+author: technical_notes
+date: 2025-12-09 00:00:00 +0530
+categories: [Notes, CO-STAR]
+tags: [CO-STAR, Prompting, Technique, Prompt Engineering]
+image:
+  path: /assets/img/posts/costar_framework.webp
+  alt: "CO-STAR Framework Diagram"
+  class: img-center
+css: [ "/assets/css/custom.css" ]
+toc: true
+math: false
+mermaid: false
+---
+</pre>
 
 ---
 
