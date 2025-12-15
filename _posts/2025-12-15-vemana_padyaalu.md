@@ -97,9 +97,8 @@ _- Proverbs 2:11-12, ESV Bible_
 <br><b>భావం:</b> మనసు నిర్మలముగా లేనట్లయితే ఆచారములు పాటించడంవల్ల ప్రయోజనం లేదు. పాత్రలు శుభ్రముగాలేని వంట, మనసు స్థిరముగా లేని శివ పూజ వ్యర్థములే అవుతాయి. ఏమీ ప్రయోజనముండదు.
 </div>
 
-Inner purity matters more than outer practice. Without inner purity, rituals are empty acts, O all-pervading Rama — listen, says Vemana.
-
-Inner purity means purity in thought (intention / emotion / heart), clarity in mind and sincerity in action!
+<br> Inner purity matters more than outer practice. Without inner purity, rituals are empty acts, O all-pervading Rama — listen, says Vemana.
+<br> Inner purity means purity in thought (intention / emotion / heart), clarity in mind and sincerity in action!
 
 Purity can be ethical self-restraint viz., non-violence, truthfulness, non-covetousness, chastity and moderation! Plus, Moral excellence in cardinal virtues - Justice, Fortitude, Temperance and Prudence!
 
@@ -122,10 +121,11 @@ Purity is <b>not</b> mere abstinence, but right measure — expressed as restrai
 ### 📜 About the Fonts
 
 - **Suranna**
-A classical serif font inspired by South Indian scripts — perfect for poetic, literary headings.
+
+  A classical serif font inspired by South Indian scripts — perfect for poetic, literary headings.
 
 - **Noto Serif Telugu**
-Designed by Google for **clarity, authenticity, and full Telugu + Indian language support**, ideal for long-form Telugu
-text.
+
+  Designed by Google for **clarity, authenticity, and full Telugu + Indian language support**, ideal for long-form Telugu text.
 
 ✨ Together, they create a calm, traditional-yet-modern reading experience — just right for Telugu literature.
