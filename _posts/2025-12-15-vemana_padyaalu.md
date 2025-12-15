@@ -92,11 +92,10 @@ A life without **learning** is a wasted birth. One who possesses **knowledge** a
 <br>చిత్త శుద్ధి లేని శివపూజ లేలరా
 <br>విశ్వదాభిరామ వినర వేమ!
 </div>
-
 <div class="telugu">
 <b>భావం:</b> మనసు నిర్మలముగా లేనట్లయితే ఆచారములు పాటించడంవల్ల ప్రయోజనం లేదు. పాత్రలు శుభ్రముగాలేని వంట, మనసు స్థిరముగా లేని శివ పూజ వ్యర్థములే అవుతాయి. ఏమీ ప్రయోజనముండదు.
 </div>
-<br>
+
 Inner purity matters more than outer practice. Without inner purity, rituals are empty acts, O all-pervading Rama — listen, says Vemana.
 
 Inner purity means purity in thought (intention / emotion / heart), clarity in mind and sincerity in action!
@@ -105,11 +104,14 @@ Purity can be ethical self-restraint viz., non-violence, truthfulness, non-covet
 
 <div class="takeaway">
 Purity is <b>not</b> mere abstinence, but right measure — expressed as restraint in desire and excellence in virtue.
-<br>Purity = restraint governed by wisdom.
-<br>Purity is harmony: no excess, no falsehood, no harm.
-<br>Purity lies where discipline meets virtue.
-<br>Purity is strength with measure.
-<br><b>Knowing the truth is good! Awareness of the truth is better! Living the truth is the best!</b>
+Purity = restraint governed by wisdom.
+Purity is harmony: no excess, no falsehood, no harm.
+Purity lies where discipline meets virtue.
+Purity is strength with measure.
+
+Knowing the truth is nothing! Awareness of the truth is something! Living the truth is everything!
+
+<b>Knowing is not enough, we must apply! Willing is not enough, we must ACT!</b>
 </div>
 
 ---
