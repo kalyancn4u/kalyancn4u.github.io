@@ -100,7 +100,7 @@ css: ["/assets/css/custom.css", "/assets/css/msg-types.css"]
 ![Co-star framework](/assets/img/posts/costar_framework.svg){: width="800" height="400" }
 _Prompting: Co-star framework_
 
-![Co-star framework](/assets/img/posts/costar_framework.svg){: w="700" h="400" }
+![Co-star framework](/assets/img/posts/costar_framework.svg){: w="400" h="200" }
 _Prompting: Co-star framework Illustrated!_
 
 <div class="msg msg-info">Info: Tailwind simplifies styling.</div>
