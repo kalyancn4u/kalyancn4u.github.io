@@ -47,8 +47,8 @@ mermaid: false
         background: #fdf6ec;
         /* border-left: 5px solid #e6b566; */
         /* padding: 1.2rem 1.4rem; */
-        /* padding: 0.85rem 1rem 0.75rem; /* clock-wise: top | right | bottom | left */ */
-        padding: 0.75rem 0.5rem 0.5rem 1.5rem;
+        /* padding: 0.75rem 0.5rem 0.5rem 1.5rem; /* clock-wise: top | right | bottom | left */ */
+        padding: 1.5rem;
         border-radius: 6px;
         color: #3a2f1b;
     }
