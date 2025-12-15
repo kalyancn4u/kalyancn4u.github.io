@@ -68,15 +68,15 @@ mermaid: false
 <div class="telugu" markdown="1">
 # [వేమన పద్యాలు](https://te.wikisource.org/wiki/%E0%B0%B5%E0%B1%87%E0%B0%AE%E0%B0%A8_%E0%B0%AA%E0%B0%A6%E0%B1%8D%E0%B0%AF%E0%B0%BE%E0%B0%B2%E0%B1%81)
 
-<div class="telugu-poem">
+<div class="telugu-poem" markdown="1">
 ## విద్య లేనివాడు
 
-విద్య లేనివాడు వృథా జన్మడు, విద్య కలవాడు విజ్ఞుడు,
+విద్య లేనివాడు వృథా జన్మడు,
+విద్య కలవాడు విజ్ఞుడు,
 విద్య వలననే వివేకము కలుగును,
 వివేకము వలననే విముక్తి కలుగును.
 <div class="poet">
 — వేమన
-</div>
 </div>
 
 ---
@@ -85,12 +85,17 @@ mermaid: false
 స్త్రీలనేర్పులు భువి చీకు రాయితపము
 విశ్వదాభిరామ వినర వేమ!
 
-<div class="takeaway">
-ఆడది తన లోపలి కపటాన్ని గోడ వెనక దాచినట్లుగా దాచుతుంది. పూలదండలతో పురుషుడి బలహీనతను ముసుగుపెడుతుంది. స్త్రీల ఈ నేర్పులు భూమికే చేటు కలిగించేంత తీవ్రమైనవి. విశ్వమంతటినీ ఆనందింపజేసే రామా! వేమన మాట వినుము.
+<div class="takeaway" markdown="1">
+ఆడది తన లోపలి కపటాన్ని గోడ వెనక దాచినట్లుగా దాచుతుంది. పూలదండలతో పురుషుడి బలహీనతను ముసుగుపెడుతుంది. స్త్రీల ఈ నేర్పులు భూమికే చేటు కలిగించేంత తీవ్రమైనవి.
 
 బయట చాలా బాగుంది అని చూసి నమ్మొద్దు. లోపల ఏముందో చూడాలి. మాటలతో, వేషాలతో, అందంతో మోసపోవడం మనిషి బలహీనత.
 
-As a wall conceals hidden decay, woman hides her guile within. With garlands she adorns even a noble man’s weakness. Such arts corrode the very earth. O Rama who delights the universe, hear Vemana’s word.
+బయట చూపు, నటన, ఆకర్షణ — ఇవన్నీ తాత్కాలికం — మోసం మరియు అహంకారంతో నిండినది. లోపలి నీతి, నిజాయితీ లేకపోతే అవి వ్యర్థం.
+
+Just as decorating a wall does not strengthen the house itself,
+Adornment and pretended charm do not ennoble a man.
+Likewise, deceptive arts and alluring guile corrupt the world,
+O all-pervading Rama — listen, says Vemana.
 </div>
 </div>
 ---
