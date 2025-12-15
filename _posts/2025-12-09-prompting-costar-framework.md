@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "💡 Prompting: CO-STAR Framework"
-description: "CO-START framework prompting technique"
+description: "CO-STAR framework prompting technique"
 author: technical_notes
 date: 2025-12-09 00:00:00 +0530
 categories: [Notes, CO-STAR]
@@ -10,10 +10,81 @@ image:
   path: /assets/img/posts/costar_framework.svg
   alt: "CO-STAR Framework Diagram"
   class: img-center
-css: ["/assets/css/custom.css", "/assets/css/msg-types.css"]
+css:
+  - /assets/css/custom.css
+  - /assets/css/msg-types.css
 toc: true
 math: false
 mermaid: false
+---
+
+## 🌟 What is CO-STAR?
+
+CO-STAR is a **structured prompting framework** that helps you guide LLMs with clarity and intent.
+
+- **C** — Context  
+- **O** — Objective  
+- **S** — Style  
+- **T** — Tone  
+- **A** — Audience  
+- **R** — Response format  
+
+---
+
+![CO-STAR Framework](/assets/img/posts/costar_framework.svg){: width="800" }
+_CO-STAR Framework — visual overview_
+
+---
+
+<!-- MESSAGE BLOCKS (HTML ONLY, SAFE ZONE) -->
+
+<div class="msg msg-info">
+<strong>Info:</strong> CO-STAR improves consistency and reduces ambiguity in prompts.
+</div>
+
+<div class="msg msg-success">
+<strong>Success:</strong> Structured prompts yield more predictable outputs.
+</div>
+
+<div class="msg msg-warning">
+<strong>Warning:</strong> Over-constraining can reduce creativity.
+</div>
+
+<div class="msg msg-danger">
+<strong>Error:</strong> Missing context often leads to hallucinations.
+</div>
+
+<div class="msg msg-note">
+<strong>Note:</strong> CO-STAR works best with iterative refinement.
+</div>
+
+<div class="msg msg-tip">
+<strong>Tip:</strong> Start minimal, then layer constraints gradually.
+</div>
+
+<div class="msg msg-debug">
+<strong>Debug:</strong> context="insufficient", tone="neutral"
+</div>
+
+<div class="msg msg-quote">
+“Good prompts don’t command — they guide.”
+</div>
+
+---
+
+## 🧠 When to Use CO-STAR
+
+- Prompt engineering
+- Documentation generation
+- AI tutoring
+- System instruction design
+- Agent workflows
+
+---
+
+⚑ **Takeaway:**  
+CO-STAR brings *discipline* to creativity — structure without suffocation.
+
 ---
 
 <pre>
