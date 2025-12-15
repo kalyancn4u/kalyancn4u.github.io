@@ -23,14 +23,14 @@ mermaid: false
 /* English headings */
 .post-title,
 h1, h2, h3 {
-  font-family: 'Suranna', serif;
+  font-family: 'Suranna', 'Noto Serif', serif;
   letter-spacing: 0.4px;
 }
 
 /* Telugu block */
 .telugu {
-  font-family: 'Suranna', serif;
-  font-size: 1.25rem;
+  font-family: 'Suranna', 'Noto Serif', serif;
+  font-size: 1.5rem;
   line-height: 1.9;
   padding: 1.2rem 1.4rem;
   margin: 1.5rem 0;
@@ -38,24 +38,23 @@ h1, h2, h3 {
 
 /* Telugu poem block */
 .telugu-poem {
-  font-family: 'Suranna', serif;
+  font-family: 'Suranna', 'Noto Serif', serif;
   font-size: 1.25rem;
   line-height: 1.9;
   background: #fdf6ec;
-  border-left: 5px solid #e6b566;
+  /* border-left: 5px solid #e6b566; */
   padding: 1.2rem 1.4rem;
-  margin: 1.5rem 0;
   border-radius: 6px;
   color: #3a2f1b;
 }
 
 /* Poet attribution */
 .poet {
-  font-family: 'Suranna', serif;
+  font-family: 'Suranna', 'Noto Serif', serif;
   font-size: 1rem;
-  text-align: right;
+  text-align: left;
   margin-top: 0.8rem;
-  color: #6b4f1d;
+  color: #880015;
 }
 </style>
 
@@ -64,9 +63,8 @@ h1, h2, h3 {
 </div>
 
 <div class="telugu-poem" markdown="1">
-## వేమన పద్యం
+## విద్య లేనివాడు 
 
-విద్య లేనివాడు  
 విద్య లేనివాడు వృథా జన్మడు  
 విద్య కలవాడు విజ్ఞుడు  
 విద్య వలననే వివేకము కలుగును  
@@ -74,6 +72,23 @@ h1, h2, h3 {
 <div class="poet">
 — వేమన
 </div>
+
+---
+<strong>
+ఆఁడు దానిబొంకు గోడపెట్టినయట్టు
+పురుషవరుని బొంకు పూలతడిక
+స్త్రీలనేర్పులు భువి చీకు రాయితపము
+విశ్వదాభిరామ వినర వేమ!
+</strong>
+
+ఆడది తన లోపలి కపటాన్ని గోడ వెనక దాచినట్లుగా దాచుతుంది.
+పూలదండలతో పురుషుడి బలహీనతను ముసుగుపెడుతుంది.
+స్త్రీల ఈ నేర్పులు భూమికే చేటు కలిగించేంత తీవ్రమైనవి.
+విశ్వమంతటినీ ఆనందింపజేసే రామా! వేమన మాట వినుము.
+
+<b>బయట చాలా బాగుంది అని చూసి నమ్మొద్దు. లోపల ఏముందో చూడాలి. మాటలతో, వేషాలతో, అందంతో మోసపోవడం మనిషి బలహీనత.</b>
+
+As a wall conceals hidden decay, woman hides her guile within. With garlands she adorns even a noble man’s weakness. Such arts corrode the very earth. O Rama who delights the universe, hear Vemana’s word.
 </div>
 
 ---
