@@ -35,6 +35,7 @@ mermaid: false
         font-family: 'Suranna', 'Noto Serif', serif;
         font-size: 1.25rem;
         line-height: 1.6;
+        color: #3a2f1b;
     }
 
     /* Telugu poem block */
@@ -46,7 +47,7 @@ mermaid: false
         background: #fdf6ec;
         /* border-left: 5px solid #e6b566; */
         /* padding: 1.2rem 1.4rem; */
-        padding: 1rem;
+        /* padding: 1rem; */
         border-radius: 6px;
         color: #3a2f1b;
     }
@@ -61,24 +62,19 @@ mermaid: false
     }
 
     .takeaway {
-        color: #880015;
+        color: #3a2f1b;
     }
 </style>
 
 <div class="telugu" markdown="1">
-
 # [వేమన పద్యాలు](https://te.wikisource.org/wiki/%E0%B0%B5%E0%B1%87%E0%B0%AE%E0%B0%A8_%E0%B0%AA%E0%B0%A6%E0%B1%8D%E0%B0%AF%E0%B0%BE%E0%B0%B2%E0%B1%81)
-
+</div>
 <div class="telugu-poem" markdown="1">
 
 ## విద్య లేనివాడు
-
 విద్య లేనివాడు వృథా జన్మడు,
-
 విద్య కలవాడు విజ్ఞుడు,
-
 విద్య వలననే వివేకము కలుగును,
-
 వివేకము వలననే విముక్తి కలుగును.
 <div class="poet"> — వేమన </div>
 </div>
@@ -86,11 +82,8 @@ mermaid: false
 <div class="telugu-poem" markdown="1">
 
 ఆఁడు దానిబొంకు గోడపెట్టినయట్టు
-
 పురుషవరుని బొంకు పూలతడిక
-
 స్త్రీలనేర్పులు భువి చీకు రాయితపము
-
 విశ్వదాభిరామ వినర వేమ!
 </div>
 <div class="takeaway" markdown="1">
@@ -101,12 +94,25 @@ mermaid: false
 
 బయట చూపు, నటన, ఆకర్షణ — ఇవన్నీ తాత్కాలికం — మోసం మరియు అహంకారంతో నిండినది. లోపలి నీతి, నిజాయితీ లేకపోతే అవి వ్యర్థం.
 </div>
+
+Just as decorating a wall does not strengthen the house itself! Adornment and pretended charm do not ennoble a man. Likewise, deceptive arts and alluring guile corrupt the world, O all-pervading Rama — listen, says Vemana.
+
+<div class="telugu-poem" markdown="1">
+
+ఆత్మశుద్ధి లేని యాచారమది యేల
+ఆత్మశుద్ధి లేని యాచారమది యేల
+భాండ శుద్ధి లేని పాకమది యేల
+చిత్త శుద్ధి లేని శివపూజ లేలరా
+విశ్వదాభిరామ వినర వేమ!
+</div>
+<div class="takeaway" markdown="1">
+
+**భావం:** మనసు నిర్మలముగా లేనట్లయితే ఆచారములు పాటించడంవల్ల ప్రయోజనం లేదు. పాత్రలు శుభ్రముగాలేని వంట, మనసు స్థిరముగా లేని శివ పూజ వ్యర్థములే అవుతాయి. ఏమీ ప్రయోజనముండదు.
 </div>
 
-Just as decorating a wall does not strengthen the house itself,
-Adornment and pretended charm do not ennoble a man.
-Likewise, deceptive arts and alluring guile corrupt the world,
-O all-pervading Rama — listen, says Vemana.
+Inner purity matters more than outer practice. Without inner cleanliness, rituals are empty acts, O all-pervading Rama — listen, says Vemana.
+
+Inner cleanliness means purity in thought (non-violence, truthfulness, non-covetousness, chastity and moderation), clarity in mind and sincerity in action!
 
 ---
 
