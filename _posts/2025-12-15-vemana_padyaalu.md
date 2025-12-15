@@ -88,7 +88,7 @@ A life without **learning** is a wasted birth. One who possesses **knowledge** a
 _- Proverbs 2:11-12, ESV Bible_
 
 ---
-<div class="telugu-poem"">
+<div class="telugu-poem">
 ఆత్మశుద్ధి లేని యాచారమది యేల
 <br>భాండ శుద్ధి లేని పాకమది యేల
 <br>చిత్త శుద్ధి లేని శివపూజ లేలరా
