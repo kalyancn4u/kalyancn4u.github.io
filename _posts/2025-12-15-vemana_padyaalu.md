@@ -41,11 +41,12 @@ mermaid: false
     .telugu-poem {
         font-family: 'Suranna', 'Noto Serif', serif;
         font-size: 1.25rem;
-        line-height: 1.9;
+        /* line-height: 1.9; */
+        line-height: 1.6;
         background: #fdf6ec;
         /* border-left: 5px solid #e6b566; */
         /* padding: 1.2rem 1.4rem; */
-        padding: 1.2rem;
+        padding: 1rem;
         border-radius: 6px;
         color: #3a2f1b;
     }
@@ -73,8 +74,11 @@ mermaid: false
 ## విద్య లేనివాడు
 
 విద్య లేనివాడు వృథా జన్మడు,
+
 విద్య కలవాడు విజ్ఞుడు,
+
 విద్య వలననే వివేకము కలుగును,
+
 వివేకము వలననే విముక్తి కలుగును.
 <div class="poet"> — వేమన </div>
 </div>
@@ -82,8 +86,11 @@ mermaid: false
 <div class="telugu-poem" markdown="1">
 
 ఆఁడు దానిబొంకు గోడపెట్టినయట్టు
+
 పురుషవరుని బొంకు పూలతడిక
+
 స్త్రీలనేర్పులు భువి చీకు రాయితపము
+
 విశ్వదాభిరామ వినర వేమ!
 </div>
 <div class="takeaway" markdown="1">
