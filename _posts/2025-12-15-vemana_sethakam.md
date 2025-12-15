@@ -5,7 +5,7 @@ description: "Vemana Sethakam – Suranna & Telugu Typography"
 author: literary_notes
 date: 2025-12-15 00:05:00 +05:30
 categories: [Literature, Telugu]
-tags: [Vemana, Telugu Poetry, Suranna, Google Fonts, Typography]
+tags: [Vemana, Padyaalu, Sethakam, Telugu, Poetry, Suranna, Google Fonts, Typography]
 image: /assets/img/posts/vemana_padyaalu.webp
 toc: true
 math: false
@@ -25,6 +25,15 @@ mermaid: false
 h1, h2, h3 {
   font-family: 'Suranna', serif;
   letter-spacing: 0.4px;
+}
+
+/* Telugu block */
+.telugu {
+  font-family: 'Suranna', serif;
+  font-size: 1.25rem;
+  line-height: 1.9;
+  padding: 1.2rem 1.4rem;
+  margin: 1.5rem 0;
 }
 
 /* Telugu poem block */
@@ -50,18 +59,20 @@ h1, h2, h3 {
 }
 </style>
 
-<div class="telugu-poem" markdown="1">
+<div class="telugu" markdown="1">
+# వేమన శతకం
+</div>
 
-## 🌼 వేమన పద్యం
+<div class="telugu-poem" markdown="1">
+## వేమన పద్యం
 
 విద్య లేనివాడు  
 విద్య లేనివాడు వృథా జన్మడు  
 విద్య కలవాడు విజ్ఞుడు  
 విద్య వలననే వివేకము కలుగును  
 వివేకము వలననే విముక్తి కలుగును
-
 <div class="poet">
-— వేమన (వేమన శతకం)
+— వేమన ()
 </div>
 </div>
 
