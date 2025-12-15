@@ -252,11 +252,11 @@ you turn up details when debugging, and turn them down in production.
 </div>
 
 <div class="msg msg-note">
-<strong>TRACE - </strong> Extremely fine-grained, step-by-step execution details.
+<strong>NOTE / TRACE - </strong> Extremely fine-grained, step-by-step execution details.
 </div>
 
 <div class="msg msg-tip">
-<strong>OFF / TIP - </strong> Turns logging completely off / just highlight.
+<strong>TIP / OFF - </strong> Turns logging completely off / just highlight.
 </div>
 
 <div class="msg msg-quote">
