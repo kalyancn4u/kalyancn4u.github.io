@@ -167,10 +167,7 @@ CO-STAR brings *discipline* to creativity — structure without suffocation.
 
 ---
 
-![Co-star framework](/assets/img/posts/costar_framework.svg){: w="400" h="200" }
-_Prompting: Co-star framework Illustrated!_
-
-![Co-star framework](/assets/img/posts/costar_structured_prompting.webp){: w="800" h="400" }
+![Co-star framework](/assets/img/posts/costar_structured_prompting.webp){: width="600" }
 _Prompting: Co-star framework Illustrated!_
 
 <div class="msg msg-info">Info: Tailwind simplifies styling.</div>
@@ -204,6 +201,9 @@ toc: true
 math: false
 mermaid: false
 ---
+
+![Co-star framework](/assets/img/posts/costar_framework.svg){: w="400" h="200" }
+_Prompting: Co-star framework Illustrated!_
 </pre>
 
 ---
