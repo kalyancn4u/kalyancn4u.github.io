@@ -167,17 +167,8 @@ CO-STAR brings *discipline* to creativity — structure without suffocation.
 
 ---
 
-![Co-star framework](/assets/img/posts/costar_structured_prompting.webp){: width="600" }
+![Co-star framework](/assets/img/posts/costar_structured_prompting.webp){: width="500" }
 _Prompting: Co-star framework Illustrated!_
-
-<div class="msg msg-info">Info: Tailwind simplifies styling.</div>
-<div class="msg msg-success">Success: Build completed.</div>
-<div class="msg msg-warning">Warning: Token expiry soon.</div>
-<div class="msg msg-danger">Error: Deployment failed.</div>
-<div class="msg msg-note">Note: Jekyll regenerates on file changes.</div>
-<div class="msg msg-tip">Tip: Prefer Markdown includes for reuse.</div>
-<div class="msg msg-debug">Debug: x=42, mode="test"</div>
-<div class="msg msg-quote">“Good code is simple code.”</div>
 
 ---
 
@@ -271,6 +262,15 @@ you turn up details when debugging, and turn them down in production.
 - **Better Debugging** – Enable DEBUG or TRACE when chasing bugs.
 - **Faster Alerts** – Critical errors can trigger emails or notifications.
 - **Clarity** – Clean logs make systems easier to understand and maintain.
+
+<div class="msg msg-info">Info: Tailwind simplifies styling.</div>
+<div class="msg msg-success">Success: Build completed.</div>
+<div class="msg msg-warning">Warning: Token expiry soon.</div>
+<div class="msg msg-danger">Error: Deployment failed.</div>
+<div class="msg msg-note">Note: Jekyll regenerates on file changes.</div>
+<div class="msg msg-tip">Tip: Prefer Markdown includes for reuse.</div>
+<div class="msg msg-debug">Debug: x=42, mode="test"</div>
+<div class="msg msg-quote">“Good code is simple code.”</div>
 
 ---
 
