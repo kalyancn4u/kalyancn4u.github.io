@@ -125,22 +125,22 @@ you turn up details when debugging, and turn them down in production.
 
 🧭 **Common Log Levels (Most → Least Severe)**
 
-• **CRITICAL / FATAL** – Something went terribly wrong. The app may not continue.
-• **ERROR** – A serious problem affecting functionality that needs fixing.
-• **WARNING (WARN)** – Something looks off; not broken yet, but could become a problem.
-• **INFO** – Normal, useful updates (app started, user logged in, task completed).
-• **DEBUG** – Detailed information for developers to investigate issues.
-• **TRACE** – Extremely fine-grained, step-by-step execution details.
-• **OFF** – Turns logging completely off.
+- **CRITICAL / FATAL** – Something went terribly wrong. The app may not continue.
+- **ERROR** – A serious problem affecting functionality that needs fixing.
+- **WARNING (WARN)** – Something looks off; not broken yet, but could become a problem.
+- **INFO** – Normal, useful updates (app started, user logged in, task completed).
+- **DEBUG** – Detailed information for developers to investigate issues.
+- **TRACE** – Extremely fine-grained, step-by-step execution details.
+- **OFF** – Turns logging completely off.
 
 ---
 
 ✨ **Why Developers Use Log Levels**
 
-• **Less Noise** – See only what matters in production.
-• **Better Debugging** – Enable DEBUG or TRACE when chasing bugs.
-• **Faster Alerts** – Critical errors can trigger emails or notifications.
-• **Clarity** – Clean logs make systems easier to understand and maintain.
+- **Less Noise** – See only what matters in production.
+- **Better Debugging** – Enable DEBUG or TRACE when chasing bugs.
+- **Faster Alerts** – Critical errors can trigger emails or notifications.
+- **Clarity** – Clean logs make systems easier to understand and maintain.
 
 ---
 
