@@ -6,7 +6,7 @@ categories: [Notes, Machine Learning]
 tags: [Machine Learning, Metrics]
 author: Kalyan Narayana
 date: 2025-11-06 19:30:00 +0530
-image: /assets/img/posts/machine_learning_metrics.webp
+image: /assets/img/posts/ml_metrics_banner.webp
 toc: true
 math: true
 ---
