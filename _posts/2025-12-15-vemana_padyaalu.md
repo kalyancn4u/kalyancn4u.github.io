@@ -103,12 +103,12 @@ Inner purity means purity in thought (intention / emotion / heart), clarity in m
 Purity can be ethical self-restraint viz., non-violence, truthfulness, non-covetousness, chastity and moderation! Plus, Moral excellence in cardinal virtues - Justice, Fortitude, Temperance and Prudence!
 
 <b>Purity is the force, Books are the basis, Utility is the principle, Preaching is the essence!</b>
-_— AC Bhaktivedanta Swami Prabhupada, Founder of ISKCON_
+<br> _— AC Bhaktivedanta Swami Prabhupada, Founder of ISKCON_
 
 Purity of heart and action is essential for spiritual understanding, service, and realizing God, forming a core principle in Vaishnava traditions!
 
 Blessed are the pure in heart, for they shall see God!
-_— Matthew 5:8_
+<br> _— Matthew 5:8_
 
 Purity enables spiritual power, understanding, and closeness to the Divine — is a universal theme across many scriptures and faiths, though expressed differently!
 
@@ -121,7 +121,8 @@ Purity is <b>not</b> mere abstinence, but right measure — expressed as restrai
 <br>
 <br>Knowing the truth is nothing! Awareness of the truth is something! Living the truth is everything!
 <br>
-<br><b>Knowing is not enough, we must APPLY! Willing is not enough, we must ACT!</b><i> — Bruce Lee</i>
+<br><b>Knowing is not enough, we must APPLY! Willing is not enough, we must ACT!</b>
+<br><i> — Bruce Lee</i>
 </div>
 
 ---
