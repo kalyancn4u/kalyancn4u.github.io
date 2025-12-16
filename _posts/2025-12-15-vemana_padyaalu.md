@@ -95,7 +95,6 @@ A life without **learning** is a wasted birth. One who possesses **knowledge** a
 <div class="telugu">
 <b>భావం:</b> మనసు నిర్మలముగా లేనట్లయితే ఆచారములు పాటించడంవల్ల ప్రయోజనం లేదు. పాత్రలు శుభ్రముగాలేని వంట, మనసు స్థిరముగా లేని శివ పూజ వ్యర్థములే అవుతాయి. ఏమీ ప్రయోజనముండదు.
 </div>
-<br>
 
 Inner purity matters more than outer practice. Without inner purity, rituals are empty acts, O all-pervading Rama — listen, says Vemana.
 
@@ -103,15 +102,26 @@ Inner purity means purity in thought (intention / emotion / heart), clarity in m
 
 Purity can be ethical self-restraint viz., non-violence, truthfulness, non-covetousness, chastity and moderation! Plus, Moral excellence in cardinal virtues - Justice, Fortitude, Temperance and Prudence!
 
+<b>Purity is the force, Books are the basis, Utility is the principle, Preaching is the essence!</b>
+_— AC Bhaktivedanta Swami Prabhupada, Founder of ISKCON_
+
+Purity of heart and action is essential for spiritual understanding, service, and realizing God, forming a core principle in Vaishnava traditions!
+
+Blessed are the pure in heart, for they shall see God!
+_— Matthew 5:8_
+
+Purity enables spiritual power, understanding, and closeness to the Divine — is a universal theme across many scriptures and faiths, though expressed differently!
+
 <div class="takeaway">
 Purity is <b>not</b> mere abstinence, but right measure — expressed as restraint in desire and excellence in virtue.
 <br>Purity = restraint governed by wisdom.
 <br>Purity is harmony: no excess, no falsehood, no harm.
 <br>Purity lies where discipline meets virtue.
 <br>Purity is strength with measure.
+<br>
 <br>Knowing the truth is nothing! Awareness of the truth is something! Living the truth is everything!
 <br>
-<br><b>Knowing is not enough, we must apply! Willing is not enough, we must ACT!</b>
+<br><b>Knowing is not enough, we must APPLY! Willing is not enough, we must ACT!</b><i> — Bruce Lee</div>i>
 </div>
 
 ---
