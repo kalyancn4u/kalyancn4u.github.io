@@ -95,7 +95,7 @@ A life without **learning** is a wasted birth. One who possesses **knowledge** a
 <div class="telugu">
 <b>భావం:</b> మనసు నిర్మలముగా లేనట్లయితే ఆచారములు పాటించడంవల్ల ప్రయోజనం లేదు. పాత్రలు శుభ్రముగాలేని వంట, మనసు స్థిరముగా లేని శివ పూజ వ్యర్థములే అవుతాయి. ఏమీ ప్రయోజనముండదు.
 </div>
-
+<br>
 Inner purity matters more than outer practice. Without inner purity, rituals are empty acts, O all-pervading Rama — listen, says Vemana.
 
 Inner purity means purity in thought (intention / emotion / heart), clarity in mind and sincerity in action!
@@ -121,7 +121,7 @@ Purity is <b>not</b> mere abstinence, but right measure — expressed as restrai
 <br>
 <br>Knowing the truth is nothing! Awareness of the truth is something! Living the truth is everything!
 <br>
-<br><b>Knowing is not enough, we must APPLY! Willing is not enough, we must ACT!</b><i> — Bruce Lee</div>i>
+<br><b>Knowing is not enough, we must APPLY! Willing is not enough, we must ACT!</b><i> — Bruce Lee</i>
 </div>
 
 ---
