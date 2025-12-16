@@ -127,7 +127,9 @@ Purity is <b>not</b> mere abstinence, but right measure — expressed as restrai
 
 ---
 
-### 📜 About the Fonts
+## 📜 About the Fonts
+
+### [Google Fonts - Telugu](https://fonts.google.com/?query=Telugu){: target="_blank" rel="noopener noreferrer" }
 
 - **Suranna**
 
