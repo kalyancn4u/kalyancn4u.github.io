@@ -967,7 +967,7 @@ For each paper, maintain a structured summary:
 **Duration:** ~80 hours  
 **Cost:** Completely free
 
-🎓 **[MIT 6.S191 Introduction to Deep Learning](http://introtodeeplearning.com/){:target="_blank"}**  
+🎓 **[MIT 6.S191 Introduction to Deep Learning](https://introtodeeplearning.com/){:target="_blank"}**  
 **Level:** Intermediate to advanced  
 **Duration:** Lectures + labs  
 **Cost:** Free (recorded lectures available)
@@ -977,12 +977,12 @@ For each paper, maintain a structured summary:
 **Duration:** Full semester course  
 **Cost:** Free (lecture notes and videos)
 
-🎓 **[Stanford CS231n: CNN for Visual Recognition](http://cs231n.stanford.edu/){:target="_blank"}**  
+🎓 **[Stanford CS231n: CNN for Visual Recognition](https://cs231n.stanford.edu/){:target="_blank"}**  
 **Level:** Advanced computer vision  
 **Duration:** Full semester  
 **Cost:** Free (lecture notes and videos)
 
-🎓 **[Stanford CS224n: NLP with Deep Learning](http://web.stanford.edu/class/cs224n/){:target="_blank"}**  
+🎓 **[Stanford CS224n: NLP with Deep Learning](https://web.stanford.edu/class/cs224n/){:target="_blank"}**  
 **Level:** Advanced NLP  
 **Duration:** Full semester  
 **Cost:** Free (lecture notes and videos)
