@@ -14,7 +14,7 @@ toc: true
 nav_order: 1
 # published: true
 permalink: /portfolio/
-pin: true
+# pin: true
 ---
 
 # 👋 Hi, I’m **Kalyan Narayana** - WORK IN PROGRESS - TODO
