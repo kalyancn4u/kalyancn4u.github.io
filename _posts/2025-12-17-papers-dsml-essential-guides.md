@@ -7,7 +7,7 @@ date: 2025-12-17 00:05:00 +05:30
 categories: [Papers, DSML]
 tags: [Papers, Machine Learning, Data Science, Deep Learning, arxiv]
 image:
-  path: /assets/img/posts/ml-ds-dl-venn.png
+  path: /assets/img/posts/dsml_venn_diagram.webp
   alt: The intersection of Machine Learning, Data Science, and Deep Learning
 pin: true
 toc: true
