@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "IDRM: Integrated Disaster Response Management Platform - MVP Product Requirements Document"
+title: "🧩 IDRM: Integrated Disaster Response Management Platform - MVP Product Requirements Document"
 description: "A comprehensive MVP Product Requirements Document."
 author: technical_notes
 date: 2024-12-22 10:00:00 +0530
