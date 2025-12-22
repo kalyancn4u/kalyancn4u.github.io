@@ -6,7 +6,7 @@ author: technical_notes
 date: 2025-12-22 00:05:00 +05:30
 categories: [Life, Learning]
 tags: [Life, Learning, Faster, Better]
-image: /assets/img/posts/learning-6ws.png
+image: /assets/img/posts/learning-6ws.webp
 toc: true
 math: false
 mermaid: false
