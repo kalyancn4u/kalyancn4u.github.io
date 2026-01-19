@@ -4,7 +4,7 @@ title: "🗺️ I-DRM: Overview"
 description: "A comprehensive look at DRM.I - a national-scale, map-driven, privacy-aware digital platform designed to enable timely, coordinated, and transparent disaster response across India's diverse emergency scenarios."
 author: technical_notes
 date: 2024-12-01 14:30:00 +0530
-categories: [I-DRM, Overview]
+categories: [I-DRM, IDRM Overview]
 tags: [IDRM, Disaster Response, Digital Platform, Public Infrastructure, India, Emergency  Management]
 image: /assets/img/posts/idrm_banner.webp
 toc: true
