@@ -1,10 +1,10 @@
 ---
 layout: post
-title: "🗺️ IDRM: India's Integrated Disaster Response Management Platform - Overview"
+title: "🗺️ IDRM: Overview"
 description: "A comprehensive look at DRM.I - a national-scale, map-driven, privacy-aware digital platform designed to enable timely, coordinated, and transparent disaster response across India's diverse emergency scenarios."
 author: technical_notes
 date: 2024-12-21 14:30:00 +0530
-categories: [IDRM, Overview]
+categories: [I-DRM, Overview]
 tags: [IDRM, Disaster Response, Digital Platform, Public Infrastructure, India, Emergency  Management]
 image: /assets/img/posts/idrm_banner.webp
 toc: true
