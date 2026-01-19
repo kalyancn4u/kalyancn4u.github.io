@@ -1,10 +1,10 @@
 ---
 layout: post
-title: "🌊 IDRM: Integrated Disaster Response Management - Deep Dive & Best Practices"
-description: "A comprehensive look at IDRM - Deep Dive & Best Practices"
+title: "🌊 I-DRM: Deep Dive & Best Practices"
+description: "A comprehensive look at Integrated Disaster Response Management (I-DRM) - Deep Dive & Best Practices"
 author: technical_notes
 date: 2024-12-21 14:30:00 +0530
-categories: [IDRM, Overview]
+categories: [I-DRM, IDRM Overview]
 tags: [IDRM, Disaster Response, Digital Platform, Public Infrastructure, India, NDMA, Emergency  Management]
 image: /assets/img/posts/idrm_banner.webp
 toc: true
@@ -23,7 +23,7 @@ pin: false
 
 ## Executive Summary
 
-**Integrated Disaster Response Management (IDRM)** represents a comprehensive, technology-enabled approach to managing disasters across their entire lifecycle. This guide provides foundational knowledge for novices and stakeholders involved in disaster management, serving as a reference for developing Product Requirements Documents (PRD), High-Level Design (HLD), and Low-Level Design (LLD) specifications.
+**Integrated Disaster Response Management (I-DRM)** represents a comprehensive, technology-enabled approach to managing disasters across their entire lifecycle. This guide provides foundational knowledge for novices and stakeholders involved in disaster management, serving as a reference for developing Product Requirements Documents (PRD), High-Level Design (HLD), and Low-Level Design (LLD) specifications.
 
 IDRM systems aim to create coordinated, transparent, and effective disaster response mechanisms by integrating multiple stakeholders, data sources, and technological capabilities into a unified platform.
 
