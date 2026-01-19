@@ -1,10 +1,10 @@
 ---
 layout: post
-title: "🧩 IDRM: Integrated Disaster Response Management Platform - MVP Product Requirements Document"
-description: "A comprehensive MVP Product Requirements Document."
+title: "🧩 IDRM: MVP PRD"
+description: "A comprehensive Minimum Viable Product (MVP) Product Requirements Document (PRD)."
 author: technical_notes
-date: 2024-12-22 10:00:00 +0530
-categories: [IDRM, PRD]
+date: 2024-12-02 10:00:00 +0530
+categories: [I-DRM, IDRM MVP PRD]
 tags: [IDRM, Disaster Response, Disaster Management, Digital Platform, Public Infrastructure, India, Emergency  Management, PRD, MVP, Node.JS, Python, PostGIS, GeoServer]
 image: /assets/img/posts/idrm_banner.webp
 toc: true
