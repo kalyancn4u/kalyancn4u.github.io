@@ -3,8 +3,8 @@ layout: post
 title: "🌊 I-DRM: Deep Dive & Best Practices"
 description: "A comprehensive look at Integrated Disaster Response Management (I-DRM) - Deep Dive & Best Practices"
 author: technical_notes
-date: 2024-12-21 14:30:00 +0530
-categories: [I-DRM, IDRM Overview]
+date: 2024-12-03 14:30:00 +0530
+categories: [I-DRM, IDRM Deep Dive]
 tags: [IDRM, Disaster Response, Digital Platform, Public Infrastructure, India, NDMA, Emergency  Management]
 image: /assets/img/posts/idrm_banner.webp
 toc: true
