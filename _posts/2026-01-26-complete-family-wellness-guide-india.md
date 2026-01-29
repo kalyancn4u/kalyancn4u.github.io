@@ -1,11 +1,18 @@
 ---
-title: "🌺 The Complete Indian Family Wellness Guide: Building Thriving Lives Together"
-date: 2026-01-26
-categories: [Family, Wellness, Mental-Health, Finance, Relationships]
-tags: [indian-families, holistic-wellness, relationships, money-management, ocean-personality, joint-family, mental-health, financial-planning, 8-dimensions]
-author: Family Wellness Expert
-pin: true
+layout: post
+title: "🌈 Complete Family Well-being!"
+description: "A novice-friendly Guide to Holistic Family Wellness and Well-being, India-centric - Building Thriving Lives Together!"
+author: wellness_notes
+date: 2026-01-26 00:05:00 +05:30
+categories: [Life, Wellness]
+tags: [Life, Family, Holistic Wellness, Finance, Relationships, Mental Health, Planning]
+image: /assets/img/posts/holistic-well-being.webp
+toc: true
+math: false
+mermaid: false
 ---
+
+# 🌈 Complete Family Well-being!
 
 > **The definitive comprehensive guide for Indian families** covering all 8 dimensions of well-being, OCEAN personality insights, relationship wisdom, financial planning, and practical transformation plans. Everything you need to build a thriving family life - rooted in Indian culture, backed by science, proven by families like yours.
 
