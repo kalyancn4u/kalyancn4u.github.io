@@ -55,7 +55,9 @@ mermaid: false
 
 ---
 
-## 🎯 Introduction
+## Part 1: Understanding the System {: #part-1-understanding }
+
+## 🎯 Introduction {: #introduction }
 
 ### What You're Building
 
@@ -101,7 +103,7 @@ Let's begin! 🚀
 
 ---
 
-## 🧠 Core Concepts: RAG Explained Simply
+## 🧠 Core Concepts: RAG Explained Simply {: #core-concepts-rag }
 
 ### What is RAG?
 
@@ -190,7 +192,7 @@ Tier 3 (If still not found):
 
 ---
 
-## 🏗️ System Architecture Overview
+## 🏗️ System Architecture Overview {: #system-architecture }
 
 ### The Complete Picture
 
@@ -248,7 +250,7 @@ Tier 3 (If still not found):
 
 ---
 
-## 💻 Hardware Requirements
+## 💻 Hardware Requirements {: #hardware-requirements }
 
 ### Minimum Setup (Works, but slow)
 
@@ -294,7 +296,9 @@ Tier 3 (If still not found):
 
 ---
 
-## 🎯 Layer 1: FAQ Bank (The Fast Path)
+## Part 2: The Three-Layer Intelligence System {: #part-2-three-layer-system }
+
+## 🎯 Layer 1: FAQ Bank (The Fast Path) {: #layer-1-faq-bank }
 
 ### Purpose
 
@@ -356,7 +360,7 @@ In-Memory Cache (Python dict)
 
 ---
 
-## 🔍 Layer 2: Document Search (The Knowledge Base)
+## 🔍 Layer 2: Document Search (The Knowledge Base) {: #layer-2-document-search }
 
 ### Purpose
 
@@ -368,7 +372,7 @@ This is where you need to choose between **FAISS** and **Chroma**.
 
 ---
 
-## 🎯 Vector Database: FAISS vs Chroma
+## 🎯 Vector Database: FAISS vs Chroma {: #vector-db-faiss-vs-chroma }
 
 *One of the most important decisions in your architecture*
 
@@ -828,7 +832,7 @@ You can always migrate to FAISS later if you need maximum performance.
 
 ---
 
-## 🧠 Layer 3: LLM Inference (The Explainer)
+## 🧠 Layer 3: LLM Inference (The Explainer) {: #layer-3-llm-inference }
 
 ### Purpose
 
@@ -906,7 +910,7 @@ Return answer with sources cited
 
 ---
 
-## 💡 The "Did You Mean?" Feature
+## 💡 The "Did You Mean?" Feature {: #did-you-mean }
 
 ### Why This Is Critical
 
@@ -994,7 +998,9 @@ def answer_question(user_question):
 
 ---
 
-## 🗄️ Database Schema & Indexing Strategy
+## Part 3: Technical Design {: #part-3-technical-design }
+
+## 🗄️ Database Schema & Indexing Strategy {: #database-schema-indexing }
 
 ### FAQ Table (SQLite)
 
@@ -1047,7 +1053,7 @@ normalize("What's   your  business hours?!")
 
 ---
 
-## 📊 Confidence Scoring System
+## 📊 Confidence Scoring System {: #confidence-scoring }
 
 ### The Formula
 
@@ -1127,7 +1133,7 @@ Decision: 0.484 < 0.65 → Escalate to document search
 
 ---
 
-## 💾 Caching Policies
+## 💾 Caching Policies {: #caching-policies }
 
 ### What to Cache
 
@@ -1204,7 +1210,7 @@ def get_answer(question: str):
 
 ---
 
-## ⚡ Concurrency & Throughput Design
+## ⚡ Concurrency & Throughput Design {: #concurrency-throughput }
 
 ### The Challenge
 
@@ -1283,7 +1289,9 @@ async def call_llm(prompt: str):
 
 ---
 
-## 📝 Step-by-Step Setup
+## Part 4: Implementation Guide {: #part-4-implementation-guide }
+
+## 📝 Step-by-Step Setup {: #step-by-step-setup }
 
 ### Phase 1: Environment Setup (30 minutes)
 
@@ -1521,7 +1529,7 @@ python setup_vector_db.py
 
 ---
 
-## 📂 Document Organization Best Practices
+## 📂 Document Organization Best Practices {: #document-organization-best-practices }
 
 ### Folder Structure
 
@@ -1606,7 +1614,7 @@ Before installing, ensure you have:
 
 ---
 
-## 🏛️ Production-Grade Folder Structure
+## 🏛️ Production-Grade Folder Structure {: #production-grade-folder-structure }
 
 ```
 faq_chatbot/
@@ -1666,7 +1674,7 @@ faq_chatbot/
 
 ---
 
-## 💻 Complete Code Implementation
+## 💻 Complete Code Implementation {: #complete-code-implementation }
 
 ### main.py (Application Entry)
 
@@ -1859,6 +1867,12 @@ curl -X POST http://localhost:8000/chat \
 ```
 
 ---
+
+## Part 5: Advanced Topics {: #part-5-advanced-topics }
+## Model Selection Guide {: #model-selection-guide }
+## Performance Optimization {: #performance-optimization }
+## Deployment & Scaling {: #deployment-scaling }
+## Next Steps & Roadmap {: #next-steps-roadmap }
 
 ## 🎓 Model Selection Guide
 
