@@ -57,7 +57,8 @@ mermaid: false
 
 ## Part 1: Understanding the System {: #part-1-understanding }
 
-## 🎯 Introduction {: #introduction }
+## Introduction {: #introduction }
+## 🎯 Introduction
 
 ### What You're Building
 
