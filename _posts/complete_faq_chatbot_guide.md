@@ -1,3 +1,17 @@
+---
+layout: post
+title: "🧭 FAQ Chatbot Builder's Guide"
+description: "FAQ Chatbot - A Quick Guide to Build a Fast, Accurate, Hardware-Efficient - FAQ Chatbot System Like HDFC's Ask Eva or ITR Filing Assistant!"
+author: technical_notes
+date: 2026-02-06 00:00:00 +0530
+categories: [Guides, FAQ Chatbot]
+tags: [Chatbot, FAQ, Datase, Vector Search, Chroma, FAISS, Embeddings, LLMs]
+image: /assets/img/posts/ai-chatbot.webp
+toc: false
+math: false
+mermaid: false
+---
+
 # 🤖 The Complete FAQ Chatbot Builder's Guide
 
 **Build a Fast, Accurate, Hardware-Efficient FAQ System Like HDFC's Ask Eva or ITR Filing Assistant**
