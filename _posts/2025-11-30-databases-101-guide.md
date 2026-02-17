@@ -16,6 +16,8 @@ mermaid: false
 
 - <a href="https://www.opsschool.org/databases_101.html" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Databases 101: Relational Databases | Ops School</mark></a>
 
+- <a href="https://bytebytego.com/guides/database-and-storage/" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Databases and Storage | <strong>ByteByteGo</strong></mark></a>
+
 - <a href="https://dssg.github.io/hitchhikers-guide/curriculum/1_getting_and_keeping_data/databases/databases.pdf" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Databases 101 | Rayid Ghani</mark></a>
 
 - <a href="https://www.ml4devs.com/en/articles/datastore-choices-sql-vs-nosql-database/" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Databases Choices Illustrated - Satish Chandra Gupta | ML4Devs</mark></a>
