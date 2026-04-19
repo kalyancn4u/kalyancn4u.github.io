@@ -14,6 +14,12 @@ mermaid: true
 comments: false
 ---
 
+## Claude AI Resources
+
+- <a href="[https://bytebytego.com/guides/cybersecurity-101-in-one-picture/](https://sidsaladi.substack.com/p/the-complete-claude-101-guide-master)" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Claude-AI 101: Complete Guide &amp; Practical Use Cases | Substack</mark></a>
+
+## Introduction to Claude-AI
+
 Claude AI's models, features, extensions, prompting patterns, task recipes, design traps, long-document workflows, and prompting myth-busters. Incorporates the official Anthropic prompting docs plus Sander Schulhoff's Prompt Report findings!
 
 > **TL;DR** — Claude.ai is not one thing. It's a model family (Haiku → Sonnet → Opus), a workspace (Projects), a creation canvas (Artifacts), a universe of integrations (Connectors), and a prompting surface that rewards clarity. This post walks a complete beginner through *all of it* — with circumstances, task recipes, myth-busters, and a master prompt you can steal at the end.{: .prompt-tip }
