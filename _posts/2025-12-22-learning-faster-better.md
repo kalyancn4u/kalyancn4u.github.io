@@ -10,13 +10,95 @@ image: /assets/img/posts/learning-6ws.webp
 toc: true
 math: false
 mermaid: false
-css: /assets/css/custom.css
+# css: /assets/css/custom.css
 ---
+
+<style>
+  /* Base message box */
+.msg {
+    padding: .7rem 1rem;
+    border-left: 4px solid;
+    border-radius: 4px;
+    margin: 1rem 0;
+    font-size: .95rem;
+}
+
+/* Chirpy-aligned colors (using theme neutrals + accent colors) */
+
+/* INFO – uses Chirpy link/accent blue */
+/* SUCCESS – uses GitHub-style green used in Chirpy buttons */
+/* WARNING – soft amber matching Chirpy alert tone */
+/* DANGER – GitHub/Chirpy red */
+/* NOTE – aligns to Chirpy blockquote border color */
+/* TIP – teal accent (Chirpy supports cyan/teal utilities) */
+/* DEBUG – Chirpy neutral gray family */
+/* QUOTE – aligned with Chirpy blockquote styling */
+
+.msg-info {
+    background: #e8f1fc;
+    border-color: #1a73e8;
+    color: #0b3d91;
+}
+
+/* Chirpy link color */
+.msg-success {
+    background: #e8f6ec;
+    border-color: #2da44e;
+    color: #0f5227;
+}
+
+/* GitHub green */
+.msg-warning {
+    background: #fff8e6;
+    border-color: #d97706;
+    color: #8a5300;
+}
+
+/* warm amber */
+.msg-danger {
+    background: #fcebea;
+    border-color: #cf222e;
+    color: #8a1c1f;
+}
+
+/* GitHub danger red */
+.msg-note {
+    background: #f5f7fa;
+    border-color: #6cb6ff;
+    color: #244466;
+}
+
+/* soft blue */
+.msg-tip {
+    background: #e6f7f6;
+    border-color: #0d9488;
+    color: #065f5b;
+}
+
+/* teal-600 */
+.msg-debug {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+    color: #374151;
+    font-family: monospace;
+}
+
+/* gray-400 */
+/* gray-700 */
+.msg-quote {
+    background: #fafafa;
+    border-color: #d1d5db;
+    color: #4b5563;
+    font-style: italic;
+}
+
+/* gray-300 */
+/* gray-600 */
+</style>
+
 ## 🎯 THE GOLDEN RULES OF LEARNING
 
 - <a href="/assets/html/learning_techniques_deepseek.html" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Learning Techniques | DeepSeek</mark></a>
-
-> # **[Learning Techniques | DeepSeek](/assets/html/learning_techniques_deepseek.html){: target="_blank" rel="noopener noreferrer" }**
 
 <div class="msg msg-info">[Learning Techniques | DeepSeek](/assets/html/learning_techniques_deepseek.html)</div>
 
