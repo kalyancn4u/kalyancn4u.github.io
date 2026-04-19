@@ -10,9 +10,17 @@ image: /assets/img/posts/learning-6ws.webp
 toc: true
 math: false
 mermaid: false
+css: /assets/css/custom.css
 ---
-
 ## 🎯 THE GOLDEN RULES OF LEARNING
+
+- <a href="/assets/html/learning_techniques_deepseek.html" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Learning Techniques | DeepSeek</mark></a>
+
+> # **[Learning Techniques | DeepSeek](/assets/html/learning_techniques_deepseek.html){: target="_blank" rel="noopener noreferrer" }**
+
+<div class="msg msg-info">[Learning Techniques | DeepSeek](/assets/html/learning_techniques_deepseek.html)</div>
+
+<div class="msg msg-success">[Learning Techniques | DeepSeek](/assets/html/learning_techniques_deepseek.html)</div>
 
 ### **1. Space It Out! (Spaced Repetition)**
 
