@@ -104,6 +104,20 @@ mermaid: false
 
 <div class="msg msg-success">[Learning Techniques | DeepSeek](/assets/html/learning_techniques_deepseek.html)</div>
 
+<div class="msg msg-success">
+  <a href="/assets/html/learning_techniques_deepseek.html">Learning Techniques | DeepSeek</a>
+</div>
+
+<div class="msg msg-success">
+  [Learning Techniques | DeepSeek](/assets/html/learning_techniques_deepseek.html)
+</div>
+
+<div class="msg msg-success">
+
+  [Learning Techniques | DeepSeek](/assets/html/learning_techniques_deepseek.html)
+
+</div>
+
 ### **1. Space It Out! (Spaced Repetition)**
 
 **What it is:** Instead of cramming everything in one sitting, review material at increasing intervals (1 day, 3 days, 1 week, 2 weeks, 1 month).
