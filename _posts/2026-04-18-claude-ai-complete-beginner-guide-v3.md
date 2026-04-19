@@ -1,21 +1,24 @@
 ---
-title: "The Complete Beginner's Guide to Claude.ai — Models, Artifacts, Projects, Connectors & Prompting Like a Pro (2026, v3)"
+layout: post
+title: "🧭 Claude.ai: The Complete Beginner's Guide"
+description: "Claude AI (2026, v3) - Models, Artifacts, Projects, Connectors & Prompting Like a Pro!"
+author: technical_notes
 date: 2026-04-18 10:00:00 +0530
-categories: [AI, Guides]
-tags: [claude, anthropic, prompt-engineering, ai-tools, artifacts, projects, beginner-guide]
-author: your_name
-description: A chirpy, self-contained tour of everything Claude.ai offers in 2026 — models, features, extensions, prompting patterns, task recipes, design traps, long-document workflows, and prompting myth-busters. v3 incorporates the official Anthropic prompting docs plus Sander Schulhoff's Prompt Report findings.
-math: true
-mermaid: true
+categories: [Guides, Claude AI]
+tags: [Claude, Anthropic, Prompt-engineering, AI-tools, Artifacts, Projects, Guide]
+# image: /assets/img/posts/cybersecurity-101.webp
 pin: false
 toc: true
-comments: true
+math: false
+mermaid: true
+comments: false
 ---
-> **TL;DR** — Claude.ai is not one thing. It's a model family (Haiku → Sonnet → Opus), a workspace (Projects), a creation canvas (Artifacts), a universe of integrations (Connectors), and a prompting surface that rewards clarity. This post walks a complete beginner through *all of it* — with circumstances, task recipes, myth-busters, and a master prompt you can steal at the end.
-> {: .prompt-tip }
 
-> **v3 changelog** — Folds in the current Anthropic prompting best-practices doc *and* Sander Schulhoff's Prompt Report (the meta-study of 1,500+ papers covering 200+ techniques). New: advanced techniques (decomposition, self-criticism, ensembling), long-document prompting, prompt-style mirroring, the Opus 4.7 design-default trap, a myth-busters section, and safer autonomy patterns. **Role-playing guidance has been corrected** — it helps with tone, not with factual accuracy.
-> {: .prompt-info }
+Claude AI's models, features, extensions, prompting patterns, task recipes, design traps, long-document workflows, and prompting myth-busters. Incorporates the official Anthropic prompting docs plus Sander Schulhoff's Prompt Report findings!
+
+> **TL;DR** — Claude.ai is not one thing. It's a model family (Haiku → Sonnet → Opus), a workspace (Projects), a creation canvas (Artifacts), a universe of integrations (Connectors), and a prompting surface that rewards clarity. This post walks a complete beginner through *all of it* — with circumstances, task recipes, myth-busters, and a master prompt you can steal at the end.{: .prompt-tip }
+
+> **v3 changelog** — Folds in the current Anthropic prompting best-practices doc *and* Sander Schulhoff's Prompt Report (the meta-study of 1,500+ papers covering 200+ techniques). New: advanced techniques (decomposition, self-criticism, ensembling), long-document prompting, prompt-style mirroring, the Opus 4.7 design-default trap, a myth-busters section, and safer autonomy patterns. **Role-playing guidance has been corrected** — it helps with tone, not with factual accuracy.{: .prompt-info }
 
 ## Why this guide exists
 
