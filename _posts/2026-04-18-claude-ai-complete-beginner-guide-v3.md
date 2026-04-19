@@ -26,6 +26,9 @@ Claude AI's models, features, extensions, prompting patterns, task recipes, desi
 
 > **v3 changelog** — Folds in the current Anthropic prompting best-practices doc *and* Sander Schulhoff's Prompt Report (the meta-study of 1,500+ papers covering 200+ techniques). New: advanced techniques (decomposition, self-criticism, ensembling), long-document prompting, prompt-style mirroring, the Opus 4.7 design-default trap, a myth-busters section, and safer autonomy patterns. **Role-playing guidance has been corrected** — it helps with tone, not with factual accuracy.{: .prompt-info }
 
+![Anatomy of Claude Prompt](/assets/img/posts/anatomy_of_claude_prompt.webp)
+_Anatomy of Claude Prompt_
+
 ## Why this guide exists
 
 If you've just landed on [claude.ai](https://claude.ai) and everything looks *almost* like ChatGPT but not quite — the model picker at the top, the weird "Artifacts" panel, the sidebar that says "Projects", the `+` button that offers "Connectors" — this post is for you.
