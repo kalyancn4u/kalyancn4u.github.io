@@ -105,9 +105,11 @@ comments: false
 
 Claude AI's models, features, extensions, prompting patterns, task recipes, design traps, long-document workflows, and prompting myth-busters. Incorporates the official Anthropic prompting docs plus Sander Schulhoff's Prompt Report findings!
 
-> **TL;DR** — Claude.ai is not one thing. It's a model family (Haiku → Sonnet → Opus), a workspace (Projects), a creation canvas (Artifacts), a universe of integrations (Connectors), and a prompting surface that rewards clarity. This post walks a complete beginner through *all of it* — with circumstances, task recipes, myth-busters, and a master prompt you can steal at the end.{: .prompt-tip }
+> **TL;DR** — Claude.ai is not one thing. It's a model family (Haiku → Sonnet → Opus), a workspace (Projects), a creation canvas (Artifacts), a universe of integrations (Connectors), and a prompting surface that rewards clarity. This post walks a complete beginner through *all of it* — with circumstances, task recipes, myth-busters, and a master prompt you can steal at the end.
+{: .prompt-tip }
 
-> **v3 changelog** — Folds in the current Anthropic prompting best-practices doc *and* Sander Schulhoff's Prompt Report (the meta-study of 1,500+ papers covering 200+ techniques). New: advanced techniques (decomposition, self-criticism, ensembling), long-document prompting, prompt-style mirroring, the Opus 4.7 design-default trap, a myth-busters section, and safer autonomy patterns. **Role-playing guidance has been corrected** — it helps with tone, not with factual accuracy.{: .prompt-info }
+> **v3 changelog** — Folds in the current Anthropic prompting best-practices doc *and* Sander Schulhoff's Prompt Report (the meta-study of 1,500+ papers covering 200+ techniques). New: advanced techniques (decomposition, self-criticism, ensembling), long-document prompting, prompt-style mirroring, the Opus 4.7 design-default trap, a myth-busters section, and safer autonomy patterns. **Role-playing guidance has been corrected** — it helps with tone, not with factual accuracy.
+{: .prompt-info }
 
 <div class="msg msg-tip">
 **TL;DR** — Claude.ai is not one thing. It's a model family (Haiku → Sonnet → Opus), a workspace (Projects), a creation canvas (Artifacts), a universe of integrations (Connectors), and a prompting surface that rewards clarity. This post walks a complete beginner through *all of it* — with circumstances, task recipes, myth-busters, and a master prompt you can steal at the end.
