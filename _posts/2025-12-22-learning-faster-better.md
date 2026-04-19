@@ -98,11 +98,9 @@ mermaid: false
 
 ## 🎯 THE GOLDEN RULES OF LEARNING
 
-- <a href="/assets/html/learning_techniques_deepseek.html" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Learning Techniques | DeepSeek</mark></a>
+- <a href="/assets/html/learning_techniques_deepseek.html" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Learning Mastery Techniques</mark></a>
 
-<div class="msg msg-info"><a href="/assets/html/learning_techniques_deepseek.html" target="_blank" rel="noopener noreferrer">Learning Techniques | DeepSeek</a></div>
-
-<div class="msg msg-success"><a href="/assets/html/learning_techniques_deepseek.html" target="_blank" rel="noopener noreferrer">Learning Techniques | DeepSeek</a></div>
+<div class="msg msg-info"><a href="/assets/html/learning_techniques_deepseek.html" target="_blank" rel="noopener noreferrer">Learning Mastery Techniques</a></div>
 
 ### **1. Space It Out! (Spaced Repetition)**
 
