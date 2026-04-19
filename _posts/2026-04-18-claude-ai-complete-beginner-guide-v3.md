@@ -6,7 +6,7 @@ author: technical_notes
 date: 2026-04-18 10:00:00 +0530
 categories: [Guides, Claude AI]
 tags: [Claude, Anthropic, Prompt-engineering, AI-tools, Artifacts, Projects, Guide]
-# image: /assets/img/posts/cybersecurity-101.webp
+image: /assets/img/posts/claude-ai.webp
 pin: false
 toc: true
 math: false
