@@ -16,7 +16,7 @@ comments: false
 
 ## Claude AI Resources
 
-- <a href="[https://bytebytego.com/guides/cybersecurity-101-in-one-picture/](https://sidsaladi.substack.com/p/the-complete-claude-101-guide-master)" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Claude-AI 101: Complete Guide &amp; Practical Use Cases | Substack</mark></a>
+- <a href="https://sidsaladi.substack.com/p/the-complete-claude-101-guide-master" target="_blank" rel="noopener noreferrer"><mark style="background-color: #a7f3d0; border-radius: 4px; padding: 2px 4px; color: #065f46;">Claude-AI 101: Complete Guide &amp; Practical Use Cases | Substack</mark></a>
 
 ## Introduction to Claude-AI
 
