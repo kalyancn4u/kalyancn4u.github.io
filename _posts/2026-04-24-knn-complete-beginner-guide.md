@@ -3,7 +3,7 @@ layout: post
 title: "🧭 K-Nearest Neighbors (KNN): The Complete Beginner's Guide"
 description: ""
 author: technical_notes
-date: 2026-04-24 12:00:00 +0000
+date: 2026-04-24 00:00:00 +0000
 categories: [Guides, KNN]
 categories: [Machine Learning, Algorithms, KNN, Supervised Learning, Data Science, Guide]
 # image: /assets/img/posts/knn.webp
