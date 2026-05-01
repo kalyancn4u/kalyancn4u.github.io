@@ -28,6 +28,8 @@ comments: false
 9. [Best Practices](#best-practices)
 10. [Practical Applications](#practical-applications)
 11. [Terminology Tables](#terminology-tables)
+12. [References](#references)
+13. [Conclusion](#conclusion)
 
 ---
 
