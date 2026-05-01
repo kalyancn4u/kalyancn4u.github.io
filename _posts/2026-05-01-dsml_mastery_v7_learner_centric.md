@@ -7,7 +7,7 @@ author: technical_notes
 date: 2026-05-01 00:00:00 +0530
 categories: [Guides, DSML]
 tags: [DSML, Education, Learning Path, Beginner-Friendly, Machine Learning, Career Guide, Study Plan, Resources]
-image: /assets/img/posts/databases-101.webp
+image: /assets/img/posts/data-science-guide.webp
 toc: true
 math: false
 mermaid: false
@@ -74,7 +74,7 @@ pin: false
 
 ---
 
-# Section 1: Find Your Starting Point
+# Section 1: Find Your Starting Point {#section-1-find-your-starting-point}
 
 ## 🤔 Self-Assessment Quiz
 
@@ -188,7 +188,7 @@ Based on your level, here's what to do **RIGHT NOW**:
 
 ---
 
-# Section 2: Choose Your Destination
+# Section 2: Choose Your Destination {#section-2-choose-your-destination}
 
 ## 🎯 Career Paths in DSML (2026)
 
@@ -428,7 +428,7 @@ Do you enjoy coding more than math?
 
 ---
 
-# Section 3: Understand the Landscape
+# Section 3: Understand the Landscape {#section-3-understand-the-landscape}
 
 ## 🗺️ The DSML Knowledge Map (Simplified)
 
@@ -682,7 +682,7 @@ Do you have labeled data (correct answers)?
 
 ---
 
-# Section 4: Your Customized Learning Roadmaps
+# Section 4: Your Customized Learning Roadmaps {#section-4-your-customized-learning-roadmaps}
 
 **Each roadmap shows:**
 - ⏱️ **Time estimate** (realistic, for 10-15 hrs/week)
@@ -692,7 +692,7 @@ Do you have labeled data (correct answers)?
 
 ---
 
-## Roadmap 1: Data Analyst Journey
+## Roadmap 1: Data Analyst Journey {#roadmap-1-data-analyst-journey}
 
 **Total Time:** 4-9 months | **Hours/Week:** 10-15 | **Difficulty:** 🟢 Beginner-friendly
 
@@ -852,7 +852,7 @@ You're ready for Data Analyst jobs when you can:
 
 ---
 
-## Roadmap 2: ML Engineer Journey
+## Roadmap 2: ML Engineer Journey {#roadmap-2-ml-engineer-journey}
 
 **Total Time:** 12-18 months | **Hours/Week:** 15-20 | **Difficulty:** 🟡-🟠 Intermediate-Advanced
 
@@ -1051,7 +1051,7 @@ You're ready for ML Engineer jobs when you can:
 
 ---
 
-## Roadmap 3: Data Scientist Journey
+## Roadmap 3: Data Scientist Journey {#roadmap-3-data-scientist-journey}
 
 **Total Time:** 18-24 months | **Hours/Week:** 15-25 | **Difficulty:** 🔴 Advanced
 
@@ -1222,7 +1222,7 @@ You're ready for Data Scientist jobs when you can:
 
 ---
 
-## Roadmap 4: NLP/LLM Engineer Journey
+## Roadmap 4: NLP/LLM Engineer Journey {#roadmap-4-nlp-llm-engineer-journey}
 
 **Total Time:** 12-18 months | **Hours/Week:** 15-20 | **Difficulty:** 🟡-🟠
 
@@ -1384,7 +1384,7 @@ You're ready for NLP Engineer jobs when you can:
 
 ---
 
-## Roadmap 5: Computer Vision Journey
+## Roadmap 5: Computer Vision Journey {#roadmap-5-computer-vision-journey}
 
 **Total Time:** 12-18 months | **Hours/Week:** 15-20 | **Difficulty:** 🟡-🟠
 
@@ -1461,7 +1461,7 @@ Portfolio: 5-6 CV projects including deployed application
 
 ---
 
-## Roadmap 6: MLOps Journey
+## Roadmap 6: MLOps Journey {#roadmap-6-mlops-journey}
 
 **Total Time:** 12-16 months | **Hours/Week:** 15-20 | **Difficulty:** 🟡-🟠
 
@@ -1566,7 +1566,7 @@ You're ready for MLOps Engineer jobs when you can:
 
 ---
 
-# Section 5: The Complete Resource Library
+# Section 5: The Complete Resource Library {#section-5-the-complete-resource-library}
 
 ## 📚 Resource Types Explained
 
@@ -2129,7 +2129,7 @@ RESOURCE TYPES
 
 ---
 
-# Section 6: Academic Foundation (For Serious Learners)
+# Section 6: Academic Foundation (For Serious Learners) {#section-6-academic-foundation-for-serious-learners}
 
 **This section is for those who want PhD-level understanding or plan to do research.**
 
@@ -2292,7 +2292,7 @@ RESOURCE TYPES
 
 ---
 
-# Section 7: Topic Encyclopedia (Complete DSML Taxonomy)
+# Section 7: Topic Encyclopedia (Complete DSML Taxonomy) {#section-7-topic-encyclopedia-complete-dsml-taxonomy}
 
 **This section contains detailed information on all 370 DSML topics.**
 
@@ -2458,7 +2458,7 @@ Predicting multiple categories at once. A movie can be both "action" AND "comedy
 
 ---
 
-# Section 8: Quick Reference & Cheat Sheets
+# Section 8: Quick Reference & Cheat Sheets {#section-8-quick-reference-cheat-sheets}
 
 ## 🎯 Common Scenarios & Solutions
 
