@@ -30,7 +30,7 @@ This comprehensive research document examines the evolution of data visualizatio
 - [Methodology](#methodology)
 - [Classical vs. Modern Visualizations](#classical-vs-modern-visualizations)
 - [Implementation Guide](#implementation-guide)
-- [Recommendations](#recommendations)
+- [Recommendations](#recommendations-by-use-case)
 - [Conclusion](#conclusion)
 
 ---
