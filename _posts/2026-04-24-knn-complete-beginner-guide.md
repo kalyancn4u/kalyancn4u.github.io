@@ -6,7 +6,7 @@ author: technical_notes
 date: 2026-04-24 00:00:00 +0000
 categories: [Guides, KNN]
 categories: [Machine Learning, Algorithms, KNN, Supervised Learning, Data Science, Guide]
-# image: /assets/img/posts/knn.webp
+image: /assets/img/posts/knn-classification-regression.webp
 pin: false
 toc: true
 math: true
