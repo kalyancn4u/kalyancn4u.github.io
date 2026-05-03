@@ -871,8 +871,8 @@ Extra Wide (64px+) → Between major page areas
   - Drop down vertically on left side
   - Scan horizontally again (shorter)
   - Results in an "F" shape heat map
-- **Z-Pattern:** Used for sparse content (landing pages, ads)
 
+- **Z-Pattern:** Used for sparse content (landing pages, ads)
   - Top-left → Top-right
   - Diagonal to bottom-left
   - Bottom-left → Bottom-right
@@ -4099,7 +4099,6 @@ Start with Tailwind CSS Plus to understand utility-first approaches, then compar
 - **IBM Carbon** - Enterprise design system with extensive code examples
 
 #### Tools & Communities
-
 - **Figma Community** - Thousands of design system files to study
 - **Design Systems Slack** - Active community of practitioners
 - **Storybook** - Component documentation and testing
@@ -4112,37 +4111,36 @@ Start with Tailwind CSS Plus to understand utility-first approaches, then compar
 ### Key Takeaways
 
 1. **Psychology First**
-
    - Gestalt principles explain why designs feel intuitive
    - Cognitive load theory guides hierarchy decisions
    - 50ms first impressions matter—make them count
-2. **Design Tokens Are Foundation**
 
+2. **Design Tokens Are Foundation**
    - Three-tier system (global → semantic → component)
    - Single source of truth for all design decisions
    - Enable theming, consistency, and scale
-3. **Visual Hierarchy Is Science**
 
+3. **Visual Hierarchy Is Science**
    - Eight principles: Size, Color, Whitespace, Typography, Position, Depth, Alignment, Repetition
    - Material Design elevation system adds dimension
    - F/Z patterns guide natural eye movement
-4. **Atomic Design Provides Structure**
 
+4. **Atomic Design Provides Structure**
    - Atoms → Molecules → Organisms → Templates → Pages
    - Traverse between abstract and concrete
    - Focus on composition over categorization
-5. **Accessibility Is Non-Negotiable**
 
+5. **Accessibility Is Non-Negotiable**
    - WCAG AA minimum: 4.5:1 text, 3:1 UI components
    - Keyboard navigation mandatory
    - Screen readers need semantic HTML + ARIA
-6. **Documentation Enables Scale**
 
+6. **Documentation Enables Scale**
    - Every component needs "when to use" guidance
    - Code examples reduce implementation time
    - Accessibility standards baked in from start
-7. **Governance Maintains Quality**
 
+7. **Governance Maintains Quality**
    - RFC process prevents duplication
    - Code review ensures standards
    - Semantic versioning communicates changes
@@ -4150,33 +4148,28 @@ Start with Tailwind CSS Plus to understand utility-first approaches, then compar
 ### Your Next Steps
 
 **Week 1: Study Existing Systems**
-
 - Analyze Material Design, Apple HIG, Shopify Polaris
 - Identify their token systems, component hierarchies
 - Notice how they apply Gestalt principles
 
 **Week 2: Audit a Real Product**
-
 - Pick any website (GitHub, Airbnb, Stripe)
 - Extract their design tokens (colors, spacing, typography)
 - Identify inconsistencies and missing patterns
 
 **Week 3: Build a Mini System**
-
 - Create 5 atoms (Button, Input, Label, Avatar, Badge)
 - Combine into 3 molecules (FormField, UserCard, SearchBar)
 - Build 1 organism (Header with navigation)
 - Define 20 design tokens to support them
 
 **Week 4: Implement in Code**
-
 - Convert your Figma components to React/Vue
 - Use CSS custom properties for tokens
 - Add Storybook for documentation
 - Write accessibility tests
 
 **Month 2: Scale Up**
-
 - Add more components as you need them
 - Extract patterns after 3rd use (Rule of Three)
 - Document everything
@@ -4185,21 +4178,18 @@ Start with Tailwind CSS Plus to understand utility-first approaches, then compar
 ### Resources for Continued Learning
 
 **Books:**
-
 - *Atomic Design* by Brad Frost
 - *Refactoring UI* by Adam Wathan & Steve Schoger
 - *The Design of Everyday Things* by Don Norman
 
 **Online:**
-
 - [Material Design Guidelines](https://m3.material.io/)
 - [Apple Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines/)
 - [Shopify Polaris](https://polaris.shopify.com/)
-- [Brad Frost&#39;s Blog](https://bradfrost.com/)
+- [Brad Frost's Blog](https://bradfrost.com/)
 - [Nielsen Norman Group Articles](https://www.nngroup.com/articles/)
 
 **Tools:**
-
 - **Design:** Figma, Sketch
 - **Development:** React, Vue, Svelte
 - **Documentation:** Storybook, Docusaurus
@@ -4395,14 +4385,172 @@ Start with Tailwind CSS Plus to understand utility-first approaches, then compar
 
 ---
 
-**Author:** TechHub Engineering Team
-**Version:** 2.0.0
-**Last Updated:** May 2, 2024
-**License:** MIT
+## Further Reading & Resources
+
+Now that you've built a solid foundation in design systems, these curated resources will help you deepen your expertise and stay current with industry best practices.
+
+### Essential Design System Foundations
+
+#### 📚 [DesignSystems.com](https://www.designsystems.com/)
+**By Figma**  
+A comprehensive publication covering the full spectrum of design systems work—from foundational principles to operational governance. Features in-depth articles on design-developer collaboration, component architecture, and real-world case studies from companies like Spotify and Credit Karma. Essential reading for understanding how industry-leading teams structure and maintain their systems at scale.
+
+**What you'll learn:** Cross-functional collaboration patterns, scaling strategies, governance frameworks, and community-driven approaches to system building.
+
+**Recommended after:** Completing Parts 1-4 of this guide (Psychology, Visual Hierarchy, Design Tokens, Atomic Design).
+
+---
+
+### Design Foundation Guides (Study These in Order)
+
+These specialized guides from DesignSystems.com dive deep into the core building blocks. Follow this recommended learning path:
+
+#### 1️⃣ [Space, Grids, and Layouts](https://www.designsystems.com/space-grids-and-layouts/)
+**Start here:** Foundation of spatial systems
+
+Master the principles behind spacing scales, grid systems (8pt, 12-column), and responsive layout patterns. This guide explains how to establish baseline grids that create visual rhythm and how column grids enable consistent layouts across breakpoints—the spatial foundation everything else builds upon.
+
+**Core concepts covered:**
+- 8-point spacing systems (connects to Part 3.3 of this guide)
+- 12-column grid architecture (connects to Part 2.1, Principle 7: Alignment)
+- Responsive layout strategies
+- Container queries and breakpoint management
+
+**Apply immediately to:** Setting up your design token spacing scale and establishing grid systems for your first component library.
+
+---
+
+#### 2️⃣ [Color Guides](https://www.designsystems.com/color-guides/)
+**Second priority:** Color system architecture
+
+Learn how to build accessible color palettes that scale from brand colors to semantic tokens. This guide covers color generation methodologies (tints/shades), semantic naming conventions, and ensuring WCAG compliance across your entire palette—not just testing colors one-by-one.
+
+**Deep dives into:**
+- Building accessible color scales (connects to Part 6.1: WCAG Standards)
+- Semantic color naming (connects to Part 3.2: Token Tier System)
+- ColorBox and other palette generation tools
+- Platform-specific color formats (iOS, Android, Web)
+
+**Key resource:** [Lyft's Re-Approaching Color](https://design.lyft.com/re-approaching-color-9e604ba22c88) methodology for building accessible palettes at scale.
+
+**Apply immediately to:** Expanding your design token color palette beyond basic brand colors to include comprehensive semantic and component-specific tokens.
+
+---
+
+#### 3️⃣ [Typography Guides](https://www.designsystems.com/typography-guides/)
+**Third step:** Type system architecture
+
+Comprehensive guidance on selecting typefaces, defining modular scales, establishing line heights and letter spacing, and creating responsive typography that adapts across devices. Goes beyond basic font choices to cover performance (web font loading), licensing, and fallback stacks.
+
+**Key topics:**
+- Modular typographic scales (connects to Part 2.1, Principle 1: Size & Scale)
+- Line height and vertical rhythm (connects to Part 2.1, Principle 4)
+- Responsive typography with `clamp()` functions
+- Web font performance optimization
+
+**Apply immediately to:** Refining your typographic scale and establishing comprehensive type tokens that account for different contexts (marketing vs. product, mobile vs. desktop).
+
+---
+
+#### 4️⃣ [Iconography Guide](https://www.designsystems.com/iconography-guide/)
+**Fourth priority:** Icon system structure
+
+A complete framework for creating, organizing, naming, and using icons within design systems. Covers technical requirements (SVG optimization, accessibility, sizing), organizational strategies (categorization, naming conventions), and implementation patterns (icon components, dynamic coloring).
+
+**Essential for:**
+- SVG optimization and accessibility
+- Icon naming conventions at scale (500+ icons)
+- Implementation as React/Vue components
+- Semantic vs. decorative icon usage (connects to Part 6.3: ARIA)
+
+**Apply immediately to:** Building your first icon library with proper component wrappers, accessibility attributes (`aria-hidden`, `aria-label`), and consistent sizing tokens.
+
+---
+
+#### 5️⃣ [Content Strategy in Design Systems](https://www.designsystems.com/guide-to-content-strategy-in-design-systems/)
+**Advanced topic:** Voice, tone, and microcopy
+
+Often overlooked but critical: how to establish consistent voice, tone, and microcopy across components. Covers writing guidelines for button labels, error messages, empty states, and helper text—ensuring your system communicates as consistently as it looks.
+
+**Covers:**
+- Voice and tone guidelines
+- Component microcopy patterns (buttons, forms, notifications)
+- Error message frameworks
+- Internationalization (i18n) considerations
+
+**Apply immediately to:** Documenting content patterns in your component library (e.g., "Use 'Sign In' not 'Login', use sentence case not title case").
+
+---
+
+### Advanced Implementation Resources
+
+#### 🎨 [Tailwind CSS Plus](https://tailwindcss.com/plus)
+**Utility-first design system approach**
+
+While this guide teaches you to build systems from first principles, Tailwind represents an alternative philosophy: utility-first CSS. Studying Tailwind's architecture teaches you how constraint-based systems work, how to design with composition over inheritance, and how modern build tools enable this approach.
+
+**Why study this:**
+- Constraint-based design (limited color/spacing options increase consistency)
+- Utility class composition patterns
+- JIT (Just-In-Time) compilation strategies
+- Design token → CSS custom property → utility class pipeline
+
+**Best for:** Understanding how opinionated frameworks enforce consistency and exploring whether a utility-first approach fits your team's workflow.
+
+**When to explore:** After building your first token-based system and wanting to compare different architectural approaches.
+
+---
+
+### How to Use These Resources Strategically
+
+**Beginner Path (Weeks 1-4):**
+1. Complete Parts 1-5 of this guide (Psychology through TechHub Platform)
+2. Read Space, Grids, and Layouts guide → Implement 8pt spacing system
+3. Read Color guide → Expand to full semantic color palette
+4. Build 5 components using these foundations
+
+**Intermediate Path (Months 2-3):**
+1. Read Typography guide → Refine type scale
+2. Read Iconography guide → Build icon component library  
+3. Explore DesignSystems.com articles on governance and collaboration
+4. Implement contribution process from Part 7.2
+
+**Advanced Path (Ongoing):**
+1. Read Content Strategy guide → Document voice and tone
+2. Study Tailwind Plus for alternative architectural patterns
+3. Follow DesignSystems.com for new articles (Schema conference talks)
+4. Contribute back to community (write about your learnings)
+
+---
+
+### Staying Current
+
+**Subscribe to:**
+- [DesignSystems.com Newsletter](https://www.designsystems.com/) – Curated articles and conference talks
+- [Figma Design Systems Community](https://www.figma.com/community/design-systems) – Open source system files to study
+
+**Annual Events:**
+- **Schema by Figma** – Design systems conference with talks archived on DesignSystems.com
+- **Clarity Conference** – Design systems focused event
+
+**Weekly Reading:**
+- Browse new submissions on DesignSystems.com (updated regularly)
+- Study component implementations from open-source systems (Material, Polaris, Carbon)
+
+---
+
+**Remember:** The best design system is the one your team actually uses. Start small, document everything, and iterate based on real usage patterns. These resources provide the deep expertise you'll grow into—not everything at once.
+
+---
+
+**Author:** TechHub Engineering Team  
+**Version:** 2.0.0  
+**Last Updated:** May 2, 2026
+**License:** MIT  
 **Contributors:** Design Systems Working Group
 
 ---
 
 _This comprehensive guide is part of the TechHub Engineering Blog series. For more technical deep-dives, visit [techhub.dev/blog](https://techhub.dev/blog)._
 
-_Special thanks to Brad Frost (Atomic Design), the Gestalt psychologists, Nielsen Norman Group, and the W3C Accessibility Guidelines working group for the foundational research that makes this guide possible._
+_Special thanks to Brad Frost (Atomic Design), the Gestalt psychologists, Nielsen Norman Group, the W3C Accessibility Guidelines working group, and the Figma DesignSystems.com team for the foundational research that makes this guide possible._
