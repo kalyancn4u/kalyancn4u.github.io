@@ -21,7 +21,7 @@ image: /assets/img/posts/visual-hierarchy-design-system.webp
 ## Introduction: The Science Behind Beautiful Interfaces
 
 ![Visual Designer Skills](/assets/img/posts/visual-designer-skills.webp){: width="800" height="450" }
-_Visual Designer Skills Illustrated!_
+_[Visual Designer Skills Illustrated!](https://www.adaface.com/blog/skills-required-for-visual-designer/)_
 
 You've seen it happen: you land on a website and within a fraction of a second—before you've consciously read a single word—your brain has already judged it. Beautiful or ugly. Trustworthy or sketchy. Professional or amateur.
 
