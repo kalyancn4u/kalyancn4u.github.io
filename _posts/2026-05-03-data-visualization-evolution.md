@@ -2,7 +2,7 @@
 layout: post
 title: "🧭 Data Visualization Guide: Traditional Plots and Their Modern Alternatives"
 description: "The Evolution of Data Visualization - Traditional Plots and Their Modern Alternatives!"
-date: 2026-04-30 10:00:00 +0530
+date: 2026-05-03 10:00:00 +0530
 author: technical_notes
 categories: [Guides, DataViz]
 tags: [DataViz, Visualization, DSML, Python, matplotlib, seaborn, plotly]
