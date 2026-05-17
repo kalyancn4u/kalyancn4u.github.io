@@ -2,7 +2,7 @@
 layout: post
 title: "🧭 Design Systems Demystified: The Complete Technical Guide [v2.0]"
 description: "The definitive technical guide to design systems for rookie engineers. Master design tokens, Gestalt principles, Atomic Design methodology, visual hierarchy, accessibility standards, and build production-ready component libraries from first principles."
-date: 2024-05-02 10:30:00 +0530
+date: 2026-05-02 10:30:00 +0530
 author: technical_notes
 categories: [Guides, UI-UX]
 tags: [Frontend, Design System, Visual Hierarchy, UI-UX, Design-tokens, Component-library, CSS-variables, Atomic-design, Gestalt-principles, Visual-hierarchy, Accessibility, WCAG, Material-design]
@@ -543,60 +543,6 @@ These principles, collectively called **Gestalt psychology** ("Gestalt" means "u
 <!-- User's brain: "I immediately see: main heading, welcome, alert, section, items" -->
 ```
 
-
----
-<div>
-<style>
-/* Symmetrical login - signals stability and focus */
-.login-container {
-  display: flex;
-  justify-content: center;  /* Centered horizontally */
-  align-items: center;      /* Centered vertically */
-  min-height: 100vh;
-  /* Perfect symmetry = calm, focused experience */
-}
-
-/* Asymmetric dashboard - signals information density */
-.dashboard-layout {
-  display: grid;
-  grid-template-columns: 250px 1fr;  /* Sidebar + main content */
-  /* Asymmetry = active, information-rich */
-}
-</style>
-<!-- HIGH EXTRANEOUS LOAD: No hierarchy -->
-<div>
-  <span>Welcome to TechHub</span>
-  <span>Dashboard</span>
-  <span>You have 3 new notifications</span>
-  <span>Recent Activity</span>
-  <span>Project Alpha updated 2 hours ago</span>
-  <span>Sarah Chen commented on your post</span>
-</div>
-  <!-- User's brain: "I have to read everything to understand what's important" -->
-  <!-- LOW EXTRANEOUS LOAD: Clear hierarchy -->
-  <div class="dashboard">
-    
-    <!-- Level 1: Primary - Scanned first -->
-    <h1 class="page-title">Dashboard</h1>
-    
-    <!-- Level 2: Secondary - Scanned second -->
-    <p class="welcome-message">Welcome to TechHub</p>
-    
-    <!-- Level 3: Alert - Draws attention -->
-    <div class="notification-badge">3 new notifications</div>
-    
-    <!-- Level 4: Section header -->
-    <h2 class="section-title">Recent Activity</h2>
-    
-    <!-- Level 5: Content items -->
-    <ul class="activity-list">
-      <li>Project Alpha updated 2 hours ago</li>
-      <li>Sarah Chen commented on your post</li>
-    </ul>
-    
-  </div>
-  <!-- User's brain: "I immediately see: main heading, welcome, alert, section, items" -->
-</div>
 ---
 
 **The 50-Millisecond Rule:**
