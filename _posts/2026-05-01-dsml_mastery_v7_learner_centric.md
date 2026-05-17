@@ -11,7 +11,7 @@ image: /assets/img/posts/data-science-guide.webp
 toc: true
 math: false
 mermaid: false
-pin: false
+pin: true
 ---
 
 # 🎯 Welcome to Your DSML Journey!
