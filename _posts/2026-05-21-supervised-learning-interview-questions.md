@@ -25,7 +25,7 @@ mermaid: true
 
 #### Q1. What is Supervised Learning?
 
-<details>
+<details markdown="1">
   <summary>Answer</summary>
   <p>
     Supervised learning is a machine learning paradigm where algorithms learn from labeled training data to make predictions or decisions. The "supervision" comes from providing the correct answers (labels) during training. The model learns a function that maps inputs to outputs: f(X) = y. Common applications include spam detection, image classification, price prediction, and medical diagnosis.
