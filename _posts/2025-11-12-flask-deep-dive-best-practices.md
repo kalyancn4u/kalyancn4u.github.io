@@ -31,6 +31,7 @@ mermaid: true
 16. [Best Practices](#best-practices)
 17. [Common Pitfalls](#common-pitfalls)
 18. [Jargon Tables](#jargon-tables)
+19. [Complete Example Application](#complete-example-application)
 
 ---
 
@@ -585,7 +586,7 @@ def create_app():
 
 ```python
 # app/models.py
-from app import db
+from app import db, login_manager
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -604,247 +605,6 @@ class User(db.Model):
     posts = db.relationship('Post', backref='author', lazy='dynamic', cascade='all, delete-orphan')
     
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-    
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'username': self.username,
-            'email': self.email,
-            'created_at': self.created_at.isoformat()
-        }
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-class Post(db.Model):
-    __tablename__ = 'posts'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    body = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'title': self.title,
-            'body': self.body,
-            'created_at': self.created_at.isoformat(),
-            'author': self.author.username
-        }
-
-# app/auth/routes.py
-from flask import render_template, redirect, url_for, flash, request
-from flask_login import login_user, logout_user, login_required
-from app.auth import auth_bp
-from app.models import User
-from app import db
-
-@auth_bp.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        
-        if User.query.filter_by(email=email).first():
-            flash('Email already registered', 'error')
-            return redirect(url_for('auth.register'))
-        
-        user = User(username=username, email=email)
-        user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
-        
-        flash('Registration successful!', 'success')
-        return redirect(url_for('auth.login'))
-    
-    return render_template('auth/register.html')
-
-@auth_bp.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
-        
-        user = User.query.filter_by(email=email).first()
-        
-        if user and user.check_password(password):
-            login_user(user, remember=True)
-            next_page = request.args.get('next')
-            return redirect(next_page or url_for('main.index'))
-        
-        flash('Invalid email or password', 'error')
-    
-    return render_template('auth/login.html')
-
-@auth_bp.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    flash('Logged out successfully', 'success')
-    return redirect(url_for('main.index'))
-
-# app/main/routes.py
-from flask import render_template, request
-from flask_login import login_required, current_user
-from app.main import main_bp
-from app.models import Post
-
-@main_bp.route('/')
-def index():
-    page = request.args.get('page', 1, type=int)
-    posts = Post.query.order_by(Post.created_at.desc()).paginate(
-        page=page, per_page=10, error_out=False
-    )
-    return render_template('index.html', posts=posts)
-
-@main_bp.route('/dashboard')
-@login_required
-def dashboard():
-    return render_template('dashboard.html', user=current_user)
-
-# app/api/routes.py
-from flask import jsonify, request
-from flask_login import login_required, current_user
-from app.api import api_bp
-from app.models import User, Post
-from app import db
-
-@api_bp.route('/users', methods=['GET'])
-def get_users():
-    users = User.query.all()
-    return jsonify([user.to_dict() for user in users])
-
-@api_bp.route('/posts', methods=['GET'])
-def get_posts():
-    posts = Post.query.order_by(Post.created_at.desc()).all()
-    return jsonify([post.to_dict() for post in posts])
-
-@api_bp.route('/posts', methods=['POST'])
-@login_required
-def create_post():
-    data = request.get_json()
-    
-    if not data or not data.get('title') or not data.get('body'):
-        return jsonify({'error': 'Missing required fields'}), 400
-    
-    post = Post(
-        title=data['title'],
-        body=data['body'],
-        user_id=current_user.id
-    )
-    
-    db.session.add(post)
-    db.session.commit()
-    
-    return jsonify(post.to_dict()), 201
-
-# run.py
-import os
-from app import create_app, db
-from app.models import User, Post
-
-config_name = os.getenv('FLASK_CONFIG', 'development')
-app = create_app(config_name)
-
-@app.shell_context_processor
-def make_shell_context():
-    return {'db': db, 'User': User, 'Post': Post}
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
-```
-
----
-
-## References
-
-<div style="line-height: 1.8;">
-1. <a href="https://flask.palletsprojects.com/" target="_blank">Flask Official Documentation</a>
-<br>
-2. <a href="https://flask.palletsprojects.com/en/stable/tutorial/" target="_blank">Flask Tutorial - Official</a>
-<br>
-3. <a href="https://flask.palletsprojects.com/en/stable/patterns/" target="_blank">Flask Patterns for Large Applications</a>
-<br>
-4. <a href="https://flask.palletsprojects.com/en/stable/blueprints/" target="_blank">Modular Applications with Blueprints</a>
-<br>
-5. <a href="https://flask.palletsprojects.com/en/stable/config/" target="_blank">Configuration Handling</a>
-<br>
-6. <a href="https://flask-sqlalchemy.palletsprojects.com/" target="_blank">Flask-SQLAlchemy Documentation</a>
-<br>
-7. <a href="https://flask-migrate.readthedocs.io/" target="_blank">Flask-Migrate Documentation</a>
-<br>
-8. <a href="https://flask-login.readthedocs.io/" target="_blank">Flask-Login Documentation</a>
-<br>
-9. <a href="https://flask-wtf.readthedocs.io/" target="_blank">Flask-WTF Documentation</a>
-<br>
-10. <a href="https://flask-restful.readthedocs.io/" target="_blank">Flask-RESTful Documentation</a>
-<br>
-11. <a href="https://flask-cors.readthedocs.io/" target="_blank">Flask-CORS Documentation</a>
-<br>
-12. <a href="https://werkzeug.palletsprojects.com/" target="_blank">Werkzeug Documentation</a>
-<br>
-13. <a href="https://jinja.palletsprojects.com/" target="_blank">Jinja2 Template Documentation</a>
-<br>
-14. <a href="https://flask.palletsprojects.com/en/stable/deploying/" target="_blank">Deployment Options - Flask</a>
-<br>
-15. <a href="https://docs.gunicorn.org/" target="_blank">Gunicorn Documentation</a>
-<br>
-16. <a href="https://flask.palletsprojects.com/en/stable/testing/" target="_blank">Testing Flask Applications</a>
-<br>
-17. <a href="https://flask.palletsprojects.com/en/stable/security/" target="_blank">Security Considerations</a>
-<br>
-18. <a href="https://flask.palletsprojects.com/en/stable/errorhandling/" target="_blank">Application Errors</a>
-<br>
-19. <a href="https://flask.palletsprojects.com/en/stable/logging/" target="_blank">Logging in Flask</a>
-<br>
-20. <a href="https://flask-caching.readthedocs.io/" target="_blank">Flask-Caching Documentation</a>
-<br>
-21. <a href="https://docs.celeryproject.org/" target="_blank">Celery Documentation</a>
-<br>
-22. <a href="https://pyjwt.readthedocs.io/" target="_blank">PyJWT Documentation</a>
-<br>
-23. <a href="https://flask.palletsprojects.com/en/stable/api/" target="_blank">Flask API Reference</a>
-<br>
-24. <a href="https://www.fullstackpython.com/flask.html" target="_blank">Full Stack Python - Flask</a>
-<br>
-25. <a href="https://realpython.com/tutorials/flask/" target="_blank">Real Python - Flask Tutorials</a>
-<br>
-</div>
-
----
-
-## Conclusion
-
-Flask is a powerful and flexible web framework that provides the foundation for building everything from simple websites to complex web applications and RESTful APIs. Its minimalist design philosophy gives developers the freedom to choose their tools while providing essential functionality out of the box.
-
-### Key Takeaways
-
-1. **Start Simple**: Flask's micro-framework nature makes it perfect for beginners and prototyping
-2. **Scale Thoughtfully**: Use application factory and blueprints for larger applications
-3. **Security First**: Always implement CSRF protection, secure passwords, and validate input
-4. **Test Everything**: Write comprehensive tests for models, routes, and APIs
-5. **Monitor Performance**: Use caching, optimize queries, and implement proper logging
-6. **Deploy Carefully**: Use production-grade WSGI servers and proper configuration
-
-### Next Steps
-
-- **Practice**: Build small projects to understand core concepts
-- **Read Documentation**: Flask's documentation is excellent and comprehensive
-- **Study Extensions**: Learn popular Flask extensions for common tasks
-- **Join Community**: Engage with Flask community on GitHub, Stack Overflow, and Discord
-- **Build Real Projects**: Apply knowledge to real-world applications
-
-Flask empowers developers to build web applications their way, making it an invaluable tool in any Python developer's toolkit.
-
-</div>self, password):
         """Hash and set password"""
         self.password_hash = generate_password_hash(password)
     
@@ -864,6 +624,10 @@ Flask empowers developers to build web applications their way, making it an inva
     
     def __repr__(self):
         return f'<User {self.username}>'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 class Post(db.Model):
     """Blog post model"""
@@ -899,6 +663,7 @@ class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
 ```
+
 
 ### Database Migrations with Flask-Migrate
 
@@ -1434,7 +1199,6 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Development only
 
 ### Basic REST API
 
-{% raw %}
 ```python
 from flask import jsonify, request, abort
 
@@ -1496,11 +1260,9 @@ def delete_user(user_id):
     db.session.commit()
     return '', 204
 ```
-{% endraw %}
 
 ### RESTful API Structure
 
-{% raw %}
 ```python
 # app/api/resources.py
 from flask import request, jsonify
@@ -1579,11 +1341,9 @@ app.add_url_rule('/api/users', view_func=user_view, methods=['POST'])
 app.add_url_rule('/api/users/<int:user_id>', view_func=user_view,
                  methods=['GET', 'PUT', 'DELETE'])
 ```
-{% endraw %}
 
 ### Flask-RESTful Extension
 
-{% raw %}
 ```python
 # Install
 pip install flask-restful
@@ -1634,11 +1394,9 @@ class UserListResource(Resource):
 api.add_resource(UserListResource, '/api/users')
 api.add_resource(UserResource, '/api/users/<int:user_id>')
 ```
-{% endraw %}
 
 ### API Versioning
 
-{% raw %}
 ```python
 # URL versioning
 @app.route('/api/v1/users')
@@ -1657,11 +1415,9 @@ def api_users():
         return jsonify({'version': 'v2', 'users': []})
     return jsonify({'version': 'v1', 'users': []})
 ```
-{% endraw %}
 
 ### CORS (Cross-Origin Resource Sharing)
 
-{% raw %}
 ```python
 # Install
 pip install flask-cors
@@ -1692,7 +1448,6 @@ CORS(app, resources={
     }
 })
 ```
-{% endraw %}
 
 ---
 
@@ -1702,7 +1457,6 @@ CORS(app, resources={
 
 Flask-Login manages user sessions.
 
-{% raw %}
 ```python
 # Install
 pip install flask-login
@@ -1743,11 +1497,9 @@ class User(UserMixin, db.Model):
         """Check if user is anonymous"""
         return False
 ```
-{% endraw %}
 
 ### Login/Logout
 
-{% raw %}
 ```python
 from flask import flash, redirect, url_for
 from flask_login import login_user, logout_user, login_required
@@ -1780,16 +1532,18 @@ def logout():
     return redirect(url_for('index'))
 
 # Protected route
+# @main_bp.route('/dashboard')
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return f'Welcome, {current_user.username}!'
+    # return f'Welcome, {current_user.username}!'
+    return render_template('dashboard.html', user=current_user)
+
 ```
-{% endraw %}
 
 ### Role-Based Access Control
 
-{% raw %}
 ```python
 from functools import wraps
 from flask import abort
@@ -1831,11 +1585,9 @@ def role_required(role_name):
 def admin_panel():
     return 'Admin Panel'
 ```
-{% endraw %}
 
 ### JWT Authentication (API)
 
-{% raw %}
 ```python
 # Install
 pip install pyjwt
@@ -1909,7 +1661,6 @@ def api_login():
     
     return jsonify({'error': 'Invalid credentials'}), 401
 ```
-{% endraw %}
 
 ---
 
@@ -1917,7 +1668,6 @@ def api_login():
 
 ### Secret Key Management
 
-{% raw %}
 ```python
 # Generate strong secret key
 import secrets
@@ -1930,11 +1680,9 @@ SECRET_KEY=your-generated-secret-key
 # Never hardcode in source code
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 ```
-{% endraw %}
 
 ### Password Hashing
 
-{% raw %}
 ```python
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -1949,7 +1697,6 @@ class User(db.Model):
         """Verify password"""
         return check_password_hash(self.password_hash, password)
 ```
-{% endraw %}
 
 ### CSRF Protection
 
@@ -1990,7 +1737,6 @@ def webhook():
 
 ### Security Headers
 
-{% raw %}
 ```python
 @app.after_request
 def set_security_headers(response):
@@ -2012,7 +1758,6 @@ def set_security_headers(response):
     
     return response
 ```
-{% endraw %}
 
 ### SQL Injection Prevention
 
@@ -2798,7 +2543,7 @@ from wtforms import Form, StringField, validators
 class RegistrationForm(Form):
     username = StringField('Username', [
         validators.Length(min=4, max=25),
-        validators.Regexp('^[a-zA-Z0-9_]+)
+        validators.Regexp('^[a-zA-Z0-9_]+$')
     ])
     email = StringField('Email', [
         validators.Email(),
@@ -3128,6 +2873,7 @@ def posts():
 
 **Solution**: Enable CSRF protection.
 
+{% raw %}
 ```python
 from flask_wtf.csrf import CSRFProtect
 
@@ -3136,6 +2882,7 @@ csrf = CSRFProtect(app)
 # In forms
 {{ form.hidden_tag() }}
 ```
+{% endraw %}
 
 ### 9. Not Setting Up Proper Logging
 
@@ -3986,10 +3733,18 @@ from app.api import routes
 ### 10. API Routes (`app/api/routes.py`)
 
 ```python
+# app/api/routes.py
 from flask import jsonify, request
 from app.api import api_bp
 from app.models import User, Post, Comment
 from app import db
+
+from flask_login import login_required, current_user
+
+# @api_bp.route('/posts', methods=['GET'])
+# def get_posts():
+#     posts = Post.query.order_by(Post.created_at.desc()).all()
+#     return jsonify([post.to_dict() for post in posts])
 
 @api_bp.route('/posts', methods=['GET'])
 def get_posts():
@@ -4007,6 +3762,25 @@ def get_posts():
         'per_page': per_page,
         'pages': pagination.pages
     })
+
+@api_bp.route('/posts', methods=['POST'])
+@login_required
+def create_post():
+    data = request.get_json()
+    
+    if not data or not data.get('title') or not data.get('body'):
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    post = Post(
+        title=data['title'],
+        body=data['body'],
+        user_id=current_user.id
+    )
+    
+    db.session.add(post)
+    db.session.commit()
+    
+    return jsonify(post.to_dict()), 201
 
 @api_bp.route('/posts/<slug>', methods=['GET'])
 def get_post(slug):
@@ -4052,6 +3826,14 @@ from app.main import routes
 from flask import render_template
 from app.main import main_bp
 from app.models import Post
+
+# @main_bp.route('/')
+# def index():
+#     page = request.args.get('page', 1, type=int)
+#     posts = Post.query.order_by(Post.created_at.desc()).paginate(
+#         page=page, per_page=10, error_out=False
+#     )
+#     return render_template('index.html', posts=posts)
 
 @main_bp.route('/')
 def index():
@@ -4310,4 +4092,86 @@ python run.py
 ✅ **API Endpoints** - RESTful API with pagination  
 ✅ **Error Handling** - Custom error pages  
 ✅ **CLI Commands** - Database initialization and seeding  
-✅ **Multiple Configurations** - 
+✅ **Multiple Configurations** - Development, Testing, and Production environments
+
+---
+
+## References
+
+<div style="line-height: 1.8;">
+1. <a href="https://flask.palletsprojects.com/" target="_blank">Flask Official Documentation</a>
+<br>
+2. <a href="https://flask.palletsprojects.com/en/stable/tutorial/" target="_blank">Flask Tutorial - Official</a>
+<br>
+3. <a href="https://flask.palletsprojects.com/en/stable/patterns/" target="_blank">Flask Patterns for Large Applications</a>
+<br>
+4. <a href="https://flask.palletsprojects.com/en/stable/blueprints/" target="_blank">Modular Applications with Blueprints</a>
+<br>
+5. <a href="https://flask.palletsprojects.com/en/stable/config/" target="_blank">Configuration Handling</a>
+<br>
+6. <a href="https://flask-sqlalchemy.palletsprojects.com/" target="_blank">Flask-SQLAlchemy Documentation</a>
+<br>
+7. <a href="https://flask-migrate.readthedocs.io/" target="_blank">Flask-Migrate Documentation</a>
+<br>
+8. <a href="https://flask-login.readthedocs.io/" target="_blank">Flask-Login Documentation</a>
+<br>
+9. <a href="https://flask-wtf.readthedocs.io/" target="_blank">Flask-WTF Documentation</a>
+<br>
+10. <a href="https://flask-restful.readthedocs.io/" target="_blank">Flask-RESTful Documentation</a>
+<br>
+11. <a href="https://flask-cors.readthedocs.io/" target="_blank">Flask-CORS Documentation</a>
+<br>
+12. <a href="https://werkzeug.palletsprojects.com/" target="_blank">Werkzeug Documentation</a>
+<br>
+13. <a href="https://jinja.palletsprojects.com/" target="_blank">Jinja2 Template Documentation</a>
+<br>
+14. <a href="https://flask.palletsprojects.com/en/stable/deploying/" target="_blank">Deployment Options - Flask</a>
+<br>
+15. <a href="https://docs.gunicorn.org/" target="_blank">Gunicorn Documentation</a>
+<br>
+16. <a href="https://flask.palletsprojects.com/en/stable/testing/" target="_blank">Testing Flask Applications</a>
+<br>
+17. <a href="https://flask.palletsprojects.com/en/stable/security/" target="_blank">Security Considerations</a>
+<br>
+18. <a href="https://flask.palletsprojects.com/en/stable/errorhandling/" target="_blank">Application Errors</a>
+<br>
+19. <a href="https://flask.palletsprojects.com/en/stable/logging/" target="_blank">Logging in Flask</a>
+<br>
+20. <a href="https://flask-caching.readthedocs.io/" target="_blank">Flask-Caching Documentation</a>
+<br>
+21. <a href="https://docs.celeryproject.org/" target="_blank">Celery Documentation</a>
+<br>
+22. <a href="https://pyjwt.readthedocs.io/" target="_blank">PyJWT Documentation</a>
+<br>
+23. <a href="https://flask.palletsprojects.com/en/stable/api/" target="_blank">Flask API Reference</a>
+<br>
+24. <a href="https://www.fullstackpython.com/flask.html" target="_blank">Full Stack Python - Flask</a>
+<br>
+25. <a href="https://realpython.com/tutorials/flask/" target="_blank">Real Python - Flask Tutorials</a>
+<br>
+</div>
+
+---
+
+## Conclusion
+
+Flask is a powerful and flexible web framework that provides the foundation for building everything from simple websites to complex web applications and RESTful APIs. Its minimalist design philosophy gives developers the freedom to choose their tools while providing essential functionality out of the box.
+
+### Key Takeaways
+
+1. **Start Simple**: Flask's micro-framework nature makes it perfect for beginners and prototyping
+2. **Scale Thoughtfully**: Use application factory and blueprints for larger applications
+3. **Security First**: Always implement CSRF protection, secure passwords, and validate input
+4. **Test Everything**: Write comprehensive tests for models, routes, and APIs
+5. **Monitor Performance**: Use caching, optimize queries, and implement proper logging
+6. **Deploy Carefully**: Use production-grade WSGI servers and proper configuration
+
+### Next Steps
+
+- **Practice**: Build small projects to understand core concepts
+- **Read Documentation**: Flask's documentation is excellent and comprehensive
+- **Study Extensions**: Learn popular Flask extensions for common tasks
+- **Join Community**: Engage with Flask community on GitHub, Stack Overflow, and Discord
+- **Build Real Projects**: Apply knowledge to real-world applications
+
+Flask empowers developers to build web applications their way, making it an invaluable tool in any Python developer's toolkit.
