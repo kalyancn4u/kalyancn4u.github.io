@@ -1,0 +1,154 @@
+# =================================================================
+# IDRM — Integrated Disaster Response Management Platform
+# Conda environment for the Python backend (FastAPI services,
+# geospatial/PostGIS layer, analytics & reporting, background jobs)
+# =================================================================
+# Why conda instead of plain pip/requirements.txt for this project:
+#   The geospatial stack (GDAL, Fiona, Rasterio, GeoPandas) depends on
+#   compiled C/C++ libraries (GDAL, GEOS, PROJ) that are painful to
+#   build via pip on a fresh Ubuntu box. conda-forge ships pre-built
+#   binaries for all of them, which matches the PRD's "standalone
+#   Ubuntu machine with FSD + DSML stacks installed locally" setup.
+#
+# Scope: this file covers the Python side only — FastAPI data/
+# analytics microservices, PostGIS access, Celery workers, reporting.
+# The Bun/Node.js + TypeScript API gateway and React/React Native
+# frontend (Feature-Sliced Design) are managed separately via their
+# own package.json / bun.lockb — not duplicated here.
+#
+# Validated against (June 2026):
+#   - conda-forge package index (anaconda.org/conda-forge) for every
+#     package below — fastapi, geoalchemy2, celery, twilio, gdal,
+#     geopandas all confirmed available as noarch/platform builds.
+#   - IDRM MVP PRD v2 tech stack: FastAPI, PostgreSQL 16 + PostGIS 3.4,
+#     Redis 7.2, JWT/RBAC auth, Razorpay/Stripe donations, SMS/Email/
+#     Push notifications, PDF/Excel transparency & analytics reports.
+#
+# Usage:
+#   conda env create -f environment.yml
+#   conda activate idrm-backend
+#   conda env update -f environment.yml --prune   # after edits
+# =================================================================
+
+name: idrm-backend
+
+channels:
+  - conda-forge
+  - nodefaults
+  # NOTE: stick to conda-forge only (no `defaults`) — mixing channels
+  # for the geospatial stack (GDAL/PROJ/GEOS) is the #1 cause of
+  # "works on my machine" import errors. Pair with:
+  #   conda config --set channel_priority strict
+
+dependencies:
+  - python=3.12
+
+  # ---------------------------------------------------------------
+  # Web framework / ASGI (FastAPI data-processing & analytics svc)
+  # ---------------------------------------------------------------
+  - fastapi>=0.115
+  - uvicorn-standard          # includes uvloop + httptools for prod perf
+  - pydantic>=2.7
+  - pydantic-settings
+  - python-multipart          # file/form uploads (incident photos, docs)
+  - email-validator
+  - websockets                # real-time ambulance/request tracking
+
+  # ---------------------------------------------------------------
+  # Auth, security & RBAC
+  # ---------------------------------------------------------------
+  - pyjwt
+  - passlib
+  - bcrypt
+  - cryptography
+  - bandit                    # DevSecOps: static security linting
+
+  # ---------------------------------------------------------------
+  # Notifications (SMS confirmed on conda-forge; others via pip below)
+  # ---------------------------------------------------------------
+  - twilio                    # SMS alerts — critical disaster comms
+
+  # ---------------------------------------------------------------
+  # Database, ORM, migrations (PostgreSQL 16 + PostGIS 3.4)
+  # ---------------------------------------------------------------
+  - sqlalchemy>=2.0
+  - alembic
+  - psycopg2                  # sync driver — Alembic migrations
+  - asyncpg                   # async driver — FastAPI async endpoints
+  - geoalchemy2                # spatial column support over SQLAlchemy
+  - redis-py                  # caching, sessions, Celery result backend
+
+  # ---------------------------------------------------------------
+  # Geospatial stack (PostGIS-adjacent processing, heatmaps, ETA calc)
+  # ---------------------------------------------------------------
+  - gdal
+  - geopandas
+  - shapely
+  - pyproj
+  - fiona
+  - rasterio
+
+  # ---------------------------------------------------------------
+  # Background jobs / async task queue (notifications, report gen,
+  # fund-allocation recalculation, scheduled donor reports)
+  # ---------------------------------------------------------------
+  - celery>=5.4
+  - flower                    # Celery monitoring dashboard
+
+  # ---------------------------------------------------------------
+  # Data processing / analytics / lightweight DSML
+  # (dashboards: trend lines, hotspot maps, provider-performance,
+  # donation pattern analysis, transparency-score scoring)
+  # ---------------------------------------------------------------
+  - pandas
+  - numpy
+  - scipy
+  - scikit-learn               # anomaly detection, ETA / demand models
+  - matplotlib                 # server-side chart rendering for reports
+  - plotly
+
+  # ---------------------------------------------------------------
+  # Reporting & exports (transparency PDFs, 80G certificates, Excel)
+  # ---------------------------------------------------------------
+  - jinja2                     # HTML templates feeding WeasyPrint
+  - weasyprint                 # HTML/CSS -> PDF (already in your toolkit)
+  - reportlab                  # programmatic PDF (certificates, receipts)
+  - openpyxl
+  - xlsxwriter
+
+  # ---------------------------------------------------------------
+  # Testing
+  # ---------------------------------------------------------------
+  - pytest
+  - pytest-asyncio
+  - pytest-cov
+  - httpx                      # async test client for FastAPI
+  - faker                      # synthetic disaster/request fixtures
+
+  # ---------------------------------------------------------------
+  # Code quality / DevSecOps
+  # ---------------------------------------------------------------
+  - black
+  - ruff
+  - mypy
+  - pre-commit
+
+  # ---------------------------------------------------------------
+  # Dev utilities & config
+  # ---------------------------------------------------------------
+  - python-dotenv
+  - rich                       # readable logs/tracebacks in dev
+  - watchfiles                 # uvicorn --reload file watching
+  - ipython
+
+  # ---------------------------------------------------------------
+  # Third-party SDKs not (yet) on conda-forge — installed via pip
+  # ---------------------------------------------------------------
+  - pip
+  - pip:
+      - razorpay               # primary donation gateway (India-first)
+      - stripe                 # international donations
+      - sendgrid                # transactional + report delivery email
+      - pyfcm                  # Firebase Cloud Messaging — push notifs
+      - python-socketio        # fallback real-time channel alongside WS
+      - safety                 # dependency vulnerability scanning (CI)
