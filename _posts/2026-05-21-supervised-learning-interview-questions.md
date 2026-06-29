@@ -1,5 +1,5 @@
 ---
-title: Supervised Learning Interview Questions - Complete Guide
+title: 🏁 Supervised Learning Interview Questions - Complete Guide
 date: 2026-05-21 00:00:00 +0530
 categories: [Machine Learning, Supervised Learning]
 tags: [python, machine-learning, interview, supervised-learning, scikit-learn, data-science]
