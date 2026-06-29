@@ -1,5 +1,5 @@
 ---
-title: "Designing a Netflix-Style Streaming + Recommendation Platform"
+title: "🎬 Designing a Netflix-Style Streaming + Recommendation Platform"
 date: 2026-06-26 12:00:00 +0530
 categories: [System Design, Machine Learning]
 tags: [python, machine-learning, data-science, ml-system-design, recommendation-systems, system-design, netflix, two-tower, candidate-generation, ranking, feature-store, ann, cdn, video-encoding, mlops, ci-cd, implementation-checklist, interview-prep]
