@@ -799,9 +799,7 @@ These don't belong to one phase — neglecting them anywhere causes failures eve
 22. BlazingCDN — [CDN Integration with CI/CD for Media Apps](https://blog.blazingcdn.com/en-us/cdn-integration-ci-cd-pipelines-media-apps){:target="_blank"}
 
 > *Latency numbers, hit-ratio targets, and dimension ranges are industry-reported guidance — benchmark against your own data and SLAs before committing.*
+{: .prompt-warning }
 
-> *Figures (subscriber counts, encoding variants, latency targets) are industry-reported and approximate — treat them as order-of-magnitude design inputs, not exact specs.*
-12. {: .prompt-warning }
-
-> *Figures (subscriber counts, encoding variants, latency targets, hit-ratio and dimension ranges) are industry-reported and approximate — treat them as order-of-magnitude design inputs and benchmark against your own data and SLAs.*
+> *Figures (subscriber counts, encoding variants, latency targets, hit-ratio and dimension ranges) are industry-reported and approximate — treat them as order-of-magnitude design inputs, not exact specs and benchmark against your own data and SLAs.*
 {: .prompt-warning }
