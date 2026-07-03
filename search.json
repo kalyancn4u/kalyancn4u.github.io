@@ -1,24 +1,98 @@
 ---
-layout: none
+layout: null
 permalink: /search.json
 ---
 
 [
-{% assign docs = site.posts | concat: site.pages %}
-{% assign first=true %}
-{% for doc in docs %}
-{% unless doc.search == false %}
-{% unless first %},{% endunless %}
-{
-"title": {{ doc.title | jsonify }},
-"url": {{ doc.url | relative_url | jsonify }},
-"content": {{ doc.content | markdownify | strip_html | normalize_whitespace | jsonify }},
-"aliases": {{ doc.aliases | join: " " | jsonify }},
-"keywords": {{ doc.keywords | join: " " | jsonify }},
-"tags": {{ doc.tags | join: " " | jsonify }},
-"categories": {{ doc.categories | join: " " | jsonify }}
-}
-{% assign first=false %}
-{% endunless %}
-{% endfor %}
+{%- assign first = true -%}
+
+{%- comment -%}
+Posts
+{%- endcomment -%}
+{%- for post in site.posts -%}
+  {%- unless post.search == false -%}
+    {%- unless first -%},{%- endunless -%}
+    {
+      "title": {{ post.title | jsonify }},
+      "url": {{ post.url | relative_url | jsonify }},
+      "date": {{ post.date | date: "%Y-%m-%d" | jsonify }},
+      "content": {{ post.content | markdownify | strip_html | strip_newlines | jsonify }},
+      "excerpt": {{ post.excerpt | strip_html | strip_newlines | jsonify }},
+      "categories": {{ post.categories | join: " " | jsonify }},
+      "tags": {{ post.tags | join: " " | jsonify }},
+      "aliases": {{ post.aliases | default: empty | join: " " | jsonify }},
+      "keywords": {{ post.keywords | default: empty | join: " " | jsonify }},
+      "shortcuts": {{ post.shortcuts | default: empty | join: " " | jsonify }}
+    }
+    {%- assign first = false -%}
+  {%- endunless -%}
+{%- endfor -%}
+
+{%- comment -%}
+Tabs (_tabs)
+{%- endcomment -%}
+{%- if site.tabs -%}
+{%- for tab in site.tabs -%}
+  {%- unless tab.search == false -%}
+    {%- unless first -%},{%- endunless -%}
+    {
+      "title": {{ tab.title | jsonify }},
+      "url": {{ tab.url | relative_url | jsonify }},
+      "date": "",
+      "content": {{ tab.content | markdownify | strip_html | strip_newlines | jsonify }},
+      "excerpt": "",
+      "categories": "",
+      "tags": "",
+      "aliases": {{ tab.aliases | default: empty | join: " " | jsonify }},
+      "keywords": {{ tab.keywords | default: empty | join: " " | jsonify }},
+      "shortcuts": {{ tab.shortcuts | default: empty | join: " " | jsonify }}
+    }
+    {%- assign first = false -%}
+  {%- endunless -%}
+{%- endfor -%}
+{%- endif -%}
+
+{%- comment -%}
+Standalone pages only
+{%- endcomment -%}
+{%- assign ignored = "/404.html,/feed.xml,/robots.txt,/search.json,/sitemap.xml,/assets/" | split: "," -%}
+
+{%- for page in site.pages -%}
+
+  {%- assign skip = false -%}
+
+  {%- if page.title == nil -%}
+    {%- assign skip = true -%}
+  {%- endif -%}
+
+  {%- if page.url contains "/assets/" -%}
+    {%- assign skip = true -%}
+  {%- endif -%}
+
+  {%- for item in ignored -%}
+    {%- if page.url == item -%}
+      {%- assign skip = true -%}
+    {%- endif -%}
+  {%- endfor -%}
+
+  {%- unless skip -%}
+    {%- unless page.search == false -%}
+      {%- unless first -%},{%- endunless -%}
+      {
+        "title": {{ page.title | jsonify }},
+        "url": {{ page.url | relative_url | jsonify }},
+        "date": "",
+        "content": {{ page.content | markdownify | strip_html | strip_newlines | jsonify }},
+        "excerpt": "",
+        "categories": {{ page.categories | join: " " | jsonify }},
+        "tags": {{ page.tags | join: " " | jsonify }},
+        "aliases": {{ page.aliases | default: empty | join: " " | jsonify }},
+        "keywords": {{ page.keywords | default: empty | join: " " | jsonify }},
+        "shortcuts": {{ page.shortcuts | default: empty | join: " " | jsonify }}
+      }
+      {%- assign first = false -%}
+    {%- endunless -%}
+  {%- endunless -%}
+
+{%- endfor -%}
 ]
