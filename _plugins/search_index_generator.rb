@@ -3,6 +3,32 @@
 require "json"
 
 module SearchIndex
+  class SearchPage < Jekyll::Page
+    def initialize(site, json)
+      @site = site
+      @base = site.source
+      @dir  = ""
+      @name = "search.json"
+
+      process(@name)
+
+      self.data = {
+        "layout" => nil,
+        "sitemap" => false
+      }
+
+      @content = json
+    end
+
+    def render(*)
+      # Do nothing; content is already JSON
+    end
+
+    def output
+      @content
+    end
+  end
+
   class Generator < Jekyll::Generator
     safe true
     priority :lowest
@@ -11,30 +37,50 @@ module SearchIndex
       items = []
 
       docs = []
+
       docs.concat(site.posts.docs) if site.respond_to?(:posts)
+
       docs.concat(site.pages)
-      docs.concat(site.collections["tabs"].docs) if site.collections["tabs"]
+
+      site.collections.each do |name, collection|
+        next if name == "posts"
+
+        docs.concat(collection.docs)
+      end
 
       docs.each do |doc|
         next unless doc.output_ext == ".html"
+        next if doc.data["search"] == false
+        next if doc.url.nil?
+
+        content =
+          doc.content
+             .gsub(/<[^>]+>/, " ")
+             .gsub(/\{\{.*?\}\}/m, " ")
+             .gsub(/\{%.*?%\}/m, " ")
+             .gsub(/\s+/, " ")
+             .strip
 
         items << {
           title: doc.data["title"] || "",
           url: doc.url,
-          content: doc.content
-                     .gsub(/<[^>]*>/, " ")
-                     .gsub(/\s+/, " ")
-                     .strip,
-          aliases: Array(doc.data["aliases"])
+          content: content,
+          aliases: Array(doc.data["aliases"]),
+          keywords: Array(doc.data["keywords"]),
+          shortcuts: Array(doc.data["shortcuts"]),
+          tags: Array(doc.data["tags"]),
+          categories: Array(doc.data["categories"])
         }
       end
 
-      File.write(
-        File.join(site.dest, "search.json"),
-        JSON.pretty_generate(items)
-      )
+      json = JSON.pretty_generate(items)
 
-      Jekyll.logger.info "Search:", "Generated search.json (#{items.size} pages)"
+      site.pages << SearchPage.new(site, json)
+
+      Jekyll.logger.info(
+        "Search",
+        "Generated search.json (#{items.size} documents)"
+      )
     end
   end
 end
