@@ -3,7 +3,6 @@ layout: page
 title: Search
 permalink: /search/
 icon: fas fa-search
-order: 6
 ---
 
 <input
