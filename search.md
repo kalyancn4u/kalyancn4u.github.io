@@ -5,12 +5,14 @@ permalink: /search/
 icon: fas fa-search
 ---
 
-<input
+<div class="mb-3">
+  <input
     id="search-input"
-    type="search"
     class="form-control"
-    placeholder="Search...">
-
+    type="search"
+    placeholder="Search..."
+    autocomplete="off">
+</div>
 <br>
 
 <div id="search-results"></div>
