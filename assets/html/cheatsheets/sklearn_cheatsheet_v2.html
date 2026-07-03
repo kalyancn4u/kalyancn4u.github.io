@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scikit-learn Cheat Sheet v2 — Single Source of Truth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --create:#2563eb;  --create-bg:#eff4fe;
+    --inspect:#64748b; --inspect-bg:#f1f3f6;
+    --select:#d97706;  --select-bg:#fdf6ec;
+    --shape:#7c3aed;   --shape-bg:#f5f0fd;
+    --clean:#059669;   --clean-bg:#ecf7f2;
+    --stats:#0891b2;   --stats-bg:#eafafd;
+    --danger:#dc2626;  --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .sk{font-family:var(--mono); color:var(--create)}
+  h1 .v2{font-family:var(--mono); font-size:.45em; color:var(--star); vertical-align:super}
+  .lede{max-width:70ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.create{background:var(--create)} .dot.inspect{background:var(--inspect)}
+  .dot.select{background:var(--select)} .dot.shape{background:var(--shape)}
+  .dot.clean{background:var(--clean)} .dot.stats{background:var(--stats)}
+  .dot.danger{background:var(--danger)}
+
+  .flow-wrap{ max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem; }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1080px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1240px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.create{border-left-color:var(--create)}
+  ul.cmds li.inspect{border-left-color:var(--inspect)}
+  ul.cmds li.select{border-left-color:var(--select)}
+  ul.cmds li.shape{border-left-color:var(--shape)}
+  ul.cmds li.clean{border-left-color:var(--clean)}
+  ul.cmds li.stats{border-left-color:var(--stats)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  ul.cmds li.note{border-left-color:var(--line); background:#faf9f6}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.79rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .arg{color:var(--create); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .num{color:var(--stats); font-weight:400}
+  li.danger code.cmd{color:var(--danger)}
+  li.note code.cmd{color:#525761; font-style:italic; font-weight:400}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.95em; background:#f1eee8; padding:.02rem .2rem; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-safe{
+    color:var(--clean); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-ver{
+    color:#fff; background:var(--shape); font-size:.62rem; font-weight:700; font-family:var(--mono);
+    letter-spacing:.04em; margin-left:.35rem; padding:.08rem .3rem; border-radius:4px;
+  }
+  .badge-ext{
+    color:#fff; background:var(--inspect); font-size:.62rem; font-weight:700; font-family:var(--mono);
+    letter-spacing:.04em; margin-left:.35rem; padding:.08rem .3rem; border-radius:4px;
+  }
+
+  .diagrams{ max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem; }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  .refs{ max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem; }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{font-family:var(--mono)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference v2 &middot; machine learning in Python &middot; single source of truth</div>
+  <h1><span class="sk">scikit-learn</span> cheat sheet <span class="v2">v2</span></h1>
+  <p class="lede">Every algorithm in scikit-learn shares one shape: an <b>estimator</b> with <b>.fit()</b> and <b>.predict()</b> (or <b>.transform()</b>), assembled from the same moving parts — <b>preprocessing</b>, a <b>model</b>, <b>cross-validation</b>, a <b>metric</b> — chained into a <b>Pipeline</b>. v2 covers the full modern surface: <b>HistGradientBoosting</b>, <b>set_output</b> DataFrames, <b>TargetEncoder</b>, <b>threshold tuning</b>, <b>calibration</b>, <b>outlier detection</b>, the <b>Display</b> plotting API, <b>inspection</b>, out-of-core learning, GPU/Array-API, callbacks, and safe persistence.</p>
+  <div class="legend">
+    <span><i class="dot create"></i>load &amp; split</span>
+    <span><i class="dot clean"></i>preprocess</span>
+    <span><i class="dot shape"></i>estimators / models</span>
+    <span><i class="dot inspect"></i>fit &amp; inspect</span>
+    <span><i class="dot select"></i>select &amp; tune</span>
+    <span><i class="dot stats"></i>evaluate</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+    <span><span class="badge-ver">1.5+</span> version-gated</span>
+    <span><span class="badge-ext">ext</span> outside sklearn</span>
+  </div>
+  <p class="sources">Targets <b>scikit-learn 1.9</b> (June 2026); features new since 1.3 carry version badges. Distilled &amp; cross-checked across: <b>scikit-learn.org</b> official docs, user guide, API reference, release highlights 1.4&ndash;1.9 &amp; the "Choosing the right estimator" map &middot; the official <b>DataCamp</b> PDF cheat sheet &middot; ODSC's estimator-selection guide &middot; skops &amp; imbalanced-learn docs.</p>
+</header>
+
+<!-- ============ SIGNATURE "CHOOSING THE RIGHT ESTIMATOR" DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">Choosing the right estimator &mdash; simplified from the official scikit-learn map</div>
+  <svg class="flow-svg" viewBox="0 0 1080 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Decision flow: start, check for at least 50 samples, then branch on your goal into four lanes -- classification, regression, clustering, and dimensionality reduction -- each showing a short try-next chain of estimators.">
+    <defs>
+      <marker id="arrF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+      <marker id="arrTN" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker>
+    </defs>
+
+    <rect x="465" y="8" width="150" height="30" rx="8" fill="#1a1d24"/>
+    <text x="540" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">START</text>
+    <line x1="540" y1="38" x2="540" y2="52" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrF)"/>
+
+    <rect x="390" y="54" width="300" height="34" rx="8" fill="#f1f3f6" stroke="#64748b" stroke-width="1.4"/>
+    <text x="540" y="76" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a1d24">&gt;50 samples?</text>
+    <path d="M388,71 C 260,71 210,60 190,44" fill="none" stroke="#dc2626" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrF)"/>
+    <text x="185" y="38" text-anchor="middle" font-size="9" fill="#dc2626" font-weight="700">NO &#8594; get more data</text>
+
+    <line x1="540" y1="88" x2="540" y2="104" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrF)"/>
+    <circle cx="540" cy="126" r="26" fill="#1a1d24"/>
+    <text x="540" y="123" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff">what's</text>
+    <text x="540" y="134" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff">the goal?</text>
+
+    <!-- fan to 4 lanes -->
+    <path d="M516,138 C 350,175 220,178 150,180" fill="none" stroke="#64748b" stroke-width="1.3" marker-end="url(#arrF)"/>
+    <path d="M528,150 C 470,172 430,176 405,180" fill="none" stroke="#64748b" stroke-width="1.3" marker-end="url(#arrF)"/>
+    <path d="M552,150 C 610,172 650,176 675,180" fill="none" stroke="#64748b" stroke-width="1.3" marker-end="url(#arrF)"/>
+    <path d="M564,138 C 730,175 860,178 930,180" fill="none" stroke="#64748b" stroke-width="1.3" marker-end="url(#arrF)"/>
+
+    <!-- LANE 1: CLASSIFICATION -->
+    <g text-anchor="middle">
+      <rect x="20" y="180" width="230" height="32" rx="7" fill="#eff4fe" stroke="#2563eb" stroke-width="1.6"/>
+      <text x="135" y="200" font-size="10.5" font-weight="700" fill="#2563eb">Classification (labeled)</text>
+
+      <rect x="30" y="222" width="210" height="28" rx="6" fill="#fff" stroke="#2563eb" stroke-width="1.3"/><text x="135" y="240" font-size="9.5" fill="#1a1d24">LogisticRegression / LinearSVC</text>
+      <line x1="135" y1="250" x2="135" y2="266" stroke="#d97706" stroke-width="1.3" marker-end="url(#arrTN)"/><text x="150" y="261" font-size="7.5" fill="#d97706" text-anchor="start">try next</text>
+      <rect x="30" y="268" width="210" height="28" rx="6" fill="#fff" stroke="#2563eb" stroke-width="1.3"/><text x="135" y="286" font-size="9.5" fill="#1a1d24">KNeighbors / SVC (rbf)</text>
+      <line x1="135" y1="296" x2="135" y2="312" stroke="#d97706" stroke-width="1.3" marker-end="url(#arrTN)"/><text x="150" y="307" font-size="7.5" fill="#d97706" text-anchor="start">try next</text>
+      <rect x="30" y="314" width="210" height="28" rx="6" fill="#fff" stroke="#2563eb" stroke-width="1.3"/><text x="135" y="332" font-size="9.5" fill="#1a1d24">HistGradientBoosting / Forest</text>
+    </g>
+
+    <!-- LANE 2: REGRESSION -->
+    <g text-anchor="middle">
+      <rect x="280" y="180" width="230" height="32" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+      <text x="395" y="200" font-size="10.5" font-weight="700" fill="#059669">Regression (quantity)</text>
+
+      <rect x="290" y="222" width="210" height="28" rx="6" fill="#fff" stroke="#059669" stroke-width="1.3"/><text x="395" y="240" font-size="9.5" fill="#1a1d24">Ridge / Lasso / ElasticNet</text>
+      <line x1="395" y1="250" x2="395" y2="266" stroke="#d97706" stroke-width="1.3" marker-end="url(#arrTN)"/><text x="410" y="261" font-size="7.5" fill="#d97706" text-anchor="start">try next</text>
+      <rect x="290" y="268" width="210" height="28" rx="6" fill="#fff" stroke="#059669" stroke-width="1.3"/><text x="395" y="286" font-size="9.5" fill="#1a1d24">SVR (linear &#8594; rbf)</text>
+      <line x1="395" y1="296" x2="395" y2="312" stroke="#d97706" stroke-width="1.3" marker-end="url(#arrTN)"/><text x="410" y="307" font-size="7.5" fill="#d97706" text-anchor="start">try next</text>
+      <rect x="290" y="314" width="210" height="28" rx="6" fill="#fff" stroke="#059669" stroke-width="1.3"/><text x="395" y="332" font-size="9.5" fill="#1a1d24">HistGradientBoosting / Forest</text>
+    </g>
+
+    <!-- LANE 3: CLUSTERING -->
+    <g text-anchor="middle">
+      <rect x="545" y="180" width="230" height="32" rx="7" fill="#eafafd" stroke="#0891b2" stroke-width="1.6"/>
+      <text x="660" y="200" font-size="10.5" font-weight="700" fill="#0891b2">Clustering (no labels)</text>
+
+      <rect x="555" y="222" width="210" height="28" rx="6" fill="#fff" stroke="#0891b2" stroke-width="1.3"/><text x="660" y="240" font-size="9.5" fill="#1a1d24">KMeans (k known)</text>
+      <line x1="660" y1="250" x2="660" y2="266" stroke="#d97706" stroke-width="1.3" marker-end="url(#arrTN)"/><text x="675" y="261" font-size="7.5" fill="#d97706" text-anchor="start">try next</text>
+      <rect x="555" y="268" width="210" height="28" rx="6" fill="#fff" stroke="#0891b2" stroke-width="1.3"/><text x="660" y="286" font-size="9.5" fill="#1a1d24">HDBSCAN / DBSCAN</text>
+      <line x1="660" y1="296" x2="660" y2="312" stroke="#d97706" stroke-width="1.3" marker-end="url(#arrTN)"/><text x="675" y="307" font-size="7.5" fill="#d97706" text-anchor="start">try next</text>
+      <rect x="555" y="314" width="210" height="28" rx="6" fill="#fff" stroke="#0891b2" stroke-width="1.3"/><text x="660" y="332" font-size="9.5" fill="#1a1d24">GaussianMixture (GMM)</text>
+    </g>
+
+    <!-- LANE 4: DIM REDUCTION -->
+    <g text-anchor="middle">
+      <rect x="805" y="180" width="230" height="32" rx="7" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.6"/>
+      <text x="920" y="200" font-size="10.5" font-weight="700" fill="#7c3aed">Dimensionality Reduction</text>
+
+      <rect x="815" y="222" width="210" height="28" rx="6" fill="#fff" stroke="#7c3aed" stroke-width="1.3"/><text x="920" y="240" font-size="9.5" fill="#1a1d24">PCA (TruncatedSVD if sparse)</text>
+      <line x1="920" y1="250" x2="920" y2="266" stroke="#d97706" stroke-width="1.3" marker-end="url(#arrTN)"/><text x="935" y="261" font-size="7.5" fill="#d97706" text-anchor="start">try next</text>
+      <rect x="815" y="268" width="210" height="28" rx="6" fill="#fff" stroke="#7c3aed" stroke-width="1.3"/><text x="920" y="286" font-size="9.5" fill="#1a1d24">t-SNE (visualization)</text>
+      <line x1="920" y1="296" x2="920" y2="312" stroke="#d97706" stroke-width="1.3" marker-end="url(#arrTN)"/><text x="935" y="307" font-size="7.5" fill="#d97706" text-anchor="start">try next</text>
+      <rect x="815" y="314" width="210" height="28" rx="6" fill="#fff" stroke="#7c3aed" stroke-width="1.3"/><text x="920" y="332" font-size="9.5" fill="#1a1d24">Isomap / LLE / UMAP (ext)</text>
+    </g>
+
+    <text x="540" y="368" text-anchor="middle" font-size="10" fill="#64748b">orange "try next" arrows: if an estimator underperforms, follow the arrow &mdash; full map: scikit-learn.org/stable/machine_learning_map.html</text>
+  </svg>
+</section>
+
+<main>
+
+  <!-- 01 SETUP & CONFIG -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup, Import &amp; Config</span><span class="card-sub">load &amp; split</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">pip install scikit-learn</code><div class="desc">Install (imports as <code>sklearn</code>); conda: <code>conda install -c conda-forge scikit-learn</code>.</div></li>
+      <li class="create"><code class="cmd">import sklearn; sklearn.show_versions()</code><div class="desc">Version + full dependency report for bug reports.</div></li>
+      <li class="create"><code class="cmd">from sklearn.model_selection <span class="flag">import</span> train_test_split</code><span class="star">&#9733;</span><div class="desc">The single most-imported function in sklearn.</div></li>
+      <li class="create"><code class="cmd">sklearn.set_config(display=<span class="arg">'diagram'</span>)</code><div class="desc">Rich HTML repr of pipelines in notebooks (default). 1.9 adds a fitted-attributes table.</div></li>
+      <li class="create"><code class="cmd">sklearn.config_context(assume_finite=<span class="flag">True</span>)</code><div class="desc">Skip NaN/inf validation inside the block — faster, riskier.</div></li>
+      <li class="create"><code class="cmd">random_state=<span class="num">42</span></code><span class="star">&#9733;</span><div class="desc">Set anywhere randomness appears (splits, shuffles, stochastic models).</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 LOADING DATA -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Loading Data</span><span class="card-sub">load &amp; split</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">load_iris(return_X_y=<span class="flag">True</span>)</code><span class="star">&#9733;</span><div class="desc">Built-in toy datasets (<code>sklearn.datasets</code>); <code>as_frame=True</code> for DataFrames.</div></li>
+      <li class="create"><code class="cmd">fetch_california_housing() &nbsp;fetch_20newsgroups()</code><div class="desc">Larger real-world datasets, downloaded on first use.</div></li>
+      <li class="create"><code class="cmd">fetch_openml(<span class="arg">'titanic'</span>, version=<span class="num">1</span>, as_frame=<span class="flag">True</span>)</code><span class="star">&#9733;</span><div class="desc">Any of thousands of OpenML datasets by name or <code>data_id</code>.</div></li>
+      <li class="create"><code class="cmd">make_classification(n_samples=<span class="num">200</span>, n_features=<span class="num">4</span>)</code><span class="star">&#9733;</span><div class="desc">Synthetic classification data; <code>weights=[.9,.1]</code> for imbalance.</div></li>
+      <li class="create"><code class="cmd">make_regression() &nbsp;make_blobs() &nbsp;make_moons()</code><div class="desc">Synthetic regression / clustering / non-linear demo data.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 SPLITTING & CV SPLITTERS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Splitting &amp; CV Splitters</span><span class="card-sub">load &amp; split</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">train_test_split(X, y, test_size=<span class="num">0.2</span>, random_state=<span class="num">42</span>)</code><span class="star">&#9733;</span><div class="desc">One-shot hold-out split.</div></li>
+      <li class="create"><code class="cmd">train_test_split(..., stratify=y)</code><span class="star">&#9733;</span><div class="desc">Preserve class proportions — always for classification.</div></li>
+      <li class="create"><code class="cmd">KFold(n_splits=<span class="num">5</span>, shuffle=<span class="flag">True</span>) &nbsp;StratifiedKFold(...)</code><span class="star">&#9733;</span><div class="desc">Plain / class-balanced folds. Classifiers get stratified folds by default in CV helpers.</div></li>
+      <li class="create"><code class="cmd">GroupKFold(...) &nbsp;StratifiedGroupKFold(...)</code><div class="desc">Keep all rows of a group (patient, user, site) in one fold — prevents group leakage.</div></li>
+      <li class="create"><code class="cmd">TimeSeriesSplit(n_splits=<span class="num">5</span>, gap=<span class="num">0</span>)</code><span class="star">&#9733;</span><div class="desc">Expanding-window splits; train always precedes test.</div></li>
+      <li class="create"><code class="cmd">ShuffleSplit() &nbsp;RepeatedStratifiedKFold()</code><div class="desc">Random resampling / repeated k-fold for tighter score estimates.</div></li>
+      <li class="danger"><code class="cmd">shuffled CV on time series</code><span class="badge-danger">leakage</span><div class="desc">Future rows leak into training — use <code>TimeSeriesSplit</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 ESTIMATOR API -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">The Estimator API</span><span class="card-sub">fit &amp; inspect</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">model = Estimator(**params)</code><span class="star">&#9733;</span><div class="desc">Every algorithm is a class configured by hyperparameters.</div></li>
+      <li class="inspect"><code class="cmd">model.fit(X_train, y_train)</code><span class="star">&#9733;</span><div class="desc">Learn from training data — the universal verb. Returns <code>self</code>, so calls chain.</div></li>
+      <li class="inspect"><code class="cmd">model.predict(X_test)</code><span class="star">&#9733;</span><div class="desc">Labels / values for new data.</div></li>
+      <li class="inspect"><code class="cmd">model.predict_proba(X) &nbsp;model.decision_function(X)</code><div class="desc">Class probabilities / raw margin scores (classifiers).</div></li>
+      <li class="inspect"><code class="cmd">model.score(X_test, y_test)</code><span class="star">&#9733;</span><div class="desc">Built-in default metric: accuracy (classifiers), R&sup2; (regressors).</div></li>
+      <li class="inspect"><code class="cmd">transformer.fit_transform(X_train)</code><div class="desc">Fit + transform in one call — training data only.</div></li>
+      <li class="inspect"><code class="cmd">model.get_params() &nbsp;model.set_params(C=<span class="num">1.0</span>)</code><div class="desc">Read / change hyperparameters; works on nested <code>step__param</code> too.</div></li>
+      <li class="note"><code class="cmd">fitted attributes end with an underscore: coef_</code><div class="desc">Anything learned from data is suffixed <code>_</code>; params are not.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 SCALING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Preprocessing: Scaling</span><span class="card-sub">preprocess</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">StandardScaler()</code><span class="star">&#9733;</span><div class="desc">Zero mean, unit variance — the default choice.</div></li>
+      <li class="clean"><code class="cmd">MinMaxScaler(feature_range=(<span class="num">0</span>,<span class="num">1</span>))</code><div class="desc">Squash into a fixed range; sensitive to outliers.</div></li>
+      <li class="clean"><code class="cmd">RobustScaler()</code><span class="star">&#9733;</span><div class="desc">Median/IQR based — resistant to outliers.</div></li>
+      <li class="clean"><code class="cmd">MaxAbsScaler()</code><div class="desc">Scale by max |value|; preserves sparsity (no centering).</div></li>
+      <li class="clean"><code class="cmd">Normalizer()</code><div class="desc">Scale each <em>row</em> to unit norm (not each column) — e.g. text vectors.</div></li>
+      <li class="danger"><code class="cmd">scaler.fit(X_train) &#8594; .transform(X_test)</code><span class="badge-danger">fit once</span><div class="desc">Fit only on train — never refit on test.</div></li>
+      <li class="note"><code class="cmd">scale for distance/gradient models; trees don't care</code><div class="desc">KNN, SVM, linear models, PCA, MLP need it; trees/forests/HGB don't.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 NON-LINEAR TRANSFORMS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Non-linear Transforms &amp; Discretization</span><span class="card-sub">preprocess</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">PowerTransformer(method=<span class="arg">'yeo-johnson'</span>)</code><span class="star">&#9733;</span><div class="desc">Make skewed features Gaussian-like; <code>'box-cox'</code> needs positive data.</div></li>
+      <li class="clean"><code class="cmd">QuantileTransformer(output_distribution=<span class="arg">'normal'</span>)</code><div class="desc">Rank-based map to uniform/normal — crushes outliers.</div></li>
+      <li class="clean"><code class="cmd">KBinsDiscretizer(n_bins=<span class="num">5</span>, strategy=<span class="arg">'quantile'</span>)</code><div class="desc">Bin continuous features; strategies: uniform / quantile / kmeans.</div></li>
+      <li class="clean"><code class="cmd">SplineTransformer(degree=<span class="num">3</span>, n_knots=<span class="num">5</span>)</code><div class="desc">B-spline basis — smooth non-linearity for linear models.</div></li>
+      <li class="clean"><code class="cmd">PolynomialFeatures(degree=<span class="num">2</span>, interaction_only=<span class="flag">False</span>)</code><div class="desc">Polynomial &amp; interaction terms; feature count explodes fast.</div></li>
+      <li class="clean"><code class="cmd">FunctionTransformer(np.log1p)</code><div class="desc">Wrap any function as a pipeline-compatible transformer.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 ENCODING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Encoding Categorical Data</span><span class="card-sub">preprocess</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">OneHotEncoder(handle_unknown=<span class="arg">'ignore'</span>)</code><span class="star">&#9733;</span><div class="desc">One binary column per category; unseen categories become all-zeros. <code>'warn'</code> option since 1.6.</div></li>
+      <li class="clean"><code class="cmd">OneHotEncoder(min_frequency=<span class="num">10</span>, max_categories=<span class="num">20</span>)</code><div class="desc">Group rare levels into one "infrequent" bucket.</div></li>
+      <li class="clean"><code class="cmd">OrdinalEncoder(handle_unknown=<span class="arg">'use_encoded_value'</span>, unknown_value=<span class="num">-1</span>)</code><div class="desc">Integer codes — for genuinely ordered categories, or as tree-model input.</div></li>
+      <li class="clean"><code class="cmd">TargetEncoder()</code><span class="star">&#9733;</span><span class="badge-ver">1.3+</span><div class="desc">Mean-target encoding with internal cross-fitting to prevent leakage — best for high-cardinality features.</div></li>
+      <li class="danger"><code class="cmd">LabelEncoder on feature columns</code><span class="badge-danger">misuse</span><div class="desc"><code>LabelEncoder</code> is for the target <code>y</code> only; use OrdinalEncoder for X.</div></li>
+      <li class="note"><code class="cmd">pd.get_dummies() — quick one-hot outside a Pipeline</code><div class="desc">Fine for exploration; use OneHotEncoder inside pipelines to handle unseen categories.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 MISSING VALUES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Missing Values</span><span class="card-sub">preprocess</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">SimpleImputer(strategy=<span class="arg">'median'</span>)</code><span class="star">&#9733;</span><div class="desc">mean / median / most_frequent / constant fill.</div></li>
+      <li class="clean"><code class="cmd">KNNImputer(n_neighbors=<span class="num">5</span>)</code><div class="desc">Fill using similar rows' values; scale features first.</div></li>
+      <li class="clean"><code class="cmd">IterativeImputer()</code><div class="desc">Models each feature from the others (MICE-style); still experimental — needs <code>enable_iterative_imputer</code> import.</div></li>
+      <li class="clean"><code class="cmd">SimpleImputer(add_indicator=<span class="flag">True</span>) &nbsp;MissingIndicator()</code><div class="desc">Add binary "was missing" columns — missingness is often informative.</div></li>
+      <li class="note"><code class="cmd">HistGradientBoosting &amp; trees handle NaN natively</code><div class="desc">HGB (always) and DecisionTree/RandomForest (recent versions) can skip imputation entirely.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 FEATURE SELECTION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Feature Selection</span><span class="card-sub">select &amp; tune</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">VarianceThreshold(threshold=<span class="num">0.0</span>)</code><div class="desc">Drop near-constant, uninformative features first.</div></li>
+      <li class="select"><code class="cmd">SelectKBest(f_classif, k=<span class="num">10</span>)</code><span class="star">&#9733;</span><div class="desc">Univariate scoring; also <code>mutual_info_classif</code>, <code>chi2</code> (non-negative X).</div></li>
+      <li class="select"><code class="cmd">SelectFromModel(Lasso(alpha=<span class="num">.01</span>))</code><span class="star">&#9733;</span><div class="desc">Keep features an L1 / tree model rates important.</div></li>
+      <li class="select"><code class="cmd">RFE(estimator, n_features_to_select=<span class="num">5</span>) &nbsp;RFECV(...)</code><div class="desc">Recursively drop the weakest feature; RFECV picks the count by CV.</div></li>
+      <li class="select"><code class="cmd">SequentialFeatureSelector(model, direction=<span class="arg">'forward'</span>)</code><div class="desc">Greedy forward/backward selection by CV score — slow but model-agnostic.</div></li>
+      <li class="danger"><code class="cmd">selecting features on the full dataset</code><span class="badge-danger">leakage</span><div class="desc">Selection is learning — do it inside the Pipeline/CV.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 TEXT FEATURES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Text Feature Extraction</span><span class="card-sub">preprocess</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">CountVectorizer(ngram_range=(<span class="num">1</span>,<span class="num">2</span>), min_df=<span class="num">2</span>)</code><span class="star">&#9733;</span><div class="desc">Token counts &#8594; sparse matrix; fit learns the vocabulary.</div></li>
+      <li class="clean"><code class="cmd">TfidfVectorizer(stop_words=<span class="arg">'english'</span>)</code><span class="star">&#9733;</span><div class="desc">Counts re-weighted by inverse document frequency — the text baseline.</div></li>
+      <li class="clean"><code class="cmd">HashingVectorizer(n_features=<span class="num">2</span>**<span class="num">20</span>)</code><div class="desc">Stateless (no fit needed) — streaming / out-of-core text.</div></li>
+      <li class="clean"><code class="cmd">DictVectorizer()</code><div class="desc">List-of-dicts &#8594; feature matrix.</div></li>
+      <li class="note"><code class="cmd">pair TfidfVectorizer with LinearSVC / MultinomialNB / SGD</code><div class="desc">Linear models shine on high-dimensional sparse text.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 PIPELINES & COLUMNTRANSFORMER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Pipelines &amp; ColumnTransformer</span><span class="card-sub">estimators / models</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">Pipeline([(<span class="arg">'scale'</span>, StandardScaler()), (<span class="arg">'clf'</span>, model)])</code><span class="star">&#9733;</span><div class="desc">Chain preprocessing + model into one estimator; prevents leakage by construction.</div></li>
+      <li class="shape"><code class="cmd">make_pipeline(SimpleImputer(), StandardScaler(), model)</code><div class="desc">Same thing with auto-named steps.</div></li>
+      <li class="shape"><code class="cmd">ColumnTransformer([(<span class="arg">'num'</span>, num_pipe, num_cols), (<span class="arg">'cat'</span>, cat_pipe, cat_cols)])</code><span class="star">&#9733;</span><div class="desc">Different preprocessing per column group; <code>remainder='passthrough'</code> keeps the rest.</div></li>
+      <li class="shape"><code class="cmd">make_column_selector(dtype_include=object)</code><span class="star">&#9733;</span><div class="desc">Select columns by dtype or regex instead of hard-coded lists.</div></li>
+      <li class="shape"><code class="cmd">FeatureUnion([(<span class="arg">'pca'</span>, PCA()), (<span class="arg">'kbest'</span>, SelectKBest())])</code><div class="desc">Concatenate outputs of parallel transformers.</div></li>
+      <li class="shape"><code class="cmd">pipe.named_steps[<span class="arg">'clf'</span>] &nbsp;pipe[-1] &nbsp;pipe[:-1]</code><div class="desc">Index into steps; slicing returns a sub-pipeline.</div></li>
+      <li class="shape"><code class="cmd">param_grid = {<span class="arg">'clf__C'</span>: [...]}</code><span class="star">&#9733;</span><div class="desc">Tune nested params with <code>step__param</code> syntax.</div></li>
+      <li class="shape"><code class="cmd">Pipeline(..., memory=<span class="arg">'./cache'</span>)</code><div class="desc">Cache fitted transformers across grid-search candidates.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 SET_OUTPUT / DATAFRAMES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">DataFrame In / DataFrame Out</span><span class="card-sub">preprocess</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">transformer.set_output(transform=<span class="arg">'pandas'</span>)</code><span class="star">&#9733;</span><div class="desc">Transformers return DataFrames with named columns instead of bare arrays.</div></li>
+      <li class="clean"><code class="cmd">set_output(transform=<span class="arg">'polars'</span>)</code><span class="badge-ver">1.4+</span><div class="desc">Polars output; 1.9 uses narwhals internally for broader dataframe interop.</div></li>
+      <li class="clean"><code class="cmd">sklearn.set_config(transform_output=<span class="arg">'pandas'</span>)</code><div class="desc">Same, globally for every transformer.</div></li>
+      <li class="inspect"><code class="cmd">pipe[:-1].get_feature_names_out()</code><span class="star">&#9733;</span><div class="desc">Post-transform feature names — align coefficients/importances to columns.</div></li>
+      <li class="inspect"><code class="cmd">model.feature_names_in_</code><div class="desc">Column names seen at fit when X was a DataFrame; predict-time names must match.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 LINEAR CLASSIFIERS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Linear Classifiers</span><span class="card-sub">estimators / models</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">LogisticRegression(C=<span class="num">1.0</span>, max_iter=<span class="num">1000</span>)</code><span class="star">&#9733;</span><div class="desc">Fast, calibrated-ish, interpretable baseline; smaller C = stronger regularization.</div></li>
+      <li class="shape"><code class="cmd">LogisticRegression(penalty=<span class="arg">'l1'</span>, solver=<span class="arg">'liblinear'</span>)</code><div class="desc">Sparse coefficients — built-in feature selection.</div></li>
+      <li class="shape"><code class="cmd">LinearSVC()</code><div class="desc">Linear SVM, scales to wide sparse data (text).</div></li>
+      <li class="shape"><code class="cmd">SGDClassifier(loss=<span class="arg">'log_loss'</span>)</code><div class="desc">Any linear model via SGD — huge data, supports <code>partial_fit</code>.</div></li>
+      <li class="shape"><code class="cmd">RidgeClassifier() &nbsp;Perceptron()</code><div class="desc">Least-squares / classic online linear classifiers.</div></li>
+      <li class="note"><code class="cmd">always scale features for linear models</code><div class="desc">Regularization assumes comparable feature scales.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 LINEAR & ROBUST REGRESSION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Linear, Robust &amp; GLM Regression</span><span class="card-sub">estimators / models</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">LinearRegression()</code><span class="star">&#9733;</span><div class="desc">Ordinary least squares baseline.</div></li>
+      <li class="shape"><code class="cmd">Ridge(alpha=<span class="num">1.0</span>) &nbsp;Lasso() &nbsp;ElasticNet()</code><span class="star">&#9733;</span><div class="desc">L2 / L1 / both; <code>RidgeCV</code>, <code>LassoCV</code> tune alpha internally.</div></li>
+      <li class="shape"><code class="cmd">HuberRegressor() &nbsp;RANSACRegressor() &nbsp;TheilSenRegressor()</code><div class="desc">Robust to outliers: soft down-weighting / inlier consensus / median-of-slopes.</div></li>
+      <li class="shape"><code class="cmd">QuantileRegressor(quantile=<span class="num">0.9</span>)</code><div class="desc">Predict conditional quantiles — pinball loss.</div></li>
+      <li class="shape"><code class="cmd">PoissonRegressor() &nbsp;GammaRegressor() &nbsp;TweedieRegressor()</code><div class="desc">GLMs for counts, positive-skew, and insurance-style targets.</div></li>
+      <li class="shape"><code class="cmd">SVR(kernel=<span class="arg">'rbf'</span>) &nbsp;KernelRidge()</code><div class="desc">Kernel non-linear regression; KernelRidge fits faster, SVR predicts faster.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 TREES & GRADIENT BOOSTING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Trees &amp; HistGradientBoosting</span><span class="card-sub">estimators / models</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">HistGradientBoostingClassifier() / ...Regressor()</code><span class="star">&#9733;</span><div class="desc">The modern default for tabular data — LightGBM-style, fast on 10k+ rows.</div></li>
+      <li class="shape"><code class="cmd">HistGradientBoosting...(categorical_features=<span class="arg">'from_dtype'</span>)</code><div class="desc">Native categorical splits from pandas <code>category</code> dtype — no one-hot needed.</div></li>
+      <li class="shape"><code class="cmd">HistGradientBoosting...(early_stopping=<span class="flag">True</span>)</code><div class="desc">Auto validation-based stopping; handles NaN natively too.</div></li>
+      <li class="shape"><code class="cmd">HistGradientBoosting...(monotonic_cst={<span class="arg">'price'</span>: <span class="num">1</span>})</code><div class="desc">Force monotone feature-response relationships.</div></li>
+      <li class="shape"><code class="cmd">RandomForestClassifier(n_estimators=<span class="num">300</span>, oob_score=<span class="flag">True</span>)</code><span class="star">&#9733;</span><div class="desc">Bagged trees — strong low-tuning default; OOB is a free validation score.</div></li>
+      <li class="shape"><code class="cmd">ExtraTreesClassifier() &nbsp;DecisionTreeClassifier(ccp_alpha=<span class="num">.01</span>)</code><div class="desc">Extra-random ensembles; single trees need pruning (<code>ccp_alpha</code>).</div></li>
+      <li class="note"><code class="cmd">legacy GradientBoosting* — prefer Hist* except tiny data</code><div class="desc">Old GBM is exact but far slower; Hist* bins features (&#8804;255 bins).</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 ENSEMBLE META -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Ensemble Meta-estimators</span><span class="card-sub">estimators / models</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">VotingClassifier(estimators=[...], voting=<span class="arg">'soft'</span>)</code><span class="star">&#9733;</span><div class="desc">Combine models by (probability-weighted) vote.</div></li>
+      <li class="shape"><code class="cmd">StackingClassifier(estimators=[...], final_estimator=LogisticRegression())</code><div class="desc">Meta-model learns from base models' CV predictions.</div></li>
+      <li class="shape"><code class="cmd">BaggingClassifier(estimator, n_estimators=<span class="num">10</span>)</code><div class="desc">Any model on bootstrap samples — variance reduction.</div></li>
+      <li class="shape"><code class="cmd">AdaBoostClassifier()</code><div class="desc">Sequentially reweights hard examples.</div></li>
+      <li class="note"><code class="cmd">XGBoost / LightGBM / CatBoost use the sklearn API</code><span class="badge-ext">ext</span><div class="desc">Drop into Pipelines, GridSearchCV, and cross_val_score unchanged.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 OTHER CLASSIFIERS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">SVM, KNN, Naive Bayes &amp; MLP</span><span class="card-sub">estimators / models</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">SVC(kernel=<span class="arg">'rbf'</span>, C=<span class="num">1</span>, gamma=<span class="arg">'scale'</span>)</code><span class="star">&#9733;</span><div class="desc">Max-margin, non-linear boundaries; O(n&sup2;) — avoid on &gt;20k rows.</div></li>
+      <li class="shape"><code class="cmd">SVC(probability=<span class="flag">True</span>)</code><div class="desc">Enables <code>predict_proba</code> via internal CV — slower fit.</div></li>
+      <li class="shape"><code class="cmd">KNeighborsClassifier(n_neighbors=<span class="num">5</span>)</code><div class="desc">Vote among k nearest points — scale features first.</div></li>
+      <li class="shape"><code class="cmd">GaussianNB() &nbsp;MultinomialNB() &nbsp;ComplementNB()</code><div class="desc">Probabilistic baselines: continuous / counts (text) / imbalanced text.</div></li>
+      <li class="shape"><code class="cmd">MLPClassifier(hidden_layer_sizes=(<span class="num">100</span>,), early_stopping=<span class="flag">True</span>)</code><div class="desc">Small feed-forward nets; for deep learning use PyTorch/JAX instead.</div></li>
+      <li class="shape"><code class="cmd">LinearDiscriminantAnalysis() &nbsp;QuadraticDiscriminantAnalysis()</code><div class="desc">Gaussian class-conditional classifiers; LDA doubles as supervised projection.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 CLUSTERING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Clustering</span><span class="card-sub">estimators / models</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">KMeans(n_clusters=<span class="num">3</span>, n_init=<span class="arg">'auto'</span>)</code><span class="star">&#9733;</span><div class="desc">Fast, spherical clusters, k chosen in advance; scale features.</div></li>
+      <li class="shape"><code class="cmd">MiniBatchKMeans() &nbsp;BisectingKMeans()</code><div class="desc">KMeans for big data / hierarchical top-down variant.</div></li>
+      <li class="shape"><code class="cmd">HDBSCAN(min_cluster_size=<span class="num">5</span>)</code><span class="star">&#9733;</span><span class="badge-ver">1.3+</span><div class="desc">Density-based, variable-density clusters + noise labels (-1); no eps to tune.</div></li>
+      <li class="shape"><code class="cmd">DBSCAN(eps=<span class="num">0.5</span>, min_samples=<span class="num">5</span>) &nbsp;OPTICS()</code><div class="desc">Classic density clustering; OPTICS sweeps eps ranges.</div></li>
+      <li class="shape"><code class="cmd">AgglomerativeClustering(linkage=<span class="arg">'ward'</span>)</code><div class="desc">Hierarchical bottom-up merging; dendrogram-friendly.</div></li>
+      <li class="shape"><code class="cmd">SpectralClustering() &nbsp;Birch() &nbsp;MeanShift()</code><div class="desc">Graph-based / streaming / mode-seeking alternatives.</div></li>
+      <li class="shape"><code class="cmd">GaussianMixture(n_components=<span class="num">3</span>).bic(X)</code><div class="desc">Soft (probabilistic) clustering; pick components by lowest BIC/AIC.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 DIM REDUCTION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Dimensionality Reduction</span><span class="card-sub">estimators / models</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">PCA(n_components=<span class="num">0.95</span>)</code><span class="star">&#9733;</span><div class="desc">Float = keep 95% of variance; int = exact count. Check <code>explained_variance_ratio_</code>.</div></li>
+      <li class="shape"><code class="cmd">TruncatedSVD(n_components=<span class="num">100</span>)</code><div class="desc">PCA-like for sparse matrices (LSA on tf-idf).</div></li>
+      <li class="shape"><code class="cmd">IncrementalPCA(batch_size=<span class="num">1000</span>)</code><div class="desc">PCA in mini-batches — larger-than-memory data.</div></li>
+      <li class="shape"><code class="cmd">KernelPCA(kernel=<span class="arg">'rbf'</span>)</code><div class="desc">Non-linear PCA via the kernel trick.</div></li>
+      <li class="shape"><code class="cmd">NMF(n_components=<span class="num">10</span>)</code><div class="desc">Non-negative parts-based factorization — topics, spectra.</div></li>
+      <li class="shape"><code class="cmd">LinearDiscriminantAnalysis(n_components=<span class="num">2</span>)</code><div class="desc">Supervised projection that maximizes class separation.</div></li>
+      <li class="danger"><code class="cmd">fitting PCA before the train/test split</code><span class="badge-danger">leakage</span><div class="desc">PCA learns from data — fit on train only, inside the Pipeline.</div></li>
+    </ul>
+  </article>
+
+  <!-- 20 MANIFOLD -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">20</span><span class="card-title">Manifold Learning (Visualization)</span><span class="card-sub">estimators / models</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">TSNE(n_components=<span class="num">2</span>, perplexity=<span class="num">30</span>)</code><span class="star">&#9733;</span><div class="desc">2D/3D visualization only — no <code>transform</code> for new data; distances between clusters aren't meaningful.</div></li>
+      <li class="shape"><code class="cmd">Isomap() &nbsp;LocallyLinearEmbedding() &nbsp;MDS()</code><div class="desc">Geodesic / local-linear / distance-preserving embeddings.</div></li>
+      <li class="shape"><code class="cmd">SpectralEmbedding()</code><div class="desc">Graph-Laplacian embedding.</div></li>
+      <li class="note"><code class="cmd">umap-learn: UMAP(n_neighbors=15)</code><span class="badge-ext">ext</span><div class="desc">Faster than t-SNE, supports transform on new data — sklearn-compatible API.</div></li>
+      <li class="note"><code class="cmd">PCA to ~50 dims first, then t-SNE/UMAP</code><div class="desc">Standard recipe: denoise + speed up the manifold step.</div></li>
+    </ul>
+  </article>
+
+  <!-- 21 OUTLIER DETECTION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">21</span><span class="card-title">Outlier &amp; Novelty Detection</span><span class="card-sub">estimators / models</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">IsolationForest(contamination=<span class="num">0.05</span>)</code><span class="star">&#9733;</span><div class="desc">Random-split isolation — fast, high-dimensional-friendly; predicts +1/-1.</div></li>
+      <li class="shape"><code class="cmd">LocalOutlierFactor(n_neighbors=<span class="num">20</span>)</code><div class="desc">Local density comparison; <code>novelty=True</code> to score unseen data.</div></li>
+      <li class="shape"><code class="cmd">OneClassSVM(nu=<span class="num">0.05</span>)</code><div class="desc">Learn the boundary of "normal" — novelty detection.</div></li>
+      <li class="shape"><code class="cmd">EllipticEnvelope()</code><div class="desc">Robust Gaussian fit — assumes elliptical normal data.</div></li>
+      <li class="inspect"><code class="cmd">est.decision_function(X) &nbsp;est.score_samples(X)</code><div class="desc">Continuous anomaly scores instead of hard labels.</div></li>
+    </ul>
+  </article>
+
+  <!-- 22 CALIBRATION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">22</span><span class="card-title">Probability Calibration</span><span class="card-sub">select &amp; tune</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">CalibratedClassifierCV(model, method=<span class="arg">'isotonic'</span>, cv=<span class="num">5</span>)</code><span class="star">&#9733;</span><div class="desc">Make predict_proba honest; <code>'sigmoid'</code> (Platt) for small data, isotonic for large.</div></li>
+      <li class="select"><code class="cmd">CalibratedClassifierCV(model, method=<span class="arg">'temperature'</span>)</code><span class="badge-ver">1.8+</span><div class="desc">Temperature scaling — single-parameter, preserves accuracy/ranking.</div></li>
+      <li class="stats"><code class="cmd">calibration_curve(y_test, proba, n_bins=<span class="num">10</span>)</code><div class="desc">Reliability diagram data: predicted vs. actual frequency.</div></li>
+      <li class="stats"><code class="cmd">brier_score_loss(y_test, proba)</code><div class="desc">Proper scoring rule for probability quality (lower = better).</div></li>
+      <li class="note"><code class="cmd">calibrate when probabilities drive decisions</code><div class="desc">SVMs, boosted trees and forests are often over/under-confident.</div></li>
+    </ul>
+  </article>
+
+  <!-- 23 THRESHOLD TUNING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">23</span><span class="card-title">Decision-Threshold Tuning</span><span class="card-sub">select &amp; tune</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">TunedThresholdClassifierCV(model, scoring=<span class="arg">'f1'</span>)</code><span class="star">&#9733;</span><span class="badge-ver">1.5+</span><div class="desc">Post-tune the 0.5 cut-off by internal CV to maximize any metric — the clean fix for cost-sensitive / imbalanced problems.</div></li>
+      <li class="select"><code class="cmd">FixedThresholdClassifier(model, threshold=<span class="num">0.2</span>)</code><span class="badge-ver">1.5+</span><div class="desc">Set a business-chosen threshold explicitly.</div></li>
+      <li class="select"><code class="cmd">FrozenEstimator(fitted_model)</code><span class="badge-ver">1.6+</span><div class="desc">Wrap an already-fitted model so meta-estimators won't refit it.</div></li>
+      <li class="inspect"><code class="cmd">tuned.best_threshold_ &nbsp;tuned.best_score_</code><div class="desc">The chosen cut-off and its CV score.</div></li>
+      <li class="danger"><code class="cmd">tuning the threshold on training data</code><span class="badge-danger">overfit</span><div class="desc">With <code>cv='prefit'</code>, tune on held-out data only.</div></li>
+    </ul>
+  </article>
+
+  <!-- 24 CV FUNCTIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">24</span><span class="card-title">Cross-Validation Functions</span><span class="card-sub">select &amp; tune</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">cross_val_score(pipe, X, y, cv=<span class="num">5</span>, scoring=<span class="arg">'f1'</span>)</code><span class="star">&#9733;</span><div class="desc">k-fold scores in one call — pass the <em>Pipeline</em>, not the bare model.</div></li>
+      <li class="select"><code class="cmd">cross_validate(pipe, X, y, scoring=[<span class="arg">'f1'</span>,<span class="arg">'roc_auc'</span>], return_train_score=<span class="flag">True</span>)</code><div class="desc">Multiple metrics + fit/score times; train-vs-test gap reveals overfitting.</div></li>
+      <li class="select"><code class="cmd">cross_val_predict(pipe, X, y, cv=<span class="num">5</span>)</code><div class="desc">Out-of-fold predictions — honest confusion matrices &amp; stacking inputs.</div></li>
+      <li class="select"><code class="cmd">learning_curve(pipe, X, y)</code><div class="desc">Score vs. training size — "would more data help?"</div></li>
+      <li class="select"><code class="cmd">validation_curve(pipe, X, y, param_name=<span class="arg">'clf__C'</span>, param_range=...)</code><div class="desc">Score vs. one hyperparameter — under/overfit sweep.</div></li>
+      <li class="select"><code class="cmd">permutation_test_score(pipe, X, y)</code><div class="desc">p-value: is the score better than label-shuffled chance?</div></li>
+    </ul>
+  </article>
+
+  <!-- 25 HYPERPARAMETER TUNING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">25</span><span class="card-title">Hyperparameter Search</span><span class="card-sub">select &amp; tune</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">GridSearchCV(pipe, param_grid, cv=<span class="num">5</span>, n_jobs=<span class="num">-1</span>)</code><span class="star">&#9733;</span><div class="desc">Exhaustive search; refits the best config on all training data.</div></li>
+      <li class="select"><code class="cmd">RandomizedSearchCV(pipe, param_distributions, n_iter=<span class="num">50</span>)</code><span class="star">&#9733;</span><div class="desc">Sampled search — use <code>scipy.stats.loguniform(1e-3, 1e2)</code> for scale params.</div></li>
+      <li class="select"><code class="cmd">HalvingGridSearchCV / HalvingRandomSearchCV</code><div class="desc">Successive halving: eliminate losers early on small budgets (experimental import).</div></li>
+      <li class="inspect"><code class="cmd">search.best_params_ &nbsp;.best_score_ &nbsp;.best_estimator_</code><span class="star">&#9733;</span><div class="desc">Winning config, its CV score, and the refit model.</div></li>
+      <li class="inspect"><code class="cmd">pd.DataFrame(search.cv_results_)</code><div class="desc">Full per-candidate results table for analysis.</div></li>
+      <li class="danger"><code class="cmd">reporting best_score_ as the final performance</code><span class="badge-danger">optimistic</span><div class="desc">Selection bias — confirm on a held-out test set or nested CV.</div></li>
+    </ul>
+  </article>
+
+  <!-- 26 CLASSIFICATION METRICS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">26</span><span class="card-title">Classification Metrics</span><span class="card-sub">evaluate</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">accuracy_score(y_test, y_pred)</code><span class="star">&#9733;</span><div class="desc">Fraction correct — misleading if imbalanced.</div></li>
+      <li class="stats"><code class="cmd">precision_score / recall_score / f1_score(..., average=<span class="arg">'macro'</span>)</code><span class="star">&#9733;</span><div class="desc">Per-class quality; average = binary / micro / macro / weighted.</div></li>
+      <li class="stats"><code class="cmd">balanced_accuracy_score() &nbsp;matthews_corrcoef()</code><div class="desc">Imbalance-robust single numbers; MCC uses the whole confusion matrix.</div></li>
+      <li class="stats"><code class="cmd">confusion_matrix(y_test, y_pred) &nbsp;classification_report(...)</code><span class="star">&#9733;</span><div class="desc">Counts per true/predicted class; report = P/R/F1 for every class.</div></li>
+      <li class="stats"><code class="cmd">roc_auc_score(y_test, y_scores)</code><span class="star">&#9733;</span><div class="desc">Ranking quality across thresholds; <code>multi_class='ovr'</code> for multiclass.</div></li>
+      <li class="stats"><code class="cmd">average_precision_score(y_test, y_scores)</code><div class="desc">PR-AUC — preferred over ROC-AUC on heavy imbalance.</div></li>
+      <li class="stats"><code class="cmd">log_loss(y_test, proba) &nbsp;brier_score_loss(...)</code><div class="desc">Probability-quality metrics (lower = better).</div></li>
+      <li class="stats"><code class="cmd">cohen_kappa_score() &nbsp;class_likelihood_ratios()</code><div class="desc">Chance-corrected agreement; LR+/LR&minus; for diagnostic tests.</div></li>
+    </ul>
+  </article>
+
+  <!-- 27 REGRESSION METRICS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">27</span><span class="card-title">Regression Metrics</span><span class="card-sub">evaluate</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">root_mean_squared_error(y_test, y_pred)</code><span class="star">&#9733;</span><span class="badge-ver">1.4+</span><div class="desc">Same units as target; replaces <code>mean_squared_error(squared=False)</code>.</div></li>
+      <li class="stats"><code class="cmd">mean_absolute_error(y_test, y_pred)</code><span class="star">&#9733;</span><div class="desc">Average absolute error — robust to outliers.</div></li>
+      <li class="stats"><code class="cmd">r2_score(y_test, y_pred)</code><span class="star">&#9733;</span><div class="desc">Variance explained; can be negative for bad models.</div></li>
+      <li class="stats"><code class="cmd">mean_absolute_percentage_error(...) &nbsp;median_absolute_error(...)</code><div class="desc">Relative error (beware near-zero targets) / outlier-immune median.</div></li>
+      <li class="stats"><code class="cmd">mean_pinball_loss(y, pred, alpha=<span class="num">0.9</span>)</code><div class="desc">Quantile-regression loss.</div></li>
+      <li class="stats"><code class="cmd">d2_absolute_error_score() &nbsp;mean_poisson_deviance()</code><div class="desc">R&sup2;-style generalizations / GLM deviances for count targets.</div></li>
+    </ul>
+  </article>
+
+  <!-- 28 CLUSTERING METRICS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">28</span><span class="card-title">Clustering Metrics</span><span class="card-sub">evaluate</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">silhouette_score(X, labels)</code><span class="star">&#9733;</span><div class="desc">Cohesion vs. separation, [-1, 1] — no ground truth needed.</div></li>
+      <li class="stats"><code class="cmd">davies_bouldin_score(X, labels) &nbsp;calinski_harabasz_score(...)</code><div class="desc">Internal indices: lower DB / higher CH = better.</div></li>
+      <li class="stats"><code class="cmd">adjusted_rand_score(y_true, labels)</code><div class="desc">Agreement with known labels, chance-corrected.</div></li>
+      <li class="stats"><code class="cmd">adjusted_mutual_info_score() &nbsp;v_measure_score()</code><div class="desc">Information-theoretic agreement; V = homogeneity &times; completeness.</div></li>
+      <li class="note"><code class="cmd">elbow (inertia) + silhouette to choose k</code><div class="desc">Plot both across k; agreement is a good sign.</div></li>
+    </ul>
+  </article>
+
+  <!-- 29 SCORERS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">29</span><span class="card-title">Scorers &amp; the scoring Parameter</span><span class="card-sub">evaluate</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">scoring=<span class="arg">'f1_macro'</span> &nbsp;<span class="arg">'neg_root_mean_squared_error'</span></code><span class="star">&#9733;</span><div class="desc">String scorers for CV/search; error metrics are negated so greater = better.</div></li>
+      <li class="stats"><code class="cmd">sklearn.metrics.get_scorer_names()</code><div class="desc">List every built-in scoring string.</div></li>
+      <li class="stats"><code class="cmd">make_scorer(fbeta_score, beta=<span class="num">2</span>)</code><div class="desc">Wrap any metric (plus kwargs) into a scorer.</div></li>
+      <li class="stats"><code class="cmd">make_scorer(my_loss, greater_is_better=<span class="flag">False</span>)</code><div class="desc">Custom losses get auto-negated for maximization.</div></li>
+      <li class="stats"><code class="cmd">scoring={<span class="arg">'f1'</span>: <span class="arg">'f1'</span>, <span class="arg">'auc'</span>: <span class="arg">'roc_auc'</span>}, refit=<span class="arg">'f1'</span></code><div class="desc">Multi-metric search — pick which one selects the winner.</div></li>
+    </ul>
+  </article>
+
+  <!-- 30 DISPLAYS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">30</span><span class="card-title">Plotting: the Display API</span><span class="card-sub">evaluate</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">ConfusionMatrixDisplay.from_estimator(model, X_test, y_test)</code><span class="star">&#9733;</span><div class="desc">One-line confusion-matrix plot; <code>normalize='true'</code> for rates.</div></li>
+      <li class="stats"><code class="cmd">RocCurveDisplay.from_predictions(y_test, y_scores)</code><span class="star">&#9733;</span><div class="desc">ROC from stored scores; every Display has both <code>from_estimator</code> / <code>from_predictions</code>.</div></li>
+      <li class="stats"><code class="cmd">PrecisionRecallDisplay &nbsp;DetCurveDisplay &nbsp;CalibrationDisplay</code><div class="desc">PR curve, detection-error tradeoff, reliability diagram.</div></li>
+      <li class="stats"><code class="cmd">LearningCurveDisplay &nbsp;ValidationCurveDisplay</code><div class="desc">Plot learning/validation curves without manual matplotlib.</div></li>
+      <li class="stats"><code class="cmd">PredictionErrorDisplay.from_estimator(reg, X, y)</code><div class="desc">Predicted-vs-actual and residual plots for regression.</div></li>
+      <li class="stats"><code class="cmd">DecisionBoundaryDisplay.from_estimator(clf, X)</code><div class="desc">2D decision-surface plot.</div></li>
+    </ul>
+  </article>
+
+  <!-- 31 INSPECTION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">31</span><span class="card-title">Model Inspection &amp; Explainability</span><span class="card-sub">fit &amp; inspect</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">permutation_importance(model, X_test, y_test, n_repeats=<span class="num">10</span>)</code><span class="star">&#9733;</span><div class="desc">Model-agnostic importance on held-out data — the trustworthy default.</div></li>
+      <li class="inspect"><code class="cmd">PartialDependenceDisplay.from_estimator(model, X, [<span class="arg">'age'</span>])</code><div class="desc">Average feature-response curves; <code>kind='individual'</code> adds ICE lines.</div></li>
+      <li class="danger"><code class="cmd">trusting feature_importances_ blindly</code><span class="badge-danger">bias</span><div class="desc">Impurity (MDI) importance inflates high-cardinality features and uses train data only.</div></li>
+      <li class="inspect"><code class="cmd">coef_ on scaled features &#8776; comparable effect sizes</code><div class="desc">Unscaled coefficients are not comparable across features.</div></li>
+      <li class="note"><code class="cmd">shap.TreeExplainer(model)</code><span class="badge-ext">ext</span><div class="desc">Per-prediction attributions for tree models — the SHAP library.</div></li>
+    </ul>
+  </article>
+
+  <!-- 32 IMBALANCED DATA -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">32</span><span class="card-title">Imbalanced Classification Playbook</span><span class="card-sub">select &amp; tune</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">class_weight=<span class="arg">'balanced'</span></code><span class="star">&#9733;</span><div class="desc">Reweight classes inversely to frequency — first thing to try.</div></li>
+      <li class="select"><code class="cmd">model.fit(X, y, sample_weight=w)</code><div class="desc">Per-row weights — cost-sensitive learning, most estimators.</div></li>
+      <li class="select"><code class="cmd">TunedThresholdClassifierCV(model, scoring=<span class="arg">'f1'</span>)</code><span class="badge-ver">1.5+</span><div class="desc">Move the decision threshold instead of distorting the data.</div></li>
+      <li class="select"><code class="cmd">imblearn: SMOTE().fit_resample(X_train, y_train)</code><span class="badge-ext">ext</span><div class="desc">Synthetic minority oversampling — imbalanced-learn; resample training folds only (use imblearn's own Pipeline).</div></li>
+      <li class="danger"><code class="cmd">resampling before the split / inside plain Pipeline</code><span class="badge-danger">leakage</span><div class="desc">Synthetic points contaminate validation folds.</div></li>
+      <li class="note"><code class="cmd">evaluate with PR-AUC, F1, balanced accuracy — not accuracy</code><div class="desc">Stratify every split.</div></li>
+    </ul>
+  </article>
+
+  <!-- 33 MULTICLASS / MULTIOUTPUT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">33</span><span class="card-title">Multiclass, Multilabel &amp; Multioutput</span><span class="card-sub">estimators / models</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">OneVsRestClassifier(est) &nbsp;OneVsOneClassifier(est)</code><div class="desc">Force a binary strategy; most sklearn classifiers are natively multiclass already.</div></li>
+      <li class="shape"><code class="cmd">MultiOutputClassifier(est) &nbsp;MultiOutputRegressor(est)</code><div class="desc">One independent model per target column.</div></li>
+      <li class="shape"><code class="cmd">ClassifierChain(est) &nbsp;RegressorChain(est)</code><div class="desc">Feed earlier targets into later ones — captures label correlations.</div></li>
+      <li class="shape"><code class="cmd">TransformedTargetRegressor(reg, func=np.log1p, inverse_func=np.expm1)</code><div class="desc">Train on transformed y, predict back in original units.</div></li>
+      <li class="clean"><code class="cmd">MultiLabelBinarizer() &nbsp;LabelBinarizer()</code><div class="desc">Label sets / labels &#8596; indicator matrices.</div></li>
+    </ul>
+  </article>
+
+  <!-- 34 SEMI-SUPERVISED -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">34</span><span class="card-title">Semi-supervised Learning</span><span class="card-sub">estimators / models</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">SelfTrainingClassifier(base_clf, threshold=<span class="num">0.75</span>)</code><div class="desc">Pseudo-label confident unlabeled rows iteratively.</div></li>
+      <li class="shape"><code class="cmd">LabelPropagation() &nbsp;LabelSpreading()</code><div class="desc">Graph-based label diffusion; Spreading is noise-tolerant.</div></li>
+      <li class="note"><code class="cmd">mark unlabeled samples with y = -1</code><div class="desc">The sklearn convention for semi-supervised targets.</div></li>
+    </ul>
+  </article>
+
+  <!-- 35 GAUSSIAN PROCESSES & KERNEL APPROX -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">35</span><span class="card-title">Gaussian Processes &amp; Kernel Approximation</span><span class="card-sub">estimators / models</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">GaussianProcessRegressor(kernel=RBF() + WhiteKernel())</code><div class="desc">Bayesian regression with composable kernels — small data.</div></li>
+      <li class="inspect"><code class="cmd">gpr.predict(X, return_std=<span class="flag">True</span>)</code><div class="desc">Predictions <em>with uncertainty</em> — GP's superpower.</div></li>
+      <li class="shape"><code class="cmd">Nystroem(kernel=<span class="arg">'rbf'</span>, n_components=<span class="num">300</span>)</code><div class="desc">Approximate kernel features + linear model &#8776; fast kernel SVM.</div></li>
+      <li class="shape"><code class="cmd">RBFSampler(gamma=<span class="num">1.0</span>)</code><div class="desc">Random Fourier features — same trick, cheaper.</div></li>
+    </ul>
+  </article>
+
+  <!-- 36 OUT-OF-CORE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">36</span><span class="card-title">Big Data &amp; Out-of-Core Learning</span><span class="card-sub">estimators / models</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">est.partial_fit(X_batch, y_batch, classes=all_classes)</code><span class="star">&#9733;</span><div class="desc">Incremental learning; pass the full class list on the first call.</div></li>
+      <li class="shape"><code class="cmd">SGDClassifier / SGDRegressor / PassiveAggressive*</code><div class="desc">Linear learners built for streaming batches.</div></li>
+      <li class="shape"><code class="cmd">MiniBatchKMeans &nbsp;IncrementalPCA &nbsp;MiniBatchNMF</code><div class="desc">Batched unsupervised counterparts.</div></li>
+      <li class="shape"><code class="cmd">HashingVectorizer + SGDClassifier</code><div class="desc">Classic out-of-core text pipeline — no vocabulary state.</div></li>
+      <li class="note"><code class="cmd">X = np.load(<span class="arg">'X.npy'</span>, mmap_mode=<span class="arg">'r'</span>)</code><div class="desc">Memory-mapped arrays let estimators read larger-than-RAM data.</div></li>
+    </ul>
+  </article>
+
+  <!-- 37 PERFORMANCE & MODERN RUNTIME -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">37</span><span class="card-title">Performance, GPU &amp; Callbacks</span><span class="card-sub">handle with care</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">n_jobs=<span class="num">-1</span></code><span class="badge-safe">safe</span><div class="desc">All CPU cores where supported (forests, KNN, CV, search).</div></li>
+      <li class="clean"><code class="cmd">set_config(array_api_dispatch=<span class="flag">True</span>)</code><span class="badge-ver">1.8+</span><div class="desc">Pass PyTorch / CuPy arrays to supported estimators — computation runs on GPU.</div></li>
+      <li class="clean"><code class="cmd">model.set_callbacks(ProgressBar(), ScoringMonitor(scoring=...))</code><span class="badge-ver">1.9</span><div class="desc">Progress bars &amp; per-iteration metric logging (experimental, <code>sklearn.callback</code>).</div></li>
+      <li class="clean"><code class="cmd">from sklearnex <span class="flag">import</span> patch_sklearn; patch_sklearn()</code><span class="badge-ext">ext</span><div class="desc">Intel extension — order-of-magnitude speedups on CPU, same API.</div></li>
+      <li class="note"><code class="cmd">float32 input &#8776; half the memory, often enough precision</code><div class="desc">Downcast with <code>X.astype(np.float32)</code> for big matrices.</div></li>
+      <li class="note"><code class="cmd">free-threaded CPython supported</code><span class="badge-ver">1.8+</span><div class="desc">nogil builds let n_jobs use threads instead of processes.</div></li>
+    </ul>
+  </article>
+
+  <!-- 38 PERSISTENCE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">38</span><span class="card-title">Model Persistence &amp; Deployment</span><span class="card-sub">load &amp; split</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">joblib.dump(pipe, <span class="arg">'model.joblib'</span>) &nbsp;joblib.load(...)</code><span class="star">&#9733;</span><div class="desc">Standard save/load — persist the whole Pipeline, not just the model.</div></li>
+      <li class="create"><code class="cmd">skops.io.dump(pipe, <span class="arg">'model.skops'</span>)</code><span class="badge-ext">ext</span><div class="desc">Security-audited format — loads without executing arbitrary code.</div></li>
+      <li class="danger"><code class="cmd">loading pickles from untrusted sources</code><span class="badge-danger">unsafe</span><div class="desc">Pickle/joblib can execute arbitrary code on load — use skops for sharing.</div></li>
+      <li class="danger"><code class="cmd">loading across sklearn versions</code><span class="badge-danger">fragile</span><div class="desc"><code>InconsistentVersionWarning</code> — pin the training version in requirements.</div></li>
+      <li class="create"><code class="cmd">skl2onnx.to_onnx(pipe, X[:1])</code><span class="badge-ext">ext</span><div class="desc">Export to ONNX for cross-language, dependency-free inference.</div></li>
+    </ul>
+  </article>
+
+  <!-- 39 DUMMY BASELINES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">39</span><span class="card-title">Baselines &amp; Sanity Checks</span><span class="card-sub">evaluate</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">DummyClassifier(strategy=<span class="arg">'most_frequent'</span>)</code><span class="star">&#9733;</span><div class="desc">Majority-class baseline — beat this before celebrating.</div></li>
+      <li class="stats"><code class="cmd">DummyRegressor(strategy=<span class="arg">'mean'</span>)</code><div class="desc">Predict-the-mean baseline (R&sup2; = 0 by definition).</div></li>
+      <li class="stats"><code class="cmd">suspiciously perfect scores &#8594; hunt for leakage</code><div class="desc">Duplicated rows across splits, target-derived features, post-outcome features.</div></li>
+      <li class="note"><code class="cmd">start simple: Dummy &#8594; linear &#8594; HistGradientBoosting</code><div class="desc">Each step must justify its complexity.</div></li>
+    </ul>
+  </article>
+
+  <!-- 40 METADATA ROUTING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">40</span><span class="card-title">Metadata Routing</span><span class="card-sub">fit &amp; inspect</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">sklearn.set_config(enable_metadata_routing=<span class="flag">True</span>)</code><span class="badge-ver">1.6</span><div class="desc">Route <code>sample_weight</code>, <code>groups</code> etc. through meta-estimators; rollout largely complete in 1.6.</div></li>
+      <li class="inspect"><code class="cmd">model.set_fit_request(sample_weight=<span class="flag">True</span>)</code><div class="desc">Declare which metadata an inner estimator consumes.</div></li>
+      <li class="inspect"><code class="cmd">scorer.set_score_request(sample_weight=<span class="flag">True</span>)</code><div class="desc">Weighted scoring inside CV/search.</div></li>
+      <li class="note"><code class="cmd">cross_val_score(pipe, X, y, params={<span class="arg">'sample_weight'</span>: w})</code><div class="desc">Pass routed metadata via <code>params</code> once routing is on.</div></li>
+    </ul>
+  </article>
+
+  <!-- 41 VERSION TIMELINE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">41</span><span class="card-title">Version Highlights 1.3 &#8594; 1.9</span><span class="card-sub">fit &amp; inspect</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd"><span class="num">1.3</span> HDBSCAN, TargetEncoder, ValidationCurveDisplay</code><div class="desc">Plus <code>sample_weight</code> in KMeans init.</div></li>
+      <li class="inspect"><code class="cmd"><span class="num">1.4</span> root_mean_squared_error, polars in set_output</code><div class="desc">Native categorical dtype in HGB; PCA on sparse data.</div></li>
+      <li class="inspect"><code class="cmd"><span class="num">1.5</span> TunedThresholdClassifierCV, FixedThresholdClassifier</code><div class="desc">Post-hoc decision-threshold tuning arrives.</div></li>
+      <li class="inspect"><code class="cmd"><span class="num">1.6</span> FrozenEstimator, metadata-routing rollout</code><div class="desc">Missing-value support in ExtraTrees; <code>handle_unknown='warn'</code>.</div></li>
+      <li class="inspect"><code class="cmd"><span class="num">1.7</span> richer HTML repr with parameter values</code><div class="desc">Non-default params highlighted; copy-ready <code>step__param</code> names.</div></li>
+      <li class="inspect"><code class="cmd"><span class="num">1.8</span> Array-API/GPU estimators, temperature scaling</code><div class="desc">Free-threaded CPython support.</div></li>
+      <li class="inspect"><code class="cmd"><span class="num">1.9</span> callbacks (ProgressBar, ScoringMonitor), narwhals</code><div class="desc">Fitted-attributes in HTML repr; <code>sparse_interface='sparray'</code> config.</div></li>
+    </ul>
+  </article>
+
+  <!-- 42 GOTCHAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">42</span><span class="card-title">Top Gotchas</span><span class="card-sub">handle with care</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">fit scaler/encoder/selector on all data</code><span class="badge-danger">leakage</span><div class="desc">Fit on train, transform both — or better, put it in the Pipeline.</div></li>
+      <li class="danger"><code class="cmd">preprocessing outside cross-validation</code><span class="badge-danger">leakage</span><div class="desc">CV must refit preprocessing per fold — Pipelines do this automatically.</div></li>
+      <li class="danger"><code class="cmd">fit_transform() on test data</code><span class="badge-danger">leakage</span><div class="desc">Test data gets <code>transform()</code> only.</div></li>
+      <li class="danger"><code class="cmd">imputing/oversampling before the split</code><span class="badge-danger">leakage</span><div class="desc">Test-set statistics bleed into training.</div></li>
+      <li class="clean"><code class="cmd">always set random_state</code><span class="badge-safe">safe</span><div class="desc">Reproducible splits, shuffles, and stochastic fits.</div></li>
+      <li class="danger"><code class="cmd">ConvergenceWarning ignored</code><span class="badge-danger">unfit</span><div class="desc">Raise <code>max_iter</code> and/or scale features — the model didn't finish learning.</div></li>
+      <li class="danger"><code class="cmd">predict columns in a different order than fit</code><span class="badge-danger">silent</span><div class="desc">Arrays are positional; DataFrames are checked against <code>feature_names_in_</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- STAR: ATTRIBUTES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Common Fitted Attributes</span><span class="card-sub">after .fit()</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">model.coef_ &nbsp;model.intercept_</code><span class="star">&#9733;</span><div class="desc">Learned weights (linear models).</div></li>
+      <li class="inspect"><code class="cmd">model.feature_importances_</code><span class="star">&#9733;</span><div class="desc">Impurity-based importance (trees/forests) — see MDI caveat, card 31.</div></li>
+      <li class="inspect"><code class="cmd">model.classes_ &nbsp;model.n_features_in_ &nbsp;model.feature_names_in_</code><div class="desc">Label order, feature count, and column names seen at fit.</div></li>
+      <li class="inspect"><code class="cmd">pca.explained_variance_ratio_ &nbsp;kmeans.cluster_centers_ &nbsp;kmeans.inertia_</code><div class="desc">Variance kept / centroids / within-cluster SSE.</div></li>
+      <li class="inspect"><code class="cmd">forest.oob_score_ &nbsp;search.cv_results_</code><div class="desc">Out-of-bag validation score; full search results table.</div></li>
+      <li class="inspect"><code class="cmd">check_is_fitted(model)</code><div class="desc">Raises if the estimator hasn't been fit (<code>sklearn.utils.validation</code>).</div></li>
+    </ul>
+  </article>
+
+  <!-- STAR: WHICH METRIC -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Which Metric, When?</span><span class="card-sub">quick-read</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">balanced classification</code><span class="star">&#9733;</span><div class="desc">Accuracy is fine; add a confusion matrix anyway.</div></li>
+      <li class="stats"><code class="cmd">imbalanced classification</code><span class="star">&#9733;</span><div class="desc">PR-AUC / F1 / balanced accuracy; tune the threshold (card 23).</div></li>
+      <li class="stats"><code class="cmd">probability outputs matter</code><div class="desc">log_loss + Brier + calibration curve.</div></li>
+      <li class="stats"><code class="cmd">regression</code><span class="star">&#9733;</span><div class="desc">RMSE/MAE for error size, R&sup2; for variance explained; MAE if outliers.</div></li>
+      <li class="stats"><code class="cmd">clustering</code><div class="desc">Silhouette (no labels) / ARI &amp; AMI (labels available).</div></li>
+      <li class="stats"><code class="cmd">ranking / retrieval</code><div class="desc">ROC-AUC, average precision, <code>top_k_accuracy_score</code>, <code>ndcg_score</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- STAR: WHICH SCALER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Which Scaler / Encoder, When?</span><span class="card-sub">quick-read</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">default numeric</code><span class="star">&#9733;</span><div class="desc">StandardScaler; RobustScaler if outliers; MinMax for bounded inputs (NN).</div></li>
+      <li class="clean"><code class="cmd">skewed numeric</code><div class="desc">PowerTransformer (yeo-johnson) or log via FunctionTransformer.</div></li>
+      <li class="clean"><code class="cmd">low-cardinality categorical</code><span class="star">&#9733;</span><div class="desc">OneHotEncoder(handle_unknown='ignore').</div></li>
+      <li class="clean"><code class="cmd">high-cardinality categorical</code><div class="desc">TargetEncoder (1.3+) or hashing; one-hot explodes width.</div></li>
+      <li class="clean"><code class="cmd">tree / HGB models</code><div class="desc">No scaling needed; OrdinalEncoder or native categorical dtype suffices.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ WORKFLOW DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>The ML workflow, visually</h2>
+  <p class="sub">Six visuals behind almost every scikit-learn project: the split, rotating CV folds, Pipeline chaining, per-column routing with ColumnTransformer, the complexity sweet spot, and the movable decision threshold.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>train_test_split() &#9733;</h3>
+      <p>The dataset is split once — the model never sees the test rows until final evaluation.</p>
+      <svg viewBox="0 0 390 130" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a bar of ten blocks split into eight blue training blocks and two amber test blocks">
+        <g>
+          <rect x="10"  y="30" width="34" height="40" fill="#eff4fe" stroke="#2563eb" stroke-width="1.3"/>
+          <rect x="44"  y="30" width="34" height="40" fill="#eff4fe" stroke="#2563eb" stroke-width="1.3"/>
+          <rect x="78"  y="30" width="34" height="40" fill="#eff4fe" stroke="#2563eb" stroke-width="1.3"/>
+          <rect x="112" y="30" width="34" height="40" fill="#eff4fe" stroke="#2563eb" stroke-width="1.3"/>
+          <rect x="146" y="30" width="34" height="40" fill="#eff4fe" stroke="#2563eb" stroke-width="1.3"/>
+          <rect x="180" y="30" width="34" height="40" fill="#eff4fe" stroke="#2563eb" stroke-width="1.3"/>
+          <rect x="214" y="30" width="34" height="40" fill="#eff4fe" stroke="#2563eb" stroke-width="1.3"/>
+          <rect x="248" y="30" width="34" height="40" fill="#eff4fe" stroke="#2563eb" stroke-width="1.3"/>
+          <rect x="282" y="30" width="48" height="40" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+          <rect x="330" y="30" width="48" height="40" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+        </g>
+        <text x="145" y="90" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#2563eb" font-weight="700">X_train, y_train (80%)</text>
+        <text x="355" y="90" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#d97706" font-weight="700">test (20%)</text>
+        <text x="195" y="112" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#64748b">test rows are held out until final .score() / metrics</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>K-Fold Cross-Validation &#9733;</h3>
+      <p>Each row is one fold's split; the validation block (amber) rotates so every sample is validated on exactly once.</p>
+      <svg viewBox="0 0 390 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="five rows each with five segments; in each row a different segment is highlighted amber as the validation fold while the rest are blue training folds">
+        <g>
+          <rect x="70" y="8"  width="48" height="18" fill="#fdf6ec" stroke="#d97706" stroke-width="1.2"/>
+          <rect x="118" y="8" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="166" y="8" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="214" y="8" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="262" y="8" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="70" y="30" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="118" y="30" width="48" height="18" fill="#fdf6ec" stroke="#d97706" stroke-width="1.2"/>
+          <rect x="166" y="30" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="214" y="30" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="262" y="30" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="70" y="52" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="118" y="52" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="166" y="52" width="48" height="18" fill="#fdf6ec" stroke="#d97706" stroke-width="1.2"/>
+          <rect x="214" y="52" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="262" y="52" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="70" y="74" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="118" y="74" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="166" y="74" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="214" y="74" width="48" height="18" fill="#fdf6ec" stroke="#d97706" stroke-width="1.2"/>
+          <rect x="262" y="74" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="70" y="96" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="118" y="96" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="166" y="96" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="214" y="96" width="48" height="18" fill="#eff4fe" stroke="#2563eb" stroke-width="1"/>
+          <rect x="262" y="96" width="48" height="18" fill="#fdf6ec" stroke="#d97706" stroke-width="1.2"/>
+        </g>
+        <text x="18" y="20"  font-family="JetBrains Mono, monospace" font-size="8.5" fill="#64748b">fold 1</text>
+        <text x="18" y="42"  font-family="JetBrains Mono, monospace" font-size="8.5" fill="#64748b">fold 2</text>
+        <text x="18" y="64"  font-family="JetBrains Mono, monospace" font-size="8.5" fill="#64748b">fold 3</text>
+        <text x="18" y="86"  font-family="JetBrains Mono, monospace" font-size="8.5" fill="#64748b">fold 4</text>
+        <text x="18" y="108" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#64748b">fold 5</text>
+        <text x="195" y="130" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#64748b">blue = train &middot; amber = validation &middot; cross_val_score averages all 5 scores</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Pipeline chaining &#9733;</h3>
+      <p>One <code>.fit()</code> call runs every step in order; the same chain applies identically at predict time.</p>
+      <svg viewBox="0 0 390 130" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="raw data flows through an imputer, a scaler, and a model, producing a prediction">
+        <defs><marker id="arrPi" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker></defs>
+        <g font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">
+          <rect x="5"   y="35" width="70" height="34" rx="6" fill="#f1f3f6" stroke="#64748b" stroke-width="1.3"/><text x="40" y="56" fill="#64748b">raw data</text>
+          <rect x="90"  y="35" width="70" height="34" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/><text x="125" y="56" fill="#059669">Imputer</text>
+          <rect x="175" y="35" width="70" height="34" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/><text x="210" y="56" fill="#059669">Scaler</text>
+          <rect x="260" y="35" width="60" height="34" rx="6" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.3"/><text x="290" y="56" fill="#7c3aed">Model</text>
+          <rect x="330" y="35" width="55" height="34" rx="6" fill="#1a1d24"/><text x="357" y="56" fill="#fff">pred</text>
+        </g>
+        <line x1="76"  y1="52" x2="88"  y2="52" stroke="#7c3aed" stroke-width="1.4" marker-end="url(#arrPi)"/>
+        <line x1="161" y1="52" x2="173" y2="52" stroke="#7c3aed" stroke-width="1.4" marker-end="url(#arrPi)"/>
+        <line x1="246" y1="52" x2="258" y2="52" stroke="#7c3aed" stroke-width="1.4" marker-end="url(#arrPi)"/>
+        <line x1="321" y1="52" x2="328" y2="52" stroke="#7c3aed" stroke-width="1.4" marker-end="url(#arrPi)"/>
+        <text x="195" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#7c3aed" font-weight="700">Pipeline([('impute', ...), ('scale', ...), ('clf', ...)])</text>
+        <text x="195" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#64748b">refit correctly inside every cross-validation fold</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>ColumnTransformer routing</h3>
+      <p>Numeric and categorical columns take different preprocessing paths, then rejoin into one matrix for the model.</p>
+      <svg viewBox="0 0 390 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a data frame splits into a numeric branch through impute and scale, and a categorical branch through one-hot encoding, and the branches concatenate back into one feature matrix feeding the model">
+        <defs><marker id="arrCt" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+        <g font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">
+          <rect x="5" y="55" width="62" height="40" rx="6" fill="#f1f3f6" stroke="#64748b" stroke-width="1.3"/><text x="36" y="72" fill="#64748b">DataFrame</text><text x="36" y="84" fill="#64748b">num + cat</text>
+          <rect x="105" y="14" width="92" height="30" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/><text x="151" y="33" fill="#059669">impute+scale</text>
+          <rect x="105" y="106" width="92" height="30" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/><text x="151" y="125" fill="#059669">OneHotEncoder</text>
+          <rect x="235" y="55" width="72" height="40" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/><text x="271" y="72" fill="#b45309">hstack</text><text x="271" y="84" fill="#b45309">features</text>
+          <rect x="330" y="55" width="55" height="40" rx="6" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.3"/><text x="357" y="79" fill="#7c3aed">Model</text>
+        </g>
+        <path d="M68,65 C 85,55 92,42 103,32" fill="none" stroke="#64748b" stroke-width="1.3" marker-end="url(#arrCt)"/>
+        <path d="M68,85 C 85,95 92,108 103,118" fill="none" stroke="#64748b" stroke-width="1.3" marker-end="url(#arrCt)"/>
+        <path d="M199,32 C 216,42 222,55 233,65" fill="none" stroke="#64748b" stroke-width="1.3" marker-end="url(#arrCt)"/>
+        <path d="M199,118 C 216,108 222,95 233,85" fill="none" stroke="#64748b" stroke-width="1.3" marker-end="url(#arrCt)"/>
+        <line x1="308" y1="75" x2="327" y2="75" stroke="#64748b" stroke-width="1.3" marker-end="url(#arrCt)"/>
+        <text x="98" y="60" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#64748b">num cols</text>
+        <text x="98" y="99" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#64748b">cat cols</text>
+        <text x="195" y="147" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#64748b">ColumnTransformer([('num', num_pipe, num_cols), ('cat', cat_pipe, cat_cols)])</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Under- vs. overfitting &#9733;</h3>
+      <p>Training error always falls with complexity; validation error is U-shaped — the gap between them is what to watch.</p>
+      <svg viewBox="0 0 390 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="training error decreases steadily with model complexity while validation error forms a U shape, with underfitting on the left, a sweet spot in the middle, and overfitting on the right">
+        <line x1="30" y1="15" x2="30" y2="120" stroke="#64748b" stroke-width="1.2"/>
+        <line x1="30" y1="120" x2="370" y2="120" stroke="#64748b" stroke-width="1.2"/>
+        <text x="18" y="70" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#64748b" transform="rotate(-90 18 70)">error</text>
+        <text x="200" y="140" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#64748b">model complexity &#8594;</text>
+        <path d="M40,105 C 120,45 260,25 360,18" fill="none" stroke="#2563eb" stroke-width="2"/>
+        <path d="M40,110 C 140,55 180,45 200,48 C 240,55 320,90 360,112" fill="none" stroke="#dc2626" stroke-width="2"/>
+        <text x="330" y="30" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#2563eb" font-weight="700">train error</text>
+        <text x="270" y="108" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#dc2626" font-weight="700">val error</text>
+        <line x1="200" y1="15" x2="200" y2="120" stroke="#d97706" stroke-width="1.2" stroke-dasharray="3 3"/>
+        <text x="90"  y="132" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#64748b">underfit</text>
+        <text x="200" y="132" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#d97706" font-weight="700">sweet spot</text>
+        <text x="320" y="132" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#64748b">overfit</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Tuning the decision threshold <span style="font-family:var(--mono);font-size:.7em;color:#7c3aed">1.5+</span></h3>
+      <p>Sliding the cut-off along the score axis trades precision against recall — <code>TunedThresholdClassifierCV</code> picks the spot that maximizes your metric.</p>
+      <svg viewBox="0 0 390 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="two overlapping score distributions for the negative and positive classes with a movable vertical threshold line; moving it left raises recall, moving it right raises precision">
+        <line x1="30" y1="120" x2="370" y2="120" stroke="#64748b" stroke-width="1.2"/>
+        <text x="200" y="140" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#64748b">predicted score / probability &#8594;</text>
+        <path d="M40,120 C 90,30 150,30 210,118" fill="#eff4fe" fill-opacity=".7" stroke="#2563eb" stroke-width="1.8"/>
+        <path d="M170,118 C 240,25 300,25 360,120" fill="#fdf0ef" fill-opacity=".7" stroke="#dc2626" stroke-width="1.8"/>
+        <text x="105" y="45" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#2563eb" font-weight="700">class 0</text>
+        <text x="285" y="45" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#dc2626" font-weight="700">class 1</text>
+        <line x1="215" y1="12" x2="215" y2="120" stroke="#d97706" stroke-width="2" stroke-dasharray="4 3"/>
+        <text x="215" y="9" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#d97706" font-weight="700">threshold</text>
+        <text x="150" y="105" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#64748b">&#8592; recall &#8593;</text>
+        <text x="285" y="105" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#64748b">precision &#8593; &#8594;</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">fit / transform / predict</span><span class="v">fit learns, transform reshapes data, predict outputs labels</span></div>
+    <div><span class="k">fit on train only</span><span class="v">transform test/validation data with the already-fit object</span></div>
+    <div><span class="k">Pipeline prevents leakage</span><span class="v">preprocessing is refit correctly inside each CV fold</span></div>
+    <div><span class="k">random_state everywhere</span><span class="v">reproducible splits, shuffling, and stochastic models</span></div>
+    <div><span class="k">scale for distance/gradient models</span><span class="v">KNN, SVM, linear models &amp; PCA need it; trees don't</span></div>
+    <div><span class="k">HistGradientBoosting first</span><span class="v">the modern tabular default — NaN + categoricals handled natively</span></div>
+    <div><span class="k">Grid vs Randomized search</span><span class="v">exhaustive vs. sampled — randomized scales better on big grids</span></div>
+    <div><span class="k">accuracy misleads on imbalance</span><span class="v">PR-AUC / F1 + confusion matrix; tune the threshold (1.5+)</span></div>
+    <div><span class="k">cross_val_score defaults</span><span class="v">stratified k-fold automatically for classifiers</span></div>
+    <div><span class="k">step__param syntax</span><span class="v">tune anything nested inside a Pipeline or ColumnTransformer</span></div>
+    <div><span class="k">set_output(transform='pandas')</span><span class="v">named columns out of every transformer</span></div>
+    <div><span class="k">beat DummyClassifier first</span><span class="v">a model that can't beat majority-vote learned nothing</span></div>
+    <div><span class="k">joblib for yourself, skops to share</span><span class="v">pickles execute code on load — never load untrusted files</span></div>
+    <div><span class="k">error metrics are negated scorers</span><span class="v">'neg_root_mean_squared_error' — greater is always better</span></div>
+  </div>
+</section>
+
+<footer>
+  Scikit-learn cheat sheet v2 &middot; single-source-of-truth edition &middot; synthesized from the official scikit-learn documentation (user guide, API reference, release highlights 1.4&ndash;1.9, "Choosing the right estimator" map at scikit-learn.org), the official DataCamp PDF cheat sheet, ODSC's estimator-selection guide, and the skops &amp; imbalanced-learn documentation.<br>
+  Examples target <code>scikit-learn 1.9</code> (June 2026); features newer than 1.3 carry version badges (<code>TargetEncoder</code>/<code>HDBSCAN</code> 1.3, <code>root_mean_squared_error</code> 1.4, threshold tuning 1.5, <code>FrozenEstimator</code>/metadata routing 1.6, Array-API GPU &amp; temperature scaling 1.8, callbacks &amp; narwhals 1.9).<br>
+  Golden rule: fit preprocessing &amp; models on training data only, and prefer a <code>Pipeline</code> so cross-validation and search do this correctly by construction.
+</footer>
+
+</body>
+</html>

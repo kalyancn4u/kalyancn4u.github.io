@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redis Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --meta:#64748b;    --meta-bg:#f1f3f6;
+    --struct:#4f46e5;  --struct-bg:#eef0fd;
+    --write:#d97706;   --write-bg:#fdf6ec;
+    --read:#059669;    --read-bg:#ecf7f2;
+    --admin:#7c3aed;   --admin-bg:#f5f0fe;
+    --danger:#dc2626;  --danger-bg:#fdf0ef;
+    --brand:#d82c20;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .rd{font-family:var(--mono); color:var(--brand)}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.meta{background:var(--meta)} .dot.struct{background:var(--struct)}
+  .dot.write{background:var(--write)} .dot.read{background:var(--read)}
+  .dot.admin{background:var(--admin)} .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1180px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.meta{border-left-color:var(--meta)}
+  ul.cmds li.struct{border-left-color:var(--struct)}
+  ul.cmds li.write{border-left-color:var(--write)}
+  ul.cmds li.read{border-left-color:var(--read)}
+  ul.cmds li.admin{border-left-color:var(--admin)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .arg{color:var(--struct); font-weight:400}
+  code.cmd .kw{color:var(--read); font-weight:700}
+  code.cmd .flag{color:var(--star)}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-o{
+    color:var(--admin); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem;
+  }
+
+  /* type / complexity reference table */
+  .type-table{width:100%; border-collapse:collapse; font-size:.78rem}
+  .type-table th{
+    text-align:left; font-family:var(--mono); font-size:.66rem; letter-spacing:.05em;
+    text-transform:uppercase; color:var(--muted); padding:.5rem 1rem .35rem;
+    border-bottom:1px solid var(--line);
+  }
+  .type-table td{padding:.42rem 1rem; border-bottom:1px solid #f1eee8; vertical-align:top}
+  .type-table tr:last-child td{border-bottom:none}
+  .type-table td.t{font-family:var(--mono); font-weight:600; white-space:nowrap}
+  .type-table td.d{color:#525761}
+  .type-table td.o{font-family:var(--mono); font-weight:700; color:var(--admin); white-space:nowrap}
+  .type-group{
+    font-family:var(--mono); font-size:.66rem; letter-spacing:.08em; text-transform:uppercase;
+    color:#fff; padding:.28rem 1rem; margin-top:0;
+  }
+  .type-group.core{background:var(--struct)}
+  .type-group.num{background:var(--write)}
+  .type-group.dt{background:var(--read)}
+  .type-group.other{background:var(--admin)}
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:700px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1200px){ .merge-grid.three{grid-template-columns:repeat(3,1fr)} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference &middot; in-memory data structure store</div>
+  <h1><span class="rd">redis</span> cheat sheet</h1>
+  <p class="lede">Every key points to <b>one</b> of a handful of data structures &mdash; string, list, hash, set, sorted set, and a few specialists. Learn what shape a key holds and the right command family follows naturally.</p>
+  <div class="legend">
+    <span><i class="dot meta"></i>connect / inspect</span>
+    <span><i class="dot struct"></i>keys &amp; expiry</span>
+    <span><i class="dot write"></i>write</span>
+    <span><i class="dot read"></i>read</span>
+    <span><i class="dot admin"></i>admin / ops</span>
+    <span><i class="dot danger"></i>destructive</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>redis.io/docs/latest/commands</b> &middot; <b>redis.io cheat sheet</b> &middot; <b>quickref.me</b> &middot; <b>GeeksforGeeks</b> &middot; <b>dev.to command series</b> &middot; <b>oneuptime.com ops guides</b></p>
+</header>
+
+<!-- ============ SIGNATURE DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">One key, one of six shapes &mdash; pick the structure, the commands follow</div>
+  <svg class="flow-svg" viewBox="0 0 1160 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram showing a Redis key pointing to one of six possible value structures: string, list, hash, set, sorted set, or stream, each shown with a miniature visual.">
+    <g font-family="JetBrains Mono, monospace" text-anchor="middle">
+      <rect x="6" y="80" width="110" height="70" rx="10" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="61" y="112" font-size="12.5" font-weight="700" fill="#1a1d24">key</text>
+      <text x="61" y="130" font-size="9" fill="#64748b">"user:501"</text>
+    </g>
+    <g font-family="JetBrains Mono, monospace">
+      <line x1="116" y1="115" x2="150" y2="30" stroke="#94a3b8" stroke-width="1.4"/>
+      <line x1="116" y1="115" x2="150" y2="82" stroke="#94a3b8" stroke-width="1.4"/>
+      <line x1="116" y1="115" x2="150" y2="134" stroke="#94a3b8" stroke-width="1.4"/>
+      <line x1="116" y1="115" x2="150" y2="186" stroke="#94a3b8" stroke-width="1.4"/>
+      <line x1="116" y1="115" x2="150" y2="238" stroke="#94a3b8" stroke-width="1.4"/>
+    </g>
+
+    <!-- string -->
+    <g font-family="JetBrains Mono, monospace" text-anchor="start">
+      <rect x="150" y="6" width="230" height="46" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.6"/>
+      <text x="164" y="24" font-size="11" font-weight="700" fill="#1a1d24">String</text>
+      <text x="164" y="40" font-size="9.5" fill="#4f46e5">"Hello world" &middot; SET / GET / INCR</text>
+    </g>
+    <!-- list -->
+    <g font-family="JetBrains Mono, monospace" text-anchor="start">
+      <rect x="150" y="58" width="230" height="46" rx="8" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+      <text x="164" y="76" font-size="11" font-weight="700" fill="#1a1d24">List</text>
+      <text x="164" y="92" font-size="9.5" fill="#b45309">[a, b, c] &middot; LPUSH / RPUSH / LRANGE</text>
+    </g>
+    <!-- hash -->
+    <g font-family="JetBrains Mono, monospace" text-anchor="start">
+      <rect x="150" y="110" width="230" height="46" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+      <text x="164" y="128" font-size="11" font-weight="700" fill="#1a1d24">Hash</text>
+      <text x="164" y="144" font-size="9.5" fill="#059669">{name:"Max"} &middot; HSET / HGET / HGETALL</text>
+    </g>
+    <!-- set -->
+    <g font-family="JetBrains Mono, monospace" text-anchor="start">
+      <rect x="150" y="162" width="230" height="46" rx="8" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.6"/>
+      <text x="164" y="180" font-size="11" font-weight="700" fill="#1a1d24">Set</text>
+      <text x="164" y="196" font-size="9.5" fill="#7c3aed">{a,b,c} unique &middot; SADD / SMEMBERS</text>
+    </g>
+    <!-- sorted set -->
+    <g font-family="JetBrains Mono, monospace" text-anchor="start">
+      <rect x="150" y="214" width="230" height="40" rx="8" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.6"/>
+      <text x="164" y="230" font-size="11" font-weight="700" fill="#1a1d24">Sorted Set</text>
+      <text x="164" y="246" font-size="9" fill="#dc2626">members ranked by score &middot; ZADD</text>
+    </g>
+
+    <!-- specialists column -->
+    <g font-family="JetBrains Mono, monospace" text-anchor="middle">
+      <rect x="430" y="30" width="700" height="200" rx="12" fill="#fbfaf8" stroke="#e7e3db" stroke-width="1.6" stroke-dasharray="4 3"/>
+      <text x="460" y="54" text-anchor="start" font-size="10" letter-spacing="1.5" fill="#94a3b8">+ SPECIALIST STRUCTURES, SAME "ONE KEY, ONE SHAPE" RULE</text>
+
+      <rect x="460" y="70" width="200" height="60" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.4"/>
+      <text x="560" y="94" font-size="11" font-weight="700" fill="#1a1d24">Stream</text>
+      <text x="560" y="112" font-size="9" fill="#4f46e5">append-only log &middot; XADD / XREAD</text>
+
+      <rect x="680" y="70" width="200" height="60" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/>
+      <text x="780" y="94" font-size="11" font-weight="700" fill="#1a1d24">Bitmap</text>
+      <text x="780" y="112" font-size="9" fill="#059669">bit ops on a string &middot; SETBIT</text>
+
+      <rect x="900" y="70" width="200" height="60" rx="8" fill="#fdf6ec" stroke="#d97706" stroke-width="1.4"/>
+      <text x="1000" y="94" font-size="11" font-weight="700" fill="#1a1d24">HyperLogLog</text>
+      <text x="1000" y="112" font-size="9" fill="#b45309">approx. unique count &middot; PFADD</text>
+
+      <rect x="460" y="150" width="200" height="60" rx="8" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.4"/>
+      <text x="560" y="174" font-size="11" font-weight="700" fill="#1a1d24">Geo</text>
+      <text x="560" y="192" font-size="9" fill="#7c3aed">lat/lon as a sorted set &middot; GEOADD</text>
+
+      <rect x="680" y="150" width="420" height="60" rx="8" fill="#f1f3f6" stroke="#64748b" stroke-width="1.4"/>
+      <text x="890" y="174" font-size="11" font-weight="700" fill="#1a1d24">Every key also carries: TTL</text>
+      <text x="890" y="192" font-size="9" fill="#64748b">EXPIRE / TTL / PERSIST work on any type above</text>
+    </g>
+  </svg>
+</section>
+
+<main>
+
+  <!-- 01 CONNECT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Connect &amp; CLI</span><span class="card-sub">redis-cli</span></div>
+    <ul class="cmds">
+      <li class="meta"><code class="cmd">redis-server</code><div class="desc">Start a local Redis instance.</div></li>
+      <li class="meta"><code class="cmd">redis-cli</code><span class="star">&#9733;</span><div class="desc">Connect to 127.0.0.1:6379 by default.</div></li>
+      <li class="meta"><code class="cmd">redis-cli <span class="flag">-h</span> host <span class="flag">-p</span> port <span class="flag">-a</span> pass</code><span class="star">&#9733;</span><div class="desc">Connect to a remote/authenticated instance.</div></li>
+      <li class="meta"><code class="cmd">redis-cli <span class="flag">-u</span> redis://user:pass@host:6379/0</code><div class="desc">Connect via a single connection URL.</div></li>
+      <li class="meta"><code class="cmd">PING</code><span class="star">&#9733;</span><div class="desc">Health check &mdash; replies PONG.</div></li>
+      <li class="meta"><code class="cmd">SELECT <span class="arg">0</span></code><div class="desc">Switch logical database (0&ndash;15 by default).</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 GENERIC KEYS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Keys &mdash; Generic</span><span class="card-sub">works on any type</span></div>
+    <ul class="cmds">
+      <li class="read"><code class="cmd">EXISTS <span class="arg">key</span></code><span class="star">&#9733;</span><div class="desc">1 if the key exists, else 0.</div></li>
+      <li class="read"><code class="cmd">TYPE <span class="arg">key</span></code><span class="star">&#9733;</span><div class="desc">Which structure this key holds.</div></li>
+      <li class="write"><code class="cmd">DEL <span class="arg">key</span> [key...]</code><span class="star">&#9733;</span><div class="desc">Remove one or more keys, blocking.</div></li>
+      <li class="write"><code class="cmd">UNLINK <span class="arg">key</span></code><div class="desc">Like DEL, but frees memory asynchronously.</div></li>
+      <li class="struct"><code class="cmd">RENAME <span class="arg">old new</span></code><div class="desc">Rename a key, overwriting the destination.</div></li>
+      <li class="danger"><code class="cmd">KEYS <span class="arg">pattern</span></code><span class="badge-danger">avoid in prod</span><div class="desc">Blocks the server while it scans everything.</div></li>
+      <li class="read"><code class="cmd">SCAN <span class="arg">0</span> MATCH <span class="arg">user:*</span> COUNT 100</code><span class="star">&#9733;</span><div class="desc">Cursor-based, non-blocking key iteration.</div></li>
+      <li class="meta"><code class="cmd">DBSIZE</code><div class="desc">Number of keys in the current database.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 EXPIRY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Expiry &amp; TTL</span><span class="card-sub">structure &middot; auto-cleanup</span></div>
+    <ul class="cmds">
+      <li class="struct"><code class="cmd">EXPIRE <span class="arg">key</span> 3600</code><span class="star">&#9733;</span><div class="desc">Key auto-deletes in N seconds.</div></li>
+      <li class="struct"><code class="cmd">PEXPIRE <span class="arg">key</span> 5000</code><div class="desc">Same, in milliseconds.</div></li>
+      <li class="read"><code class="cmd">TTL <span class="arg">key</span></code><span class="star">&#9733;</span><div class="desc">Seconds left &mdash; -1 no expiry, -2 gone.</div></li>
+      <li class="struct"><code class="cmd">PERSIST <span class="arg">key</span></code><div class="desc">Remove the expiry, make it permanent again.</div></li>
+      <li class="struct"><code class="cmd">EXPIREAT <span class="arg">key</span> 1735689600</code><div class="desc">Expire at a specific Unix timestamp.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 STRINGS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Strings</span><span class="card-sub">text, numbers, JSON blobs, counters</span></div>
+    <ul class="cmds">
+      <li class="write"><code class="cmd">SET <span class="arg">key value</span></code><span class="star">&#9733;</span><div class="desc">Set a value, overwrites any type.</div></li>
+      <li class="read"><code class="cmd">GET <span class="arg">key</span></code><span class="star">&#9733;</span><div class="desc">Retrieve the value.</div></li>
+      <li class="write"><code class="cmd">SET <span class="arg">key value</span> <span class="flag">EX</span> 3600</code><span class="star">&#9733;</span><div class="desc">Set value + TTL atomically &mdash; the caching idiom.</div></li>
+      <li class="write"><code class="cmd">SET <span class="arg">key value</span> <span class="flag">NX</span></code><span class="star">&#9733;</span><div class="desc">Set only if absent &mdash; basis of a simple lock.</div></li>
+      <li class="write"><code class="cmd">MSET k1 v1 k2 v2</code><div class="desc">Set multiple keys atomically &mdash; pair with MGET.</div></li>
+      <li class="write"><code class="cmd">INCR <span class="arg">key</span> &middot; INCRBY <span class="arg">key</span> 5</code><span class="star">&#9733;</span><div class="desc">Atomic counter increment; DECR/DECRBY too.</div></li>
+      <li class="write"><code class="cmd">APPEND <span class="arg">key value</span></code><div class="desc">Append text; creates the key if missing.</div></li>
+      <li class="read"><code class="cmd">STRLEN <span class="arg">key</span></code><div class="desc">Length of the stored string.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 LISTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Lists</span><span class="card-sub">ordered &middot; queues &amp; stacks</span></div>
+    <ul class="cmds">
+      <li class="write"><code class="cmd">LPUSH <span class="arg">key v1 v2</span></code><span class="star">&#9733;</span><div class="desc">Push onto the head (left).</div></li>
+      <li class="write"><code class="cmd">RPUSH <span class="arg">key v1 v2</span></code><span class="star">&#9733;</span><div class="desc">Push onto the tail (right).</div></li>
+      <li class="write"><code class="cmd">LPOP <span class="arg">key</span> &middot; RPOP <span class="arg">key</span></code><span class="star">&#9733;</span><div class="desc">Remove &amp; return from head / tail.</div></li>
+      <li class="read"><code class="cmd">LRANGE <span class="arg">key</span> 0 -1</code><span class="star">&#9733;</span><div class="desc">Whole list, in order (0 to -1 = all).</div></li>
+      <li class="read"><code class="cmd">LLEN <span class="arg">key</span></code><div class="desc">Number of elements.</div></li>
+      <li class="write"><code class="cmd">LREM <span class="arg">key</span> 0 <span class="arg">value</span></code><div class="desc">Remove all matching elements.</div></li>
+      <li class="write"><code class="cmd">BLPOP <span class="arg">key</span> 5</code><div class="desc">Blocking pop &mdash; waits up to 5s for an item.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 HASHES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Hashes</span><span class="card-sub">field &rarr; value maps, like a mini object</span></div>
+    <ul class="cmds">
+      <li class="write"><code class="cmd">HSET <span class="arg">key field value</span></code><span class="star">&#9733;</span><div class="desc">Set one field on a hash.</div></li>
+      <li class="read"><code class="cmd">HGET <span class="arg">key field</span></code><span class="star">&#9733;</span><div class="desc">Read one field.</div></li>
+      <li class="read"><code class="cmd">HGETALL <span class="arg">key</span></code><span class="star">&#9733;</span><div class="desc">Every field-value pair on the hash.</div></li>
+      <li class="read"><code class="cmd">HMGET <span class="arg">key f1 f2</span></code><div class="desc">Multiple fields in one round trip.</div></li>
+      <li class="write"><code class="cmd">HDEL <span class="arg">key field</span></code><div class="desc">Remove one or more fields.</div></li>
+      <li class="write"><code class="cmd">HINCRBY <span class="arg">key field</span> 1</code><div class="desc">Atomic increment on a single field.</div></li>
+      <li class="read"><code class="cmd">HKEYS <span class="arg">key</span> &middot; HVALS <span class="arg">key</span></code><div class="desc">Just the field names, or just the values.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 SETS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Sets</span><span class="card-sub">unordered, unique members</span></div>
+    <ul class="cmds">
+      <li class="write"><code class="cmd">SADD <span class="arg">key m1 m2</span></code><span class="star">&#9733;</span><div class="desc">Add members &mdash; duplicates are no-ops.</div></li>
+      <li class="read"><code class="cmd">SMEMBERS <span class="arg">key</span></code><span class="star">&#9733;</span><div class="desc">Every member of the set.</div></li>
+      <li class="read"><code class="cmd">SISMEMBER <span class="arg">key member</span></code><span class="star">&#9733;</span><div class="desc">Membership test, O(1).</div></li>
+      <li class="write"><code class="cmd">SREM <span class="arg">key member</span></code><div class="desc">Remove one or more members.</div></li>
+      <li class="read"><code class="cmd">SCARD <span class="arg">key</span></code><div class="desc">Number of members.</div></li>
+      <li class="read"><code class="cmd">SINTER <span class="arg">k1 k2</span> &middot; SUNION &middot; SDIFF</code><div class="desc">Set algebra across multiple keys.</div></li>
+      <li class="write"><code class="cmd">SPOP <span class="arg">key</span></code><div class="desc">Remove &amp; return a random member.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 SORTED SETS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Sorted Sets</span><span class="card-sub">unique members, ranked by score</span></div>
+    <ul class="cmds">
+      <li class="write"><code class="cmd">ZADD <span class="arg">key score member</span></code><span class="star">&#9733;</span><div class="desc">Add/update a member with its score.</div></li>
+      <li class="read"><code class="cmd">ZRANGE <span class="arg">key</span> 0 -1 <span class="flag">WITHSCORES</span></code><span class="star">&#9733;</span><div class="desc">Members low-to-high by score.</div></li>
+      <li class="read"><code class="cmd">ZREVRANGE <span class="arg">key</span> 0 9 <span class="flag">WITHSCORES</span></code><span class="star">&#9733;</span><div class="desc">Top 10, high-to-low &mdash; classic leaderboard.</div></li>
+      <li class="read"><code class="cmd">ZSCORE <span class="arg">key member</span></code><div class="desc">Score of one member.</div></li>
+      <li class="read"><code class="cmd">ZRANK <span class="arg">key member</span></code><div class="desc">0-based position, ascending order.</div></li>
+      <li class="write"><code class="cmd">ZINCRBY <span class="arg">key</span> 1 <span class="arg">member</span></code><div class="desc">Bump a member's score atomically.</div></li>
+      <li class="read"><code class="cmd">ZRANGEBYSCORE <span class="arg">key</span> 10 50</code><div class="desc">Members whose score falls in a range.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 BITMAPS & HLL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Bitmaps &amp; HyperLogLog</span><span class="card-sub">bit tricks &amp; approximate counting</span></div>
+    <ul class="cmds">
+      <li class="write"><code class="cmd">SETBIT <span class="arg">key</span> 7 1</code><div class="desc">Set a single bit at an offset.</div></li>
+      <li class="read"><code class="cmd">GETBIT <span class="arg">key</span> 7</code><div class="desc">Read a single bit.</div></li>
+      <li class="read"><code class="cmd">BITCOUNT <span class="arg">key</span></code><div class="desc">Count set (1) bits in the string.</div></li>
+      <li class="write"><code class="cmd">BITOP AND <span class="arg">dest k1 k2</span></code><div class="desc">Bitwise AND/OR/XOR/NOT across keys.</div></li>
+      <li class="write"><code class="cmd">PFADD <span class="arg">key element</span></code><span class="star">&#9733;</span><div class="desc">Add to a HyperLogLog, ~12KB regardless of size.</div></li>
+      <li class="read"><code class="cmd">PFCOUNT <span class="arg">key</span></code><span class="star">&#9733;</span><div class="desc">Approximate unique-element count (~0.8% error).</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 STREAMS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Streams</span><span class="card-sub">append-only event log</span></div>
+    <ul class="cmds">
+      <li class="write"><code class="cmd">XADD <span class="arg">key</span> * field value</code><span class="star">&#9733;</span><div class="desc">Append an entry; * auto-generates the ID.</div></li>
+      <li class="read"><code class="cmd">XLEN <span class="arg">key</span></code><div class="desc">Number of entries in the stream.</div></li>
+      <li class="read"><code class="cmd">XRANGE <span class="arg">key</span> - +</code><span class="star">&#9733;</span><div class="desc">Entries between two IDs, - and + = all.</div></li>
+      <li class="read"><code class="cmd">XREAD COUNT 10 STREAMS <span class="arg">key</span> 0</code><div class="desc">Read entries after a given ID.</div></li>
+      <li class="admin"><code class="cmd">XGROUP CREATE <span class="arg">key group</span> 0</code><div class="desc">Create a consumer group for fan-out processing.</div></li>
+      <li class="admin"><code class="cmd">XACK <span class="arg">key group id</span></code><div class="desc">Acknowledge a message as processed.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 GEO -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Geospatial</span><span class="card-sub">a sorted set under the hood</span></div>
+    <ul class="cmds">
+      <li class="write"><code class="cmd">GEOADD <span class="arg">key lon lat member</span></code><span class="star">&#9733;</span><div class="desc">Add a point by longitude/latitude.</div></li>
+      <li class="read"><code class="cmd">GEODIST <span class="arg">key m1 m2</span> km</code><div class="desc">Distance between two members.</div></li>
+      <li class="read"><code class="cmd">GEOSEARCH <span class="arg">key</span> FROMMEMBER <span class="arg">m</span> BYRADIUS 5 km</code><span class="star">&#9733;</span><div class="desc">Points within radius/box of a member or coords.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 TRANSACTIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Transactions</span><span class="card-sub">admin &middot; queue &amp; run atomically</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd">MULTI</code><span class="star">&#9733;</span><div class="desc">Start queuing commands instead of running them.</div></li>
+      <li class="admin"><code class="cmd">EXEC</code><span class="star">&#9733;</span><div class="desc">Run every queued command atomically.</div></li>
+      <li class="admin"><code class="cmd">DISCARD</code><div class="desc">Cancel the queued transaction.</div></li>
+      <li class="admin"><code class="cmd">WATCH <span class="arg">key</span></code><span class="star">&#9733;</span><div class="desc">Optimistic lock &mdash; EXEC aborts if key changed.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 PUB/SUB -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Pub/Sub</span><span class="card-sub">admin &middot; fire-and-forget messaging</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd">SUBSCRIBE <span class="arg">channel</span></code><span class="star">&#9733;</span><div class="desc">Listen for messages on a channel.</div></li>
+      <li class="admin"><code class="cmd">PUBLISH <span class="arg">channel message</span></code><span class="star">&#9733;</span><div class="desc">Send a message to every subscriber.</div></li>
+      <li class="admin"><code class="cmd">PSUBSCRIBE <span class="arg">news.*</span></code><div class="desc">Subscribe to channels matching a pattern.</div></li>
+      <li class="admin"><code class="cmd">UNSUBSCRIBE <span class="arg">channel</span></code><div class="desc">Stop listening; no args = leave all channels.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 PERSISTENCE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Persistence</span><span class="card-sub">admin &middot; RDB &amp; AOF</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd">SAVE</code><div class="desc">Synchronous snapshot &mdash; blocks the server.</div></li>
+      <li class="admin"><code class="cmd">BGSAVE</code><span class="star">&#9733;</span><div class="desc">Background snapshot, non-blocking.</div></li>
+      <li class="admin"><code class="cmd">BGREWRITEAOF</code><div class="desc">Compact the append-only file in the background.</div></li>
+      <li class="meta"><code class="cmd">LASTSAVE</code><div class="desc">Unix time of the last successful SAVE.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 REPLICATION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Replication</span><span class="card-sub">admin &middot; primary/replica</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd">REPLICAOF <span class="arg">host port</span></code><span class="star">&#9733;</span><div class="desc">Make this instance a replica of another.</div></li>
+      <li class="admin"><code class="cmd">REPLICAOF NO ONE</code><div class="desc">Promote a replica back to primary.</div></li>
+      <li class="admin"><code class="cmd">WAIT 1 1000</code><div class="desc">Block until N replicas ack, or timeout (ms).</div></li>
+      <li class="meta"><code class="cmd">INFO replication</code><span class="star">&#9733;</span><div class="desc">Role, connected replicas, replication offset.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 SERVER & CONFIG -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Server &amp; Config</span><span class="card-sub">meta &middot; inspect &amp; tune</span></div>
+    <ul class="cmds">
+      <li class="meta"><code class="cmd">INFO</code><span class="star">&#9733;</span><div class="desc">Full server report &mdash; memory, stats, clients...</div></li>
+      <li class="meta"><code class="cmd">INFO memory</code><span class="star">&#9733;</span><div class="desc">Just the memory-usage section.</div></li>
+      <li class="admin"><code class="cmd">CONFIG GET <span class="arg">maxmemory-policy</span></code><div class="desc">Read a live config parameter.</div></li>
+      <li class="admin"><code class="cmd">CONFIG SET <span class="arg">maxmemory</span> 2gb</code><div class="desc">Change config at runtime, no restart.</div></li>
+      <li class="meta"><code class="cmd">CLIENT LIST</code><div class="desc">Every connected client &amp; its state.</div></li>
+      <li class="meta"><code class="cmd">MONITOR</code><div class="desc">Live stream of every command hitting the server.</div></li>
+      <li class="meta"><code class="cmd">SLOWLOG GET 10</code><div class="desc">Last 10 commands that crossed the slow threshold.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 SCRIPTING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Scripting</span><span class="card-sub">admin &middot; server-side Lua</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd">EVAL <span class="arg">"return redis.call('GET', KEYS[1])"</span> 1 <span class="arg">key</span></code><span class="star">&#9733;</span><div class="desc">Run a Lua script atomically.</div></li>
+      <li class="admin"><code class="cmd">SCRIPT LOAD <span class="arg">"..."</span></code><div class="desc">Cache a script server-side, get back a SHA.</div></li>
+      <li class="admin"><code class="cmd">EVALSHA <span class="arg">sha</span> 1 <span class="arg">key</span></code><div class="desc">Run a previously cached script by its SHA.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 DANGER ZONE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Danger Zone</span><span class="card-sub">whole-database operations</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">FLUSHDB <span class="flag">ASYNC</span></code><span class="badge-danger">destroys</span><div class="desc">Delete every key in the current database.</div></li>
+      <li class="danger"><code class="cmd">FLUSHALL <span class="flag">ASYNC</span></code><span class="badge-danger">destroys</span><div class="desc">Delete every key in <b>every</b> database.</div></li>
+      <li class="danger"><code class="cmd">SHUTDOWN NOSAVE</code><span class="badge-danger">destroys</span><div class="desc">Stop the server without a final snapshot.</div></li>
+      <li class="admin"><code class="cmd">CONFIG SET appendonly yes</code><div class="desc">Turn on AOF durability if it's off.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 DATA TYPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Data Types at a Glance</span><span class="card-sub">what a value can be</span></div>
+    <p class="type-group core">Core five</p>
+    <table class="type-table">
+      <tr><td class="t">String</td><td class="d">text, number, or binary blob up to 512MB</td></tr>
+      <tr><td class="t">List</td><td class="d">ordered, insert at either end</td></tr>
+      <tr><td class="t">Hash</td><td class="d">field&rarr;value map, like a flat object</td></tr>
+      <tr><td class="t">Set</td><td class="d">unordered, unique members</td></tr>
+      <tr><td class="t">Sorted Set</td><td class="d">unique members ranked by a float score</td></tr>
+    </table>
+    <p class="type-group other">Specialists</p>
+    <table class="type-table">
+      <tr><td class="t">Stream</td><td class="d">append-only log with consumer groups</td></tr>
+      <tr><td class="t">Bitmap</td><td class="d">a string, addressed bit-by-bit</td></tr>
+      <tr><td class="t">HyperLogLog</td><td class="d">probabilistic distinct-count, ~12KB fixed</td></tr>
+      <tr><td class="t">Geo</td><td class="d">lat/lon points, backed by a sorted set</td></tr>
+      <tr><td class="t">JSON <span style="color:#94a3b8">(module)</span></td><td class="d">native JSON via RedisJSON, if loaded</td></tr>
+    </table>
+  </article>
+
+  <!-- 20 COMPLEXITY REFERENCE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Time Complexity Cheatsheet</span><span class="card-sub">Big-O of common ops</span></div>
+    <table class="type-table">
+      <tr><td class="t">GET / SET</td><td class="o">O(1)</td></tr>
+      <tr><td class="t">LPUSH / RPUSH / LPOP / RPOP</td><td class="o">O(1)</td></tr>
+      <tr><td class="t">LRANGE key 0 -1</td><td class="o">O(N)</td></tr>
+      <tr><td class="t">HSET / HGET</td><td class="o">O(1)</td></tr>
+      <tr><td class="t">SADD / SISMEMBER</td><td class="o">O(1)</td></tr>
+      <tr><td class="t">ZADD / ZSCORE</td><td class="o">O(log N)</td></tr>
+      <tr><td class="t">ZRANGE / ZRANGEBYSCORE</td><td class="o">O(log N + M)</td></tr>
+      <tr><td class="t">KEYS pattern</td><td class="o">O(N) &mdash; avoid</td></tr>
+      <tr><td class="t">SCAN (per call)</td><td class="o">O(1) amortized</td></tr>
+    </table>
+  </article>
+
+</main>
+
+<!-- ============ STRUCTURE DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Three structures worth visualizing</h2>
+  <p class="sub">Where reads and writes actually happen on the shapes developers reach for most, based on the official Redis data type documentation.</p>
+  <div class="merge-grid three">
+
+    <div class="merge-card">
+      <h3>List &mdash; push/pop from either end</h3>
+      <p>LPUSH and RPUSH add at opposite ends; LPOP/RPOP remove from the end they name. LRANGE never mutates.</p>
+      <svg viewBox="0 0 300 140" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A list of four elements with LPUSH and LPOP labeled on the left end and RPUSH and RPOP labeled on the right end">
+        <g font-family="JetBrains Mono, monospace" text-anchor="middle">
+          <rect x="70"  y="45" width="46" height="40" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/><text x="93" y="69" font-size="11" fill="#1a1d24">a</text>
+          <rect x="120" y="45" width="46" height="40" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/><text x="143" y="69" font-size="11" fill="#1a1d24">b</text>
+          <rect x="170" y="45" width="46" height="40" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/><text x="193" y="69" font-size="11" fill="#1a1d24">c</text>
+          <rect x="220" y="45" width="46" height="40" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/><text x="243" y="69" font-size="11" fill="#1a1d24">d</text>
+        </g>
+        <text x="93" y="30" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#b45309">LPUSH/LPOP</text>
+        <text x="243" y="30" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#b45309">RPUSH/RPOP</text>
+        <line x1="68" y1="65" x2="40" y2="65" stroke="#b45309" stroke-width="1.6" marker-end="url(#lred)"/>
+        <line x1="268" y1="65" x2="296" y2="65" stroke="#b45309" stroke-width="1.6" marker-end="url(#lred)"/>
+        <defs><marker id="lred" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b45309"/></marker></defs>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Hash &mdash; field/value pairs</h3>
+      <p>One key holds many fields, each with its own value. HGET touches one field without loading the rest.</p>
+      <svg viewBox="0 0 300 140" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A hash key user:501 with three fields: name, age, and city, each mapped to its own value">
+        <g font-family="JetBrains Mono, monospace">
+          <rect x="20" y="10" width="130" height="30" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+          <text x="30" y="30" font-size="10.5" fill="#1a1d24">user:501</text>
+          <rect x="170" y="10" width="46" height="26" rx="4" fill="#fff" stroke="#059669"/><text x="193" y="28" text-anchor="middle" font-size="9" fill="#059669">name</text>
+          <rect x="222" y="10" width="60" height="26" rx="4" fill="#fff" stroke="#94a3b8"/><text x="252" y="28" text-anchor="middle" font-size="9" fill="#3f444f">"Max"</text>
+
+          <rect x="170" y="52" width="46" height="26" rx="4" fill="#fff" stroke="#059669"/><text x="193" y="70" text-anchor="middle" font-size="9" fill="#059669">age</text>
+          <rect x="222" y="52" width="60" height="26" rx="4" fill="#fff" stroke="#94a3b8"/><text x="252" y="70" text-anchor="middle" font-size="9" fill="#3f444f">32</text>
+
+          <rect x="170" y="94" width="46" height="26" rx="4" fill="#fff" stroke="#059669"/><text x="193" y="112" text-anchor="middle" font-size="9" fill="#059669">city</text>
+          <rect x="222" y="94" width="60" height="26" rx="4" fill="#fff" stroke="#94a3b8"/><text x="252" y="112" text-anchor="middle" font-size="9" fill="#3f444f">"Pune"</text>
+        </g>
+        <line x1="150" y1="25" x2="168" y2="23" stroke="#94a3b8" stroke-width="1.2"/>
+        <line x1="150" y1="25" x2="168" y2="65" stroke="#94a3b8" stroke-width="1.2"/>
+        <line x1="150" y1="25" x2="168" y2="107" stroke="#94a3b8" stroke-width="1.2"/>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Sorted Set &mdash; ranked by score</h3>
+      <p>Members stay ordered by score automatically. ZRANGE walks low&rarr;high; ZREVRANGE flips it &mdash; the standard leaderboard pattern.</p>
+      <svg viewBox="0 0 300 140" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A sorted set showing three members ordered by ascending score: bob at 42, max at 88, alex at 120">
+        <g font-family="JetBrains Mono, monospace" text-anchor="middle">
+          <rect x="20"  y="50" width="70" height="36" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.6"/>
+          <text x="55" y="72" font-size="10.5" fill="#1a1d24">bob : 42</text>
+          <rect x="110" y="50" width="70" height="36" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.6"/>
+          <text x="145" y="72" font-size="10.5" fill="#1a1d24">max : 88</text>
+          <rect x="200" y="50" width="80" height="36" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.6"/>
+          <text x="240" y="72" font-size="10" fill="#1a1d24">alex : 120</text>
+        </g>
+        <line x1="20" y1="100" x2="280" y2="100" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#rank)"/>
+        <defs><marker id="rank" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker></defs>
+        <text x="150" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#94a3b8">ZRANGE walks this direction (low score &#8594; high)</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">KEYS blocks</span><span class="v">never run KEYS in production &mdash; use SCAN, it's cursor-based &amp; non-blocking</span></div>
+    <div><span class="k">SET ... EX</span><span class="v">sets a value + TTL in one atomic round trip, no separate EXPIRE needed</span></div>
+    <div><span class="k">DEL vs UNLINK</span><span class="v">UNLINK reclaims memory in a background thread &mdash; safer for big keys</span></div>
+    <div><span class="k">APPEND auto-creates</span><span class="v">appending to a missing key just creates it, no error</span></div>
+    <div><span class="k">INCR is atomic</span><span class="v">safe for counters even with many concurrent clients</span></div>
+    <div><span class="k">SET ... NX</span><span class="v">"set if not exists" &mdash; the building block for a simple distributed lock</span></div>
+    <div><span class="k">single-threaded core</span><span class="v">one command runs fully before the next starts &mdash; no partial-write races</span></div>
+    <div><span class="k">WATCH + MULTI/EXEC</span><span class="v">optimistic locking &mdash; EXEC returns null if a watched key changed first</span></div>
+  </div>
+</section>
+
+<footer>
+  Redis cheat sheet &middot; synthesized from the official Redis Commands reference (redis.io/docs/latest/commands) and Redis's own cheat sheet, plus quickref.me, GeeksforGeeks, and community command-series write-ups.<br>
+  Syntax shown targets Redis 7.0+ &middot; module-only features (JSON, Search) are noted where used but assumed optional.
+</footer>
+
+</body>
+</html>

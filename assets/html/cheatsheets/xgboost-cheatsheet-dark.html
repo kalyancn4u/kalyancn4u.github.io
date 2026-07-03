@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XGBoost (Python) Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --line:#2b3340;
+    --ink:#e6edf3; --mut:#8b97a7; --faint:#5d6878;
+    --setup:#58a6ff; --setup-d:#1f3a5c;
+    --core:#f0883e; --core-d:#5c3a1f;
+    --skl:#3fb950; --skl-d:#1e4023;
+    --tree:#bc8cff; --tree-d:#3c2c5c;
+    --reg:#39c5cf; --reg-d:#1a3f43;
+    --train:#d29922; --train-d:#4a3a10;
+    --post:#f85149; --post-d:#4a1f1e;
+    --star:#f0c145;
+    --code:#1a2030; --code-ink:#c9d4e3;
+    --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:radial-gradient(1200px 500px at 80% -10%,rgba(240,136,62,.08),transparent 60%),var(--bg);
+    color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--setup);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code,kbd{font-family:var(--mono)}
+
+  header{max-width:1360px;margin:0 auto;padding:40px 28px 6px}
+  .eyebrow{
+    font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--core);font-weight:600;display:flex;align-items:center;gap:10px;
+  }
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--core);display:inline-block}
+  h1{font-size:clamp(32px,5.6vw,54px);font-weight:800;letter-spacing:-.02em;margin:.18em 0 .12em;line-height:1}
+  h1 .x{color:var(--core)}
+  .lede{color:var(--mut);font-size:16px;max-width:820px;margin:.4em 0 1.2em}
+  .lede b{color:var(--ink)}
+  .srcbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
+  .srcbar a{
+    font-family:var(--mono);font-size:11.5px;color:var(--mut);border:1px solid var(--line);
+    padding:5px 10px;border-radius:20px;background:var(--panel);transition:.15s;
+  }
+  .srcbar a:hover{color:var(--ink);border-color:var(--core);text-decoration:none}
+
+  /* ---- signature diagram ---- */
+  .diagram-wrap{max-width:1360px;margin:0 auto;padding:0 28px 30px}
+  .panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 22px;
+  }
+  .panel h2{margin:0 0 12px;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);font-weight:700}
+  .panel h2 span{color:var(--core)}
+  svg text{font-family:var(--sans)}
+  .mono-lbl{font-family:var(--mono)}
+
+  /* ---- legend ---- */
+  .legend{
+    max-width:1360px;margin:0 auto;padding:0 28px 18px;display:flex;flex-wrap:wrap;gap:10px 18px;
+    font-family:var(--mono);font-size:12px;color:var(--mut);
+  }
+  .legend .dot{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:6px;vertical-align:middle}
+  .legend .star{color:var(--star)}
+
+  /* ---- card grid (masonry via columns) ---- */
+  main{max-width:1360px;margin:0 auto;padding:0 28px 40px}
+  .grid{column-count:3;column-gap:16px}
+  @media (max-width:1100px){.grid{column-count:2}}
+  @media (max-width:680px){.grid{column-count:1}}
+  .card{
+    break-inside:avoid;margin:0 0 16px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;overflow:hidden;
+  }
+  .card.common{border-color:rgba(240,193,69,.4)}
+  .card .hd{
+    display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);
+    background:var(--panel2);
+  }
+  .card .num{
+    font-family:var(--mono);font-size:11px;font-weight:700;color:#0d1117;
+    background:var(--accent,#8b97a7);width:24px;height:24px;border-radius:6px;
+    display:flex;align-items:center;justify-content:center;flex:none;
+  }
+  .card .ttl{font-weight:700;font-size:14.5px;letter-spacing:-.01em;flex:1}
+  .card .ttl .starmark{color:var(--star);margin-left:6px;font-size:12px}
+  .card .cat{font-family:var(--mono);font-size:10px;color:var(--accent,#8b97a7);text-transform:uppercase;letter-spacing:.06em}
+  .card ul{list-style:none;margin:0;padding:8px}
+  .card li{
+    padding:7px 8px;border-radius:7px;display:flex;flex-direction:column;gap:2px;
+    border-left:3px solid transparent;
+  }
+  .card li + li{margin-top:1px}
+  .card li.starred{background:rgba(240,193,69,.07);border-left-color:var(--star)}
+  .card li:not(.starred){border-left-color:var(--accent2,transparent)}
+  code.cmd{font-size:12.3px;color:var(--code-ink);background:var(--code);padding:2px 6px;border-radius:5px;display:inline-block;width:fit-content}
+  .d{font-size:12px;color:var(--mut);padding-left:1px}
+  .k{color:var(--star)}
+
+  /* category accents */
+  .setup{--accent:var(--setup);--accent2:rgba(88,166,255,.35)}
+  .core{--accent:var(--core);--accent2:rgba(240,136,62,.35)}
+  .skl{--accent:var(--skl);--accent2:rgba(63,185,80,.35)}
+  .tree{--accent:var(--tree);--accent2:rgba(188,140,255,.35)}
+  .reg{--accent:var(--reg);--accent2:rgba(57,197,207,.35)}
+  .train{--accent:var(--train);--accent2:rgba(210,153,34,.35)}
+  .post{--accent:var(--post);--accent2:rgba(248,81,73,.35)}
+
+  /* section headers within grid flow */
+  .sec-break{break-before:column;break-inside:avoid;padding:10px 4px 4px;font-family:var(--mono);
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+
+  /* ---- 4 panel strip ---- */
+  .strip-title{max-width:1360px;margin:34px auto 14px;padding:0 28px}
+  .strip-title h2{font-size:20px;margin:0 0 4px;letter-spacing:-.01em}
+  .strip-title p{margin:0;color:var(--mut);font-size:13.5px}
+  .strip{max-width:1360px;margin:0 auto;padding:0 28px 10px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  @media (max-width:1000px){.strip{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:560px){.strip{grid-template-columns:1fr}}
+  .strip .panel h2{font-size:12px}
+  .strip .panel p.cap{color:var(--mut);font-size:11.5px;margin:10px 0 0}
+
+  /* ---- worth memorizing ---- */
+  .wm-wrap{max-width:1360px;margin:38px auto 60px;padding:0 28px}
+  .wm{background:linear-gradient(180deg,#11151d,#0b0e14);border:1px solid var(--line);border-radius:16px;padding:26px 26px 10px}
+  .wm h2{margin:0 0 4px;font-size:20px}
+  .wm p.sub{color:var(--mut);margin:0 0 18px;font-size:13.5px}
+  .wm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 22px;padding-bottom:16px}
+  @media (max-width:900px){.wm-grid{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:560px){.wm-grid{grid-template-columns:1fr}}
+  .wm-item{border-left:2px solid var(--star);padding:2px 0 2px 12px}
+  .wm-item .t{font-family:var(--mono);font-size:12.5px;color:var(--star);font-weight:600}
+  .wm-item .s{font-size:12.5px;color:var(--mut);margin-top:2px}
+
+  footer{max-width:1360px;margin:0 auto;padding:10px 28px 50px;color:var(--faint);font-size:12px;font-family:var(--mono)}
+  footer a{color:var(--faint)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Python · gradient boosting</div>
+  <h1><span class="x">XGBoost</span> Cheat Sheet</h1>
+  <p class="lede">eXtreme Gradient Boosting — a scalable, regularized implementation of gradient-boosted decision trees. <b>Additive ensemble</b>: each new tree corrects the residual error of all trees before it. Covers the native <code>Booster</code> API, the scikit-learn wrapper, tree/regularization parameters, early stopping, and explainability — current through XGBoost <b>3.2</b> (Feb 2026).</p>
+  <div class="srcbar">
+    <a href="https://xgboost.readthedocs.io/en/stable/" target="_blank">📘 Official docs</a>
+    <a href="https://xgboost.readthedocs.io/en/stable/parameter.html" target="_blank">⚙️ Parameter reference</a>
+    <a href="https://xgboost.readthedocs.io/en/stable/python/python_api.html" target="_blank">🐍 Python API</a>
+    <a href="https://xgboost.ai/" target="_blank">🌐 xgboost.ai</a>
+    <a href="https://arxiv.org/abs/1603.02754" target="_blank">📄 Chen &amp; Guestrin, 2016</a>
+    <a href="https://github.com/dmlc/xgboost" target="_blank">💻 GitHub</a>
+    <a href="https://en.wikipedia.org/wiki/XGBoost" target="_blank">ℹ️ Wikipedia</a>
+  </div>
+</header>
+
+<div class="diagram-wrap">
+  <div class="panel">
+    <h2>Signature model &nbsp;<span>—</span> boosting is additive, not voting</h2>
+    <svg viewBox="0 0 1180 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Additive boosting diagram: base prediction plus a sequence of shrinkage-weighted trees equals the final ensemble prediction">
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#5d6878"/></marker>
+      </defs>
+      <!-- F0 -->
+      <rect x="10" y="80" width="90" height="64" rx="10" fill="#1c2230" stroke="#58a6ff" stroke-width="1.5"/>
+      <text x="55" y="106" text-anchor="middle" fill="#58a6ff" font-size="12" font-weight="700">F₀(x)</text>
+      <text x="55" y="124" text-anchor="middle" fill="#8b97a7" font-size="9.5">base_score</text>
+
+      <text x="122" y="118" fill="#5d6878" font-size="20" text-anchor="middle">+</text>
+
+      <!-- tree 1 -->
+      <g transform="translate(140,70)">
+        <rect width="120" height="84" rx="10" fill="#1c2230" stroke="#f0883e" stroke-width="1.5"/>
+        <circle cx="60" cy="18" r="7" fill="none" stroke="#f0883e" stroke-width="1.6"/>
+        <line x1="60" y1="25" x2="40" y2="42" stroke="#f0883e" stroke-width="1.4"/>
+        <line x1="60" y1="25" x2="80" y2="42" stroke="#f0883e" stroke-width="1.4"/>
+        <circle cx="40" cy="48" r="6" fill="none" stroke="#f0883e" stroke-width="1.4"/>
+        <circle cx="80" cy="48" r="6" fill="none" stroke="#f0883e" stroke-width="1.4"/>
+        <text x="60" y="70" text-anchor="middle" fill="#f0883e" font-size="11" font-weight="700">η·f₁(x)</text>
+        <text x="60" y="82" text-anchor="middle" fill="#8b97a7" font-size="8.5">fits residual of F₀</text>
+      </g>
+
+      <text x="272" y="118" fill="#5d6878" font-size="20" text-anchor="middle">+</text>
+
+      <!-- tree 2 -->
+      <g transform="translate(290,70)">
+        <rect width="120" height="84" rx="10" fill="#1c2230" stroke="#bc8cff" stroke-width="1.5"/>
+        <circle cx="60" cy="18" r="7" fill="none" stroke="#bc8cff" stroke-width="1.6"/>
+        <line x1="60" y1="25" x2="40" y2="42" stroke="#bc8cff" stroke-width="1.4"/>
+        <line x1="60" y1="25" x2="80" y2="42" stroke="#bc8cff" stroke-width="1.4"/>
+        <line x1="80" y1="48" x2="70" y2="58" stroke="#bc8cff" stroke-width="1.4"/>
+        <line x1="80" y1="48" x2="94" y2="58" stroke="#bc8cff" stroke-width="1.4"/>
+        <circle cx="40" cy="48" r="6" fill="none" stroke="#bc8cff" stroke-width="1.4"/>
+        <circle cx="70" cy="63" r="5.5" fill="none" stroke="#bc8cff" stroke-width="1.4"/>
+        <circle cx="94" cy="63" r="5.5" fill="none" stroke="#bc8cff" stroke-width="1.4"/>
+        <text x="60" y="76" text-anchor="middle" fill="#bc8cff" font-size="11" font-weight="700">η·f₂(x)</text>
+      </g>
+
+      <text x="422" y="118" fill="#5d6878" font-size="20" text-anchor="middle">+</text>
+      <text x="450" y="118" fill="#5d6878" font-size="16" text-anchor="middle">···</text>
+      <text x="478" y="118" fill="#5d6878" font-size="20" text-anchor="middle">+</text>
+
+      <!-- tree m -->
+      <g transform="translate(496,70)">
+        <rect width="120" height="84" rx="10" fill="#1c2230" stroke="#39c5cf" stroke-width="1.5"/>
+        <circle cx="60" cy="18" r="7" fill="none" stroke="#39c5cf" stroke-width="1.6"/>
+        <line x1="60" y1="25" x2="40" y2="42" stroke="#39c5cf" stroke-width="1.4"/>
+        <line x1="60" y1="25" x2="80" y2="42" stroke="#39c5cf" stroke-width="1.4"/>
+        <circle cx="40" cy="48" r="6" fill="none" stroke="#39c5cf" stroke-width="1.4"/>
+        <circle cx="80" cy="48" r="6" fill="none" stroke="#39c5cf" stroke-width="1.4"/>
+        <text x="60" y="70" text-anchor="middle" fill="#39c5cf" font-size="11" font-weight="700">η·f_M(x)</text>
+        <text x="60" y="82" text-anchor="middle" fill="#8b97a7" font-size="8.5">num_boost_round = M</text>
+      </g>
+
+      <text x="632" y="118" fill="#5d6878" font-size="20" text-anchor="middle">=</text>
+
+      <!-- Final -->
+      <g transform="translate(656,58)">
+        <rect width="180" height="108" rx="12" fill="#1c2230" stroke="#f0c145" stroke-width="2"/>
+        <text x="90" y="34" text-anchor="middle" fill="#f0c145" font-size="13" font-weight="700">F_M(x)</text>
+        <text x="90" y="54" text-anchor="middle" fill="#c9d4e3" font-size="10.5">bst.predict(dtest)</text>
+        <text x="90" y="76" text-anchor="middle" fill="#8b97a7" font-size="9.5">final ensemble score</text>
+        <text x="90" y="94" text-anchor="middle" fill="#8b97a7" font-size="9.5">→ link fn → prediction</text>
+      </g>
+
+      <!-- objective note -->
+      <g transform="translate(870,58)">
+        <rect width="300" height="150" rx="12" fill="#161b22" stroke="#2b3340" stroke-width="1"/>
+        <text x="16" y="26" fill="#e6edf3" font-size="12" font-weight="700">Every round, minimize:</text>
+        <text x="16" y="50" fill="#c9d4e3" font-size="11.5" font-family="JetBrains Mono, monospace">Σ l(yᵢ, ŷᵢ) + Σ Ω(fₖ)</text>
+        <text x="16" y="72" fill="#8b97a7" font-size="10.5">l = loss (objective param)</text>
+        <text x="16" y="90" fill="#8b97a7" font-size="10.5">Ω(f) = γT + ½λ‖w‖² + α‖w‖₁</text>
+        <text x="16" y="112" fill="#8b97a7" font-size="10.5">2nd-order Taylor (grad + hess)</text>
+        <text x="16" y="130" fill="#8b97a7" font-size="10.5">approximates the loss each round</text>
+      </g>
+      <line x1="10" y1="200" x2="1170" y2="200" stroke="#2b3340" stroke-width="1" stroke-dasharray="3,4"/>
+      <text x="10" y="216" fill="#5d6878" font-size="10">η = eta / learning_rate  ·  T = leaves per tree  ·  γ = gamma  ·  λ = reg_lambda  ·  α = reg_alpha</text>
+    </svg>
+  </div>
+</div>
+
+<div class="legend">
+  <span><i class="dot" style="background:#58a6ff"></i>Setup &amp; Data</span>
+  <span><i class="dot" style="background:#f0883e"></i>Native API (core)</span>
+  <span><i class="dot" style="background:#3fb950"></i>Scikit-learn API</span>
+  <span><i class="dot" style="background:#bc8cff"></i>Tree / Booster params</span>
+  <span><i class="dot" style="background:#39c5cf"></i>Regularization &amp; objectives</span>
+  <span><i class="dot" style="background:#d29922"></i>Training control</span>
+  <span><i class="dot" style="background:#f85149"></i>Post-training</span>
+  <span class="star">★ most-used / everyday</span>
+</div>
+
+<main>
+<div class="grid">
+
+  <div class="sec-break">Setup &amp; data</div>
+
+  <div class="card setup">
+    <div class="hd"><div class="num">01</div><div class="ttl">Install &amp; import<span class="cat" style="display:block">setup</span></div></div>
+    <ul>
+      <li><code class="cmd">pip install xgboost</code><span class="d">full package incl. GPU (CUDA) support</span></li>
+      <li><code class="cmd">pip install xgboost-cpu</code><span class="d">smaller wheel, no GPU / federated learning</span></li>
+      <li><code class="cmd">import xgboost as xgb</code><span class="d">conventional alias</span></li>
+      <li><code class="cmd">xgb.__version__</code><span class="d">check installed version (current: 3.2)</span></li>
+      <li><code class="cmd">conda install -c conda-forge py-xgboost</code><span class="d">conda auto-detects GPU variant</span></li>
+    </ul>
+  </div>
+
+  <div class="card setup common">
+    <div class="hd"><div class="num">02</div><div class="ttl">DMatrix — native data container<span class="starmark">★</span><span class="cat" style="display:block">setup</span></div></div>
+    <ul>
+      <li class="starred"><code class="cmd">xgb.DMatrix(X, label=y)</code><span class="d">core input; wraps NumPy / pandas / SciPy sparse</span></li>
+      <li><code class="cmd">DMatrix(X, weight=w, base_margin=m)</code><span class="d">per-sample weights, custom initial score</span></li>
+      <li><code class="cmd">xgb.QuantileDMatrix(X, y, ref=None)</code><span class="d">pre-binned; faster + lower memory init for <code>hist</code></span></li>
+      <li><code class="cmd">ExtMemQuantileDMatrix(iterator)</code><span class="d">out-of-core / external-memory, TB-scale (3.0+)</span></li>
+      <li><code class="cmd">dtrain.save_binary('train.dmatrix')</code><span class="d">cache preprocessed matrix to disk</span></li>
+    </ul>
+  </div>
+
+  <div class="card setup">
+    <div class="hd"><div class="num">03</div><div class="ttl">Categorical &amp; missing values<span class="cat" style="display:block">setup</span></div></div>
+    <ul>
+      <li><code class="cmd">DMatrix(X, enable_categorical=True)</code><span class="d">auto-detects pandas <code>category</code> dtype</span></li>
+      <li><code class="cmd">tree_method='hist'</code><span class="d">required for native categorical splits</span></li>
+      <li><code class="cmd">missing=np.nan</code><span class="d">default; NaN handled natively (learned split dir.)</span></li>
+      <li><code class="cmd">Auto-recoding (3.1+)</code><span class="d">Booster stores training categories, re-codes new/unseen values at inference automatically</span></li>
+    </ul>
+  </div>
+
+  <div class="sec-break">Native API (core)</div>
+
+  <div class="card core common">
+    <div class="hd"><div class="num">04</div><div class="ttl">Parameters dict &amp; booster type<span class="starmark">★</span><span class="cat" style="display:block">core</span></div></div>
+    <ul>
+      <li class="starred"><code class="cmd">params = {'max_depth':6,'eta':0.3,'objective':'binary:logistic'}</code><span class="d">plain dict or list of (key, value) pairs</span></li>
+      <li><code class="cmd">booster: 'gbtree'</code><span class="d">default — additive regression trees</span></li>
+      <li><code class="cmd">booster: 'dart'</code><span class="d">gbtree + dropout of trees each round</span></li>
+      <li><code class="cmd">booster: 'gblinear'</code><span class="d">linear base learner (deprecated since 3.3)</span></li>
+      <li><code class="cmd">device: 'cpu' | 'cuda' | 'cuda:0'</code><span class="d">replaces removed <code>gpu_id</code>/<code>gpu_hist</code></span></li>
+    </ul>
+  </div>
+
+  <div class="card core common">
+    <div class="hd"><div class="num">05</div><div class="ttl">xgb.train() — training loop<span class="starmark">★</span><span class="cat" style="display:block">core</span></div></div>
+    <ul>
+      <li class="starred"><code class="cmd">bst = xgb.train(params, dtrain, num_boost_round=100)</code><span class="d">returns a fitted <code>Booster</code></span></li>
+      <li><code class="cmd">evals=[(dtrain,'train'), (dval,'eval')]</code><span class="d">watchlist, printed / logged each round</span></li>
+      <li><code class="cmd">early_stopping_rounds=20</code><span class="d">stop if last eval metric stalls</span></li>
+      <li><code class="cmd">evals_result={}</code><span class="d">dict populated with per-round metric history</span></li>
+      <li><code class="cmd">verbose_eval=10</code><span class="d">print every N rounds (False to silence)</span></li>
+    </ul>
+  </div>
+
+  <div class="card core">
+    <div class="hd"><div class="num">06</div><div class="ttl">Booster methods<span class="cat" style="display:block">core</span></div></div>
+    <ul>
+      <li><code class="cmd">bst.predict(dtest)</code><span class="d">inference on a DMatrix</span></li>
+      <li><code class="cmd">bst.save_model('model.json')</code><span class="d">JSON/UBJSON — see card 25</span></li>
+      <li><code class="cmd">bst.get_score(importance_type='gain')</code><span class="d">per-feature importance dict</span></li>
+      <li><code class="cmd">bst.num_boosted_rounds()</code><span class="d">trees actually built</span></li>
+      <li><code class="cmd">bst.best_iteration / bst.best_score</code><span class="d">set when early stopping triggers</span></li>
+    </ul>
+  </div>
+
+  <div class="card core">
+    <div class="hd"><div class="num">07</div><div class="ttl">predict() options<span class="cat" style="display:block">core</span></div></div>
+    <ul>
+      <li><code class="cmd">output_margin=True</code><span class="d">raw score, before the link function</span></li>
+      <li><code class="cmd">pred_contribs=True</code><span class="d">SHAP values, one per feature + bias</span></li>
+      <li><code class="cmd">pred_interactions=True</code><span class="d">pairwise SHAP interaction values</span></li>
+      <li><code class="cmd">iteration_range=(0, bst.best_iteration+1)</code><span class="d">use only first N trees</span></li>
+    </ul>
+  </div>
+
+  <div class="sec-break">Scikit-learn API</div>
+
+  <div class="card skl common">
+    <div class="hd"><div class="num">08</div><div class="ttl">XGBClassifier<span class="starmark">★</span><span class="cat" style="display:block">sklearn</span></div></div>
+    <ul>
+      <li class="starred"><code class="cmd">clf = XGBClassifier(n_estimators=300, max_depth=6,<br>&nbsp;&nbsp;learning_rate=0.05, tree_method='hist')</code><span class="d">sklearn-compatible estimator</span></li>
+      <li><code class="cmd">clf.fit(X_tr, y_tr, eval_set=[(X_val,y_val)])</code><span class="d"><code>early_stopping_rounds</code> passed in constructor</span></li>
+      <li><code class="cmd">clf.predict(X_test)</code><span class="d">class labels</span></li>
+      <li><code class="cmd">clf.predict_proba(X_test)</code><span class="d">class probabilities</span></li>
+    </ul>
+  </div>
+
+  <div class="card skl common">
+    <div class="hd"><div class="num">09</div><div class="ttl">XGBRegressor<span class="starmark">★</span><span class="cat" style="display:block">sklearn</span></div></div>
+    <ul>
+      <li class="starred"><code class="cmd">reg = XGBRegressor(objective='reg:squarederror')</code><span class="d">default squared-error regression</span></li>
+      <li><code class="cmd">reg.fit(X, y)</code><span class="d">standard sklearn <code>fit</code>/<code>predict</code></span></li>
+      <li><code class="cmd">objective='reg:absoluteerror'</code><span class="d">MAE — robust to outliers</span></li>
+      <li><code class="cmd">objective='reg:quantileerror'</code><span class="d">with <code>quantile_alpha=[0.1,0.5,0.9]</code></span></li>
+      <li><code class="cmd">objective='reg:pseudohubererror'</code><span class="d">smooth Huber-style loss</span></li>
+    </ul>
+  </div>
+
+  <div class="card skl">
+    <div class="hd"><div class="num">10</div><div class="ttl">Ranker &amp; random-forest variants<span class="cat" style="display:block">sklearn</span></div></div>
+    <ul>
+      <li><code class="cmd">XGBRanker(objective='rank:ndcg')</code><span class="d">needs <code>qid</code> or <code>group</code> per query</span></li>
+      <li><code class="cmd">XGBRFClassifier() / XGBRFRegressor()</code><span class="d">single-round bagged forest, not boosting</span></li>
+      <li><code class="cmd">subsample=0.8, colsample_bynode=0.8</code><span class="d">RF defaults, bootstrap-style sampling</span></li>
+      <li><code class="cmd">n_estimators</code><span class="d">here = trees in the forest (no shrinkage)</span></li>
+    </ul>
+  </div>
+
+  <div class="card skl">
+    <div class="hd"><div class="num">11</div><div class="ttl">Scikit-learn interop<span class="cat" style="display:block">sklearn</span></div></div>
+    <ul>
+      <li><code class="cmd">Pipeline([('sc',StandardScaler()),('xgb',clf)])</code><span class="d">drop-in step; trees don't need scaling though</span></li>
+      <li><code class="cmd">GridSearchCV(clf, param_grid, cv=5)</code><span class="d">standard hyperparameter search</span></li>
+      <li><code class="cmd">clf.get_booster()</code><span class="d">underlying native <code>Booster</code></span></li>
+      <li><code class="cmd">clf.feature_importances_</code><span class="d">array aligned to <code>gain</code> by default</span></li>
+    </ul>
+  </div>
+
+  <div class="sec-break">Tree / booster parameters</div>
+
+  <div class="card tree common">
+    <div class="hd"><div class="num">12</div><div class="ttl">Tree growth control<span class="starmark">★</span><span class="cat" style="display:block">tree</span></div></div>
+    <ul>
+      <li class="starred"><code class="cmd">max_depth = 6</code><span class="d">default; deeper → more complex, more overfit risk</span></li>
+      <li class="starred"><code class="cmd">min_child_weight = 1</code><span class="d">min sum Hessian in a child; ↑ = more conservative</span></li>
+      <li><code class="cmd">gamma / min_split_loss = 0</code><span class="d">min loss reduction required to split a leaf</span></li>
+      <li><code class="cmd">max_leaves = 0</code><span class="d">cap on leaves, used with <code>grow_policy='lossguide'</code></span></li>
+      <li><code class="cmd">grow_policy: 'depthwise' | 'lossguide'</code><span class="d">level-wise (default) vs best-gain-first</span></li>
+    </ul>
+  </div>
+
+  <div class="card tree common">
+    <div class="hd"><div class="num">13</div><div class="ttl">Sampling (prevents overfitting)<span class="starmark">★</span><span class="cat" style="display:block">tree</span></div></div>
+    <ul>
+      <li class="starred"><code class="cmd">subsample = 1</code><span class="d">row-sample ratio per tree; try 0.6–0.9</span></li>
+      <li class="starred"><code class="cmd">colsample_bytree = 1</code><span class="d">column-sample once per tree</span></li>
+      <li><code class="cmd">colsample_bylevel / colsample_bynode</code><span class="d">re-sample columns per depth level / per split</span></li>
+      <li><code class="cmd">sampling_method: 'uniform' | 'gradient_based'</code><span class="d">gradient-based needs GPU (<code>hist</code>)</span></li>
+    </ul>
+  </div>
+
+  <div class="card tree">
+    <div class="hd"><div class="num">14</div><div class="ttl">Learning-rate control<span class="cat" style="display:block">tree</span></div></div>
+    <ul>
+      <li><code class="cmd">eta / learning_rate = 0.3</code><span class="d">shrinkage per round; typical range 0.01–0.3</span></li>
+      <li><code class="cmd">num_boost_round / n_estimators</code><span class="d">tree count — pair a lower eta with a higher count</span></li>
+      <li><code class="cmd">max_delta_step = 0</code><span class="d">helps logistic regression on imbalanced classes</span></li>
+    </ul>
+  </div>
+
+  <div class="card tree">
+    <div class="hd"><div class="num">15</div><div class="ttl">tree_method &amp; device<span class="cat" style="display:block">tree</span></div></div>
+    <ul>
+      <li><code class="cmd">tree_method: 'hist'</code><span class="d">default since 2.0; fast histogram binning, needed for categorical/GPU</span></li>
+      <li><code class="cmd">tree_method: 'exact' | 'approx'</code><span class="d">exact = greedy, no binning; approx = global sketch</span></li>
+      <li><code class="cmd">device: 'cuda' / 'cuda:0'</code><span class="d">single/multi-GPU; combine with <code>tree_method='hist'</code></span></li>
+      <li><code class="cmd">multi_strategy: 'one_output_per_tree' | 'multi_output_tree'</code><span class="d">vector-leaf multi-target trees</span></li>
+    </ul>
+  </div>
+
+  <div class="sec-break">Regularization &amp; objectives</div>
+
+  <div class="card reg common">
+    <div class="hd"><div class="num">16</div><div class="ttl">Regularization<span class="starmark">★</span><span class="cat" style="display:block">reg</span></div></div>
+    <ul>
+      <li class="starred"><code class="cmd">reg_lambda / lambda = 1</code><span class="d">L2 penalty on leaf weights (Ω term)</span></li>
+      <li class="starred"><code class="cmd">reg_alpha / alpha = 0</code><span class="d">L1 penalty; pushes weak leaves toward 0</span></li>
+      <li><code class="cmd">scale_pos_weight</code><span class="d">imbalanced binary classes ≈ #neg / #pos</span></li>
+      <li><code class="cmd">base_score</code><span class="d">initial prediction; auto-estimated per objective since 3.1</span></li>
+    </ul>
+  </div>
+
+  <div class="card reg common">
+    <div class="hd"><div class="num">17</div><div class="ttl">Objective functions<span class="starmark">★</span><span class="cat" style="display:block">reg</span></div></div>
+    <ul>
+      <li class="starred"><code class="cmd">binary:logistic</code><span class="d">binary classification → probability</span></li>
+      <li class="starred"><code class="cmd">multi:softmax / multi:softprob</code><span class="d">multiclass; needs <code>num_class</code></span></li>
+      <li class="starred"><code class="cmd">reg:squarederror / reg:absoluteerror</code><span class="d">MSE / MAE regression</span></li>
+      <li><code class="cmd">rank:ndcg / rank:pairwise / rank:map</code><span class="d">learning-to-rank objectives</span></li>
+      <li><code class="cmd">survival:cox / survival:aft</code><span class="d">survival analysis</span></li>
+      <li><code class="cmd">count:poisson · reg:tweedie</code><span class="d">count data / zero-inflated continuous</span></li>
+    </ul>
+  </div>
+
+  <div class="card reg">
+    <div class="hd"><div class="num">18</div><div class="ttl">eval_metric<span class="cat" style="display:block">reg</span></div></div>
+    <ul>
+      <li><code class="cmd">rmse · mae · logloss · error · mlogloss</code><span class="d">standard regression / classification metrics</span></li>
+      <li><code class="cmd">auc · aucpr · ndcg@k · map</code><span class="d">ranking-oriented metrics</span></li>
+      <li><code class="cmd">eval_metric=['auc','logloss']</code><span class="d">multiple metrics; <b>last</b> one drives early stopping</span></li>
+      <li><code class="cmd">custom_metric=fn(y_pred, dtrain)</code><span class="d">returns <code>(name, value)</code>; use with <code>maximize=</code></span></li>
+    </ul>
+  </div>
+
+  <div class="sec-break">Training control</div>
+
+  <div class="card train common">
+    <div class="hd"><div class="num">19</div><div class="ttl">Early stopping<span class="starmark">★</span><span class="cat" style="display:block">train</span></div></div>
+    <ul>
+      <li class="starred"><code class="cmd">early_stopping_rounds=20</code><span class="d">stop after N rounds with no improvement</span></li>
+      <li><code class="cmd">bst.best_iteration / clf.best_iteration</code><span class="d">round to use at inference time</span></li>
+      <li><code class="cmd">requires evals / eval_set</code><span class="d">at least one validation watch pair</span></li>
+      <li><code class="cmd">maximize=True</code><span class="d">flip direction for metrics like AUC/NDCG</span></li>
+    </ul>
+  </div>
+
+  <div class="card train common">
+    <div class="hd"><div class="num">20</div><div class="ttl">Cross-validation<span class="starmark">★</span><span class="cat" style="display:block">train</span></div></div>
+    <ul>
+      <li class="starred"><code class="cmd">xgb.cv(params, dtrain, num_boost_round=500,<br>&nbsp;&nbsp;nfold=5, early_stopping_rounds=20, seed=42)</code><span class="d">returns a DataFrame — train/test mean ± std per round</span></li>
+      <li><code class="cmd">stratified=True</code><span class="d">preserve class ratios across folds</span></li>
+      <li><code class="cmd">cross_val_score(clf, X, y, cv=5)</code><span class="d">via the sklearn wrapper instead</span></li>
+    </ul>
+  </div>
+
+  <div class="card train">
+    <div class="hd"><div class="num">21</div><div class="ttl">Callbacks<span class="cat" style="display:block">train</span></div></div>
+    <ul>
+      <li><code class="cmd">xgb.callback.EarlyStopping(rounds=20, save_best=True)</code><span class="d">object form of early stopping</span></li>
+      <li><code class="cmd">xgb.callback.LearningRateScheduler(fn)</code><span class="d">vary <code>eta</code> across rounds</span></li>
+      <li><code class="cmd">xgb.callback.TrainingCheckPoint(directory=...)</code><span class="d">periodic model snapshots</span></li>
+      <li><code class="cmd">callbacks=[...]</code><span class="d">pass list to <code>train()</code> or <code>.fit()</code></span></li>
+    </ul>
+  </div>
+
+  <div class="sec-break">Post-training</div>
+
+  <div class="card post common">
+    <div class="hd"><div class="num">22</div><div class="ttl">Feature importance<span class="starmark">★</span><span class="cat" style="display:block">post</span></div></div>
+    <ul>
+      <li class="starred"><code class="cmd">bst.get_score(importance_type='gain')</code><span class="d">types: <code>weight, gain, cover, total_gain, total_cover</code></span></li>
+      <li><code class="cmd">clf.feature_importances_</code><span class="d">sklearn API array, default <code>gain</code></span></li>
+      <li><code class="cmd">xgb.plot_importance(bst, max_num_features=15)</code><span class="d">quick bar-chart view</span></li>
+    </ul>
+  </div>
+
+  <div class="card post common">
+    <div class="hd"><div class="num">23</div><div class="ttl">SHAP values<span class="starmark">★</span><span class="cat" style="display:block">post</span></div></div>
+    <ul>
+      <li class="starred"><code class="cmd">bst.predict(dtest, pred_contribs=True)</code><span class="d">native, exact SHAP per feature + bias column</span></li>
+      <li><code class="cmd">shap.TreeExplainer(bst).shap_values(X)</code><span class="d">via the <code>shap</code> library — richer plots</span></li>
+      <li><code class="cmd">pred_interactions=True</code><span class="d">pairwise SHAP interaction values</span></li>
+    </ul>
+  </div>
+
+  <div class="card post">
+    <div class="hd"><div class="num">24</div><div class="ttl">Plotting<span class="cat" style="display:block">post</span></div></div>
+    <ul>
+      <li><code class="cmd">xgb.plot_tree(bst, num_trees=0)</code><span class="d">renders one tree — needs <code>graphviz</code></span></li>
+      <li><code class="cmd">xgb.to_graphviz(bst, num_trees=0)</code><span class="d">returns a Graphviz Source object</span></li>
+      <li><code class="cmd">xgb.plot_importance(bst)</code><span class="d">matplotlib importance bar chart</span></li>
+    </ul>
+  </div>
+
+  <div class="card post">
+    <div class="hd"><div class="num">25</div><div class="ttl">Save / load models<span class="cat" style="display:block">post</span></div></div>
+    <ul>
+      <li><code class="cmd">bst.save_model('model.json')</code><span class="d">JSON (or <code>.ubj</code>, default binary) — portable across bindings</span></li>
+      <li><code class="cmd">bst.load_model('model.json')</code><span class="d">re-hydrate a Booster</span></li>
+      <li><code class="cmd">pickle.dump(clf, f)</code><span class="d">sklearn wrapper — Python-only, less portable</span></li>
+      <li><code class="cmd">legacy .model binary format</code><span class="d">removed — use JSON/UBJSON going forward</span></li>
+    </ul>
+  </div>
+
+  <div class="card post">
+    <div class="hd"><div class="num">26</div><div class="ttl">GPU &amp; distributed<span class="cat" style="display:block">post</span></div></div>
+    <ul>
+      <li><code class="cmd">device='cuda', tree_method='hist'</code><span class="d">single-GPU training</span></li>
+      <li><code class="cmd">xgboost.dask · xgboost.spark</code><span class="d">distributed multi-node / multi-GPU training</span></li>
+      <li><code class="cmd">DataIter + ExtMemQuantileDMatrix</code><span class="d">stream TB-scale data via external memory (3.0+)</span></li>
+    </ul>
+  </div>
+
+  <div class="sec-break">Quick reference</div>
+
+  <div class="card core common">
+    <div class="hd"><div class="num">★</div><div class="ttl">Most-used defaults, at a glance<span class="cat" style="display:block">quick read</span></div></div>
+    <ul>
+      <li><code class="cmd">max_depth=6 · eta=0.3 · min_child_weight=1</code><span class="d">defaults — usually the first three to tune</span></li>
+      <li><code class="cmd">subsample=1 · colsample_bytree=1</code><span class="d">defaults — lower for regularization</span></li>
+      <li><code class="cmd">gamma=0 · reg_lambda=1 · reg_alpha=0</code><span class="d">defaults — raise to fight overfitting</span></li>
+      <li><code class="cmd">n_estimators=100 (sklearn) · num_boost_round=10 (native)</code><span class="d">watch out — the two APIs default differently</span></li>
+    </ul>
+  </div>
+
+  <div class="card reg common">
+    <div class="hd"><div class="num">★</div><div class="ttl">objective → default eval_metric<span class="cat" style="display:block">quick read</span></div></div>
+    <ul>
+      <li><code class="cmd">binary:logistic → logloss</code><span class="d"></span></li>
+      <li><code class="cmd">reg:squarederror → rmse</code><span class="d"></span></li>
+      <li><code class="cmd">multi:softmax / softprob → mlogloss</code><span class="d"></span></li>
+      <li><code class="cmd">rank:ndcg → ndcg</code><span class="d"></span></li>
+      <li><code class="cmd">survival:cox → cox-nloglik</code><span class="d"></span></li>
+    </ul>
+  </div>
+
+</div>
+</main>
+
+<div class="strip-title">
+  <h2>Why the defaults are shaped the way they are</h2>
+  <p>Four mechanics behind XGBoost's speed and regularization story.</p>
+</div>
+<div class="strip">
+
+  <div class="panel">
+    <h2>1 · split gain</h2>
+    <svg viewBox="0 0 260 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of a tree split scored by gradient and Hessian statistics">
+      <circle cx="130" cy="26" r="14" fill="none" stroke="#bc8cff" stroke-width="2"/>
+      <text x="130" y="30" text-anchor="middle" fill="#bc8cff" font-size="9">G,H</text>
+      <line x1="130" y1="40" x2="70" y2="78" stroke="#5d6878" stroke-width="1.3"/>
+      <line x1="130" y1="40" x2="190" y2="78" stroke="#5d6878" stroke-width="1.3"/>
+      <circle cx="70" cy="92" r="14" fill="none" stroke="#39c5cf" stroke-width="2"/>
+      <text x="70" y="96" text-anchor="middle" fill="#39c5cf" font-size="8">G_L,H_L</text>
+      <circle cx="190" cy="92" r="14" fill="none" stroke="#f0883e" stroke-width="2"/>
+      <text x="190" y="96" text-anchor="middle" fill="#f0883e" font-size="8">G_R,H_R</text>
+      <rect x="8" y="122" width="244" height="56" rx="8" fill="#0d1117" stroke="#2b3340"/>
+      <text x="130" y="142" text-anchor="middle" fill="#c9d4e3" font-size="9.5" font-family="JetBrains Mono, monospace">Gain = ½[ G_L²/(H_L+λ) + G_R²/(H_R+λ)</text>
+      <text x="130" y="156" text-anchor="middle" fill="#c9d4e3" font-size="9.5" font-family="JetBrains Mono, monospace">&#160;&#160;&#160;&#160;&#160; − G²/(H+λ) ]  −  γ</text>
+      <text x="130" y="172" text-anchor="middle" fill="#8b97a7" font-size="8.5">split only if Gain &gt; 0 → gamma prunes weak splits</text>
+    </svg>
+    <p class="cap">Every candidate split is scored with 1st &amp; 2nd-order gradient stats (Newton boosting) — this is what makes <code class="mono-lbl">hist</code> binning so fast.</p>
+  </div>
+
+  <div class="panel">
+    <h2>2 · shrinkage vs. λ</h2>
+    <svg viewBox="0 0 260 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram contrasting small learning rate with many trees versus large learning rate with few trees, and lambda shrinking leaf weights toward zero">
+      <text x="10" y="20" fill="#f0883e" font-size="10" font-weight="700">small η, many trees</text>
+      <polyline points="10,60 40,52 70,48 100,42 130,38 160,34 190,31 220,29 250,27" fill="none" stroke="#f0883e" stroke-width="2"/>
+      <text x="10" y="86" fill="#39c5cf" font-size="10" font-weight="700">large η, few trees</text>
+      <polyline points="10,120 60,70 110,50 160,42 210,40" fill="none" stroke="#39c5cf" stroke-width="2" stroke-dasharray="4,3"/>
+      <line x1="10" y1="140" x2="250" y2="140" stroke="#2b3340"/>
+      <text x="130" y="152" text-anchor="middle" fill="#8b97a7" font-size="8.5">boosting round →</text>
+      <rect x="8" y="160" width="244" height="24" rx="6" fill="#0d1117" stroke="#2b3340"/>
+      <text x="130" y="176" text-anchor="middle" fill="#c9d4e3" font-size="9" font-family="JetBrains Mono, monospace">leaf weight w* = −G/(H+λ)  ← λ shrinks w toward 0</text>
+    </svg>
+    <p class="cap">Low <code class="mono-lbl">eta</code> + more rounds generalizes better than high <code class="mono-lbl">eta</code> + few rounds; <code class="mono-lbl">reg_lambda</code> shrinks leaf weights the same direction.</p>
+  </div>
+
+  <div class="panel">
+    <h2>3 · early stopping</h2>
+    <svg viewBox="0 0 260 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of training loss decreasing and validation loss decreasing then rising, with the best iteration marked before the rise">
+      <polyline points="10,40 50,60 90,76 130,88 170,96 210,102 250,106" fill="none" stroke="#3fb950" stroke-width="2"/>
+      <text x="210" y="118" fill="#3fb950" font-size="9">train</text>
+      <polyline points="10,50 50,66 90,74 130,72 170,80 210,96 250,120" fill="none" stroke="#f85149" stroke-width="2"/>
+      <text x="230" y="112" fill="#f85149" font-size="9">eval</text>
+      <line x1="130" y1="20" x2="130" y2="150" stroke="#f0c145" stroke-width="1.3" stroke-dasharray="3,3"/>
+      <text x="133" y="30" fill="#f0c145" font-size="8.5">best_iteration</text>
+      <line x1="10" y1="150" x2="250" y2="150" stroke="#2b3340"/>
+      <text x="130" y="164" text-anchor="middle" fill="#8b97a7" font-size="8.5">boosting round →</text>
+      <text x="130" y="180" text-anchor="middle" fill="#8b97a7" font-size="8.5">eval loss rises past best_iteration → overfitting</text>
+    </svg>
+    <p class="cap"><code class="mono-lbl">early_stopping_rounds</code> halts training N rounds after the watched metric last improved, keeping <code class="mono-lbl">best_iteration</code>.</p>
+  </div>
+
+  <div class="panel">
+    <h2>4 · importance types disagree</h2>
+    <svg viewBox="0 0 260 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bar chart comparing weight, gain, and cover importance scores for three features, showing that the ranking can differ by metric">
+      <text x="10" y="18" fill="#8b97a7" font-size="9">weight</text>
+      <rect x="60" y="10" width="150" height="10" fill="#f0883e"/>
+      <rect x="60" y="24" width="90" height="10" fill="#bc8cff"/>
+      <rect x="60" y="38" width="40" height="10" fill="#39c5cf"/>
+      <text x="10" y="70" fill="#8b97a7" font-size="9">gain</text>
+      <rect x="60" y="62" width="60" height="10" fill="#f0883e"/>
+      <rect x="60" y="76" width="40" height="10" fill="#bc8cff"/>
+      <rect x="60" y="90" width="170" height="10" fill="#39c5cf"/>
+      <text x="10" y="122" fill="#8b97a7" font-size="9">cover</text>
+      <rect x="60" y="114" width="110" height="10" fill="#f0883e"/>
+      <rect x="60" y="128" width="150" height="10" fill="#bc8cff"/>
+      <rect x="60" y="142" width="70" height="10" fill="#39c5cf"/>
+      <rect x="8" y="158" width="244" height="24" rx="6" fill="#0d1117" stroke="#2b3340"/>
+      <text x="130" y="174" text-anchor="middle" fill="#8b97a7" font-size="8.5">same 3 features, 3 different rankings</text>
+    </svg>
+    <p class="cap"><code class="mono-lbl">weight</code> = split count, <code class="mono-lbl">gain</code> = avg. loss reduction, <code class="mono-lbl">cover</code> = avg. samples affected — pick the one matching your question.</p>
+  </div>
+
+</div>
+
+<div class="wm-wrap">
+  <div class="wm">
+    <h2>Worth memorizing</h2>
+    <p class="sub">The handful of facts that explain most XGBoost debugging sessions.</p>
+    <div class="wm-grid">
+      <div class="wm-item"><div class="t">Two APIs, two defaults</div><div class="s">Native <code>xgb.train</code> defaults <code>num_boost_round=10</code>; sklearn's <code>XGBRegressor/Classifier</code> defaults <code>n_estimators=100</code>. Don't assume they match.</div></div>
+      <div class="wm-item"><div class="t">hist is the default tree_method</div><div class="s">Since 2.0, <code>hist</code> is used unless you set otherwise — it's required for categorical features and GPU training.</div></div>
+      <div class="wm-item"><div class="t">device replaced gpu_id</div><div class="s"><code>gpu_id</code>, <code>gpu_hist</code>, and <code>use_gpu</code> were removed; use <code>device='cuda'</code> / <code>'cuda:0'</code> instead.</div></div>
+      <div class="wm-item"><div class="t">Last eval_metric drives early stopping</div><div class="s">When passing a list, only the final metric is used to decide when to stop — order matters.</div></div>
+      <div class="wm-item"><div class="t">Trees don't need feature scaling</div><div class="s">Splits are threshold-based, so standardizing/normalizing numeric features is unnecessary (unlike linear models or gblinear).</div></div>
+      <div class="wm-item"><div class="t">NaN is handled natively</div><div class="s">Missing values learn a default split direction per node during training — no imputation required for tree boosters.</div></div>
+      <div class="wm-item"><div class="t">Categorical re-coding since 3.1</div><div class="s">The Booster now stores the training category mapping and auto re-codes new data at inference — no more silent mismatches.</div></div>
+      <div class="wm-item"><div class="t">Lower eta ⇒ more rounds</div><div class="s">Shrinking <code>eta</code> almost always needs a proportionally larger <code>num_boost_round</code> to reach the same fit.</div></div>
+      <div class="wm-item"><div class="t">Save as JSON/UBJSON</div><div class="s">The legacy binary <code>.model</code> format is gone; UBJSON is the current default and preserves feature names across bindings.</div></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Sources cross-checked: xgboost.readthedocs.io (parameters, Python API, release notes 3.0–3.2) · xgboost.ai · arXiv:1603.02754 (Chen &amp; Guestrin, XGBoost: A Scalable Tree Boosting System) · github.com/dmlc/xgboost · GeeksforGeeks · Wikipedia — built as a quick reference, not a replacement for the docs.
+</footer>
+
+</body>
+</html>

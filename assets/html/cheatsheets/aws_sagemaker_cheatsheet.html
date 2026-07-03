@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS SageMaker AI Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --data:#7c3aed;   --data-bg:#f3effe;
+    --train:#2563eb;  --train-bg:#eef3ff;
+    --model:#059669;  --model-bg:#ecf7f2;
+    --deploy:#4f46e5; --deploy-bg:#eef0fd;
+    --mlops:#d97706;  --mlops-bg:#fdf6ec;
+    --ai:#0891b2;     --ai-bg:#ecfafe;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans);color:var(--ink);background:var(--paper);line-height:1.5;-webkit-font-smoothing:antialiased;}
+
+  /* ---------- header ---------- */
+  header{border-bottom:2px solid var(--ink);padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;max-width:1500px;margin:0 auto;}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:700;letter-spacing:-.02em;line-height:1;margin-bottom:.7rem;}
+  h1 .aws{font-family:var(--mono);color:#f59e0b;}
+  h1 .sm{font-family:var(--mono);color:var(--train);}
+  .lede{max-width:66ch;color:#3f444f;font-size:1.02rem;}
+  .sources{font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-top:1rem;line-height:1.7;}
+  .sources b{color:var(--ink);font-weight:500;}
+  .legend{display:flex;flex-wrap:wrap;gap:.5rem .9rem;margin-top:1.2rem;font-family:var(--mono);font-size:.74rem;}
+  .legend span{display:inline-flex;align-items:center;gap:.4rem;}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block;}
+  .dot.data{background:var(--data);} .dot.train{background:var(--train);}
+  .dot.model{background:var(--model);} .dot.deploy{background:var(--deploy);}
+  .dot.mlops{background:var(--mlops);} .dot.ai{background:var(--ai);}
+  .dot.danger{background:var(--danger);}
+
+  /* ---------- lifecycle SVG ---------- */
+  .flow-wrap{max-width:1500px;margin:0 auto;padding:2rem clamp(1rem,4vw,3rem) .5rem;}
+  .flow-title{font-family:var(--mono);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;}
+  .flow-svg{width:100%;height:auto;max-width:1140px;display:block;margin:0 auto;}
+  .flow-svg text{font-family:'JetBrains Mono',monospace;}
+
+  /* ---------- main grid ---------- */
+  main{max-width:1500px;margin:0 auto;padding:1.5rem clamp(1rem,4vw,3rem) 2rem;column-gap:1.4rem;}
+  @media(min-width:760px){main{column-count:2;}}
+  @media(min-width:1200px){main{column-count:3;}}
+
+  .card{break-inside:avoid;background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:1.4rem;overflow:hidden;box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex;align-items:baseline;gap:.6rem;padding:.85rem 1rem .7rem;border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono);font-size:.78rem;font-weight:700;color:#fff;background:var(--ink);border-radius:5px;padding:.12rem .42rem;letter-spacing:.02em;}
+  .card-title{font-size:.96rem;font-weight:700;letter-spacing:-.01em;}
+  .card-sub{font-size:.75rem;color:var(--muted);margin-left:auto;font-family:var(--mono);}
+
+  ul.cmds{list-style:none;}
+  ul.cmds li{padding:.5rem 1rem;border-bottom:1px solid #f1eee8;border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none;}
+  ul.cmds li.data{border-left-color:var(--data);}
+  ul.cmds li.train{border-left-color:var(--train);}
+  ul.cmds li.model{border-left-color:var(--model);}
+  ul.cmds li.deploy{border-left-color:var(--deploy);}
+  ul.cmds li.mlops{border-left-color:var(--mlops);}
+  ul.cmds li.ai{border-left-color:var(--ai);}
+  ul.cmds li.danger{border-left-color:var(--danger);background:var(--danger-bg);}
+
+  code.cmd{font-family:var(--mono);font-size:.80rem;font-weight:500;color:var(--ink);display:block;word-break:break-word;}
+  code.cmd .arg{color:var(--deploy);font-weight:400;}
+  code.cmd .flag{color:var(--star);}
+  code.cmd .kw{color:var(--model);font-weight:600;}
+  li.danger code.cmd{color:var(--danger);}
+  .desc{font-size:.78rem;color:#525761;margin-top:.18rem;}
+  .star{color:var(--star);font-size:.7rem;font-weight:700;font-family:var(--mono);margin-left:.35rem;letter-spacing:.03em;}
+  .badge-danger{color:var(--danger);font-size:.66rem;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;margin-left:.35rem;}
+  .badge-new{color:var(--model);font-size:.66rem;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;margin-left:.35rem;}
+
+  /* ---------- diagrams section ---------- */
+  .diagrams{max-width:1500px;margin:0 auto;padding:1rem clamp(1rem,4vw,3rem) 3rem;}
+  .diagrams h2{font-size:1.4rem;font-weight:700;letter-spacing:-.01em;margin-bottom:.3rem;padding-top:1.5rem;border-top:2px solid var(--ink);}
+  .diagrams .sub{color:var(--muted);font-size:.9rem;margin-bottom:1.5rem;}
+  .merge-grid{display:grid;gap:1.2rem;grid-template-columns:1fr;}
+  @media(min-width:780px){.merge-grid{grid-template-columns:1fr 1fr;}}
+  .merge-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:1rem 1.1rem;}
+  .merge-card.full{grid-column:1/-1;}
+  .merge-card h3{font-size:.95rem;font-family:var(--mono);margin-bottom:.15rem;}
+  .merge-card p{font-size:.78rem;color:var(--muted);margin-bottom:.7rem;}
+  .merge-card .mermaid{font-size:.75rem;}
+
+  /* ---------- refs strip ---------- */
+  .refs{max-width:1500px;margin:0 auto;padding:1rem clamp(1rem,4vw,3rem) 4rem;}
+  .refs h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;padding-top:1.5rem;border-top:2px solid var(--ink);}
+  .refs-inner{background:var(--ink);color:#e8e6e1;border-radius:10px;padding:1.2rem 1.4rem;font-family:var(--mono);font-size:.82rem;display:grid;gap:.55rem;grid-template-columns:1fr;}
+  @media(min-width:680px){.refs-inner{grid-template-columns:1fr 1fr;}}
+  .refs-inner div{display:flex;gap:.7rem;align-items:baseline;}
+  .refs-inner .k{color:#fbbf24;white-space:nowrap;font-weight:700;}
+  .refs-inner .v{color:#cbd5e1;}
+
+  footer{max-width:1500px;margin:0 auto;padding:2rem clamp(1rem,4vw,3rem) 3rem;border-top:1px solid var(--line);font-size:.76rem;color:var(--muted);font-family:var(--mono);line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · AWS AI/ML · Amazon SageMaker AI</div>
+  <h1><span class="aws">AWS</span> <span class="sm">SageMaker AI</span> cheat sheet</h1>
+  <p class="lede">SageMaker AI is AWS's fully managed ML platform — it handles infrastructure so you can focus on <b>data prep → train → tune → register → deploy → monitor</b>. Every component maps to one of these lifecycle phases.</p>
+  <div class="legend">
+    <span><i class="dot data"></i>data / prepare</span>
+    <span><i class="dot train"></i>train / tune</span>
+    <span><i class="dot model"></i>model / registry</span>
+    <span><i class="dot deploy"></i>deploy / serve</span>
+    <span><i class="dot mlops"></i>MLOps / governance</span>
+    <span><i class="dot ai"></i>AWS AI services</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Synthesized from: <b>docs.aws.amazon.com/sagemaker</b> · <b>docs.aws.amazon.com/cli/latest/reference/sagemaker</b> · <b>skillcertpro.com AWS ML Specialty</b></p>
+</header>
+
+<!-- ============ LIFECYCLE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The SageMaker AI ML lifecycle — six phases, each with its own managed tools</div>
+  <svg class="flow-svg" viewBox="0 0 1200 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SageMaker ML lifecycle: data in S3 flows through prepare, train, register, deploy, and monitor phases">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+    <!-- Phase labels -->
+    <text x="95"  y="38" text-anchor="middle" font-size="9" letter-spacing="2" fill="#94a3b8">YOUR DATA</text>
+    <text x="270" y="38" text-anchor="middle" font-size="9" letter-spacing="2" fill="#7c3aed">PREPARE</text>
+    <text x="460" y="38" text-anchor="middle" font-size="9" letter-spacing="2" fill="#2563eb">TRAIN &amp; TUNE</text>
+    <text x="680" y="38" text-anchor="middle" font-size="9" letter-spacing="2" fill="#059669">REGISTER</text>
+    <text x="870" y="38" text-anchor="middle" font-size="9" letter-spacing="2" fill="#4f46e5">DEPLOY</text>
+    <text x="1090" y="38" text-anchor="middle" font-size="9" letter-spacing="2" fill="#d97706">MONITOR</text>
+
+    <!-- Box 0: S3 / Your Data -->
+    <rect x="18"  y="55" width="155" height="120" rx="10" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+    <text x="96"  y="82"  text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">Your Data</text>
+    <text x="96"  y="101" text-anchor="middle" font-size="10" fill="#64748b">Amazon S3 (CSV, JSON,</text>
+    <text x="96"  y="116" text-anchor="middle" font-size="10" fill="#64748b">Parquet, RecordIO,</text>
+    <text x="96"  y="131" text-anchor="middle" font-size="10" fill="#64748b">Images, Text)</text>
+    <text x="96"  y="155" text-anchor="middle" font-size="10" fill="#64748b">EFS · FSx for Lustre</text>
+
+    <!-- Box 1: Prepare -->
+    <rect x="188" y="55" width="165" height="120" rx="10" fill="#f3effe" stroke="#7c3aed" stroke-width="2"/>
+    <text x="270" y="82"  text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">Prepare</text>
+    <text x="270" y="101" text-anchor="middle" font-size="10" fill="#7c3aed">Data Wrangler</text>
+    <text x="270" y="117" text-anchor="middle" font-size="10" fill="#7c3aed">Ground Truth</text>
+    <text x="270" y="133" text-anchor="middle" font-size="10" fill="#7c3aed">Feature Store</text>
+    <text x="270" y="149" text-anchor="middle" font-size="10" fill="#7c3aed">Processing Jobs</text>
+
+    <!-- Box 2: Train & Tune -->
+    <rect x="368" y="55" width="185" height="120" rx="10" fill="#eef3ff" stroke="#2563eb" stroke-width="2"/>
+    <text x="460" y="82"  text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">Train &amp; Tune</text>
+    <text x="460" y="101" text-anchor="middle" font-size="10" fill="#2563eb">Estimator.fit()</text>
+    <text x="460" y="117" text-anchor="middle" font-size="10" fill="#2563eb">Built-in Algorithms</text>
+    <text x="460" y="133" text-anchor="middle" font-size="10" fill="#2563eb">BYOC / Frameworks</text>
+    <text x="460" y="149" text-anchor="middle" font-size="10" fill="#2563eb">HyperparameterTuner</text>
+
+    <!-- Box 3: Register -->
+    <rect x="568" y="55" width="165" height="120" rx="10" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <text x="650" y="82"  text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">Register</text>
+    <text x="650" y="101" text-anchor="middle" font-size="10" fill="#059669">Model Registry</text>
+    <text x="650" y="117" text-anchor="middle" font-size="10" fill="#059669">ModelPackage version</text>
+    <text x="650" y="133" text-anchor="middle" font-size="10" fill="#059669">Approve / Reject</text>
+    <text x="650" y="149" text-anchor="middle" font-size="10" fill="#059669">Model Cards</text>
+
+    <!-- Box 4: Deploy -->
+    <rect x="748" y="55" width="165" height="120" rx="10" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+    <text x="830" y="82"  text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">Deploy</text>
+    <text x="830" y="101" text-anchor="middle" font-size="10" fill="#4f46e5">Real-time endpoint</text>
+    <text x="830" y="117" text-anchor="middle" font-size="10" fill="#4f46e5">Serverless inference</text>
+    <text x="830" y="133" text-anchor="middle" font-size="10" fill="#4f46e5">Async inference</text>
+    <text x="830" y="149" text-anchor="middle" font-size="10" fill="#4f46e5">Batch Transform</text>
+
+    <!-- Box 5: Monitor -->
+    <rect x="928" y="55" width="253" height="120" rx="10" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+    <text x="1054" y="82"  text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">Monitor &amp; Govern</text>
+    <text x="1054" y="101" text-anchor="middle" font-size="10" fill="#d97706">Model Monitor</text>
+    <text x="1054" y="117" text-anchor="middle" font-size="10" fill="#d97706">Clarify (bias/explain)</text>
+    <text x="1054" y="133" text-anchor="middle" font-size="10" fill="#d97706">Debugger / Experiments</text>
+    <text x="1054" y="149" text-anchor="middle" font-size="10" fill="#d97706">Pipelines (CI/CD for ML)</text>
+
+    <!-- Forward arrows -->
+    <line x1="173" y1="105" x2="187" y2="105" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#arr)"/>
+    <line x1="353" y1="105" x2="367" y2="105" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#arr)"/>
+    <line x1="553" y1="105" x2="567" y2="105" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#arr)"/>
+    <line x1="733" y1="105" x2="747" y2="105" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#arr)"/>
+    <line x1="913" y1="105" x2="927" y2="105" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#arr)"/>
+
+    <!-- Feedback arrow (monitor → retrain) -->
+    <path d="M 1054,175 Q 1054,250 730,250 Q 400,250 460,175" stroke="#d97706" stroke-width="1.5" stroke-dasharray="5 4" fill="none" marker-end="url(#arr)"/>
+    <text x="730" y="268" text-anchor="middle" font-size="9.5" fill="#d97706">drift detected → trigger retraining via Pipelines</text>
+
+    <!-- Model artifacts label -->
+    <text x="553" y="220" text-anchor="middle" font-size="9" fill="#059669">model.tar.gz → S3</text>
+  </svg>
+</section>
+
+<!-- ============ CARD GRID ============ -->
+<main>
+
+  <!-- 01 PLATFORM SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Platform Setup &amp; Config</span><span class="card-sub">SDK + CLI + IAM</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd">pip install sagemaker boto3</code><span class="star">★</span><div class="desc">Core Python SDK + AWS SDK — start here.</div></li>
+      <li class="train"><code class="cmd">aws configure</code><span class="star">★</span><div class="desc">Set AWS Access Key, Secret, Region, output format.</div></li>
+      <li class="train"><code class="cmd">import sagemaker; session = sagemaker.Session()</code><span class="star">★</span><div class="desc">High-level helper for training/deploying; wraps boto3.</div></li>
+      <li class="train"><code class="cmd">role = sagemaker.get_execution_role()</code><span class="star">★</span><div class="desc">IAM role SageMaker assumes — needs S3, ECR, CloudWatch.</div></li>
+      <li class="train"><code class="cmd">sm = boto3.client(<span class="arg">'sagemaker'</span>)</code><div class="desc">Low-level API client — fine-grained control.</div></li>
+      <li class="train"><code class="cmd">sm_rt = boto3.client(<span class="arg">'sagemaker-runtime'</span>)</code><div class="desc">Separate client needed to call a deployed endpoint.</div></li>
+      <li class="danger"><code class="cmd">iam:PassRole</code><span class="badge-danger">required</span><div class="desc">User/role invoking create-model <b>must</b> have PassRole to the execution role.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 STUDIO & IDEs -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Studio &amp; Dev Environments</span><span class="card-sub">where you write code</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd">SageMaker Studio</code><span class="star">★</span><div class="desc">Full browser IDE: JupyterLab, Code Editor, Canvas, Pipelines, JumpStart in one place.</div></li>
+      <li class="train"><code class="cmd">SageMaker Studio Classic</code><div class="desc">Previous version of Studio — still supported but being superseded.</div></li>
+      <li class="train"><code class="cmd">Notebook Instances</code><div class="desc">Managed EC2 with Jupyter; you pick instance type + EBS size. Simpler but less integrated.</div></li>
+      <li class="train"><code class="cmd">Studio Lab</code><div class="desc">Free lightweight environment for learning — no AWS account needed.</div></li>
+      <li class="data"><code class="cmd">Canvas</code><span class="star">★</span><div class="desc">No-code AutoML UI for analysts — data prep, model build, FMs, what-if analysis.</div></li>
+      <li class="mlops"><code class="cmd">SageMaker Unified Studio</code><span class="badge-new">new 2025</span><div class="desc">Unified platform combining analytics, AI, and data access (Lakehouse, Redshift, Bedrock).</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 DATA PREP & LABELING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Data Prep &amp; Labeling</span><span class="card-sub">60–70% of ML effort</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">Ground Truth</code><span class="star">★</span><div class="desc">Human labeling + ML-assisted auto-labeling (Mechanical Turk or private workforce).</div></li>
+      <li class="data"><code class="cmd">Data Wrangler</code><span class="star">★</span><div class="desc">Visual drag-&amp;-drop prep: 300+ transforms, data quality reports, export to Pipeline.</div></li>
+      <li class="data"><code class="cmd">Feature Store</code><div class="desc">Online store (real-time &lt;10 ms lookup) + Offline store (S3/Athena, training). Reuse features across teams.</div></li>
+      <li class="data"><code class="cmd">Processing Jobs</code><div class="desc">Run custom scripts (SKLearnProcessor, SparkProcessor) — ETL at scale before training.</div></li>
+      <li class="data"><code class="cmd">SageMaker Clarify</code><div class="desc">Detect bias in your dataset <em>before</em> training; get statistical bias metrics per feature.</div></li>
+      <li class="danger"><code class="cmd">CSV: no header row</code><span class="badge-danger">gotcha</span><div class="desc">Built-in algorithms expect no header in CSVs; first column = label for supervised tasks.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 BUILT-IN ALGOS: SUPERVISED -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Built-in Algorithms: Supervised</span><span class="card-sub">tabular + time-series</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd">XGBoost</code><span class="star">★</span><div class="desc">Gradient-boosted trees for classification + regression. <b>CPU only</b> — use ml.m5 (memory-bound), not ml.p2/p3.</div></li>
+      <li class="train"><code class="cmd">Linear Learner</code><span class="star">★</span><div class="desc">Fast linear/logistic models; trains many in parallel, returns best. Scales to very large data.</div></li>
+      <li class="train"><code class="cmd">K-Nearest Neighbors (k-NN)</code><div class="desc">Index-based lookup for classification/regression. High accuracy, larger index size.</div></li>
+      <li class="train"><code class="cmd">Factorization Machines</code><div class="desc">Handles sparse high-dimensional data — click prediction, recommendations.</div></li>
+      <li class="train"><code class="cmd">DeepAR</code><div class="desc">Time-series forecasting via RNN; trains on many related series simultaneously.</div></li>
+      <li class="train"><code class="cmd">Object2Vec</code><div class="desc">Learns dense embeddings — find similar docs, duplicate tickets, recommendations.</div></li>
+      <li class="train"><code class="cmd">AutoGluon-Tabular / CatBoost / LightGBM</code><div class="desc">Modern AutoML ensembles; also available as JumpStart built-ins.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 BUILT-IN ALGOS: UNSUPERVISED -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Built-in Algorithms: Unsupervised</span><span class="card-sub">no labels needed</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd">K-Means</code><span class="star">★</span><div class="desc">Groups data into K clusters — customer segmentation, topic discovery.</div></li>
+      <li class="train"><code class="cmd">PCA (Principal Component Analysis)</code><span class="star">★</span><div class="desc">Dimensionality reduction: removes weakly-correlated features before training.</div></li>
+      <li class="train"><code class="cmd">Random Cut Forest (RCF)</code><span class="star">★</span><div class="desc">Anomaly detection: assigns anomaly score to each data point. Works on streaming data.</div></li>
+      <li class="train"><code class="cmd">IP Insights</code><div class="desc">Learns normal IP–entity associations; flags suspicious logins or account access.</div></li>
+      <li class="train"><code class="cmd">LDA (Latent Dirichlet Allocation)</code><div class="desc">Topic modeling: discover hidden topics in a document corpus (unsupervised).</div></li>
+      <li class="train"><code class="cmd">NTM (Neural Topic Model)</code><div class="desc">Neural alternative to LDA; often faster and more scalable.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 BUILT-IN ALGOS: TEXT & VISION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Built-in Algorithms: Text &amp; Vision</span><span class="card-sub">NLP + computer vision</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd">BlazingText</code><span class="star">★</span><div class="desc">Super-fast Word2Vec embeddings + text classification. GPU for skipgram; multi-CPU for batch_skipgram.</div></li>
+      <li class="train"><code class="cmd">Seq2Seq</code><div class="desc">RNN+attention encoder-decoder: machine translation, summarization, speech-to-text.</div></li>
+      <li class="train"><code class="cmd">Image Classification (MXNet / TF)</code><div class="desc">Label images. MXNet supports incremental training (seed from prior model). GPU required.</div></li>
+      <li class="train"><code class="cmd">Object Detection (MXNet / TF)</code><div class="desc">Find + classify objects with bounding boxes. GPU (P3, G4dn, G5) recommended.</div></li>
+      <li class="train"><code class="cmd">Semantic Segmentation</code><div class="desc">Pixel-level classification — identifies what's at every position in an image.</div></li>
+      <li class="danger"><code class="cmd">Pipe mode: RecordIO only</code><span class="badge-danger">gotcha</span><div class="desc">Pipe input mode requires Protobuf RecordIO format — CSV is not supported in Pipe mode.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 TRAINING JOBS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Training Jobs</span><span class="card-sub">SDK + CLI + instance tips</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd">estimator = XGBoost(image_uri, role, <span class="flag">instance_type=</span><span class="arg">"ml.m5.xlarge"</span>)</code><span class="star">★</span><div class="desc">Estimator object describes the training config: image, role, compute, hyperparams.</div></li>
+      <li class="train"><code class="cmd">estimator.set_hyperparameters(<span class="arg">num_round=100</span>)</code><div class="desc">Pass algorithm-specific params before fit().</div></li>
+      <li class="train"><code class="cmd">estimator.fit(<span class="arg">{"train": "s3://bucket/train"}</span>)</code><span class="star">★</span><div class="desc">Launches the managed training job; blocks until done.</div></li>
+      <li class="train"><code class="cmd">aws sagemaker create-training-job <span class="flag">--cli-input-json</span> file://job.json</code><div class="desc">CLI alternative; specify AlgorithmSpec, ResourceConfig, InputDataConfig, OutputDataConfig.</div></li>
+      <li class="train"><code class="cmd">aws sagemaker list-training-jobs <span class="flag">--status-equals</span> <span class="arg">InProgress</span></code><div class="desc">Monitor active jobs from terminal.</div></li>
+      <li class="mlops"><code class="cmd"><span class="kw">EnableManagedSpotTraining</span>=True</code><span class="star">★</span><div class="desc">Use EC2 Spot instances → up to 80% cost savings. Set MaxWaitTimeInSeconds + use checkpointing.</div></li>
+      <li class="train"><code class="cmd">Data modes: <span class="arg">File</span> · <span class="arg">Pipe</span> · <span class="arg">FastFile</span></code><div class="desc">File=downloads all (default). Pipe=streams RecordIO (fast startup, no EBS limit). FastFile=POSIX stream, any format.</div></li>
+      <li class="train"><code class="cmd">CPU: ml.m5 · ml.c5 &nbsp;&nbsp; GPU: ml.p3 · ml.g4dn · ml.g5</code><div class="desc">Tabular → C5/M5. Deep learning vision/NLP → P3/G4dn/G5. XGBoost = memory-bound, prefer M5 over C5.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 JUMPSTART & AUTOPILOT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">JumpStart &amp; AutoML</span><span class="card-sub">pre-built + zero-code ML</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd">JumpStart</code><span class="star">★</span><div class="desc">ML hub: pre-trained FMs (LLaMA, Mistral, Falcon, Stable Diffusion, BERT), algorithms, solution templates. One-click fine-tune + deploy.</div></li>
+      <li class="train"><code class="cmd">from sagemaker.jumpstart.model import JumpStartModel</code><div class="desc">SDK entry point; specify model_id and model_version.</div></li>
+      <li class="data"><code class="cmd">Autopilot</code><span class="star">★</span><div class="desc">AutoML: auto-detects problem type (classification/regression/forecasting), tries 100s of candidates, returns ranked leaderboard.</div></li>
+      <li class="data"><code class="cmd">Canvas</code><span class="star">★</span><div class="desc">Autopilot's no-code UI (now its primary home). Analysts build, evaluate, and deploy models without writing code.</div></li>
+      <li class="data"><code class="cmd">AutoMLJob → leaderboard → deploy</code><div class="desc">Autopilot generates a fully editable notebook showing every preprocessing + training step.</div></li>
+      <li class="ai"><code class="cmd">FMEval (Clarify)</code><div class="desc">Evaluate + compare foundation models on accuracy, fairness, toxicity — use your own prompts or built-in datasets.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 HYPERPARAMETER TUNING (AMT) -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Hyperparameter Tuning (AMT)</span><span class="card-sub">automatic model tuning</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd">HyperparameterTuner(estimator, objective_metric, hp_ranges, max_jobs, max_parallel_jobs)</code><span class="star">★</span><div class="desc">Wraps an Estimator; you define the metric to optimize and the search space.</div></li>
+      <li class="train"><code class="cmd">tuner.fit(<span class="arg">{…}</span>)</code><div class="desc">Launches all training trials; SageMaker picks next params based on results.</div></li>
+      <li class="train"><code class="cmd">Strategies: <span class="arg">Bayesian</span> · <span class="arg">Random</span> · <span class="arg">Grid</span> · <span class="arg">Hyperband</span></code><div class="desc">Bayesian = default, learns from prior runs. Hyperband = early-stops poor trials fast.</div></li>
+      <li class="train"><code class="cmd">WarmStartConfig(<span class="arg">type='IDENTICAL_DATA_ALGORITHM'</span>)</code><div class="desc">Reuse knowledge from a previous tuning job — saves time on sequential experiments.</div></li>
+      <li class="train"><code class="cmd">aws sagemaker create-hyper-parameter-tuning-job</code><div class="desc">CLI equivalent for automation/CI pipelines.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 INFERENCE ENDPOINTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Inference Endpoints</span><span class="card-sub">4 modes — pick the right one</span></div>
+    <ul class="cmds">
+      <li class="deploy"><code class="cmd">Real-time endpoint</code><span class="star">★</span><div class="desc">Persistent HTTPS endpoint; sub-second latency; always-on cost. Best for web apps. Supports Production Variants (A/B tests).</div></li>
+      <li class="deploy"><code class="cmd">Serverless Inference</code><span class="star">★</span><div class="desc">Scale-to-zero; cold start ~1 s; pay-per-call. Best for spiky/infrequent traffic. No idle charges.</div></li>
+      <li class="deploy"><code class="cmd">Asynchronous Inference</code><div class="desc">Queue-based; payloads up to 1 GB; minutes-long processing. For large batches or long model runtimes.</div></li>
+      <li class="deploy"><code class="cmd">Batch Transform</code><div class="desc">Offline, no persistent endpoint; process an entire S3 dataset at once. Cheapest for bulk inference.</div></li>
+      <li class="deploy"><code class="cmd">aws sagemaker create-endpoint-config / create-endpoint</code><span class="star">★</span><div class="desc">Two separate CLI steps: define config (model + variant + instance), then create endpoint from config.</div></li>
+      <li class="deploy"><code class="cmd">aws sagemaker-runtime invoke-endpoint <span class="flag">--endpoint-name</span> <span class="arg">x</span></code><span class="star">★</span><div class="desc">Call a real-time endpoint from CLI; body = your payload.</div></li>
+      <li class="mlops"><code class="cmd">Production Variants</code><div class="desc">Multiple model versions on one endpoint with traffic weights — enables A/B testing and canary rollouts.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 MLOPS: PIPELINES + REGISTRY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">MLOps: Pipelines &amp; Model Registry</span><span class="card-sub">CI/CD for ML</span></div>
+    <ul class="cmds">
+      <li class="mlops"><code class="cmd">Pipeline(steps=[ProcessingStep, TrainingStep, RegisterModel, ConditionStep…])</code><span class="star">★</span><div class="desc">DAG of ML steps — reusable, version-controlled, triggered by events or schedule.</div></li>
+      <li class="mlops"><code class="cmd">pipeline.upsert() → pipeline.start()</code><span class="star">★</span><div class="desc">Upsert = create or update. Start = begin execution; returns a PipelineExecution object.</div></li>
+      <li class="model"><code class="cmd">Model Registry → ModelPackageGroup → ModelPackage</code><span class="star">★</span><div class="desc">Group = named model (like a repo). Package = a versioned artifact. Approve a version to allow deployment.</div></li>
+      <li class="model"><code class="cmd">aws sagemaker create-model-package <span class="flag">--approval-status</span> <span class="arg">Approved</span></code><div class="desc">CLI registration; approved versions can be deployed via endpoint config.</div></li>
+      <li class="mlops"><code class="cmd">Model Monitor</code><div class="desc">Schedule periodic checks: DataQuality, ModelQuality, BiasMonitor, FeatureAttribution. Alerts via CloudWatch on drift.</div></li>
+      <li class="mlops"><code class="cmd">Model Cards</code><div class="desc">Machine-readable governance documentation — intended use, training data, eval results, risk ratings.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 RESPONSIBLE AI -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Responsible AI &amp; Debugging</span><span class="card-sub">Clarify · Debugger · Experiments</span></div>
+    <ul class="cmds">
+      <li class="mlops"><code class="cmd">Clarify — bias detection</code><span class="star">★</span><div class="desc">Pre-training: imbalance in data. Post-training: biased predictions. Reports bias metric per feature group.</div></li>
+      <li class="mlops"><code class="cmd">Clarify — SHAP explainability</code><div class="desc">Feature importance scores for each prediction. Runs in bulk (batch) or online (real-time endpoint).</div></li>
+      <li class="train"><code class="cmd">Debugger</code><div class="desc">Real-time hooks into training: tensor values, gradients, weights. Built-in rules: LossNotDecreasing, Overfit, VanishingGradient.</div></li>
+      <li class="train"><code class="cmd">Debugger ProfilerReport</code><div class="desc">Auto-generates CPU/GPU utilization report — find bottlenecks in your training loop.</div></li>
+      <li class="mlops"><code class="cmd">Experiments</code><div class="desc">Track runs, parameters, metrics, artifacts in a searchable store. Compare trials side by side in Studio.</div></li>
+      <li class="mlops"><code class="cmd">Managed MLflow</code><span class="badge-new">Dec 2025</span><div class="desc">Serverless MLflow in SageMaker — no infra setup; scales automatically; integrates with Studio + Pipelines.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 CLI QUICK REF -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">CLI Quick Reference</span><span class="card-sub">aws sagemaker …</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd">aws sagemaker <span class="kw">create-training-job</span> <span class="flag">--cli-input-json</span> file://j.json</code><span class="star">★</span><div class="desc">Start a training job; define AlgorithmSpec + ResourceConfig in JSON.</div></li>
+      <li class="train"><code class="cmd">aws sagemaker <span class="kw">describe-training-job</span> <span class="flag">--training-job-name</span> <span class="arg">my-job</span></code><div class="desc">Get status, metrics, model artifact S3 path.</div></li>
+      <li class="train"><code class="cmd">aws sagemaker <span class="kw">list-training-jobs</span> <span class="flag">--status-equals</span> <span class="arg">InProgress</span></code><div class="desc">Paginated list; filter by status, creation time, name prefix.</div></li>
+      <li class="model"><code class="cmd">aws sagemaker <span class="kw">create-model</span> <span class="flag">--model-name</span> <span class="arg">x</span></code><div class="desc">Register a model artifact from S3 with an inference container image.</div></li>
+      <li class="deploy"><code class="cmd">aws sagemaker <span class="kw">create-endpoint</span> <span class="flag">--endpoint-name</span> <span class="arg">x</span></code><span class="star">★</span><div class="desc">Deploy endpoint from an existing endpoint-config.</div></li>
+      <li class="deploy"><code class="cmd">aws sagemaker <span class="kw">describe-endpoint</span> <span class="flag">--endpoint-name</span> <span class="arg">x</span></code><div class="desc">Check InService / Creating / Failed status.</div></li>
+      <li class="deploy"><code class="cmd">aws sagemaker <span class="kw">delete-endpoint</span> <span class="flag">--endpoint-name</span> <span class="arg">x</span></code><span class="star">★</span><div class="desc">Stop billing — always delete unused endpoints!</div></li>
+      <li class="deploy"><code class="cmd">aws sagemaker-runtime <span class="kw">invoke-endpoint</span> <span class="flag">--endpoint-name</span> <span class="arg">x</span> <span class="flag">--body</span> <span class="arg">…</span></code><span class="star">★</span><div class="desc">Call the endpoint; response written to --outfile.</div></li>
+      <li class="mlops"><code class="cmd">aws sagemaker <span class="kw">create-pipeline</span> / <span class="kw">start-pipeline-execution</span></code><div class="desc">Create + trigger a SageMaker Pipeline from JSON definition.</div></li>
+    </ul>
+  </article>
+
+  <!-- ★ AWS AI/ML SERVICES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">★</span><span class="card-title">AWS AI/ML Services Landscape</span><span class="card-sub">beyond SageMaker</span></div>
+    <ul class="cmds">
+      <li class="ai"><code class="cmd">Bedrock</code><span class="star">★</span><div class="desc">Managed FMs via API — Claude, Llama, Mistral, Titan, Stable Diffusion. No ML infra needed; pay-per-token.</div></li>
+      <li class="ai"><code class="cmd">Rekognition</code><div class="desc">Computer vision: detect labels, faces, text, unsafe content, celebrities. Fully managed, no training required.</div></li>
+      <li class="ai"><code class="cmd">Comprehend</code><div class="desc">NLP: sentiment, entities (people/org/location), key phrases, PII detection, topic modeling. Comprehend Medical for healthcare.</div></li>
+      <li class="ai"><code class="cmd">Textract</code><div class="desc">OCR++ — extracts text, forms (key-value), and tables from PDFs/images. Beyond basic OCR.</div></li>
+      <li class="ai"><code class="cmd">Transcribe</code><div class="desc">Speech-to-text with speaker diarization, custom vocabulary, PII redaction.</div></li>
+      <li class="ai"><code class="cmd">Polly</code><div class="desc">Text-to-speech with neural voices and SSML markup control.</div></li>
+      <li class="ai"><code class="cmd">Translate</code><div class="desc">Neural machine translation; custom terminology support.</div></li>
+      <li class="ai"><code class="cmd">Lex</code><div class="desc">Conversational AI — build chatbots and voice bots with the same tech as Alexa.</div></li>
+      <li class="ai"><code class="cmd">Forecast</code><div class="desc">Time-series forecasting as a service; no ML expertise needed. Similar to DeepAR but fully managed.</div></li>
+      <li class="ai"><code class="cmd">Personalize</code><div class="desc">Real-time recommendations (like Amazon.com's engine) — content, products, similar items.</div></li>
+      <li class="ai"><code class="cmd">Kendra</code><div class="desc">Intelligent enterprise search with semantic understanding across internal documents.</div></li>
+      <li class="ai"><code class="cmd">Amazon Q Developer</code><div class="desc">AI coding assistant (formerly CodeWhisperer) — inline completions, code reviews, CLI helpers.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ MERMAID DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Workflow patterns &amp; decision guides</h2>
+  <p class="sub">Rendered via Mermaid — based on the official SageMaker Developer Guide architecture diagrams.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>Choose your inference mode</h3>
+      <p>Pick based on latency tolerance, payload size, and cost sensitivity.</p>
+      <pre class="mermaid">
+flowchart TD
+  A["Need inference?"] --> B{"Batch or offline?"}
+  B -->|Yes| BT["Batch Transform\n(no endpoint, cheapest\nfor bulk S3 data)"]
+  B -->|No| C{"Payload over 6 MB\nor inference over 60s?"}
+  C -->|Yes| AS["Async Inference\n(queued, up to 1 GB\npayload, SNS notify)"]
+  C -->|No| D{"Traffic spiky\nor unpredictable?"}
+  D -->|Yes| SL["Serverless Inference\n(scale-to-zero, sub-1s\ncold start, pay-per-call)"]
+  D -->|No| RT["Real-time Endpoint\n(always-on, sub-1s latency\nA/B via Prod Variants)"]
+      </pre>
+    </div>
+
+    <div class="merge-card">
+      <h3>SageMaker Pipelines flow</h3>
+      <p>A typical CI/CD ML pipeline — each step is a managed SageMaker job.</p>
+      <pre class="mermaid">
+flowchart LR
+  P["ProcessingStep\n(Data Wrangler /\nSKLearn script)"] --> T["TrainingStep\n(Estimator.fit)"]
+  T --> E["EvalStep\n(Processing +\nCondition)"]
+  E -->|metric OK| R["RegisterModel\nStep"]
+  E -->|metric fails| FAIL["Fail / Notify\n(SNS alert)"]
+  R --> D["Deploy Step\n(create-endpoint\nif Approved)"]
+      </pre>
+    </div>
+
+    <div class="merge-card full">
+      <h3>SageMaker AI feature map by lifecycle phase</h3>
+      <p>Every named feature sits in one or more lifecycle phases — use this to find the right tool fast.</p>
+      <pre class="mermaid">
+flowchart LR
+  subgraph Prep["Prepare"]
+    GT["Ground Truth\n(labeling)"]
+    DW["Data Wrangler\n(transforms)"]
+    FS["Feature Store\n(online+offline)"]
+    PJ["Processing Jobs\n(custom ETL)"]
+  end
+  subgraph Build["Build / Train"]
+    JS["JumpStart\n(pre-trained FMs)"]
+    BIA["Built-in\nAlgorithms"]
+    BYOC["BYOC / Frameworks\n(TF, PyTorch, SKLearn)"]
+    AP["Autopilot\n(AutoML)"]
+  end
+  subgraph Tune["Tune"]
+    AMT["Auto Model\nTuning (AMT)"]
+    DBG["Debugger\n(rules + profiler)"]
+    EXP["Experiments\n(track + compare)"]
+  end
+  subgraph Deploy["Deploy"]
+    RT2["Real-time\nEndpoint"]
+    SRV["Serverless\nInference"]
+    ASNC["Async\nInference"]
+    BT2["Batch\nTransform"]
+  end
+  subgraph Gov["Govern"]
+    MR["Model Registry\n(versions)"]
+    MM["Model Monitor\n(drift)"]
+    CL["Clarify\n(bias/SHAP)"]
+    MC["Model Cards\n(docs)"]
+    PL["Pipelines\n(CI/CD)"]
+  end
+  Prep --> Build --> Tune --> Deploy --> Gov
+      </pre>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">File vs Pipe vs FastFile</span><span class="v">File=download all (default); Pipe=stream RecordIO (fast); FastFile=POSIX stream, any format</span></div>
+    <div><span class="k">XGBoost ≠ GPU</span><span class="v">CPU-only; memory-bound → ml.m5 beats ml.c5; never ml.p2/p3 for XGBoost</span></div>
+    <div><span class="k">Spot training</span><span class="v">EnableManagedSpotTraining=True → up to 80% savings; requires checkpointing + MaxWaitTime</span></div>
+    <div><span class="k">Pipe mode = RecordIO</span><span class="v">Pipe mode rejects CSV; convert to Protobuf RecordIO first; no EBS size limit</span></div>
+    <div><span class="k">BYOC port 8080</span><span class="v">Custom inference containers must respond on port 8080 and answer /ping in &lt;2 s</span></div>
+    <div><span class="k">Model artifacts = tar.gz</span><span class="v">SageMaker expects model.tar.gz — not zip — stored in S3 at output_path</span></div>
+    <div><span class="k">iam:PassRole</span><span class="v">Any user calling create-model must have iam:PassRole on the SageMaker execution role</span></div>
+    <div><span class="k">Production Variants</span><span class="v">One endpoint, multiple model versions with traffic weights → A/B tests, canary rollouts</span></div>
+    <div><span class="k">Serverless = scale-to-zero</span><span class="v">No idle cost; ~1 s cold start; set MemorySizeInMB (1024–6144) + MaxConcurrency</span></div>
+    <div><span class="k">SageMaker vs AI services</span><span class="v">SageMaker = custom ML. Rekognition/Comprehend/Forecast/etc. = pre-built, no training needed</span></div>
+    <div><span class="k">delete-endpoint!</span><span class="v">Real-time endpoints bill per hour even when idle — always delete after testing</span></div>
+    <div><span class="k">CSV no header</span><span class="v">Built-in algorithms reject headers in CSVs; first column = label in supervised tasks</span></div>
+  </div>
+</section>
+
+<footer>
+  AWS SageMaker AI cheat sheet · synthesized from docs.aws.amazon.com/sagemaker, docs.aws.amazon.com/cli/latest/reference/sagemaker, and skillcertpro.com AWS ML Specialty Master Cheat Sheet.<br>
+  Reflects SageMaker AI as of July 2026 · "Amazon SageMaker" renamed to "Amazon SageMaker AI" December 2024 · API namespaces (sagemaker::) unchanged for backward compatibility.
+</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "base",
+    themeVariables: {
+      primaryColor: "#eef3ff",
+      primaryBorderColor: "#2563eb",
+      primaryTextColor: "#1a1d24",
+      secondaryColor: "#ecf7f2",
+      tertiaryColor: "#fdf6ec",
+      lineColor: "#64748b",
+      fontFamily: "JetBrains Mono, monospace",
+      fontSize: "11px"
+    }
+  });
+</script>
+
+</body>
+</html>

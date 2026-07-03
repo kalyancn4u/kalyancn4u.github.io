@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redis 7.0+ / 8.x Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --meta:#64748b;   --meta-bg:#f1f3f6;
+    --str:#4f46e5;    --str-bg:#eef0fd;
+    --coll:#d97706;   --coll-bg:#fdf6ec;
+    --read:#059669;   --read-bg:#ecf7f2;
+    --admin:#7c3aed;  --admin-bg:#f5f0fe;
+    --modern:#be123c; --modern-bg:#fdeef1;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --brand:#dc382c;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem}
+  h1 .rd{font-family:var(--mono); color:var(--brand)}
+  h1 .v{font-family:var(--mono); font-size:.42em; color:var(--modern); vertical-align:middle; letter-spacing:0}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.meta{background:var(--meta)} .dot.str{background:var(--str)}
+  .dot.coll{background:var(--coll)} .dot.read{background:var(--read)}
+  .dot.admin{background:var(--admin)} .dot.modern{background:var(--modern)}
+  .dot.danger{background:var(--danger)}
+  .toc{max-width:1500px; margin:0 auto; padding:1.2rem clamp(1rem,4vw,3rem) 0; display:flex; flex-wrap:wrap; gap:.4rem .5rem; font-family:var(--mono); font-size:.72rem}
+  .toc a{color:#3f444f; text-decoration:none; border:1px solid var(--line); border-radius:20px; padding:.2rem .7rem; background:#fff; transition:.15s}
+  .toc a:hover{border-color:var(--ink); color:var(--ink)}
+  .toc a .n{color:var(--muted)}
+  .flow-wrap{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem}
+  .flow-title{font-family:var(--mono); font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem}
+  .flow-svg{width:100%; height:auto; max-width:1180px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03)}
+  .card-head{display:flex; align-items:baseline; gap:.6rem; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line)}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em}
+  .card-num.m8{background:var(--modern)}
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+  .tag8{font-family:var(--mono); font-size:.6rem; font-weight:700; color:#fff; background:var(--modern); border-radius:4px; padding:.08rem .3rem; letter-spacing:.03em; vertical-align:middle}
+  .tagstack{font-family:var(--mono); font-size:.6rem; font-weight:700; color:#fff; background:var(--brand); border-radius:4px; padding:.08rem .3rem; letter-spacing:.03em; vertical-align:middle}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.meta{border-left-color:var(--meta)}
+  ul.cmds li.str{border-left-color:var(--str)}
+  ul.cmds li.coll{border-left-color:var(--coll)}
+  ul.cmds li.read{border-left-color:var(--read)}
+  ul.cmds li.admin{border-left-color:var(--admin)}
+  ul.cmds li.modern{border-left-color:var(--modern); background:var(--modern-bg)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.79rem; font-weight:500; color:var(--ink); display:block; word-break:break-word}
+  code.cmd .arg{color:var(--str); font-weight:400}
+  code.cmd .kw{color:var(--read); font-weight:700}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .fn{color:var(--modern); font-weight:700}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f1eee8; padding:0 .2em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem}
+  .type-table{width:100%; border-collapse:collapse; font-size:.78rem}
+  .type-table td{padding:.42rem 1rem; border-bottom:1px solid #f1eee8; vertical-align:top}
+  .type-table tr:last-child td{border-bottom:none}
+  .type-table td.t{font-family:var(--mono); font-weight:600; white-space:nowrap}
+  .type-table td.d{color:#525761}
+  .type-group{font-family:var(--mono); font-size:.66rem; letter-spacing:.08em; text-transform:uppercase; color:#fff; padding:.28rem 1rem; margin-top:0}
+  .type-group.a{background:var(--str)}
+  .type-group.b{background:var(--coll)}
+  .type-group.c{background:var(--read)}
+  .type-group.d{background:var(--modern)}
+  .diagrams{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem}
+  .diagrams h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:700px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1200px){ .merge-grid.three{grid-template-columns:repeat(3,1fr)} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fca5a5; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#7dd3fc}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference &middot; in-memory data structure store</div>
+  <h1><span class="rd">redis</span> cheat sheet <span class="v">7.x / 8.x</span></h1>
+  <p class="lede">Redis keeps <b>keys</b> in RAM, each holding one <b>data structure</b>. Commands either inspect keys, mutate a structure, read from it, or operate the server. Redis 7 added <b>Functions</b>, <b>ACL selectors</b>, and <b>sharded pub/sub</b>; 7.4 added <b>hash-field TTL</b>; and Redis 8 folded <b>JSON, Search/Query, Time Series, probabilistic types &amp; Vector Sets</b> into the core. Cards tagged <span class="tag8">7.x</span>/<span class="tag8">8.0</span> mark version-gated features; <span class="tagstack">module</span> marks types that were separate before Redis 8.</p>
+  <div class="legend">
+    <span><i class="dot meta"></i>connect / keys</span>
+    <span><i class="dot str"></i>strings / scalars</span>
+    <span><i class="dot coll"></i>collections</span>
+    <span><i class="dot read"></i>read / query</span>
+    <span><i class="dot admin"></i>admin / ops</span>
+    <span><i class="dot modern"></i>7.x / 8.x new</span>
+    <span><i class="dot danger"></i>destructive</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>redis.io/docs</b> &middot; <b>Redis 7.0 / 7.2 / 7.4 release notes</b> &middot; <b>Redis 8.0 (Open Source) GA notes</b> &middot; <b>commands reference</b> &middot; <b>Functions &amp; ACL intros</b> &middot; <b>quickref.me</b></p>
+</header>
+
+<nav class="toc">
+  <a href="#c01"><span class="n">01</span> Connect/CLI</a>
+  <a href="#c02"><span class="n">02</span> Keys</a>
+  <a href="#c03"><span class="n">03</span> Expiry/TTL</a>
+  <a href="#c04"><span class="n">04</span> Strings</a>
+  <a href="#c05"><span class="n">05</span> Lists</a>
+  <a href="#c06"><span class="n">06</span> Hashes</a>
+  <a href="#c07"><span class="n">07</span> Hash TTL</a>
+  <a href="#c08"><span class="n">08</span> Sets</a>
+  <a href="#c09"><span class="n">09</span> Sorted Sets</a>
+  <a href="#c10"><span class="n">10</span> Multi-Pop</a>
+  <a href="#c11"><span class="n">11</span> Bitmaps/HLL</a>
+  <a href="#c12"><span class="n">12</span> Streams</a>
+  <a href="#c13"><span class="n">13</span> Geospatial</a>
+  <a href="#c14"><span class="n">14</span> Transactions</a>
+  <a href="#c15"><span class="n">15</span> Pub/Sub</a>
+  <a href="#c16"><span class="n">16</span> Scripting</a>
+  <a href="#c17"><span class="n">17</span> Functions</a>
+  <a href="#c18"><span class="n">18</span> JSON</a>
+  <a href="#c19"><span class="n">19</span> Query Engine</a>
+  <a href="#c20"><span class="n">20</span> Vector/AI</a>
+  <a href="#c21"><span class="n">21</span> Time Series</a>
+  <a href="#c22"><span class="n">22</span> Probabilistic</a>
+  <a href="#c23"><span class="n">23</span> Persistence</a>
+  <a href="#c24"><span class="n">24</span> Replication</a>
+  <a href="#c25"><span class="n">25</span> Cluster</a>
+  <a href="#c26"><span class="n">26</span> ACL/Security</a>
+  <a href="#c27"><span class="n">27</span> Client/Caching</a>
+  <a href="#c28"><span class="n">28</span> Server/Config</a>
+  <a href="#c29"><span class="n">29</span> Data Types</a>
+  <a href="#c30"><span class="n">30</span> Complexity</a>
+  <a href="#c31"><span class="n">31</span> Keyspace Events</a>
+  <a href="#c32"><span class="n">32</span> Danger Zone</a>
+</nav>
+
+<section class="flow-wrap">
+  <div class="flow-title">One key, one structure &mdash; pick the shape that fits the access pattern</div>
+  <svg class="flow-svg" viewBox="0 0 1140 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram showing a Redis key pointing to one of many value types: string, list, hash, set, sorted set, stream, and the Redis 8 additions JSON, time series, probabilistic, and vector set.">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker>
+    </defs>
+    <g font-family="JetBrains Mono, monospace" text-anchor="middle">
+      <rect x="20" y="128" width="150" height="56" rx="10" fill="#1a1d24"/><text x="95" y="152" font-size="13" font-weight="700" fill="#dc382c">key</text><text x="95" y="170" font-size="9" fill="#94a3b8">"user:42"</text>
+    </g>
+    <g font-family="JetBrains Mono, monospace" font-size="11.5" font-weight="700" text-anchor="middle">
+      <rect x="250" y="8" width="150" height="34" rx="7" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.5"/><text x="325" y="30" fill="#1a1d24">String</text>
+      <rect x="250" y="48" width="150" height="34" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/><text x="325" y="70" fill="#1a1d24">List</text>
+      <rect x="250" y="88" width="150" height="34" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/><text x="325" y="110" fill="#1a1d24">Hash</text>
+      <rect x="250" y="128" width="150" height="34" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/><text x="325" y="150" fill="#1a1d24">Set</text>
+      <rect x="250" y="168" width="150" height="34" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/><text x="325" y="190" fill="#1a1d24">Sorted Set</text>
+      <rect x="250" y="208" width="150" height="34" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/><text x="325" y="230" fill="#1a1d24">Stream</text>
+      <rect x="250" y="248" width="150" height="34" rx="7" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.5"/><text x="325" y="270" fill="#1a1d24">Bitmap / HLL</text>
+    </g>
+    <text x="565" y="20" font-size="10" letter-spacing="1.5" fill="#be123c" font-family="JetBrains Mono, monospace" text-anchor="middle">REDIS 8 &mdash; NOW BUILT-IN (was Redis Stack)</text>
+    <g font-family="JetBrains Mono, monospace" font-size="11.5" font-weight="700" text-anchor="middle">
+      <rect x="480" y="34" width="170" height="34" rx="7" fill="#fdeef1" stroke="#be123c" stroke-width="1.5"/><text x="565" y="56" fill="#1a1d24">JSON</text>
+      <rect x="480" y="74" width="170" height="34" rx="7" fill="#fdeef1" stroke="#be123c" stroke-width="1.5"/><text x="565" y="96" fill="#1a1d24">Time Series</text>
+      <rect x="480" y="114" width="170" height="34" rx="7" fill="#fdeef1" stroke="#be123c" stroke-width="1.5"/><text x="565" y="136" fill="#1a1d24">Bloom / Cuckoo</text>
+      <rect x="480" y="154" width="170" height="34" rx="7" fill="#fdeef1" stroke="#be123c" stroke-width="1.5"/><text x="565" y="176" fill="#1a1d24">CMS / Top-K / t-digest</text>
+      <rect x="480" y="194" width="170" height="34" rx="7" fill="#fdeef1" stroke="#be123c" stroke-width="1.5"/><text x="565" y="216" fill="#1a1d24">Vector Set (beta)</text>
+    </g>
+    <line x1="170" y1="156" x2="250" y2="25" stroke="#cbd5e1" stroke-width="1.3" marker-end="url(#arrow)"/>
+    <line x1="170" y1="156" x2="250" y2="105" stroke="#cbd5e1" stroke-width="1.3" marker-end="url(#arrow)"/>
+    <line x1="170" y1="156" x2="250" y2="185" stroke="#cbd5e1" stroke-width="1.3" marker-end="url(#arrow)"/>
+    <line x1="170" y1="156" x2="250" y2="265" stroke="#cbd5e1" stroke-width="1.3" marker-end="url(#arrow)"/>
+    <line x1="400" y1="120" x2="480" y2="90" stroke="#f3c9d3" stroke-width="1.3" marker-end="url(#arrow)"/>
+    <rect x="700" y="30" width="420" height="250" rx="10" fill="#fdeef1" stroke="#f3c9d3" stroke-width="1.2"/>
+    <text x="720" y="54" font-size="12.5" font-weight="700" fill="#be123c" font-family="JetBrains Mono, monospace">Choosing a structure</text>
+    <g font-size="11" fill="#3f444f" font-family="Inter, sans-serif">
+      <text x="720" y="78">&#8226; String &mdash; counters, cached blobs, bitmaps. GET/SET, INCR.</text>
+      <text x="720" y="100">&#8226; List &mdash; queues, stacks, timelines. LPUSH/BRPOP.</text>
+      <text x="720" y="122">&#8226; Hash &mdash; objects with fields; 7.4 adds per-field TTL.</text>
+      <text x="720" y="144">&#8226; Set &mdash; membership, tags, unique visitors. SADD/SISMEMBER.</text>
+      <text x="720" y="166">&#8226; Sorted Set &mdash; leaderboards, priority, rate limits. ZADD.</text>
+      <text x="720" y="188">&#8226; Stream &mdash; event log with consumer groups. XADD/XREADGROUP.</text>
+      <text x="720" y="210">&#8226; JSON &mdash; nested documents, indexed by the Query Engine.</text>
+      <text x="720" y="232">&#8226; Vector Set / Search &mdash; semantic similarity for AI / RAG.</text>
+      <text x="720" y="254">&#8226; Probabilistic &mdash; huge-scale approximate counting/membership.</text>
+    </g>
+  </svg>
+</section>
+
+<main>
+
+  <article class="card" id="c01">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Connect &amp; CLI</span><span class="card-sub">redis-cli</span></div>
+    <ul class="cmds">
+      <li class="meta"><code class="cmd">redis-cli</code><span class="star">&#9733;</span><div class="desc">Connect to localhost:6379.</div></li>
+      <li class="meta"><code class="cmd">redis-cli <span class="flag">-h</span> <span class="arg">host</span> <span class="flag">-p</span> <span class="arg">6380</span> <span class="flag">-a</span> <span class="arg">pass</span></code><span class="star">&#9733;</span><div class="desc">Remote host, port, password.</div></li>
+      <li class="meta"><code class="cmd">redis-cli <span class="flag">-n</span> <span class="arg">2</span></code><div class="desc">Select logical DB 2 (0-15 by default).</div></li>
+      <li class="meta"><code class="cmd">redis-cli <span class="flag">--tls</span> <span class="flag">-u</span> rediss://user:pw@host:6379</code><div class="desc">TLS connection via URI.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">HELLO</span> 3</code><span class="star">&#9733;</span><div class="desc">Switch to <b>RESP3</b> protocol (7.0+) &mdash; maps, push, etc.</div></li>
+      <li class="meta"><code class="cmd">PING</code> &middot; <code class="cmd" style="display:inline">ECHO "hi"</code> &middot; <code class="cmd" style="display:inline">SELECT 0</code><div class="desc">Liveness, echo, switch DB.</div></li>
+      <li class="meta"><code class="cmd">redis-cli <span class="flag">--scan</span> <span class="flag">--pattern</span> "user:*"</code><div class="desc">Safely stream matching keys.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c02">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Keys &mdash; Generic</span><span class="card-sub">meta &middot; any type</span></div>
+    <ul class="cmds">
+      <li class="meta"><code class="cmd">EXISTS <span class="arg">key</span></code> &middot; <code class="cmd" style="display:inline">TYPE <span class="arg">key</span></code><span class="star">&#9733;</span><div class="desc">Presence; value's data type.</div></li>
+      <li class="meta"><code class="cmd">DEL <span class="arg">k1 k2</span></code> &middot; <code class="cmd" style="display:inline">UNLINK <span class="arg">k</span></code><span class="star">&#9733;</span><div class="desc">Delete now / async (non-blocking) delete.</div></li>
+      <li class="meta"><code class="cmd">RENAME <span class="arg">k</span> <span class="arg">newk</span></code> &middot; <code class="cmd" style="display:inline">COPY <span class="arg">k</span> <span class="arg">k2</span></code><div class="desc">Rename / copy a key (COPY 6.2+).</div></li>
+      <li class="meta"><code class="cmd"><span class="kw">SCAN</span> 0 MATCH "user:*" COUNT 100</code><span class="star">&#9733;</span><div class="desc">Cursor iteration &mdash; use instead of KEYS in prod.</div></li>
+      <li class="meta"><code class="cmd">OBJECT ENCODING <span class="arg">key</span></code><span class="star">&#9733;</span><div class="desc">Internal encoding (7.0: listpack replaces ziplist).</div></li>
+      <li class="meta"><code class="cmd">OBJECT FREQ / IDLETIME <span class="arg">key</span></code><div class="desc">LFU frequency / idle seconds for eviction insight.</div></li>
+      <li class="meta"><code class="cmd">RANDOMKEY</code> &middot; <code class="cmd" style="display:inline">DBSIZE</code><div class="desc">Random key; total key count.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c03">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Expiry &amp; TTL</span><span class="card-sub">meta</span></div>
+    <ul class="cmds">
+      <li class="meta"><code class="cmd">EXPIRE <span class="arg">key</span> 60</code> &middot; <code class="cmd" style="display:inline">PEXPIRE <span class="arg">key</span> 60000</code><span class="star">&#9733;</span><div class="desc">Expire in seconds / milliseconds.</div></li>
+      <li class="modern"><code class="cmd">EXPIRE <span class="arg">key</span> 60 <span class="flag">NX|XX|GT|LT</span></code><span class="star">&#9733;</span><div class="desc">Conditional expire (7.0+): only if no TTL / greater / less.</div></li>
+      <li class="meta"><code class="cmd">TTL <span class="arg">key</span></code> &middot; <code class="cmd" style="display:inline">PTTL <span class="arg">key</span></code><span class="star">&#9733;</span><div class="desc">Remaining life; -1 no expiry, -2 gone.</div></li>
+      <li class="modern"><code class="cmd">EXPIRETIME <span class="arg">key</span></code> &middot; <code class="cmd" style="display:inline">PEXPIRETIME <span class="arg">key</span></code><div class="desc">Absolute Unix expiry time (7.0+).</div></li>
+      <li class="meta"><code class="cmd">EXPIREAT <span class="arg">key</span> 1893456000</code><div class="desc">Expire at an absolute timestamp.</div></li>
+      <li class="meta"><code class="cmd">PERSIST <span class="arg">key</span></code><span class="star">&#9733;</span><div class="desc">Remove the TTL, make the key permanent.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c04">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Strings</span><span class="card-sub">scalars &middot; counters &middot; blobs</span></div>
+    <ul class="cmds">
+      <li class="str"><code class="cmd">SET <span class="arg">k</span> <span class="arg">v</span></code> &middot; <code class="cmd" style="display:inline">GET <span class="arg">k</span></code><span class="star">&#9733;</span><div class="desc">Basic write / read.</div></li>
+      <li class="str"><code class="cmd">SET <span class="arg">k</span> <span class="arg">v</span> <span class="flag">EX</span> 60 <span class="flag">NX</span></code><span class="star">&#9733;</span><div class="desc">TTL + only-if-absent (lock pattern).</div></li>
+      <li class="modern"><code class="cmd">SET <span class="arg">k</span> <span class="arg">v</span> <span class="flag">NX</span> <span class="flag">GET</span></code><div class="desc">7.0+ &mdash; set-if-absent and return the old value.</div></li>
+      <li class="str"><code class="cmd">SET <span class="arg">k</span> <span class="arg">v</span> <span class="flag">KEEPTTL</span></code><div class="desc">Overwrite value but preserve the existing TTL.</div></li>
+      <li class="str"><code class="cmd">INCR <span class="arg">k</span></code> &middot; <code class="cmd" style="display:inline">INCRBY <span class="arg">k</span> 5</code> &middot; <code class="cmd" style="display:inline">INCRBYFLOAT <span class="arg">k</span> 1.5</code><span class="star">&#9733;</span><div class="desc">Atomic counters.</div></li>
+      <li class="str"><code class="cmd">MSET <span class="arg">k1 v1 k2 v2</span></code> &middot; <code class="cmd" style="display:inline">MGET <span class="arg">k1 k2</span></code><span class="star">&#9733;</span><div class="desc">Multi-key set / get in one round-trip.</div></li>
+      <li class="str"><code class="cmd">APPEND <span class="arg">k</span> <span class="arg">v</span></code> &middot; <code class="cmd" style="display:inline">STRLEN <span class="arg">k</span></code> &middot; <code class="cmd" style="display:inline">GETRANGE <span class="arg">k</span> 0 4</code><div class="desc">Append; length; substring.</div></li>
+      <li class="str"><code class="cmd">GETDEL <span class="arg">k</span></code> &middot; <code class="cmd" style="display:inline">GETEX <span class="arg">k</span> EX 30</code><div class="desc">Get-and-delete / get-and-set-TTL (6.2+).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c05">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Lists</span><span class="card-sub">collections &middot; queues &amp; stacks</span></div>
+    <ul class="cmds">
+      <li class="coll"><code class="cmd">LPUSH <span class="arg">k</span> <span class="arg">v</span></code> &middot; <code class="cmd" style="display:inline">RPUSH <span class="arg">k</span> <span class="arg">v</span></code><span class="star">&#9733;</span><div class="desc">Prepend / append elements.</div></li>
+      <li class="coll"><code class="cmd">LPOP <span class="arg">k</span> [count]</code> &middot; <code class="cmd" style="display:inline">RPOP <span class="arg">k</span></code><span class="star">&#9733;</span><div class="desc">Pop from head / tail.</div></li>
+      <li class="coll"><code class="cmd">LRANGE <span class="arg">k</span> 0 -1</code><span class="star">&#9733;</span><div class="desc">Range by index; -1 is the last element.</div></li>
+      <li class="coll"><code class="cmd">LLEN <span class="arg">k</span></code> &middot; <code class="cmd" style="display:inline">LINDEX <span class="arg">k</span> 0</code> &middot; <code class="cmd" style="display:inline">LSET <span class="arg">k</span> 0 <span class="arg">v</span></code><div class="desc">Length; get / set by index.</div></li>
+      <li class="coll"><code class="cmd">BLPOP <span class="arg">k</span> 5</code> &middot; <code class="cmd" style="display:inline">BRPOP <span class="arg">k</span> 5</code><span class="star">&#9733;</span><div class="desc">Blocking pop &mdash; wait up to N seconds.</div></li>
+      <li class="coll"><code class="cmd">LMOVE <span class="arg">src</span> <span class="arg">dst</span> LEFT RIGHT</code><div class="desc">Atomic transfer between lists (reliable queues).</div></li>
+      <li class="coll"><code class="cmd">LTRIM <span class="arg">k</span> 0 99</code> &middot; <code class="cmd" style="display:inline">LREM <span class="arg">k</span> 1 <span class="arg">v</span></code><div class="desc">Keep a window; remove occurrences.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c06">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Hashes</span><span class="card-sub">collections &middot; objects</span></div>
+    <ul class="cmds">
+      <li class="coll"><code class="cmd">HSET <span class="arg">k</span> <span class="arg">field</span> <span class="arg">v</span> [f2 v2]</code><span class="star">&#9733;</span><div class="desc">Set one or many fields.</div></li>
+      <li class="coll"><code class="cmd">HGET <span class="arg">k</span> <span class="arg">field</span></code> &middot; <code class="cmd" style="display:inline">HMGET <span class="arg">k</span> f1 f2</code><span class="star">&#9733;</span><div class="desc">Get one / several fields.</div></li>
+      <li class="coll"><code class="cmd">HGETALL <span class="arg">k</span></code><span class="star">&#9733;</span><div class="desc">All field/value pairs (RESP3 returns a map).</div></li>
+      <li class="coll"><code class="cmd">HDEL <span class="arg">k</span> <span class="arg">field</span></code> &middot; <code class="cmd" style="display:inline">HEXISTS <span class="arg">k</span> f</code><div class="desc">Delete field; test presence.</div></li>
+      <li class="coll"><code class="cmd">HINCRBY <span class="arg">k</span> <span class="arg">field</span> 1</code><span class="star">&#9733;</span><div class="desc">Atomic per-field counter.</div></li>
+      <li class="coll"><code class="cmd">HKEYS <span class="arg">k</span></code> &middot; <code class="cmd" style="display:inline">HVALS <span class="arg">k</span></code> &middot; <code class="cmd" style="display:inline">HLEN <span class="arg">k</span></code> &middot; <code class="cmd" style="display:inline">HSCAN <span class="arg">k</span> 0</code><div class="desc">Fields, values, count, cursor scan.</div></li>
+      <li class="modern"><code class="cmd">HGETEX <span class="arg">k</span> FIELDS 1 f</code> &middot; <code class="cmd" style="display:inline">HGETDEL <span class="arg">k</span> ...</code><div class="desc">8.0 &mdash; get with TTL option / get-and-delete fields.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c07">
+    <div class="card-head"><span class="card-num m8">07</span><span class="card-title">Hash Field TTL <span class="tag8">7.4+</span></span><span class="card-sub">expire individual fields</span></div>
+    <ul class="cmds">
+      <li class="modern"><code class="cmd"><span class="fn">HEXPIRE</span> <span class="arg">k</span> 60 FIELDS 1 <span class="arg">field</span></code><span class="star">&#9733;</span><div class="desc">Expire a single hash field in N seconds.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">HPEXPIRE</span> <span class="arg">k</span> 500 FIELDS 1 <span class="arg">field</span></code><div class="desc">Millisecond precision.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">HEXPIREAT</span> <span class="arg">k</span> 1893456000 FIELDS 1 f</code><div class="desc">Expire a field at an absolute time.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">HTTL</span> <span class="arg">k</span> FIELDS 1 <span class="arg">field</span></code><span class="star">&#9733;</span><div class="desc">Remaining TTL per field; HPTTL for ms.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">HEXPIRETIME</span> <span class="arg">k</span> FIELDS 1 f</code><div class="desc">Absolute expiry timestamp of a field.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">HPERSIST</span> <span class="arg">k</span> FIELDS 1 <span class="arg">field</span></code><div class="desc">Remove a field's TTL &mdash; huge for session stores.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c08">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Sets</span><span class="card-sub">collections &middot; unique members</span></div>
+    <ul class="cmds">
+      <li class="coll"><code class="cmd">SADD <span class="arg">k</span> <span class="arg">m</span></code> &middot; <code class="cmd" style="display:inline">SREM <span class="arg">k</span> <span class="arg">m</span></code><span class="star">&#9733;</span><div class="desc">Add / remove members.</div></li>
+      <li class="coll"><code class="cmd">SISMEMBER <span class="arg">k</span> <span class="arg">m</span></code> &middot; <code class="cmd" style="display:inline">SMISMEMBER <span class="arg">k</span> m1 m2</code><span class="star">&#9733;</span><div class="desc">Membership test (SMISMEMBER 6.2+).</div></li>
+      <li class="coll"><code class="cmd">SMEMBERS <span class="arg">k</span></code> &middot; <code class="cmd" style="display:inline">SCARD <span class="arg">k</span></code><span class="star">&#9733;</span><div class="desc">All members; cardinality.</div></li>
+      <li class="coll"><code class="cmd">SINTER <span class="arg">k1 k2</span></code> &middot; <code class="cmd" style="display:inline">SUNION</code> &middot; <code class="cmd" style="display:inline">SDIFF</code><span class="star">&#9733;</span><div class="desc">Intersection / union / difference.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">SINTERCARD</span> 2 <span class="arg">k1 k2</span> LIMIT 10</code><span class="star">&#9733;</span><div class="desc">7.0+ &mdash; size of intersection without materializing it.</div></li>
+      <li class="coll"><code class="cmd">SRANDMEMBER <span class="arg">k</span> 3</code> &middot; <code class="cmd" style="display:inline">SPOP <span class="arg">k</span></code><div class="desc">Random members / pop a random member.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c09">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Sorted Sets</span><span class="card-sub">collections &middot; leaderboards</span></div>
+    <ul class="cmds">
+      <li class="coll"><code class="cmd">ZADD <span class="arg">k</span> 100 <span class="arg">m</span></code><span class="star">&#9733;</span><div class="desc">Add member with a score; GT/LT/NX modifiers.</div></li>
+      <li class="coll"><code class="cmd">ZRANGE <span class="arg">k</span> 0 -1 [REV] [WITHSCORES]</code><span class="star">&#9733;</span><div class="desc">By rank; unified ranges (6.2+ replaces ZREVRANGE).</div></li>
+      <li class="coll"><code class="cmd">ZRANGEBYSCORE <span class="arg">k</span> 10 50</code> &middot; <code class="cmd" style="display:inline">ZRANGEBYLEX</code><div class="desc">By score / lexicographic range.</div></li>
+      <li class="coll"><code class="cmd">ZRANK <span class="arg">k</span> <span class="arg">m</span> [WITHSCORE]</code> &middot; <code class="cmd" style="display:inline">ZSCORE <span class="arg">k</span> <span class="arg">m</span></code><span class="star">&#9733;</span><div class="desc">Position / score of a member.</div></li>
+      <li class="coll"><code class="cmd">ZINCRBY <span class="arg">k</span> 5 <span class="arg">m</span></code> &middot; <code class="cmd" style="display:inline">ZCARD <span class="arg">k</span></code> &middot; <code class="cmd" style="display:inline">ZCOUNT <span class="arg">k</span> 0 100</code><div class="desc">Bump score; count total / within range.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">ZINTERCARD</span> 2 <span class="arg">k1 k2</span></code> &middot; <code class="cmd" style="display:inline">ZDIFF</code> &middot; <code class="cmd" style="display:inline">ZUNION</code><div class="desc">7.0+ intersect-cardinality; set-style ops (6.2+).</div></li>
+      <li class="coll"><code class="cmd">ZPOPMIN <span class="arg">k</span></code> &middot; <code class="cmd" style="display:inline">ZPOPMAX <span class="arg">k</span></code> &middot; <code class="cmd" style="display:inline">BZPOPMIN <span class="arg">k</span> 5</code><div class="desc">Pop lowest / highest; blocking variant.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c10">
+    <div class="card-head"><span class="card-num m8">10</span><span class="card-title">Multi-Key Pop <span class="tag8">7.0+</span></span><span class="card-sub">collections &middot; fan-in</span></div>
+    <ul class="cmds">
+      <li class="modern"><code class="cmd"><span class="fn">LMPOP</span> 2 <span class="arg">q1 q2</span> LEFT [COUNT 3]</code><span class="star">&#9733;</span><div class="desc">Pop from the first non-empty list among many.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">BLMPOP</span> 5 2 <span class="arg">q1 q2</span> LEFT</code><span class="star">&#9733;</span><div class="desc">Blocking multi-list pop &mdash; priority queues.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">ZMPOP</span> 2 <span class="arg">z1 z2</span> MIN</code><div class="desc">Pop from the first non-empty sorted set.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">BZMPOP</span> 5 2 <span class="arg">z1 z2</span> MIN</code><div class="desc">Blocking sorted-set multi-pop.</div></li>
+      <li class="meta"><code class="cmd">// cleaner than chaining BRPOP per queue</code><div class="desc">One command spans several keys with a priority order.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c11">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Bitmaps &amp; HyperLogLog</span><span class="card-sub">strings &middot; compact analytics</span></div>
+    <ul class="cmds">
+      <li class="str"><code class="cmd">SETBIT <span class="arg">k</span> 7 1</code> &middot; <code class="cmd" style="display:inline">GETBIT <span class="arg">k</span> 7</code><span class="star">&#9733;</span><div class="desc">Flip / read a single bit &mdash; presence flags.</div></li>
+      <li class="str"><code class="cmd">BITCOUNT <span class="arg">k</span> [0 0 BIT]</code><span class="star">&#9733;</span><div class="desc">Count set bits; 7.0 adds BIT-index ranges.</div></li>
+      <li class="str"><code class="cmd">BITPOS <span class="arg">k</span> 1 [0 -1 BIT]</code><div class="desc">First set/clear bit; BIT ranges (7.0+).</div></li>
+      <li class="modern"><code class="cmd">BITOP <span class="flag">AND|OR|XOR|NOT</span> <span class="arg">dst</span> <span class="arg">k1 k2</span></code><span class="star">&#9733;</span><div class="desc">Bitwise ops; 8.2 adds DIFF/DIFF1/ANDOR/ONE.</div></li>
+      <li class="str"><code class="cmd">BITFIELD <span class="arg">k</span> INCRBY u8 0 1 GET u8 0</code><div class="desc">Packed integer fields inside one string.</div></li>
+      <li class="str"><code class="cmd">PFADD <span class="arg">k</span> <span class="arg">m</span></code> &middot; <code class="cmd" style="display:inline">PFCOUNT <span class="arg">k</span></code> &middot; <code class="cmd" style="display:inline">PFMERGE <span class="arg">d</span> <span class="arg">k1 k2</span></code><span class="star">&#9733;</span><div class="desc">HyperLogLog &mdash; ~unique count in 12KB, 0.81% error.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c12">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Streams</span><span class="card-sub">collections &middot; event log</span></div>
+    <ul class="cmds">
+      <li class="coll"><code class="cmd">XADD <span class="arg">k</span> * field v</code><span class="star">&#9733;</span><div class="desc">Append an entry; * auto-generates the ID.</div></li>
+      <li class="coll"><code class="cmd">XADD <span class="arg">k</span> MAXLEN ~ 1000 * ...</code><span class="star">&#9733;</span><div class="desc">Append and cap length (~ = approximate trim).</div></li>
+      <li class="coll"><code class="cmd">XLEN <span class="arg">k</span></code> &middot; <code class="cmd" style="display:inline">XRANGE <span class="arg">k</span> - +</code> &middot; <code class="cmd" style="display:inline">XREVRANGE</code><span class="star">&#9733;</span><div class="desc">Length; range scan of entries.</div></li>
+      <li class="coll"><code class="cmd">XREAD BLOCK 0 STREAMS <span class="arg">k</span> $</code><span class="star">&#9733;</span><div class="desc">Tail new entries, blocking.</div></li>
+      <li class="coll"><code class="cmd">XGROUP CREATE <span class="arg">k</span> <span class="arg">grp</span> $</code><span class="star">&#9733;</span><div class="desc">Create a consumer group.</div></li>
+      <li class="coll"><code class="cmd">XREADGROUP GROUP <span class="arg">grp</span> <span class="arg">c</span> COUNT 10 STREAMS <span class="arg">k</span> &gt;</code><span class="star">&#9733;</span><div class="desc">Read as a group; &gt; = never-delivered.</div></li>
+      <li class="coll"><code class="cmd">XACK <span class="arg">k</span> <span class="arg">grp</span> <span class="arg">id</span></code> &middot; <code class="cmd" style="display:inline">XPENDING</code> &middot; <code class="cmd" style="display:inline">XCLAIM</code><div class="desc">Acknowledge; inspect / reclaim pending entries.</div></li>
+      <li class="modern"><code class="cmd">XDELEX <span class="arg">k</span> ...</code> &middot; <code class="cmd" style="display:inline">XACKDEL <span class="arg">k</span> ...</code><div class="desc">8.0 &mdash; delete-with-condition / ack-and-delete.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c13">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Geospatial</span><span class="card-sub">sorted-set backed</span></div>
+    <ul class="cmds">
+      <li class="coll"><code class="cmd">GEOADD <span class="arg">k</span> <span class="arg">lng lat</span> <span class="arg">name</span></code><span class="star">&#9733;</span><div class="desc">Store a point (lon, lat, member).</div></li>
+      <li class="read"><code class="cmd">GEOSEARCH <span class="arg">k</span> FROMMEMBER x BYRADIUS 5 km ASC</code><span class="star">&#9733;</span><div class="desc">6.2+ unified radius/box search (replaces GEORADIUS).</div></li>
+      <li class="read"><code class="cmd">GEOSEARCH <span class="arg">k</span> FROMLONLAT x y BYBOX 10 10 km</code><div class="desc">Rectangular area search.</div></li>
+      <li class="read"><code class="cmd">GEODIST <span class="arg">k</span> a b km</code><span class="star">&#9733;</span><div class="desc">Distance between two members.</div></li>
+      <li class="read"><code class="cmd">GEOPOS <span class="arg">k</span> <span class="arg">name</span></code> &middot; <code class="cmd" style="display:inline">GEOHASH <span class="arg">k</span> <span class="arg">name</span></code><div class="desc">Coordinates / geohash string of a member.</div></li>
+      <li class="coll"><code class="cmd">GEOSEARCHSTORE <span class="arg">dst</span> <span class="arg">k</span> ...</code><div class="desc">Store search results into another key.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c14">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Transactions</span><span class="card-sub">admin &middot; MULTI/EXEC</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd">MULTI</code> &hellip; <code class="cmd" style="display:inline">EXEC</code><span class="star">&#9733;</span><div class="desc">Queue commands, run atomically as a unit.</div></li>
+      <li class="admin"><code class="cmd">DISCARD</code><div class="desc">Abort a queued transaction.</div></li>
+      <li class="admin"><code class="cmd">WATCH <span class="arg">key</span></code><span class="star">&#9733;</span><div class="desc">Optimistic lock &mdash; EXEC aborts if the key changed.</div></li>
+      <li class="admin"><code class="cmd">UNWATCH</code><div class="desc">Forget all watched keys.</div></li>
+      <li class="meta"><code class="cmd">// no rollback &mdash; queued errors still run others</code><div class="desc">Redis txns are atomic, not rollback-based.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c15">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Pub/Sub</span><span class="card-sub">messaging</span></div>
+    <ul class="cmds">
+      <li class="read"><code class="cmd">SUBSCRIBE <span class="arg">channel</span></code> &middot; <code class="cmd" style="display:inline">PUBLISH <span class="arg">channel</span> msg</code><span class="star">&#9733;</span><div class="desc">Classic broadcast to all subscribers.</div></li>
+      <li class="read"><code class="cmd">PSUBSCRIBE "news.*"</code><span class="star">&#9733;</span><div class="desc">Pattern subscription across channels.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">SSUBSCRIBE</span> <span class="arg">channel</span></code> &middot; <code class="cmd" style="display:inline"><span class="fn">SPUBLISH</span> <span class="arg">channel</span> msg</code><span class="star">&#9733;</span><div class="desc"><b>Sharded pub/sub</b> (7.0+) &mdash; scales in a cluster.</div></li>
+      <li class="modern"><code class="cmd">PUBSUB SHARDCHANNELS</code> &middot; <code class="cmd" style="display:inline">SHARDNUMSUB</code><div class="desc">Introspect sharded channels (7.0+).</div></li>
+      <li class="read"><code class="cmd">PUBSUB CHANNELS [pattern]</code> &middot; <code class="cmd" style="display:inline">NUMSUB</code><div class="desc">List active channels / subscriber counts.</div></li>
+      <li class="meta"><code class="cmd">// sharded emits 'smessage', not 'message'</code><div class="desc">Use SSUBSCRIBE for cluster-local, SUBSCRIBE for global.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c16">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Scripting</span><span class="card-sub">admin &middot; Lua EVAL</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd">EVAL "return redis.call('GET',KEYS[1])" 1 <span class="arg">k</span></code><span class="star">&#9733;</span><div class="desc">Run an inline Lua script atomically.</div></li>
+      <li class="admin"><code class="cmd">SCRIPT LOAD "..."</code> &rarr; <code class="cmd" style="display:inline">EVALSHA <span class="arg">sha</span> 1 <span class="arg">k</span></code><span class="star">&#9733;</span><div class="desc">Cache by SHA, call without re-sending the body.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">EVAL_RO</span> / <span class="fn">EVALSHA_RO</span></code><div class="desc">7.0+ read-only variants &mdash; safe on replicas.</div></li>
+      <li class="admin"><code class="cmd">SCRIPT EXISTS <span class="arg">sha</span></code> &middot; <code class="cmd" style="display:inline">SCRIPT FLUSH</code><div class="desc">Check cache; clear all cached scripts.</div></li>
+      <li class="meta"><code class="cmd">// EVAL scripts are ephemeral &mdash; lost on restart</code><div class="desc">For durable logic use Functions (next card).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c17">
+    <div class="card-head"><span class="card-num m8">17</span><span class="card-title">Functions <span class="tag8">7.0+</span></span><span class="card-sub">admin &middot; persistent server-side</span></div>
+    <ul class="cmds">
+      <li class="modern"><code class="cmd"><span class="fn">FUNCTION LOAD</span> "#!lua name=mylib ..."</code><span class="star">&#9733;</span><div class="desc">Load a named library; persists &amp; replicates like data.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">FCALL</span> <span class="arg">myfunc</span> 1 <span class="arg">key</span> arg</code><span class="star">&#9733;</span><div class="desc">Call a registered function by name.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">FCALL_RO</span> <span class="arg">myfunc</span> 1 <span class="arg">key</span></code><div class="desc">Read-only call &mdash; runs on replicas.</div></li>
+      <li class="modern"><code class="cmd">FUNCTION LIST</code> &middot; <code class="cmd" style="display:inline">FUNCTION STATS</code><div class="desc">Inspect libraries / running functions.</div></li>
+      <li class="modern"><code class="cmd">FUNCTION DUMP</code> &middot; <code class="cmd" style="display:inline">FUNCTION RESTORE</code><div class="desc">Serialize / reload all libraries.</div></li>
+      <li class="modern"><code class="cmd">FUNCTION DELETE <span class="arg">mylib</span></code> &middot; <code class="cmd" style="display:inline">FLUSH</code><div class="desc">Remove one library / all of them.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c18">
+    <div class="card-head"><span class="card-num m8">18</span><span class="card-title">JSON <span class="tag8">8.0</span> <span class="tagstack">module</span></span><span class="card-sub">nested documents</span></div>
+    <ul class="cmds">
+      <li class="modern"><code class="cmd"><span class="fn">JSON.SET</span> <span class="arg">k</span> $ '{"n":"Ada","tags":[]}'</code><span class="star">&#9733;</span><div class="desc">Store a JSON document at the root path.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">JSON.GET</span> <span class="arg">k</span> $.n</code><span class="star">&#9733;</span><div class="desc">Fetch by JSONPath.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">JSON.SET</span> <span class="arg">k</span> $.age 36</code><div class="desc">Update a sub-path in place.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">JSON.NUMINCRBY</span> <span class="arg">k</span> $.age 1</code><div class="desc">Atomic numeric increment on a path.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">JSON.ARRAPPEND</span> <span class="arg">k</span> $.tags '"db"'</code><span class="star">&#9733;</span><div class="desc">Append to an array field.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">JSON.DEL</span> <span class="arg">k</span> $.tmp</code> &middot; <code class="cmd" style="display:inline">JSON.TYPE</code> &middot; <code class="cmd" style="display:inline">JSON.OBJKEYS</code><div class="desc">Delete a path; inspect type / keys.</div></li>
+      <li class="meta"><code class="cmd">// index JSON with FT.CREATE ... ON JSON</code><div class="desc">Query documents via the Query Engine.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c19">
+    <div class="card-head"><span class="card-num m8">19</span><span class="card-title">Query Engine <span class="tag8">8.0</span> <span class="tagstack">module</span></span><span class="card-sub">read &middot; secondary index &amp; search</span></div>
+    <ul class="cmds">
+      <li class="modern"><code class="cmd"><span class="fn">FT.CREATE</span> idx ON JSON PREFIX 1 "doc:" SCHEMA $.name AS name TEXT $.age AS age NUMERIC</code><span class="star">&#9733;</span><div class="desc">Define a secondary index over hashes/JSON.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">FT.SEARCH</span> idx "@name:Ada @age:[30 40]"</code><span class="star">&#9733;</span><div class="desc">Full-text + tag + numeric query.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">FT.AGGREGATE</span> idx "*" GROUPBY 1 @city REDUCE COUNT 0 AS n</code><span class="star">&#9733;</span><div class="desc">Group / reduce / sort like a mini-SQL.</div></li>
+      <li class="modern"><code class="cmd">FT.SEARCH idx "@vec:[VECTOR_RANGE ...]"</code><div class="desc">Vector KNN inside a query (stemming, fuzzy, synonyms too).</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">FT.HYBRID</span> ...</code><div class="desc">8.2 &mdash; fuse full-text + vector with RRF ranking.</div></li>
+      <li class="modern"><code class="cmd">FT.INFO idx</code> &middot; <code class="cmd" style="display:inline">FT.DROPINDEX idx</code><div class="desc">Inspect / drop an index (keeps the docs).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c20">
+    <div class="card-head"><span class="card-num m8">20</span><span class="card-title">Vector Sets <span class="tag8">8.0 beta</span></span><span class="card-sub">read &middot; AI similarity</span></div>
+    <ul class="cmds">
+      <li class="modern"><code class="cmd"><span class="fn">VADD</span> <span class="arg">k</span> VALUES 4 0.1 0.2 0.3 0.4 <span class="arg">elem</span></code><span class="star">&#9733;</span><div class="desc">Add a vector embedding under a member name.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">VSIM</span> <span class="arg">k</span> VALUES 4 0.1 0.2 0.3 0.4 COUNT 10</code><span class="star">&#9733;</span><div class="desc">Find the nearest members (semantic search).</div></li>
+      <li class="modern"><code class="cmd">VSIM <span class="arg">k</span> ELE <span class="arg">elem</span> COUNT 5</code><div class="desc">Similar items to an existing member (recommendations).</div></li>
+      <li class="modern"><code class="cmd">VDIM <span class="arg">k</span></code> &middot; <code class="cmd" style="display:inline">VCARD <span class="arg">k</span></code> &middot; <code class="cmd" style="display:inline">VREM <span class="arg">k</span> <span class="arg">elem</span></code><div class="desc">Dimensions; count; remove a vector.</div></li>
+      <li class="meta"><code class="cmd">// inspired by sorted set; beta API may change</code><div class="desc">Complements Query-Engine vector fields for RAG.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c21">
+    <div class="card-head"><span class="card-num m8">21</span><span class="card-title">Time Series <span class="tag8">8.0</span> <span class="tagstack">module</span></span><span class="card-sub">metrics &amp; IoT</span></div>
+    <ul class="cmds">
+      <li class="modern"><code class="cmd"><span class="fn">TS.CREATE</span> temp RETENTION 86400000 LABELS sensor a</code><span class="star">&#9733;</span><div class="desc">Create a series with retention &amp; labels.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">TS.ADD</span> temp * 21.5</code><span class="star">&#9733;</span><div class="desc">Append a sample (* = now).</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">TS.RANGE</span> temp - + AGGREGATION avg 60000</code><span class="star">&#9733;</span><div class="desc">Range query with downsampling buckets.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">TS.MRANGE</span> - + FILTER sensor=a</code><span class="star">&#9733;</span><div class="desc">Query many series by label filter.</div></li>
+      <li class="modern"><code class="cmd">TS.CREATERULE src dst AGGREGATION avg 60000</code><div class="desc">Auto-downsample into a compaction series.</div></li>
+      <li class="modern"><code class="cmd">TS.INFO temp</code> &middot; <code class="cmd" style="display:inline">TS.GET temp</code><div class="desc">Metadata / latest sample.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c22">
+    <div class="card-head"><span class="card-num m8">22</span><span class="card-title">Probabilistic <span class="tag8">8.0</span> <span class="tagstack">module</span></span><span class="card-sub">approximate at scale</span></div>
+    <ul class="cmds">
+      <li class="modern"><code class="cmd"><span class="fn">BF.ADD</span> <span class="arg">k</span> item</code> &middot; <code class="cmd" style="display:inline"><span class="fn">BF.EXISTS</span> <span class="arg">k</span> item</code><span class="star">&#9733;</span><div class="desc"><b>Bloom filter</b> &mdash; "seen before?" no false negatives.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">CF.ADD</span> / <span class="fn">CF.EXISTS</span> / <span class="fn">CF.DEL</span> <span class="arg">k</span> item</code><div class="desc"><b>Cuckoo filter</b> &mdash; like Bloom but supports deletion.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">CMS.INCRBY</span> <span class="arg">k</span> item 1</code> &middot; <code class="cmd" style="display:inline">CMS.QUERY</code><div class="desc"><b>Count-min sketch</b> &mdash; approximate frequency counts.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">TOPK.ADD</span> <span class="arg">k</span> item</code> &middot; <code class="cmd" style="display:inline">TOPK.LIST <span class="arg">k</span></code><span class="star">&#9733;</span><div class="desc"><b>Top-K</b> &mdash; heavy hitters / trending items.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">TDIGEST.ADD</span> <span class="arg">k</span> 12.5</code> &middot; <code class="cmd" style="display:inline">TDIGEST.QUANTILE <span class="arg">k</span> 0.99</code><div class="desc"><b>t-digest</b> &mdash; percentiles over a stream (p99 latency).</div></li>
+      <li class="meta"><code class="cmd">// tiny fixed memory for billions of items</code><div class="desc">Trade exactness for massive space savings.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c23">
+    <div class="card-head"><span class="card-num">23</span><span class="card-title">Persistence</span><span class="card-sub">admin &middot; durability</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd">SAVE</code> &middot; <code class="cmd" style="display:inline">BGSAVE</code><span class="star">&#9733;</span><div class="desc">RDB snapshot &mdash; blocking / background fork.</div></li>
+      <li class="admin"><code class="cmd">BGREWRITEAOF</code><span class="star">&#9733;</span><div class="desc">Compact the append-only file.</div></li>
+      <li class="modern"><code class="cmd">CONFIG SET appendonly yes</code><span class="star">&#9733;</span><div class="desc">Enable AOF; 7.0 uses <b>multi-part AOF</b> (base + incr + manifest).</div></li>
+      <li class="admin"><code class="cmd">LASTSAVE</code><div class="desc">Unix time of the last successful save.</div></li>
+      <li class="admin"><code class="cmd">CONFIG SET appendfsync everysec</code><div class="desc">Fsync policy: always / everysec / no.</div></li>
+      <li class="meta"><code class="cmd">// RDB = compact snapshots; AOF = op log</code><div class="desc">Combine both for the best durability trade-off.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c24">
+    <div class="card-head"><span class="card-num">24</span><span class="card-title">Replication</span><span class="card-sub">admin &middot; HA</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd">REPLICAOF <span class="arg">host</span> <span class="arg">port</span></code><span class="star">&#9733;</span><div class="desc">Make this node a replica (NO ONE to promote).</div></li>
+      <li class="admin"><code class="cmd">INFO replication</code><span class="star">&#9733;</span><div class="desc">Role, connected replicas, offsets, lag.</div></li>
+      <li class="admin"><code class="cmd">WAIT <span class="arg">numreplicas</span> <span class="arg">timeout</span></code><span class="star">&#9733;</span><div class="desc">Block until N replicas ack the writes.</div></li>
+      <li class="admin"><code class="cmd">CONFIG SET repl-diskless-sync yes</code><div class="desc">Stream the RDB over the socket, skip disk.</div></li>
+      <li class="admin"><code class="cmd">FAILOVER [TO host port]</code><div class="desc">Coordinated, safe failover (6.2+).</div></li>
+      <li class="meta"><code class="cmd">// Sentinel adds automatic failover + discovery</code><div class="desc">redis-sentinel monitors &amp; promotes replicas.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c25">
+    <div class="card-head"><span class="card-num">25</span><span class="card-title">Cluster</span><span class="card-sub">admin &middot; horizontal scale</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd">CLUSTER INFO</code> &middot; <code class="cmd" style="display:inline">CLUSTER NODES</code><span class="star">&#9733;</span><div class="desc">Cluster health &amp; node topology.</div></li>
+      <li class="admin"><code class="cmd">CLUSTER SHARDS</code> &middot; <code class="cmd" style="display:inline">CLUSTER SLOTS</code><span class="star">&#9733;</span><div class="desc">Slot &rarr; node mapping (SHARDS 7.0+).</div></li>
+      <li class="admin"><code class="cmd">CLUSTER KEYSLOT <span class="arg">key</span></code><div class="desc">Which of the 16384 hash slots a key lands in.</div></li>
+      <li class="modern"><code class="cmd">CLUSTER ADDSLOTSRANGE 0 5000</code> &middot; <code class="cmd" style="display:inline">DELSLOTSRANGE</code><div class="desc">7.0+ &mdash; assign slot ranges in one call.</div></li>
+      <li class="admin"><code class="cmd">CLUSTER LINKS</code><div class="desc">7.0+ &mdash; inspect inter-node link state.</div></li>
+      <li class="meta"><code class="cmd">// use {tag} in keys to co-locate on one slot</code><div class="desc">Hash tags keep related keys together for MULTI.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c26">
+    <div class="card-head"><span class="card-num m8">26</span><span class="card-title">ACL &amp; Security <span class="tag8">7.0+ selectors</span></span><span class="card-sub">admin &middot; access control</span></div>
+    <ul class="cmds">
+      <li class="modern"><code class="cmd"><span class="fn">ACL SETUSER</span> alice on &gt;pw ~cache:* +@read</code><span class="star">&#9733;</span><div class="desc">User + password + key pattern + command category.</div></li>
+      <li class="modern"><code class="cmd">ACL SETUSER alice (~session:* +set +get)</code><span class="star">&#9733;</span><div class="desc"><b>Selectors</b> (7.0+) &mdash; extra permission sets in parens.</div></li>
+      <li class="modern"><code class="cmd">ACL GETUSER alice</code> &middot; <code class="cmd" style="display:inline">ACL LIST</code><span class="star">&#9733;</span><div class="desc">Inspect a user / list all rules.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">ACL WHOAMI</span></code> &middot; <code class="cmd" style="display:inline">ACL CAT</code><div class="desc">Current user; list command categories.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">ACL DRYRUN</span> alice GET foo</code><span class="star">&#9733;</span><div class="desc">7.0+ &mdash; test if a user could run a command.</div></li>
+      <li class="admin"><code class="cmd">AUTH [user] pass</code> &middot; <code class="cmd" style="display:inline">ACL DELUSER alice</code><div class="desc">Authenticate; remove a user.</div></li>
+      <li class="meta"><code class="cmd">// 8.0: @search @json @timeseries @bloom cats</code><div class="desc">New ACL categories fold module commands into @read/@write.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c27">
+    <div class="card-head"><span class="card-num m8">27</span><span class="card-title">Client &amp; Caching <span class="tag8">7.x</span></span><span class="card-sub">admin &middot; connections</span></div>
+    <ul class="cmds">
+      <li class="modern"><code class="cmd"><span class="fn">CLIENT TRACKING</span> ON</code><span class="star">&#9733;</span><div class="desc">Server-assisted <b>client-side caching</b> invalidation.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">CLIENT NO-TOUCH</span> ON</code><div class="desc">7.2+ &mdash; read keys without bumping LRU/LFU.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">CLIENT NO-EVICT</span> ON</code><div class="desc">7.0+ &mdash; exempt this connection from eviction.</div></li>
+      <li class="admin"><code class="cmd">CLIENT LIST</code> &middot; <code class="cmd" style="display:inline">CLIENT INFO</code><span class="star">&#9733;</span><div class="desc">Inspect connections &amp; their state.</div></li>
+      <li class="admin"><code class="cmd">CLIENT KILL ID <span class="arg">n</span></code> &middot; <code class="cmd" style="display:inline">CLIENT UNPAUSE</code><div class="desc">Terminate a client; resume paused traffic.</div></li>
+      <li class="admin"><code class="cmd">CLIENT SETNAME</code> &middot; <code class="cmd" style="display:inline">CLIENT GETNAME</code><div class="desc">Label a connection for observability.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c28">
+    <div class="card-head"><span class="card-num">28</span><span class="card-title">Server &amp; Config</span><span class="card-sub">admin</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd">CONFIG GET maxmemory</code> &middot; <code class="cmd" style="display:inline">CONFIG SET maxmemory 2gb</code><span class="star">&#9733;</span><div class="desc">Read / change config at runtime.</div></li>
+      <li class="admin"><code class="cmd">CONFIG SET maxmemory-policy allkeys-lru</code><span class="star">&#9733;</span><div class="desc">Eviction policy when memory is full.</div></li>
+      <li class="admin"><code class="cmd">INFO [section]</code><span class="star">&#9733;</span><div class="desc">Server stats: memory, clients, stats, keyspace.</div></li>
+      <li class="admin"><code class="cmd">DBSIZE</code> &middot; <code class="cmd" style="display:inline">MEMORY USAGE <span class="arg">key</span></code> &middot; <code class="cmd" style="display:inline">MEMORY DOCTOR</code><div class="desc">Key count; per-key bytes; memory advice.</div></li>
+      <li class="admin"><code class="cmd">SLOWLOG GET [n|-1]</code><div class="desc">Slow commands; -1 returns all (7.0+).</div></li>
+      <li class="admin"><code class="cmd">CONFIG REWRITE</code> &middot; <code class="cmd" style="display:inline">CONFIG RESETSTAT</code><div class="desc">Persist config to file; reset counters.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c29">
+    <div class="card-head"><span class="card-num">29</span><span class="card-title">Data Types at a Glance</span><span class="card-sub">value &rarr; use case</span></div>
+    <p class="type-group a">Core</p>
+    <table class="type-table">
+      <tr><td class="t">String</td><td class="d">cache, counter, blob, bitmap base</td></tr>
+      <tr><td class="t">List</td><td class="d">queue, stack, timeline</td></tr>
+      <tr><td class="t">Hash</td><td class="d">object; per-field TTL (7.4)</td></tr>
+      <tr><td class="t">Set / Sorted Set</td><td class="d">tags, uniqueness / leaderboards</td></tr>
+    </table>
+    <p class="type-group b">Streaming &amp; probabilistic</p>
+    <table class="type-table">
+      <tr><td class="t">Stream</td><td class="d">event log + consumer groups</td></tr>
+      <tr><td class="t">Bitmap / HLL</td><td class="d">flags / approx-unique count</td></tr>
+      <tr><td class="t">Bloom/Cuckoo/CMS</td><td class="d">membership / frequency (8.0)</td></tr>
+    </table>
+    <p class="type-group c">Document &amp; geo</p>
+    <table class="type-table">
+      <tr><td class="t">JSON</td><td class="d">nested docs, indexable (8.0)</td></tr>
+      <tr><td class="t">Geo</td><td class="d">proximity on a sorted set</td></tr>
+      <tr><td class="t">Time Series</td><td class="d">metrics, IoT, downsampling (8.0)</td></tr>
+    </table>
+    <p class="type-group d">AI</p>
+    <table class="type-table">
+      <tr><td class="t">Vector Set</td><td class="d">embeddings, semantic search (8.0 beta)</td></tr>
+      <tr><td class="t">Query Engine</td><td class="d">secondary index, KNN, full-text (8.0)</td></tr>
+    </table>
+  </article>
+
+  <article class="card" id="c30">
+    <div class="card-head"><span class="card-num">30</span><span class="card-title">Time Complexity</span><span class="card-sub">know before you scale</span></div>
+    <table class="type-table">
+      <tr><td class="t">GET/SET/HGET</td><td class="d">O(1) &mdash; constant</td></tr>
+      <tr><td class="t">LPUSH/RPUSH/LPOP</td><td class="d">O(1) at the ends</td></tr>
+      <tr><td class="t">LINDEX / LINSERT</td><td class="d">O(n) &mdash; walks the list</td></tr>
+      <tr><td class="t">SADD/SISMEMBER</td><td class="d">O(1)</td></tr>
+      <tr><td class="t">ZADD / ZRANK</td><td class="d">O(log n)</td></tr>
+      <tr><td class="t">ZRANGE k 0 m</td><td class="d">O(log n + m)</td></tr>
+      <tr><td class="t">HGETALL / SMEMBERS</td><td class="d">O(n) &mdash; whole collection</td></tr>
+      <tr><td class="t">KEYS *</td><td class="d">O(n) &mdash; <b>blocks</b>; use SCAN</td></tr>
+      <tr><td class="t">SCAN / HSCAN</td><td class="d">O(1) per call, cursored</td></tr>
+      <tr><td class="t">PFCOUNT</td><td class="d">O(1), ~12KB per HLL</td></tr>
+    </table>
+  </article>
+
+  <article class="card" id="c31">
+    <div class="card-head"><span class="card-num">31</span><span class="card-title">Keyspace Notifications</span><span class="card-sub">admin &middot; react to changes</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd">CONFIG SET notify-keyspace-events KEA</code><span class="star">&#9733;</span><div class="desc">Enable events (K keyspace, E keyevent, A all).</div></li>
+      <li class="read"><code class="cmd">PSUBSCRIBE "__keyevent@0__:expired"</code><span class="star">&#9733;</span><div class="desc">React to key expirations (cache-invalidation hook).</div></li>
+      <li class="read"><code class="cmd">PSUBSCRIBE "__keyspace@0__:user:*"</code><div class="desc">All events on matching keys.</div></li>
+      <li class="modern"><code class="cmd">// 8.0 adds OVERWRITTEN &amp; TYPE_CHANGED events</code><div class="desc">Finer visibility into what changed.</div></li>
+      <li class="meta"><code class="cmd">// events are best-effort, fire-and-forget</code><div class="desc">Not durable &mdash; pair with streams if you need delivery.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c32">
+    <div class="card-head"><span class="card-num">32</span><span class="card-title">Danger Zone</span><span class="card-sub">destructive &middot; think twice</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">FLUSHDB</code><span class="badge-danger">wipes db</span><div class="desc">Delete every key in the current database.</div></li>
+      <li class="danger"><code class="cmd">FLUSHALL</code><span class="badge-danger">wipes all</span><div class="desc">Delete every key in <b>every</b> database.</div></li>
+      <li class="danger"><code class="cmd">KEYS *</code><span class="badge-danger">blocks</span><div class="desc">Scans all keys &mdash; freezes the server in prod. Use SCAN.</div></li>
+      <li class="danger"><code class="cmd">CONFIG SET appendonly no</code><span class="badge-danger">durability</span><div class="desc">Disables AOF &mdash; risk of data loss on crash.</div></li>
+      <li class="danger"><code class="cmd">SHUTDOWN NOSAVE</code><span class="badge-danger">no save</span><div class="desc">Stop the server without persisting.</div></li>
+      <li class="meta"><code class="cmd">// rename-command in config to disable these</code><div class="desc">Neuter FLUSHALL/KEYS on production instances.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<section class="diagrams">
+  <h2>Three things worth picturing</h2>
+  <p class="sub">The mental models that most change how you use Redis 7.x / 8.x &mdash; drawn from the Functions, hash-TTL, and Redis 8 release notes.</p>
+  <div class="merge-grid three">
+
+    <div class="merge-card">
+      <h3>EVAL script vs. Function</h3>
+      <p>EVAL ships the whole script every call and vanishes on restart; a Function is loaded once, named, persisted, and replicated.</p>
+      <svg viewBox="0 0 300 180" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Left: a client resending a full script body on every call to an ephemeral engine. Right: a client loading a library once then calling it by name from durable storage.">
+        <defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker></defs>
+        <text x="72" y="16" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#7c3aed">EVAL (ephemeral)</text>
+        <g font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">
+          <rect x="18" y="26" width="52" height="24" rx="4" fill="#fff" stroke="#94a3b8"/><text x="44" y="41" fill="#1a1d24">client</text>
+          <rect x="18" y="120" width="108" height="34" rx="6" fill="#f5f0fe" stroke="#7c3aed"/><text x="72" y="134" fill="#1a1d24">Lua VM</text><text x="72" y="147" font-size="7" fill="#7c3aed">lost on restart</text>
+          <line x1="44" y1="50" x2="44" y2="120" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a2)"/>
+          <text x="90" y="72" fill="#7c3aed" font-size="7">full body</text>
+          <text x="90" y="84" fill="#7c3aed" font-size="7">every call</text>
+          <line x1="60" y1="60" x2="60" y2="118" stroke="#cbd5e1" stroke-width="1.3" stroke-dasharray="2 2" marker-end="url(#a2)"/>
+          <line x1="76" y1="60" x2="76" y2="118" stroke="#cbd5e1" stroke-width="1.3" stroke-dasharray="2 2" marker-end="url(#a2)"/>
+        </g>
+        <text x="228" y="16" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#be123c">FUNCTION (persistent)</text>
+        <g font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">
+          <rect x="174" y="26" width="52" height="24" rx="4" fill="#fff" stroke="#94a3b8"/><text x="200" y="41" fill="#1a1d24">client</text>
+          <rect x="168" y="120" width="118" height="34" rx="6" fill="#fdeef1" stroke="#be123c"/><text x="227" y="134" fill="#1a1d24">library "mylib"</text><text x="227" y="147" font-size="7" fill="#be123c">AOF + replicated</text>
+          <line x1="200" y1="50" x2="200" y2="120" stroke="#be123c" stroke-width="1.4" marker-end="url(#a2)"/>
+          <text x="246" y="70" fill="#be123c" font-size="7">LOAD once</text>
+          <line x1="216" y1="120" x2="216" y2="60" stroke="#be123c" stroke-width="1.4" marker-end="url(#a2)"/>
+          <text x="250" y="98" fill="#be123c" font-size="7">FCALL name</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Hash field TTL <span class="tag8">7.4</span></h3>
+      <p>Before 7.4 a TTL applied to the whole key; now each field can expire on its own clock &mdash; ideal for session bundles.</p>
+      <svg viewBox="0 0 300 180" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A hash with three fields, each showing an independent time-to-live, one of them expiring while the others remain.">
+        <text x="150" y="16" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#be123c">HEXPIRE per field</text>
+        <g font-family="JetBrains Mono, monospace" font-size="9" text-anchor="start">
+          <rect x="40" y="28" width="220" height="120" rx="10" fill="#fff" stroke="#d97706" stroke-width="1.5"/>
+          <text x="52" y="46" fill="#1a1d24" font-weight="700">session:42</text>
+          <rect x="52" y="56" width="196" height="24" rx="5" fill="#fdeef1" stroke="#be123c"/><text x="60" y="72" fill="#1a1d24">token</text><text x="238" y="72" text-anchor="end" fill="#be123c" font-size="8">TTL 900s</text>
+          <rect x="52" y="86" width="196" height="24" rx="5" fill="#fdeef1" stroke="#be123c"/><text x="60" y="102" fill="#1a1d24">csrf</text><text x="238" y="102" text-anchor="end" fill="#be123c" font-size="8">TTL 60s &#8987;</text>
+          <rect x="52" y="116" width="196" height="24" rx="5" fill="#ecf7f2" stroke="#059669"/><text x="60" y="132" fill="#1a1d24">theme</text><text x="238" y="132" text-anchor="end" fill="#059669" font-size="8">no TTL</text>
+        </g>
+        <text x="150" y="166" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#94a3b8">csrf expires; token &amp; theme stay</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Redis 8: one binary <span class="tag8">8.0</span></h3>
+      <p>Search, JSON, Time Series, probabilistic types &amp; Vector Sets were separate modules; Redis 8 folds them into Redis Open Source.</p>
+      <svg viewBox="0 0 300 180" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Left: scattered separate module boxes. Right: a single unified Redis 8 core containing all of them.">
+        <defs><marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#be123c"/></marker></defs>
+        <text x="66" y="14" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#94a3b8">before: modules</text>
+        <g font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">
+          <rect x="20" y="24" width="42" height="20" rx="4" fill="#f1f3f6" stroke="#94a3b8"/><text x="41" y="37" fill="#3f444f">Search</text>
+          <rect x="70" y="30" width="42" height="20" rx="4" fill="#f1f3f6" stroke="#94a3b8"/><text x="91" y="43" fill="#3f444f">JSON</text>
+          <rect x="30" y="58" width="42" height="20" rx="4" fill="#f1f3f6" stroke="#94a3b8"/><text x="51" y="71" fill="#3f444f">TS</text>
+          <rect x="78" y="64" width="46" height="20" rx="4" fill="#f1f3f6" stroke="#94a3b8"/><text x="101" y="77" fill="#3f444f">Bloom</text>
+          <rect x="34" y="92" width="60" height="20" rx="4" fill="#f1f3f6" stroke="#94a3b8"/><text x="64" y="105" fill="#3f444f">Cuckoo…</text>
+        </g>
+        <line x1="128" y1="70" x2="164" y2="70" stroke="#be123c" stroke-width="2" marker-end="url(#a3)"/>
+        <text x="146" y="62" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#be123c">Redis 8</text>
+        <g font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">
+          <rect x="172" y="26" width="112" height="128" rx="10" fill="#fdeef1" stroke="#be123c" stroke-width="1.6"/>
+          <text x="228" y="44" fill="#1a1d24" font-weight="700">Redis OSS 8</text>
+          <text x="228" y="62" fill="#3f444f" font-size="7.5">+ Search / Query</text>
+          <text x="228" y="76" fill="#3f444f" font-size="7.5">+ JSON</text>
+          <text x="228" y="90" fill="#3f444f" font-size="7.5">+ Time Series</text>
+          <text x="228" y="104" fill="#3f444f" font-size="7.5">+ Bloom/Cuckoo/CMS</text>
+          <text x="228" y="118" fill="#3f444f" font-size="7.5">+ Top-K / t-digest</text>
+          <text x="228" y="132" fill="#3f444f" font-size="7.5">+ Vector Set (beta)</text>
+          <text x="228" y="147" fill="#be123c" font-size="7">one binary, no modules</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">SCAN not KEYS</span><span class="v">KEYS * blocks the single thread; SCAN iterates with a cursor</span></div>
+    <div><span class="k">DEL vs UNLINK</span><span class="v">UNLINK frees memory in a background thread &mdash; non-blocking</span></div>
+    <div><span class="k">EVAL vs FUNCTION</span><span class="v">scripts are ephemeral; Functions persist, replicate &amp; are called by name</span></div>
+    <div><span class="k">key TTL vs field TTL</span><span class="v">7.4 HEXPIRE expires one hash field, not the whole key</span></div>
+    <div><span class="k">SUBSCRIBE vs SSUBSCRIBE</span><span class="v">sharded pub/sub (7.0) scales across a cluster; emits <code>smessage</code></span></div>
+    <div><span class="k">txns don't roll back</span><span class="v">MULTI/EXEC is atomic; a queued command error doesn't undo the rest</span></div>
+    <div><span class="k">ACL selectors</span><span class="v">7.0 lets one user carry multiple key-pattern + command rule sets</span></div>
+    <div><span class="k">RESP3</span><span class="v"><code>HELLO 3</code> unlocks maps, push messages &amp; client-side caching</span></div>
+    <div><span class="k">Redis 8 = one binary</span><span class="v">JSON, Search, Time Series, probabilistic, Vector Sets built in</span></div>
+    <div><span class="k">listpack</span><span class="v">7.0 encoding replacing ziplist; check with OBJECT ENCODING</span></div>
+    <div><span class="k">multi-part AOF</span><span class="v">7.0 base + incremental files + manifest &mdash; cheaper rewrites</span></div>
+    <div><span class="k">probabilistic = tiny</span><span class="v">Bloom/CMS/HLL trade exactness for huge memory savings at scale</span></div>
+  </div>
+</section>
+
+<footer>
+  Redis 7.x / 8.x cheat sheet &middot; v2 comprehensive edition &middot; synthesized from the official Redis docs (redis.io/docs), the Redis 7.0 / 7.2 / 7.4 release notes, the Redis 8.0 "Redis Open Source" GA notes, the commands reference, and the Functions &amp; ACL intros.<br>
+  Targets Redis 7.0&ndash;8.x with redis-cli &middot; cluster assumed for sharded pub/sub &middot; <span class="tag8">7.x</span>/<span class="tag8">8.0</span> mark version-gated features &middot; <span class="tagstack">module</span> marks types built into core as of Redis 8 (formerly Redis Stack) &middot; Vector Sets are beta &mdash; API may change &middot; per-feature versions noted inline (Functions 7.0, hash TTL 7.4, JSON/Search/TS/probabilistic 8.0).
+</footer>
+
+</body>
+</html>

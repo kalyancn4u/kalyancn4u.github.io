@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MySQL 8.0+ Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --meta:#64748b;   --meta-bg:#f1f3f6;
+    --ddl:#4f46e5;    --ddl-bg:#eef0fd;
+    --dml:#d97706;    --dml-bg:#fdf6ec;
+    --dql:#059669;    --dql-bg:#ecf7f2;
+    --admin:#7c3aed;  --admin-bg:#f5f0fe;
+    --modern:#0891b2; --modern-bg:#e6f6fa;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --brand:#00758f;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem}
+  h1 .my{font-family:var(--mono); color:var(--brand)}
+  h1 .v{font-family:var(--mono); font-size:.42em; color:var(--modern); vertical-align:middle; letter-spacing:0}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.meta{background:var(--meta)} .dot.ddl{background:var(--ddl)}
+  .dot.dml{background:var(--dml)} .dot.dql{background:var(--dql)}
+  .dot.admin{background:var(--admin)} .dot.modern{background:var(--modern)}
+  .dot.danger{background:var(--danger)}
+  .toc{max-width:1500px; margin:0 auto; padding:1.2rem clamp(1rem,4vw,3rem) 0; display:flex; flex-wrap:wrap; gap:.4rem .5rem; font-family:var(--mono); font-size:.72rem}
+  .toc a{color:#3f444f; text-decoration:none; border:1px solid var(--line); border-radius:20px; padding:.2rem .7rem; background:#fff; transition:.15s}
+  .toc a:hover{border-color:var(--ink); color:var(--ink)}
+  .toc a .n{color:var(--muted)}
+  .flow-wrap{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem}
+  .flow-title{font-family:var(--mono); font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem}
+  .flow-svg{width:100%; height:auto; max-width:1180px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03)}
+  .card-head{display:flex; align-items:baseline; gap:.6rem; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line)}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em}
+  .card-num.m8{background:var(--modern)}
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+  .tag8{font-family:var(--mono); font-size:.6rem; font-weight:700; color:#fff; background:var(--modern); border-radius:4px; padding:.08rem .3rem; letter-spacing:.03em; vertical-align:middle}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.meta{border-left-color:var(--meta)}
+  ul.cmds li.ddl{border-left-color:var(--ddl)}
+  ul.cmds li.dml{border-left-color:var(--dml)}
+  ul.cmds li.dql{border-left-color:var(--dql)}
+  ul.cmds li.admin{border-left-color:var(--admin)}
+  ul.cmds li.modern{border-left-color:var(--modern); background:var(--modern-bg)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.79rem; font-weight:500; color:var(--ink); display:block; word-break:break-word}
+  code.cmd .arg{color:var(--ddl); font-weight:400}
+  code.cmd .kw{color:var(--dql); font-weight:700}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .fn{color:var(--modern); font-weight:700}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f1eee8; padding:0 .2em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem}
+  .type-table{width:100%; border-collapse:collapse; font-size:.78rem}
+  .type-table td{padding:.42rem 1rem; border-bottom:1px solid #f1eee8; vertical-align:top}
+  .type-table tr:last-child td{border-bottom:none}
+  .type-table td.t{font-family:var(--mono); font-weight:600; white-space:nowrap}
+  .type-table td.d{color:#525761}
+  .type-group{font-family:var(--mono); font-size:.66rem; letter-spacing:.08em; text-transform:uppercase; color:#fff; padding:.28rem 1rem; margin-top:0}
+  .type-group.num{background:var(--ddl)}
+  .type-group.str{background:var(--dml)}
+  .type-group.dt{background:var(--dql)}
+  .type-group.other{background:var(--admin)}
+  .diagrams{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem}
+  .diagrams h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:700px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1200px){ .merge-grid.three{grid-template-columns:repeat(3,1fr)} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#7dd3fc}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference &middot; relational database &amp; SQL</div>
+  <h1><span class="my">mysql</span> cheat sheet <span class="v">8.0 / 8.4 LTS</span></h1>
+  <p class="lede">Every statement either <b>defines structure</b> (DDL), <b>changes data</b> (DML), <b>reads data</b> (DQL), or <b>controls the server</b> (DCL/TCL). MySQL 8.0 layered analytical SQL on top &mdash; window functions, CTEs, native JSON, and roles. Cards tagged <span class="tag8">8.0+</span> mark features unavailable in 5.7.</p>
+  <div class="legend">
+    <span><i class="dot meta"></i>connect / inspect</span>
+    <span><i class="dot ddl"></i>structure (DDL)</span>
+    <span><i class="dot dml"></i>data (DML)</span>
+    <span><i class="dot dql"></i>query (DQL)</span>
+    <span><i class="dot admin"></i>admin (DCL/TCL)</span>
+    <span><i class="dot modern"></i>modern SQL (8.0+)</span>
+    <span><i class="dot danger"></i>destructive</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>dev.mysql.com/doc/refman/8.0</b> &middot; <b>What's New in MySQL 8.0</b> &middot; <b>MySQL 8.4 LTS notes</b> &middot; <b>mysqltutorial.org</b> &middot; <b>learnsql.com</b> &middot; <b>quickref.me</b></p>
+</header>
+
+<nav class="toc">
+  <a href="#c01"><span class="n">01</span> Connect</a>
+  <a href="#c02"><span class="n">02</span> Databases</a>
+  <a href="#c03"><span class="n">03</span> Create/Inspect</a>
+  <a href="#c04"><span class="n">04</span> Alter</a>
+  <a href="#c05"><span class="n">05</span> Types</a>
+  <a href="#c06"><span class="n">06</span> Insert</a>
+  <a href="#c07"><span class="n">07</span> Select</a>
+  <a href="#c08"><span class="n">08</span> Where</a>
+  <a href="#c09"><span class="n">09</span> Sort/Page</a>
+  <a href="#c10"><span class="n">10</span> Joins</a>
+  <a href="#c11"><span class="n">11</span> Group</a>
+  <a href="#c12"><span class="n">12</span> Set Ops</a>
+  <a href="#c13"><span class="n">13</span> CTEs</a>
+  <a href="#c14"><span class="n">14</span> Window Fns</a>
+  <a href="#c15"><span class="n">15</span> JSON</a>
+  <a href="#c16"><span class="n">16</span> Regex</a>
+  <a href="#c17"><span class="n">17</span> Full-Text</a>
+  <a href="#c18"><span class="n">18</span> Functions</a>
+  <a href="#c19"><span class="n">19</span> Update/Delete</a>
+  <a href="#c20"><span class="n">20</span> Keys</a>
+  <a href="#c21"><span class="n">21</span> Indexes</a>
+  <a href="#c22"><span class="n">22</span> Generated Cols</a>
+  <a href="#c23"><span class="n">23</span> Partitioning</a>
+  <a href="#c24"><span class="n">24</span> Transactions</a>
+  <a href="#c25"><span class="n">25</span> Locking Reads</a>
+  <a href="#c26"><span class="n">26</span> Users</a>
+  <a href="#c27"><span class="n">27</span> Roles</a>
+  <a href="#c28"><span class="n">28</span> Views</a>
+  <a href="#c29"><span class="n">29</span> Procedures</a>
+  <a href="#c30"><span class="n">30</span> Backup</a>
+  <a href="#c31"><span class="n">31</span> Optimize</a>
+</nav>
+
+<section class="flow-wrap">
+  <div class="flow-title">Anatomy of a SELECT &mdash; the order you write it vs. the order MySQL runs it</div>
+  <svg class="flow-svg" viewBox="0 0 1140 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram comparing the written order of SELECT clauses to the logical execution order MySQL evaluates them in.">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker>
+    </defs>
+    <text x="10" y="24" font-size="11" letter-spacing="2" fill="#94a3b8" font-family="JetBrains Mono, monospace">YOU WRITE &#8595;</text>
+    <g font-family="JetBrains Mono, monospace" font-size="12.5" font-weight="700" text-anchor="middle">
+      <rect x="10" y="34" width="118" height="40" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/><text x="69" y="59" fill="#1a1d24">SELECT</text>
+      <rect x="140" y="34" width="150" height="40" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.6"/><text x="215" y="59" fill="#1a1d24">FROM/JOIN</text>
+      <rect x="302" y="34" width="110" height="40" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/><text x="357" y="59" fill="#1a1d24">WHERE</text>
+      <rect x="424" y="34" width="130" height="40" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/><text x="489" y="59" fill="#1a1d24">GROUP BY</text>
+      <rect x="566" y="34" width="110" height="40" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/><text x="621" y="59" fill="#1a1d24">HAVING</text>
+      <rect x="688" y="34" width="120" height="40" rx="8" fill="#e6f6fa" stroke="#0891b2" stroke-width="1.6"/><text x="748" y="53" fill="#1a1d24">WINDOW</text><text x="748" y="66" font-size="8" font-weight="400" fill="#0891b2">8.0+</text>
+      <rect x="820" y="34" width="130" height="40" rx="8" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.6"/><text x="885" y="59" fill="#1a1d24">ORDER BY</text>
+      <rect x="962" y="34" width="90" height="40" rx="8" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.6"/><text x="1007" y="59" fill="#1a1d24">LIMIT</text>
+    </g>
+    <line x1="10" y1="100" x2="1132" y2="100" stroke="#e7e3db" stroke-width="1.4" stroke-dasharray="2 4"/>
+    <text x="10" y="122" font-size="11" letter-spacing="2" fill="#94a3b8" font-family="JetBrains Mono, monospace">MYSQL RUNS &#8595; (this order decides what's valid &amp; what's fast)</text>
+    <g font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" text-anchor="middle">
+      <rect x="10" y="134" width="150" height="44" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.8"/><text x="85" y="154" fill="#1a1d24">1&#183; FROM</text><text x="85" y="170" font-size="9" font-weight="400" fill="#4f46e5">+ JOIN</text>
+      <rect x="184" y="134" width="150" height="44" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.8"/><text x="259" y="154" fill="#1a1d24">2&#183; WHERE</text><text x="259" y="170" font-size="9" font-weight="400" fill="#059669">filters rows</text>
+      <rect x="358" y="134" width="150" height="44" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.8"/><text x="433" y="154" fill="#1a1d24">3&#183; GROUP BY</text><text x="433" y="170" font-size="9" font-weight="400" fill="#4f46e5">buckets</text>
+      <rect x="532" y="134" width="150" height="44" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.8"/><text x="607" y="154" fill="#1a1d24">4&#183; HAVING</text><text x="607" y="170" font-size="9" font-weight="400" fill="#059669">filters groups</text>
+      <rect x="706" y="134" width="150" height="44" rx="8" fill="#e6f6fa" stroke="#0891b2" stroke-width="1.8"/><text x="781" y="154" fill="#1a1d24">5&#183; WINDOW</text><text x="781" y="170" font-size="9" font-weight="400" fill="#0891b2">per-row calc</text>
+      <rect x="880" y="134" width="120" height="44" rx="8" fill="#fdf6ec" stroke="#d97706" stroke-width="1.8"/><text x="940" y="154" fill="#1a1d24">6&#183; SELECT</text><text x="940" y="170" font-size="9" font-weight="400" fill="#b45309">+ DISTINCT</text>
+      <rect x="1012" y="134" width="120" height="44" rx="8" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.8"/><text x="1072" y="154" fill="#1a1d24">7&#183; ORDER</text><text x="1072" y="170" font-size="9" font-weight="400" fill="#7c3aed">then LIMIT</text>
+    </g>
+    <line x1="160" y1="156" x2="184" y2="156" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="334" y1="156" x2="358" y2="156" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="508" y1="156" x2="532" y2="156" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="682" y1="156" x2="706" y2="156" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="856" y1="156" x2="880" y2="156" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="1000" y1="156" x2="1012" y2="156" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="10" y="200" width="1122" height="126" rx="10" fill="#fdf0ef" stroke="#f3c9c4" stroke-width="1.2"/>
+    <text x="30" y="224" font-size="12.5" font-weight="700" fill="#dc2626" font-family="JetBrains Mono, monospace">Why this order matters</text>
+    <text x="30" y="246" font-size="11.5" fill="#3f444f" font-family="Inter, sans-serif">&#8226; WHERE can't reference a SELECT alias &mdash; SELECT runs at step 6, long after WHERE at step 2.</text>
+    <text x="30" y="266" font-size="11.5" fill="#3f444f" font-family="Inter, sans-serif">&#8226; Filter with WHERE before grouping (cheap); filter with HAVING after grouping, on aggregates (expensive).</text>
+    <text x="30" y="286" font-size="11.5" fill="#3f444f" font-family="Inter, sans-serif">&#8226; Window functions (step 5) see the grouped/filtered set but run before ORDER BY &mdash; so you can ORDER BY a window result.</text>
+    <text x="30" y="306" font-size="11.5" fill="#3f444f" font-family="Inter, sans-serif">&#8226; ORDER BY / LIMIT run last &mdash; MySQL sorts &amp; pages only once every earlier stage is resolved.</text>
+  </svg>
+</section>
+
+<main>
+
+  <article class="card" id="c01">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Connect &amp; Session</span><span class="card-sub">command-line client</span></div>
+    <ul class="cmds">
+      <li class="meta"><code class="cmd">mysql <span class="flag">-u</span> <span class="arg">user</span> <span class="flag">-p</span></code><span class="star">&#9733;</span><div class="desc">Connect, prompts for password.</div></li>
+      <li class="meta"><code class="cmd">mysql <span class="flag">-u</span> <span class="arg">user</span> <span class="flag">-p</span> <span class="arg">db</span></code><div class="desc">Connect directly into a database.</div></li>
+      <li class="meta"><code class="cmd">mysql <span class="flag">-h</span> <span class="arg">host</span> <span class="flag">-P</span> <span class="arg">3306</span> <span class="flag">-u</span> <span class="arg">user</span> <span class="flag">-p</span></code><div class="desc">Remote host + non-default port.</div></li>
+      <li class="meta"><code class="cmd">SHOW DATABASES;</code><span class="star">&#9733;</span><div class="desc">List databases on the server.</div></li>
+      <li class="meta"><code class="cmd">SELECT VERSION();</code><div class="desc">Server version &mdash; confirm you're on 8.x.</div></li>
+      <li class="meta"><code class="cmd">STATUS;</code><div class="desc">Version, charset, uptime, socket.</div></li>
+      <li class="meta"><code class="cmd">SOURCE <span class="arg">file.sql</span></code><div class="desc">Run a .sql script from disk.</div></li>
+      <li class="meta"><code class="cmd">exit</code> / <code class="cmd" style="display:inline">quit</code><div class="desc">Leave the client.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c02">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Databases</span><span class="card-sub">DDL</span></div>
+    <ul class="cmds">
+      <li class="ddl"><code class="cmd">CREATE DATABASE <span class="arg">db</span>;</code><span class="star">&#9733;</span><div class="desc">Create a new database (schema).</div></li>
+      <li class="ddl"><code class="cmd">CREATE DATABASE <span class="flag">IF NOT EXISTS</span> <span class="arg">db</span>;</code><div class="desc">Idempotent create &mdash; no error if it exists.</div></li>
+      <li class="ddl"><code class="cmd">USE <span class="arg">db</span>;</code><span class="star">&#9733;</span><div class="desc">Set the active database for the session.</div></li>
+      <li class="ddl"><code class="cmd">ALTER DATABASE <span class="arg">db</span> CHARACTER SET <span class="arg">utf8mb4</span>;</code><div class="desc">utf8mb4 is the 8.0 default &mdash; full emoji/Unicode.</div></li>
+      <li class="danger"><code class="cmd">DROP DATABASE <span class="arg">db</span>;</code><span class="badge-danger">destroys</span><div class="desc">Delete database + every table in it.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c03">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Create &amp; Inspect Tables</span><span class="card-sub">DDL</span></div>
+    <ul class="cmds">
+      <li class="ddl"><code class="cmd">CREATE TABLE <span class="arg">t</span> (id INT <span class="flag">AUTO_INCREMENT</span> PRIMARY KEY, name VARCHAR(100));</code><span class="star">&#9733;</span><div class="desc">Define columns, types &amp; keys in one go.</div></li>
+      <li class="meta"><code class="cmd">SHOW TABLES;</code><span class="star">&#9733;</span><div class="desc">List tables in the active database.</div></li>
+      <li class="meta"><code class="cmd">DESCRIBE <span class="arg">t</span>;</code><span class="star">&#9733;</span><div class="desc">Columns, types, nullability, keys, defaults.</div></li>
+      <li class="meta"><code class="cmd">SHOW CREATE TABLE <span class="arg">t</span>;</code><div class="desc">Exact DDL MySQL would use to rebuild it.</div></li>
+      <li class="ddl"><code class="cmd">CREATE TABLE <span class="arg">t2</span> LIKE <span class="arg">t1</span>;</code><div class="desc">Clone structure only (no rows).</div></li>
+      <li class="ddl"><code class="cmd">CREATE TABLE <span class="arg">t2</span> AS SELECT ...;</code><div class="desc">Create + populate from a query (CTAS).</div></li>
+      <li class="ddl"><code class="cmd">RENAME TABLE <span class="arg">old</span> TO <span class="arg">new</span>;</code><div class="desc">Rename a table in place.</div></li>
+      <li class="danger"><code class="cmd">DROP TABLE <span class="flag">IF EXISTS</span> <span class="arg">t</span>;</code><span class="badge-danger">destroys</span><div class="desc">Delete table + data + structure.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c04">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Alter Table</span><span class="card-sub">reshape structure</span></div>
+    <ul class="cmds">
+      <li class="ddl"><code class="cmd">ALTER TABLE <span class="arg">t</span> ADD <span class="arg">col</span> VARCHAR(50);</code><span class="star">&#9733;</span><div class="desc">Add a new column.</div></li>
+      <li class="modern"><code class="cmd">ALTER TABLE <span class="arg">t</span> ADD <span class="arg">col</span> INT, <span class="flag">ALGORITHM=INSTANT</span>;</code><span class="star">&#9733;</span><div class="desc"><b>Instant DDL</b> &mdash; metadata-only, no rebuild (8.0.12+).</div></li>
+      <li class="ddl"><code class="cmd">ALTER TABLE <span class="arg">t</span> MODIFY <span class="arg">col</span> INT NOT NULL;</code><div class="desc">Change a column's type/constraints, same name.</div></li>
+      <li class="ddl"><code class="cmd">ALTER TABLE <span class="arg">t</span> RENAME COLUMN <span class="arg">old</span> TO <span class="arg">new</span>;</code><div class="desc">Rename only, type unchanged (8.0+).</div></li>
+      <li class="danger"><code class="cmd">ALTER TABLE <span class="arg">t</span> DROP COLUMN <span class="arg">c</span>;</code><span class="badge-danger">destroys</span><div class="desc">Remove a column and its data.</div></li>
+      <li class="ddl"><code class="cmd">ALTER TABLE <span class="arg">t</span> ADD PRIMARY KEY (<span class="arg">id</span>);</code><div class="desc">Add a primary key after the fact.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c05">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Data Types</span><span class="card-sub">what a column can hold</span></div>
+    <p class="type-group num">Numeric</p>
+    <table class="type-table">
+      <tr><td class="t">TINYINT</td><td class="d">1B &middot; &plusmn;127 (0&ndash;255 unsigned)</td></tr>
+      <tr><td class="t">SMALL/MEDIUM/INT</td><td class="d">2 / 3 / 4 bytes</td></tr>
+      <tr><td class="t">BIGINT</td><td class="d">8 bytes &middot; &plusmn;9.2&times;10&#185;&#8312;</td></tr>
+      <tr><td class="t">DECIMAL(M,D)</td><td class="d">exact fixed-point &mdash; use for money</td></tr>
+      <tr><td class="t">FLOAT / DOUBLE</td><td class="d">approximate floating-point</td></tr>
+    </table>
+    <p class="type-group str">String</p>
+    <table class="type-table">
+      <tr><td class="t">CHAR / VARCHAR(M)</td><td class="d">fixed / variable length</td></tr>
+      <tr><td class="t">TEXT / LONGTEXT</td><td class="d">64KB &rarr; 4GB of text</td></tr>
+      <tr><td class="t">ENUM / SET</td><td class="d">one / many from a fixed list</td></tr>
+      <tr><td class="t">BLOB / LONGBLOB</td><td class="d">binary, same size tiers as TEXT</td></tr>
+    </table>
+    <p class="type-group dt">Date &amp; Time</p>
+    <table class="type-table">
+      <tr><td class="t">DATE / TIME / YEAR</td><td class="d">calendar parts</td></tr>
+      <tr><td class="t">DATETIME</td><td class="d">YYYY-MM-DD HH:MM:SS, no TZ shift</td></tr>
+      <tr><td class="t">TIMESTAMP</td><td class="d">UTC-stored, 1970&ndash;2038</td></tr>
+    </table>
+    <p class="type-group other">Other &amp; 8.0</p>
+    <table class="type-table">
+      <tr><td class="t">BOOLEAN</td><td class="d">alias for TINYINT(1)</td></tr>
+      <tr><td class="t">JSON</td><td class="d">native, validated, binary-stored (5.7+)</td></tr>
+      <tr><td class="t">GEOMETRY / POINT</td><td class="d">spatial, SRID-aware in 8.0</td></tr>
+    </table>
+  </article>
+
+  <article class="card" id="c06">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Insert Data</span><span class="card-sub">DML</span></div>
+    <ul class="cmds">
+      <li class="dml"><code class="cmd">INSERT INTO <span class="arg">t</span> (a,b) VALUES (1,2);</code><span class="star">&#9733;</span><div class="desc">Insert one row into named columns.</div></li>
+      <li class="dml"><code class="cmd">INSERT INTO <span class="arg">t</span> (a,b) VALUES (1,2),(3,4);</code><span class="star">&#9733;</span><div class="desc">Insert multiple rows in one statement.</div></li>
+      <li class="dml"><code class="cmd">INSERT INTO <span class="arg">t2</span> SELECT * FROM <span class="arg">t1</span>;</code><div class="desc">Copy rows from one table into another.</div></li>
+      <li class="dml"><code class="cmd">INSERT INTO <span class="arg">t</span> (a) VALUES (1) <span class="flag">AS new</span> ON DUPLICATE KEY UPDATE a=new.a;</code><span class="star">&#9733;</span><div class="desc">Upsert &mdash; 8.0.19+ alias form (replaces VALUES()).</div></li>
+      <li class="dml"><code class="cmd">INSERT <span class="flag">IGNORE</span> INTO <span class="arg">t</span> VALUES (...);</code><div class="desc">Skip rows that would error (dup key etc).</div></li>
+      <li class="dml"><code class="cmd">REPLACE INTO <span class="arg">t</span> VALUES (...);</code><div class="desc">Delete-then-insert on key conflict.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c07">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Select &mdash; Basics</span><span class="card-sub">DQL</span></div>
+    <ul class="cmds">
+      <li class="dql"><code class="cmd">SELECT * FROM <span class="arg">t</span>;</code><span class="star">&#9733;</span><div class="desc">Every column, every row.</div></li>
+      <li class="dql"><code class="cmd">SELECT a, b FROM <span class="arg">t</span>;</code><span class="star">&#9733;</span><div class="desc">Only the columns you need &mdash; cheaper.</div></li>
+      <li class="dql"><code class="cmd">SELECT DISTINCT <span class="arg">col</span> FROM <span class="arg">t</span>;</code><div class="desc">Unique values only.</div></li>
+      <li class="dql"><code class="cmd">SELECT price*1.1 AS <span class="arg">with_tax</span> FROM <span class="arg">t</span>;</code><div class="desc">Computed column with an alias.</div></li>
+      <li class="dql"><code class="cmd">SELECT * FROM <span class="arg">t</span> LIMIT 10;</code><span class="star">&#9733;</span><div class="desc">Cap the number of rows returned.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c08">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Filter Rows &mdash; WHERE</span><span class="card-sub">DQL</span></div>
+    <ul class="cmds">
+      <li class="dql"><code class="cmd">... WHERE age &gt; 21;</code><span class="star">&#9733;</span><div class="desc">Comparison: = &lt; &gt; &lt;= &gt;= != (or &lt;&gt;).</div></li>
+      <li class="dql"><code class="cmd">... WHERE a=1 <span class="kw">AND</span> b=2;</code><span class="star">&#9733;</span><div class="desc">Combine conditions &mdash; also OR, NOT.</div></li>
+      <li class="dql"><code class="cmd">... WHERE age <span class="kw">BETWEEN</span> 18 <span class="kw">AND</span> 30;</code><div class="desc">Inclusive range check.</div></li>
+      <li class="dql"><code class="cmd">... WHERE status <span class="kw">IN</span> ('new','open');</code><span class="star">&#9733;</span><div class="desc">Match any value in a list.</div></li>
+      <li class="dql"><code class="cmd">... WHERE name <span class="kw">LIKE</span> 'A%';</code><span class="star">&#9733;</span><div class="desc">Pattern match &mdash; % any run, _ one char.</div></li>
+      <li class="dql"><code class="cmd">... WHERE deleted_at <span class="kw">IS NULL</span>;</code><span class="star">&#9733;</span><div class="desc">NULL check &mdash; never use = NULL.</div></li>
+      <li class="dql"><code class="cmd">... WHERE col <span class="flag">&lt;=&gt;</span> NULL;</code><div class="desc">NULL-safe equality (MySQL-specific).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c09">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Sort &amp; Paginate</span><span class="card-sub">DQL</span></div>
+    <ul class="cmds">
+      <li class="dql"><code class="cmd">... ORDER BY created_at <span class="flag">DESC</span>;</code><span class="star">&#9733;</span><div class="desc">Newest / largest first (ASC is default).</div></li>
+      <li class="dql"><code class="cmd">... ORDER BY a, b DESC;</code><div class="desc">Multi-key sort, mixed directions.</div></li>
+      <li class="dql"><code class="cmd">... LIMIT 20 OFFSET 40;</code><span class="star">&#9733;</span><div class="desc">Page 3 of 20-row pages.</div></li>
+      <li class="dql"><code class="cmd">... LIMIT 40, 20;</code><div class="desc">Shorthand &mdash; offset, count.</div></li>
+      <li class="dql"><code class="cmd">... ORDER BY RAND() LIMIT 1;</code><div class="desc">One random row &mdash; fine for small tables.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c10">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Joins</span><span class="card-sub">DQL &middot; combine tables</span></div>
+    <ul class="cmds">
+      <li class="dql"><code class="cmd">... FROM a <span class="kw">JOIN</span> b ON a.id=b.a_id;</code><span class="star">&#9733;</span><div class="desc">INNER JOIN &mdash; only matching rows both sides.</div></li>
+      <li class="dql"><code class="cmd">... FROM a <span class="kw">LEFT JOIN</span> b ON a.id=b.a_id;</code><span class="star">&#9733;</span><div class="desc">All of a, matched b or NULLs.</div></li>
+      <li class="dql"><code class="cmd">... FROM a <span class="kw">RIGHT JOIN</span> b ON a.id=b.a_id;</code><div class="desc">All of b, matched a or NULLs.</div></li>
+      <li class="dql"><code class="cmd">... FROM a <span class="kw">CROSS JOIN</span> b;</code><div class="desc">Cartesian product, every combination.</div></li>
+      <li class="dql"><code class="cmd">... FROM a JOIN b <span class="kw">USING</span> (id);</code><div class="desc">Shorthand when the join column shares a name.</div></li>
+      <li class="modern"><code class="cmd">... , <span class="kw">LATERAL</span> (SELECT ... WHERE x=a.id) d</code><div class="desc">Derived table that references the outer row (8.0.14+).</div></li>
+      <li class="dql"><code class="cmd">LEFT JOIN ... <span class="kw">UNION</span> ... RIGHT JOIN ...</code><div class="desc">Emulates FULL OUTER JOIN (no native support).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c11">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Group &amp; Aggregate</span><span class="card-sub">DQL &middot; roll rows up</span></div>
+    <ul class="cmds">
+      <li class="dql"><code class="cmd">SELECT dept, COUNT(*) FROM t <span class="kw">GROUP BY</span> dept;</code><span class="star">&#9733;</span><div class="desc">One output row per distinct group.</div></li>
+      <li class="dql"><code class="cmd">... GROUP BY dept <span class="kw">HAVING</span> COUNT(*) &gt; 5;</code><span class="star">&#9733;</span><div class="desc">Filter groups &mdash; runs after grouping.</div></li>
+      <li class="dql"><code class="cmd">COUNT(*), SUM, AVG, MIN, MAX</code><span class="star">&#9733;</span><div class="desc">The five core aggregate functions.</div></li>
+      <li class="dql"><code class="cmd">GROUP_CONCAT(name <span class="flag">SEPARATOR</span> ', ')</code><div class="desc">Concatenate group values into one string.</div></li>
+      <li class="dql"><code class="cmd">... GROUP BY dept <span class="flag">WITH ROLLUP</span>;</code><div class="desc">Adds subtotal / grand-total rows.</div></li>
+      <li class="modern"><code class="cmd">... <span class="fn">GROUPING</span>(dept)</code><div class="desc">Distinguish a real NULL from a ROLLUP super-aggregate.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c12">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Set Operations</span><span class="card-sub">DQL &middot; combine result sets</span></div>
+    <ul class="cmds">
+      <li class="dql"><code class="cmd">SELECT ... <span class="kw">UNION</span> SELECT ...</code><span class="star">&#9733;</span><div class="desc">Stack two results, de-duplicated.</div></li>
+      <li class="dql"><code class="cmd">SELECT ... <span class="kw">UNION ALL</span> SELECT ...</code><span class="star">&#9733;</span><div class="desc">Stack &amp; keep duplicates &mdash; faster.</div></li>
+      <li class="modern"><code class="cmd">SELECT ... <span class="kw">INTERSECT</span> SELECT ...</code><span class="tag8">8.0.31+</span><div class="desc">Rows present in <b>both</b> queries.</div></li>
+      <li class="modern"><code class="cmd">SELECT ... <span class="kw">EXCEPT</span> SELECT ...</code><span class="tag8">8.0.31+</span><div class="desc">Rows in the first query but not the second.</div></li>
+      <li class="modern"><code class="cmd"><span class="kw">VALUES</span> ROW(1,'a'), ROW(2,'b')</code><div class="desc">Table-value constructor as a standalone statement (8.0.19+).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c13">
+    <div class="card-head"><span class="card-num m8">13</span><span class="card-title">CTEs <span class="tag8">8.0+</span></span><span class="card-sub">WITH &middot; named subqueries</span></div>
+    <ul class="cmds">
+      <li class="modern"><code class="cmd"><span class="kw">WITH</span> cte AS (SELECT ...) SELECT * FROM cte;</code><span class="star">&#9733;</span><div class="desc">Name a subquery, reference it like a table &mdash; readable, reusable.</div></li>
+      <li class="modern"><code class="cmd"><span class="kw">WITH</span> a AS (...), b AS (...) SELECT ...</code><div class="desc">Chain multiple CTEs, comma-separated.</div></li>
+      <li class="modern"><code class="cmd"><span class="kw">WITH RECURSIVE</span> cte AS (SELECT ... <span class="kw">UNION ALL</span> SELECT ... FROM cte) ...</code><span class="star">&#9733;</span><div class="desc">Walk hierarchies (org charts, trees) or generate series.</div></li>
+      <li class="meta"><code class="cmd">// base case &rarr; UNION ALL &rarr; recursive case</code><div class="desc">Recursion stops when the recursive half returns no rows.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c14">
+    <div class="card-head"><span class="card-num m8">14</span><span class="card-title">Window Functions <span class="tag8">8.0+</span></span><span class="card-sub">per-row calc over a window</span></div>
+    <ul class="cmds">
+      <li class="modern"><code class="cmd"><span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span> (ORDER BY total DESC)</code><span class="star">&#9733;</span><div class="desc">Sequential 1,2,3&hellip; &mdash; no ties.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">RANK</span>() / <span class="fn">DENSE_RANK</span>() OVER (ORDER BY x)</code><span class="star">&#9733;</span><div class="desc">Ranking with ties &mdash; RANK gaps, DENSE_RANK doesn't.</div></li>
+      <li class="modern"><code class="cmd">SUM(amt) OVER (<span class="kw">PARTITION BY</span> dept)</code><span class="star">&#9733;</span><div class="desc">Aggregate <b>per group</b> without collapsing rows.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">LAG</span>(x) / <span class="fn">LEAD</span>(x) OVER (ORDER BY d)</code><span class="star">&#9733;</span><div class="desc">Value from the previous / next row &mdash; deltas, trends.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">NTILE</span>(4) OVER (ORDER BY score)</code><div class="desc">Split rows into N buckets (quartiles etc).</div></li>
+      <li class="modern"><code class="cmd">FIRST_VALUE / LAST_VALUE / NTH_VALUE</code><div class="desc">Pull a specific row's value across the window.</div></li>
+      <li class="modern"><code class="cmd">... OVER <span class="kw">w</span> ... <span class="kw">WINDOW</span> w AS (PARTITION BY dept ORDER BY x)</code><div class="desc">Name a window once, reuse it across functions.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c15">
+    <div class="card-head"><span class="card-num m8">15</span><span class="card-title">JSON <span class="tag8">8.0+</span></span><span class="card-sub">native document handling</span></div>
+    <ul class="cmds">
+      <li class="modern"><code class="cmd">col<span class="flag">-&gt;</span>'$.name' &middot; col<span class="flag">-&gt;&gt;</span>'$.name'</code><span class="star">&#9733;</span><div class="desc">Extract / extract-and-unquote &mdash; shorthand for JSON_EXTRACT.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">JSON_EXTRACT</span>(col, '$.a.b')</code><div class="desc">Pull a value at a path.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">JSON_OBJECT</span>('k',v) &middot; <span class="fn">JSON_ARRAY</span>(1,2)</code><div class="desc">Build JSON from columns.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">JSON_SET</span>/<span class="fn">JSON_REPLACE</span>/<span class="fn">JSON_REMOVE</span>(col,'$.a',1)</code><span class="star">&#9733;</span><div class="desc">Partial, in-place updates to a document.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">JSON_CONTAINS</span>(col, '"red"', '$.tags')</code><div class="desc">Membership test inside a document.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">JSON_TABLE</span>(col,'$[*]' COLUMNS (id INT PATH '$.id')) jt</code><span class="star">&#9733;</span><div class="desc">Turn a JSON array into relational rows you can JOIN.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">JSON_ARRAYAGG</span>(x) &middot; <span class="fn">JSON_OBJECTAGG</span>(k,v)</code><div class="desc">Aggregate rows back into a JSON array / object.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">JSON_VALUE</span>(col,'$.a' RETURNING INT)</code><div class="desc">Extract + type-cast in one call (8.0.21+).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c16">
+    <div class="card-head"><span class="card-num m8">16</span><span class="card-title">Regular Expressions <span class="tag8">8.0+</span></span><span class="card-sub">ICU engine, full Unicode</span></div>
+    <ul class="cmds">
+      <li class="modern"><code class="cmd">col <span class="kw">REGEXP</span> '^A.*z$'</code><span class="star">&#9733;</span><div class="desc">Pattern match in WHERE &mdash; RLIKE is a synonym.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">REGEXP_LIKE</span>(col, 'pat', 'i')</code><span class="star">&#9733;</span><div class="desc">Match with flags &mdash; 'i' = case-insensitive.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">REGEXP_REPLACE</span>(col, 'pat', 'repl')</code><span class="star">&#9733;</span><div class="desc">Search-and-replace by pattern.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">REGEXP_SUBSTR</span>(col, '[A-Z]{2}-[0-9]+')</code><div class="desc">Extract the first matching substring.</div></li>
+      <li class="modern"><code class="cmd"><span class="fn">REGEXP_INSTR</span>(col, 'pat')</code><div class="desc">Position of the match (0 if none).</div></li>
+      <li class="meta"><code class="cmd">// REGEXP can't use a B-tree index</code><div class="desc">It scans &mdash; pair with an indexed filter on large tables.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c17">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Full-Text Search</span><span class="card-sub">InnoDB &amp; MyISAM</span></div>
+    <ul class="cmds">
+      <li class="ddl"><code class="cmd">CREATE <span class="flag">FULLTEXT</span> INDEX ft ON <span class="arg">articles</span>(title, body);</code><span class="star">&#9733;</span><div class="desc">Index CHAR/VARCHAR/TEXT columns for word search.</div></li>
+      <li class="dql"><code class="cmd">... WHERE <span class="fn">MATCH</span>(title,body) <span class="fn">AGAINST</span>('cake')</code><span class="star">&#9733;</span><div class="desc">Natural-language search, relevance-ranked.</div></li>
+      <li class="dql"><code class="cmd">... AGAINST('+cake -mud' <span class="flag">IN BOOLEAN MODE</span>)</code><span class="star">&#9733;</span><div class="desc">Boolean operators: + require, - exclude, * prefix.</div></li>
+      <li class="dql"><code class="cmd">... AGAINST('run' <span class="flag">WITH QUERY EXPANSION</span>)</code><div class="desc">Broaden results via related terms.</div></li>
+      <li class="meta"><code class="cmd">// WITH PARSER ngram</code><div class="desc">Add the ngram parser for Chinese/Japanese/Korean.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c18">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Common Functions</span><span class="card-sub">string / date / numeric / flow</span></div>
+    <ul class="cmds">
+      <li class="dql"><code class="cmd">CONCAT(a,' ',b) &middot; CONCAT_WS('-',a,b)</code><span class="star">&#9733;</span><div class="desc">Join strings, optionally with a separator.</div></li>
+      <li class="dql"><code class="cmd">UPPER / LOWER / TRIM / SUBSTRING / REPLACE</code><div class="desc">Core string manipulation.</div></li>
+      <li class="dql"><code class="cmd">NOW() / CURDATE() / CURTIME()</code><span class="star">&#9733;</span><div class="desc">Current timestamp / date / time.</div></li>
+      <li class="dql"><code class="cmd">DATE_ADD(d, INTERVAL 7 DAY) &middot; DATEDIFF(a,b)</code><div class="desc">Date arithmetic &amp; differences.</div></li>
+      <li class="dql"><code class="cmd">DATE_FORMAT(d, '%Y-%m-%d')</code><div class="desc">Format a date to a string.</div></li>
+      <li class="dql"><code class="cmd">ROUND(x,2) / CEIL / FLOOR / ABS / MOD</code><div class="desc">Numeric helpers.</div></li>
+      <li class="dql"><code class="cmd">COALESCE(a,b,'default') &middot; IFNULL(x,0)</code><span class="star">&#9733;</span><div class="desc">First non-NULL / NULL substitution.</div></li>
+      <li class="dql"><code class="cmd">CASE WHEN x&gt;0 THEN 'pos' ELSE 'neg' END</code><span class="star">&#9733;</span><div class="desc">Inline conditional logic.</div></li>
+      <li class="dql"><code class="cmd">CAST(x AS DECIMAL(10,2)) &middot; CONVERT(...)</code><div class="desc">Explicit type conversion.</div></li>
+      <li class="dql"><code class="cmd">UUID() &middot; UUID_TO_BIN(u)</code><div class="desc">Generate UUIDs; 8.0 adds compact binary storage.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c19">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Update &amp; Delete</span><span class="card-sub">DML &middot; handle with care</span></div>
+    <ul class="cmds">
+      <li class="dml"><code class="cmd">UPDATE <span class="arg">t</span> SET status='done' WHERE id=7;</code><span class="star">&#9733;</span><div class="desc">Change matching rows &mdash; always use WHERE.</div></li>
+      <li class="dml"><code class="cmd">UPDATE a JOIN b ON a.id=b.a_id SET a.x=b.y;</code><div class="desc">Multi-table update via join.</div></li>
+      <li class="dml"><code class="cmd">DELETE FROM <span class="arg">t</span> WHERE id=7;</code><span class="star">&#9733;</span><div class="desc">Remove matching rows, logged &amp; rollback-able.</div></li>
+      <li class="danger"><code class="cmd">UPDATE <span class="arg">t</span> SET x=1; &nbsp; DELETE FROM <span class="arg">t</span>;</code><span class="badge-danger">no WHERE</span><div class="desc">Touches <b>every row</b> in the table.</div></li>
+      <li class="danger"><code class="cmd">TRUNCATE TABLE <span class="arg">t</span>;</code><span class="badge-danger">destroys</span><div class="desc">Instant wipe; resets AUTO_INCREMENT; not row-logged.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c20">
+    <div class="card-head"><span class="card-num">20</span><span class="card-title">Keys &amp; Constraints</span><span class="card-sub">DDL &middot; data integrity</span></div>
+    <ul class="cmds">
+      <li class="ddl"><code class="cmd">id INT <span class="flag">AUTO_INCREMENT</span> <span class="flag">PRIMARY KEY</span></code><span class="star">&#9733;</span><div class="desc">Unique row identity; persists across restart in 8.0.</div></li>
+      <li class="ddl"><code class="cmd">email VARCHAR(120) <span class="flag">UNIQUE</span></code><span class="star">&#9733;</span><div class="desc">No two rows may share this value.</div></li>
+      <li class="ddl"><code class="cmd">name VARCHAR(50) <span class="flag">NOT NULL</span> <span class="flag">DEFAULT</span> ''</code><span class="star">&#9733;</span><div class="desc">Nullability + fallback value.</div></li>
+      <li class="ddl"><code class="cmd">FOREIGN KEY (user_id) REFERENCES users(id) <span class="flag">ON DELETE CASCADE</span></code><span class="star">&#9733;</span><div class="desc">Referential integrity + auto-cleanup of children.</div></li>
+      <li class="modern"><code class="cmd">CHECK (price &gt;= 0)</code><div class="desc">Row-level validation &mdash; enforced since 8.0.16.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c21">
+    <div class="card-head"><span class="card-num">21</span><span class="card-title">Indexes</span><span class="card-sub">DDL &middot; speed up reads</span></div>
+    <ul class="cmds">
+      <li class="ddl"><code class="cmd">CREATE INDEX idx ON <span class="arg">t</span>(email);</code><span class="star">&#9733;</span><div class="desc">Speed up lookups/filters on a column.</div></li>
+      <li class="ddl"><code class="cmd">CREATE UNIQUE INDEX idx ON <span class="arg">t</span>(sku);</code><div class="desc">Index that also enforces uniqueness.</div></li>
+      <li class="ddl"><code class="cmd">CREATE INDEX idx ON <span class="arg">t</span>(last, first);</code><div class="desc">Composite &mdash; leftmost-prefix rule applies.</div></li>
+      <li class="modern"><code class="cmd">CREATE INDEX idx ON <span class="arg">t</span>(created <span class="flag">DESC</span>);</code><div class="desc"><b>Descending index</b> &mdash; real reverse scan (8.0+).</div></li>
+      <li class="modern"><code class="cmd">ALTER TABLE <span class="arg">t</span> ALTER INDEX idx <span class="flag">INVISIBLE</span>;</code><span class="star">&#9733;</span><div class="desc"><b>Invisible index</b> &mdash; test dropping it safely (8.0+).</div></li>
+      <li class="modern"><code class="cmd">CREATE INDEX idx ON <span class="arg">t</span>((UPPER(name)));</code><div class="desc"><b>Functional index</b> on an expression (8.0.13+).</div></li>
+      <li class="meta"><code class="cmd">SHOW INDEX FROM <span class="arg">t</span>;</code><div class="desc">List indexes and cardinality.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c22">
+    <div class="card-head"><span class="card-num">22</span><span class="card-title">Generated Columns</span><span class="card-sub">DDL &middot; computed columns</span></div>
+    <ul class="cmds">
+      <li class="ddl"><code class="cmd">total DECIMAL(10,2) <span class="flag">AS</span> (qty*price) <span class="flag">STORED</span></code><span class="star">&#9733;</span><div class="desc">Value computed &amp; persisted on write.</div></li>
+      <li class="ddl"><code class="cmd">full_name VARCHAR(120) <span class="flag">AS</span> (CONCAT(first,' ',last)) <span class="flag">VIRTUAL</span></code><div class="desc">Computed on read &mdash; no storage cost.</div></li>
+      <li class="modern"><code class="cmd">city VARCHAR(50) AS (addr<span class="flag">-&gt;&gt;</span>'$.city') STORED</code><span class="star">&#9733;</span><div class="desc">Promote a JSON field to a real, indexable column.</div></li>
+      <li class="ddl"><code class="cmd">CREATE INDEX idx ON <span class="arg">t</span>(total);</code><div class="desc">Generated columns can be indexed like any other.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c23">
+    <div class="card-head"><span class="card-num">23</span><span class="card-title">Partitioning</span><span class="card-sub">DDL &middot; split one table physically</span></div>
+    <ul class="cmds">
+      <li class="ddl"><code class="cmd">... <span class="flag">PARTITION BY RANGE</span> (YEAR(d)) (PARTITION p0 VALUES LESS THAN (2020), ...)</code><span class="star">&#9733;</span><div class="desc">Split by value range &mdash; time-series, archival.</div></li>
+      <li class="ddl"><code class="cmd">... <span class="flag">PARTITION BY LIST</span> (region) (...)</code><div class="desc">Split by an explicit set of values.</div></li>
+      <li class="ddl"><code class="cmd">... <span class="flag">PARTITION BY HASH</span> (id) PARTITIONS 4;</code><div class="desc">Even spread across N partitions.</div></li>
+      <li class="ddl"><code class="cmd">ALTER TABLE <span class="arg">t</span> <span class="flag">DROP PARTITION</span> p0;</code><div class="desc">Drop a whole partition instantly &mdash; fast bulk delete.</div></li>
+      <li class="meta"><code class="cmd">// EXPLAIN shows partition pruning</code><div class="desc">The optimizer skips partitions that can't match.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c24">
+    <div class="card-head"><span class="card-num">24</span><span class="card-title">Transactions</span><span class="card-sub">TCL &middot; InnoDB only</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd">START TRANSACTION;</code><span class="star">&#9733;</span><div class="desc">Begin a block of atomic statements.</div></li>
+      <li class="admin"><code class="cmd">COMMIT; &nbsp; ROLLBACK;</code><span class="star">&#9733;</span><div class="desc">Make permanent / undo the whole block.</div></li>
+      <li class="admin"><code class="cmd">SAVEPOINT sp1; &nbsp; ROLLBACK TO sp1;</code><div class="desc">Partial rollback to a named point.</div></li>
+      <li class="admin"><code class="cmd">SET autocommit = 0;</code><div class="desc">Turn off per-statement auto-commit.</div></li>
+      <li class="admin"><code class="cmd">SET TRANSACTION ISOLATION LEVEL <span class="arg">READ COMMITTED</span>;</code><div class="desc">Default is REPEATABLE READ in InnoDB.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c25">
+    <div class="card-head"><span class="card-num m8">25</span><span class="card-title">Locking Reads <span class="tag8">8.0+</span></span><span class="card-sub">DQL &middot; concurrency</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd">SELECT ... <span class="flag">FOR UPDATE</span>;</code><span class="star">&#9733;</span><div class="desc">Lock the read rows for writing &mdash; blocks other writers.</div></li>
+      <li class="admin"><code class="cmd">SELECT ... <span class="flag">FOR SHARE</span>;</code><div class="desc">Shared lock &mdash; others read, not write (8.0 syntax).</div></li>
+      <li class="modern"><code class="cmd">SELECT ... FOR UPDATE <span class="flag">SKIP LOCKED</span>;</code><span class="star">&#9733;</span><div class="desc">Skip already-locked rows &mdash; the queue-worker pattern.</div></li>
+      <li class="modern"><code class="cmd">SELECT ... FOR UPDATE <span class="flag">NOWAIT</span>;</code><div class="desc">Error immediately instead of waiting on a lock.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c26">
+    <div class="card-head"><span class="card-num">26</span><span class="card-title">Users &amp; Privileges</span><span class="card-sub">DCL &middot; access control</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd">CREATE USER 'u'@'localhost' <span class="flag">IDENTIFIED BY</span> 'pw';</code><span class="star">&#9733;</span><div class="desc">8.0 defaults to caching_sha2_password auth.</div></li>
+      <li class="admin"><code class="cmd">CREATE USER 'legacy'@'%' IDENTIFIED <span class="flag">WITH mysql_native_password</span> BY 'pw';</code><div class="desc">Fallback for old clients that can't do sha2.</div></li>
+      <li class="admin"><code class="cmd">GRANT ALL PRIVILEGES ON db.* TO 'u'@'localhost';</code><span class="star">&#9733;</span><div class="desc">Full rights on every table in db.</div></li>
+      <li class="admin"><code class="cmd">GRANT SELECT, INSERT ON db.t TO 'u'@'localhost';</code><div class="desc">Grant only specific privileges.</div></li>
+      <li class="meta"><code class="cmd">SHOW GRANTS FOR 'u'@'localhost';</code><div class="desc">List a user's current privileges.</div></li>
+      <li class="admin"><code class="cmd">ALTER USER 'u'@'localhost' IDENTIFIED BY 'newpw';</code><div class="desc">Change a password.</div></li>
+      <li class="admin"><code class="cmd">FLUSH PRIVILEGES;</code><div class="desc">Reload grant tables after manual edits.</div></li>
+      <li class="danger"><code class="cmd">DROP USER 'u'@'localhost';</code><span class="badge-danger">destroys</span><div class="desc">Delete the account entirely.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c27">
+    <div class="card-head"><span class="card-num m8">27</span><span class="card-title">Roles <span class="tag8">8.0+</span></span><span class="card-sub">DCL &middot; grouped privileges</span></div>
+    <ul class="cmds">
+      <li class="modern"><code class="cmd">CREATE ROLE 'app_read', 'app_write';</code><span class="star">&#9733;</span><div class="desc">A named bundle of privileges.</div></li>
+      <li class="modern"><code class="cmd">GRANT SELECT ON app.* TO 'app_read';</code><span class="star">&#9733;</span><div class="desc">Grant privileges to the role, not each user.</div></li>
+      <li class="modern"><code class="cmd">GRANT 'app_read' TO 'alice'@'%';</code><span class="star">&#9733;</span><div class="desc">Assign the role to a user.</div></li>
+      <li class="modern"><code class="cmd">SET ROLE 'app_read';</code><div class="desc">Activate a role for the current session.</div></li>
+      <li class="modern"><code class="cmd">SET DEFAULT ROLE ALL TO 'alice'@'%';</code><div class="desc">Auto-activate roles on every login.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c28">
+    <div class="card-head"><span class="card-num">28</span><span class="card-title">Views</span><span class="card-sub">DDL &middot; saved queries</span></div>
+    <ul class="cmds">
+      <li class="ddl"><code class="cmd">CREATE VIEW active AS SELECT * FROM u WHERE active=1;</code><span class="star">&#9733;</span><div class="desc">Name a query &mdash; query it like a table.</div></li>
+      <li class="ddl"><code class="cmd">CREATE OR REPLACE VIEW <span class="arg">v</span> AS ...;</code><div class="desc">Redefine an existing view.</div></li>
+      <li class="ddl"><code class="cmd">... WITH CHECK OPTION</code><div class="desc">Reject writes through the view that violate its WHERE.</div></li>
+      <li class="danger"><code class="cmd">DROP VIEW <span class="arg">v</span>;</code><span class="badge-danger">removes</span><div class="desc">Delete the view (underlying data untouched).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c29">
+    <div class="card-head"><span class="card-num">29</span><span class="card-title">Procedures &amp; Triggers</span><span class="card-sub">server-side logic</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd">CREATE PROCEDURE p(IN x INT) BEGIN ... END;</code><span class="star">&#9733;</span><div class="desc">Reusable stored routine; CALL p(1) to run.</div></li>
+      <li class="admin"><code class="cmd">CREATE FUNCTION f(x INT) RETURNS INT ...</code><div class="desc">Returns a scalar, usable inside SELECT.</div></li>
+      <li class="admin"><code class="cmd">CREATE TRIGGER trg <span class="flag">BEFORE INSERT</span> ON <span class="arg">t</span> FOR EACH ROW ...</code><span class="star">&#9733;</span><div class="desc">Auto-run logic on write; NEW./OLD. row refs.</div></li>
+      <li class="admin"><code class="cmd">CREATE EVENT e ON SCHEDULE EVERY 1 DAY DO ...</code><div class="desc">Scheduled job via the event scheduler.</div></li>
+      <li class="meta"><code class="cmd">SHOW PROCEDURE STATUS; &middot; SHOW TRIGGERS;</code><div class="desc">List routines &amp; triggers.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c30">
+    <div class="card-head"><span class="card-num">30</span><span class="card-title">Backup, Restore &amp; Import</span><span class="card-sub">shell &middot; not run inside mysql&gt;</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd">mysqldump <span class="flag">-u</span> u <span class="flag">-p</span> db &gt; backup.sql</code><span class="star">&#9733;</span><div class="desc">Export a full database to a .sql file.</div></li>
+      <li class="admin"><code class="cmd">mysqldump <span class="flag">-u</span> u <span class="flag">-p</span> <span class="flag">--all-databases</span> &gt; all.sql</code><div class="desc">Dump every database on the server.</div></li>
+      <li class="admin"><code class="cmd">mysql <span class="flag">-u</span> u <span class="flag">-p</span> db &lt; backup.sql</code><span class="star">&#9733;</span><div class="desc">Restore a dump into an existing database.</div></li>
+      <li class="admin"><code class="cmd">mysqlsh -- util dumpInstance / loadDump</code><div class="desc">Parallel logical dump utilities (MySQL Shell 8.0).</div></li>
+      <li class="dml"><code class="cmd">LOAD DATA INFILE 'f.csv' INTO TABLE t <span class="flag">FIELDS TERMINATED BY</span> ',';</code><div class="desc">Bulk-load a CSV &mdash; far faster than INSERTs.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="c31">
+    <div class="card-head"><span class="card-num">31</span><span class="card-title">Optimize &amp; Inspect</span><span class="card-sub">performance tuning</span></div>
+    <ul class="cmds">
+      <li class="meta"><code class="cmd"><span class="flag">EXPLAIN</span> SELECT ...;</code><span class="star">&#9733;</span><div class="desc">The optimizer's plan &mdash; index used, rows estimated.</div></li>
+      <li class="modern"><code class="cmd"><span class="flag">EXPLAIN ANALYZE</span> SELECT ...;</code><span class="star">&#9733;</span><div class="desc"><b>Actual</b> timing &amp; row counts vs. estimates (8.0.18+).</div></li>
+      <li class="dql"><code class="cmd">SELECT <span class="flag">/*+ INDEX(t idx) */</span> ...</code><div class="desc">Optimizer hint to force an index.</div></li>
+      <li class="admin"><code class="cmd">ANALYZE TABLE <span class="arg">t</span>;</code><div class="desc">Refresh index statistics / histograms.</div></li>
+      <li class="admin"><code class="cmd">OPTIMIZE TABLE <span class="arg">t</span>;</code><div class="desc">Rebuild &amp; defragment storage.</div></li>
+      <li class="meta"><code class="cmd">SHOW PROCESSLIST; &middot; SHOW STATUS;</code><div class="desc">Live queries &amp; server counters.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Operators &amp; Wildcards</span><span class="card-sub">used throughout</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">=  &lt;=&gt;  !=  &lt;&gt;  &lt;  &gt;  &lt;=  &gt;=</code><div class="desc">Standard + NULL-safe (&lt;=&gt;) equality.</div></li>
+      <li><code class="cmd">% (LIKE) &middot; _ (LIKE) &middot; .* + ? (REGEXP)</code><div class="desc">LIKE wildcards vs. regex metacharacters.</div></li>
+      <li><code class="cmd">AND &middot; OR &middot; NOT &middot; XOR</code><div class="desc">Boolean logic operators.</div></li>
+      <li><code class="cmd">IN &middot; NOT IN &middot; EXISTS &middot; ANY / ALL</code><div class="desc">Set-membership &amp; subquery tests.</div></li>
+      <li><code class="cmd">IS NULL &middot; IS NOT NULL</code><div class="desc">The only correct way to test for NULL.</div></li>
+      <li><code class="cmd">-&gt; &middot; -&gt;&gt;</code><div class="desc">JSON extract / extract-unquote operators.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<section class="diagrams">
+  <h2>MySQL 8.0's flagship additions, visualized</h2>
+  <p class="sub">The three features that most change how you write MySQL &mdash; from the official <i>What's New in MySQL 8.0</i> reference.</p>
+  <div class="merge-grid three">
+
+    <div class="merge-card">
+      <h3>GROUP BY vs. window function</h3>
+      <p>GROUP BY collapses rows into one per group; a window function computes per group but <b>keeps every row</b>.</p>
+      <svg viewBox="0 0 300 180" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Left: four rows collapsing into two grouped rows. Right: four rows staying four, each annotated with its group total.">
+        <defs><marker id="dn" viewBox="0 0 10 10" refX="5" refY="9" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,0 L5,10 z" fill="#94a3b8"/></marker></defs>
+        <text x="70" y="16" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#4f46e5">GROUP BY</text>
+        <g font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">
+          <rect x="20" y="24" width="100" height="18" rx="3" fill="#eef0fd" stroke="#4f46e5"/><text x="70" y="37" fill="#1a1d24">A 10</text>
+          <rect x="20" y="44" width="100" height="18" rx="3" fill="#eef0fd" stroke="#4f46e5"/><text x="70" y="57" fill="#1a1d24">A 20</text>
+          <rect x="20" y="64" width="100" height="18" rx="3" fill="#fdf6ec" stroke="#d97706"/><text x="70" y="77" fill="#1a1d24">B 30</text>
+          <rect x="20" y="84" width="100" height="18" rx="3" fill="#fdf6ec" stroke="#d97706"/><text x="70" y="97" fill="#1a1d24">B 40</text>
+          <line x1="70" y1="106" x2="70" y2="120" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#dn)"/>
+          <rect x="20" y="124" width="100" height="18" rx="3" fill="#eef0fd" stroke="#4f46e5"/><text x="70" y="137" fill="#1a1d24">A 30</text>
+          <rect x="20" y="146" width="100" height="18" rx="3" fill="#fdf6ec" stroke="#d97706"/><text x="70" y="159" fill="#1a1d24">B 70</text>
+        </g>
+        <text x="228" y="16" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#0891b2">OVER(PARTITION BY)</text>
+        <g font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">
+          <rect x="178" y="24" width="104" height="18" rx="3" fill="#e6f6fa" stroke="#0891b2"/><text x="230" y="37" fill="#1a1d24">A 10 &rarr; 30</text>
+          <rect x="178" y="44" width="104" height="18" rx="3" fill="#e6f6fa" stroke="#0891b2"/><text x="230" y="57" fill="#1a1d24">A 20 &rarr; 30</text>
+          <rect x="178" y="64" width="104" height="18" rx="3" fill="#e6f6fa" stroke="#0891b2"/><text x="230" y="77" fill="#1a1d24">B 30 &rarr; 70</text>
+          <rect x="178" y="84" width="104" height="18" rx="3" fill="#e6f6fa" stroke="#0891b2"/><text x="230" y="97" fill="#1a1d24">B 40 &rarr; 70</text>
+        </g>
+        <text x="230" y="120" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#0891b2">all 4 rows kept</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Recursive CTE walks a tree</h3>
+      <p>The base row seeds the set; each pass joins children on, until no new rows appear &mdash; depth accumulates as <code>level</code>.</p>
+      <svg viewBox="0 0 300 180" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A tree with a root node at level 1, two children at level 2, and two grandchildren at level 3, showing recursive expansion.">
+        <g font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">
+          <rect x="120" y="14" width="60" height="26" rx="6" fill="#e6f6fa" stroke="#0891b2" stroke-width="1.6"/><text x="150" y="31" fill="#1a1d24">CEO</text>
+          <rect x="60" y="76" width="60" height="26" rx="6" fill="#e6f6fa" stroke="#0891b2" stroke-width="1.4"/><text x="90" y="93" fill="#1a1d24">VP-A</text>
+          <rect x="180" y="76" width="60" height="26" rx="6" fill="#e6f6fa" stroke="#0891b2" stroke-width="1.4"/><text x="210" y="93" fill="#1a1d24">VP-B</text>
+          <rect x="30" y="140" width="60" height="26" rx="6" fill="#e6f6fa" stroke="#0891b2" stroke-width="1.2"/><text x="60" y="157" fill="#1a1d24">Eng</text>
+          <rect x="100" y="140" width="60" height="26" rx="6" fill="#e6f6fa" stroke="#0891b2" stroke-width="1.2"/><text x="130" y="157" fill="#1a1d24">Ops</text>
+        </g>
+        <line x1="150" y1="40" x2="90" y2="76" stroke="#94a3b8" stroke-width="1.3"/>
+        <line x1="150" y1="40" x2="210" y2="76" stroke="#94a3b8" stroke-width="1.3"/>
+        <line x1="90" y1="102" x2="60" y2="140" stroke="#94a3b8" stroke-width="1.3"/>
+        <line x1="90" y1="102" x2="130" y2="140" stroke="#94a3b8" stroke-width="1.3"/>
+        <text x="278" y="30" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="8" fill="#0891b2">level 1</text>
+        <text x="278" y="92" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="8" fill="#0891b2">level 2</text>
+        <text x="278" y="156" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="8" fill="#0891b2">level 3</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>JSON_TABLE bridges to SQL</h3>
+      <p>A JSON array column becomes relational rows &mdash; then joins, filters, and aggregates like any table.</p>
+      <svg viewBox="0 0 300 180" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A JSON array of two objects on the left transforming into a two-row relational table on the right via JSON_TABLE.">
+        <defs><marker id="jt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0891b2"/></marker></defs>
+        <g font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">
+          <rect x="14" y="30" width="110" height="120" rx="8" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.4"/>
+          <text x="24" y="48" fill="#7c3aed">[</text>
+          <text x="30" y="64" fill="#3f444f">{id:1,</text>
+          <text x="30" y="78" fill="#3f444f">&nbsp;nm:"A"},</text>
+          <text x="30" y="96" fill="#3f444f">{id:2,</text>
+          <text x="30" y="110" fill="#3f444f">&nbsp;nm:"B"}</text>
+          <text x="24" y="126" fill="#7c3aed">]</text>
+          <text x="24" y="145" fill="#94a3b8" font-size="7">JSON column</text>
+        </g>
+        <line x1="128" y1="90" x2="168" y2="90" stroke="#0891b2" stroke-width="2" marker-end="url(#jt)"/>
+        <text x="148" y="82" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#0891b2">JSON_TABLE</text>
+        <g font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">
+          <rect x="176" y="50" width="50" height="22" fill="#ecf7f2" stroke="#059669"/><text x="201" y="65" fill="#1a1d24">id</text>
+          <rect x="226" y="50" width="50" height="22" fill="#ecf7f2" stroke="#059669"/><text x="251" y="65" fill="#1a1d24">nm</text>
+          <rect x="176" y="72" width="50" height="22" fill="#fff" stroke="#94a3b8"/><text x="201" y="87" fill="#3f444f">1</text>
+          <rect x="226" y="72" width="50" height="22" fill="#fff" stroke="#94a3b8"/><text x="251" y="87" fill="#3f444f">A</text>
+          <rect x="176" y="94" width="50" height="22" fill="#fff" stroke="#94a3b8"/><text x="201" y="109" fill="#3f444f">2</text>
+          <rect x="226" y="94" width="50" height="22" fill="#fff" stroke="#94a3b8"/><text x="251" y="109" fill="#3f444f">B</text>
+        </g>
+        <text x="226" y="132" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#94a3b8">relational rows</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<section class="diagrams" style="padding-top:0">
+  <h2>Join types at a glance</h2>
+  <p class="sub">Same two tables, five result sets. Shaded = rows returned.</p>
+  <div class="merge-grid three">
+
+    <div class="merge-card">
+      <h3>INNER JOIN</h3>
+      <p>Only rows where the key exists on <b>both</b> sides.</p>
+      <svg viewBox="0 0 300 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Inner join: only the overlap of two circles is shaded">
+        <circle cx="120" cy="75" r="52" fill="none" stroke="#059669" stroke-width="2"/>
+        <circle cx="180" cy="75" r="52" fill="none" stroke="#4f46e5" stroke-width="2"/>
+        <path d="M150,30 A52,52 0 0,1 150,120 A52,52 0 0,1 150,30 Z" fill="#7c3aed" fill-opacity=".35"/>
+        <text x="92" y="79" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#059669">a</text>
+        <text x="208" y="79" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#4f46e5">b</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>LEFT JOIN</h3>
+      <p><b>All</b> of the left table, matched right rows or NULL.</p>
+      <svg viewBox="0 0 300 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Left join: the entire left circle plus the overlap is shaded">
+        <path d="M120,23 A52,52 0 1,0 120,127 A52,52 0 0,0 120,23 Z" fill="#7c3aed" fill-opacity=".35"/>
+        <path d="M150,30 A52,52 0 0,1 150,120 A52,52 0 0,1 150,30 Z" fill="#7c3aed" fill-opacity=".35"/>
+        <circle cx="120" cy="75" r="52" fill="none" stroke="#059669" stroke-width="2"/>
+        <circle cx="180" cy="75" r="52" fill="none" stroke="#4f46e5" stroke-width="2"/>
+        <text x="92" y="79" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#059669">a</text>
+        <text x="208" y="79" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#4f46e5">b</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>RIGHT JOIN</h3>
+      <p><b>All</b> of the right table, matched left rows or NULL.</p>
+      <svg viewBox="0 0 300 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Right join: the entire right circle plus the overlap is shaded">
+        <path d="M180,23 A52,52 0 1,1 180,127 A52,52 0 0,1 180,23 Z" fill="#7c3aed" fill-opacity=".35"/>
+        <path d="M150,30 A52,52 0 0,1 150,120 A52,52 0 0,1 150,30 Z" fill="#7c3aed" fill-opacity=".35"/>
+        <circle cx="120" cy="75" r="52" fill="none" stroke="#059669" stroke-width="2"/>
+        <circle cx="180" cy="75" r="52" fill="none" stroke="#4f46e5" stroke-width="2"/>
+        <text x="92" y="79" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#059669">a</text>
+        <text x="208" y="79" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#4f46e5">b</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>FULL OUTER <span style="font-weight:400; color:var(--muted)">(via UNION)</span></h3>
+      <p>Everything from both sides. MySQL has no native FULL JOIN &mdash; LEFT UNION RIGHT.</p>
+      <svg viewBox="0 0 300 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Full outer join: both entire circles are shaded">
+        <circle cx="120" cy="75" r="52" fill="#7c3aed" fill-opacity=".35" stroke="#059669" stroke-width="2"/>
+        <circle cx="180" cy="75" r="52" fill="#7c3aed" fill-opacity=".35" stroke="#4f46e5" stroke-width="2"/>
+        <text x="92" y="79" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#059669">a</text>
+        <text x="208" y="79" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#4f46e5">b</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>CROSS JOIN</h3>
+      <p>Cartesian product &mdash; every row of a paired with every row of b.</p>
+      <svg viewBox="0 0 300 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cross join: a grid showing every combination of rows from two small tables">
+        <g font-family="JetBrains Mono, monospace" font-size="11" text-anchor="middle">
+          <rect x="60" y="18" width="56" height="24" rx="4" fill="#ecf7f2" stroke="#059669"/><text x="88" y="34" fill="#1a1d24">a1</text>
+          <rect x="60" y="48" width="56" height="24" rx="4" fill="#ecf7f2" stroke="#059669"/><text x="88" y="64" fill="#1a1d24">a2</text>
+          <rect x="60" y="78" width="56" height="24" rx="4" fill="#ecf7f2" stroke="#059669"/><text x="88" y="94" fill="#1a1d24">a3</text>
+          <rect x="184" y="33" width="56" height="24" rx="4" fill="#eef0fd" stroke="#4f46e5"/><text x="212" y="49" fill="#1a1d24">b1</text>
+          <rect x="184" y="63" width="56" height="24" rx="4" fill="#eef0fd" stroke="#4f46e5"/><text x="212" y="79" fill="#1a1d24">b2</text>
+        </g>
+        <text x="150" y="66" text-anchor="middle" font-size="15" fill="#7c3aed" font-family="JetBrains Mono, monospace">&times;</text>
+        <text x="150" y="130" text-anchor="middle" font-size="10.5" fill="#7c3aed" font-family="JetBrains Mono, monospace">3 &times; 2 = 6 result rows</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">DELETE &ne; TRUNCATE</span><span class="v">DELETE is row-logged &amp; rollback-able; TRUNCATE wipes instantly &amp; can't</span></div>
+    <div><span class="k">WHERE &ne; HAVING</span><span class="v">WHERE filters rows before grouping; HAVING filters groups after</span></div>
+    <div><span class="k">GROUP BY &ne; window</span><span class="v"><code>OVER()</code> aggregates per group but keeps every row; GROUP BY collapses them</span></div>
+    <div><span class="k">PRIMARY KEY &ne; UNIQUE</span><span class="v">PK forbids NULL, one per table; UNIQUE allows one NULL, many per table</span></div>
+    <div><span class="k">CTE &ne; subquery</span><span class="v">a CTE can be referenced multiple times &amp; can recurse; a derived table can't</span></div>
+    <div><span class="k">EXPLAIN vs ANALYZE</span><span class="v"><code>EXPLAIN</code> estimates the plan; <code>EXPLAIN ANALYZE</code> runs it &amp; times it</span></div>
+    <div><span class="k">roles &gt; per-user grants</span><span class="v">grant to a role once, assign the role &mdash; central privilege mgmt (8.0)</span></div>
+    <div><span class="k">invisible index</span><span class="v">test whether dropping an index hurts, without actually dropping it (8.0)</span></div>
+    <div><span class="k">-&gt; vs -&gt;&gt;</span><span class="v"><code>-&gt;</code> returns JSON; <code>-&gt;&gt;</code> also unquotes to a plain string</span></div>
+    <div><span class="k">SKIP LOCKED</span><span class="v">the clean way to build a concurrent job queue on a table (8.0)</span></div>
+    <div><span class="k">utf8mb4 default</span><span class="v">8.0's default charset &mdash; true 4-byte Unicode, real emoji support</span></div>
+    <div><span class="k">no query cache</span><span class="v">removed in 8.0 &mdash; rely on the buffer pool &amp; app-side caching</span></div>
+  </div>
+</section>
+
+<footer>
+  MySQL 8.0 / 8.4 LTS cheat sheet &middot; v2 comprehensive edition &middot; synthesized from the official MySQL 8.0 Reference Manual (dev.mysql.com/doc/refman/8.0), "What's New in MySQL 8.0", the 8.4 LTS release notes, mysqltutorial.org, LearnSQL.com, and quickref.me.<br>
+  Targets MySQL 8.0.0&ndash;8.4 &middot; InnoDB assumed &middot; <span class="tag8">8.0+</span> marks features absent in 5.7 &middot; per-feature minimum point-releases noted inline where they matter (e.g. INTERSECT 8.0.31, EXPLAIN ANALYZE 8.0.18).
+</footer>
+
+</body>
+</html>

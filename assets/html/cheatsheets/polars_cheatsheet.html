@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polars Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --create:#2563eb;  --create-bg:#eff4fe;
+    --inspect:#64748b; --inspect-bg:#f1f3f6;
+    --select:#d97706;  --select-bg:#fdf6ec;
+    --shape:#7c3aed;   --shape-bg:#f5f0fd;
+    --clean:#059669;   --clean-bg:#ecf7f2;
+    --stats:#0891b2;   --stats-bg:#eafafd;
+    --danger:#dc2626;  --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .pl{font-family:var(--mono); color:var(--create)}
+  .lede{max-width:62ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.create{background:var(--create)} .dot.inspect{background:var(--inspect)}
+  .dot.select{background:var(--select)} .dot.shape{background:var(--shape)}
+  .dot.clean{background:var(--clean)} .dot.stats{background:var(--stats)}
+  .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1080px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1240px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.create{border-left-color:var(--create)}
+  ul.cmds li.inspect{border-left-color:var(--inspect)}
+  ul.cmds li.select{border-left-color:var(--select)}
+  ul.cmds li.shape{border-left-color:var(--shape)}
+  ul.cmds li.clean{border-left-color:var(--clean)}
+  ul.cmds li.stats{border-left-color:var(--stats)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  ul.cmds li.note{border-left-color:var(--line); background:#faf9f6}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.79rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .arg{color:var(--create); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .num{color:var(--stats); font-weight:400}
+  li.danger code.cmd{color:var(--danger)}
+  li.note code.cmd{color:#525761; font-style:italic; font-weight:400}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-safe{
+    color:var(--clean); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference &middot; fast, multi-threaded DataFrames in Python</div>
+  <h1><span class="pl">polars</span> cheat sheet</h1>
+  <p class="lede">Polars is built on two ideas: <b>expressions</b> (composable, reusable computations like <code>pl.col('x').mean()</code>) that plug into <b>contexts</b> (<code>select</code>, <code>filter</code>, <code>with_columns</code>, <code>group_by</code>), and a choice between <b>eager</b> execution and a <b>lazy</b>, query-optimized one via <code>.lazy()...collect()</code>.</p>
+  <div class="legend">
+    <span><i class="dot create"></i>create / load</span>
+    <span><i class="dot inspect"></i>inspect</span>
+    <span><i class="dot select"></i>select &amp; filter</span>
+    <span><i class="dot shape"></i>shape &amp; combine</span>
+    <span><i class="dot clean"></i>clean &amp; transform</span>
+    <span><i class="dot stats"></i>aggregate / stats</span>
+    <span><i class="dot danger"></i>handle with care</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked across: <b>docs.pola.rs</b> (official Python API reference) &middot; the <b>franzdiebold</b> PDF cheat sheet &middot; <b>rhosignal.com</b> (pandas&#8594;polars, tested) &middot; a community gist cheat sheet &middot; <b>dailydoseofds.com</b> pandas/polars/SQL/PySpark translations</p>
+</header>
+
+<!-- ============ SIGNATURE EXPRESSIONS-INTO-CONTEXTS DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">Expressions plug into Contexts &mdash; the core Polars mental model</div>
+  <svg class="flow-svg" viewBox="0 0 1080 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram showing three example Polars expressions converging into a single hub, then fanning out into four contexts: select, with_columns, filter, and group_by agg, illustrating that the same expression syntax works in every context.">
+    <defs>
+      <marker id="arrE" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+      </marker>
+      <marker id="arrC" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#0891b2"/>
+      </marker>
+    </defs>
+
+    <text x="10"  y="24" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="#7c3aed">EXPRESSIONS &mdash; reusable building blocks</text>
+    <text x="700" y="24" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="#0891b2">CONTEXTS &mdash; where they run</text>
+
+    <!-- expressions -->
+    <g font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">
+      <rect x="15" y="45"  width="280" height="46" rx="8" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.5"/>
+      <text x="35" y="73" fill="#7c3aed">pl.col('price') * 1.1</text>
+
+      <rect x="15" y="105" width="280" height="46" rx="8" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.5"/>
+      <text x="35" y="133" fill="#7c3aed">pl.col('qty').sum()</text>
+
+      <rect x="15" y="165" width="280" height="46" rx="8" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.5"/>
+      <text x="35" y="193" fill="#7c3aed">pl.col('name').str.to_uppercase()</text>
+    </g>
+
+    <path d="M295,68  C 330,68  330,150 355,150" fill="none" stroke="#7c3aed" stroke-width="1.6" marker-end="url(#arrE)"/>
+    <path d="M295,128 L 353,148" fill="none" stroke="#7c3aed" stroke-width="1.6" marker-end="url(#arrE)"/>
+    <path d="M295,188 C 330,188 330,152 351,150" fill="none" stroke="#7c3aed" stroke-width="1.6" marker-end="url(#arrE)"/>
+
+    <circle cx="375" cy="150" r="24" fill="#7c3aed"/>
+    <text x="375" y="155" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700" fill="#fff">expr</text>
+
+    <path d="M399,140 C 460,90  520,50  660,45"  fill="none" stroke="#0891b2" stroke-width="1.6" marker-end="url(#arrC)"/>
+    <path d="M399,148 C 460,115 520,110 660,108" fill="none" stroke="#0891b2" stroke-width="1.6" marker-end="url(#arrC)"/>
+    <path d="M399,152 C 460,185 520,190 660,193" fill="none" stroke="#0891b2" stroke-width="1.6" marker-end="url(#arrC)"/>
+    <path d="M399,160 C 460,225 520,255 660,258" fill="none" stroke="#0891b2" stroke-width="1.6" marker-end="url(#arrC)"/>
+
+    <!-- contexts -->
+    <g font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">
+      <rect x="660" y="18"  width="400" height="46" rx="8" fill="#eafafd" stroke="#0891b2" stroke-width="1.5"/>
+      <text x="680" y="46" fill="#0891b2">df.select(expr)</text>
+
+      <rect x="660" y="82"  width="400" height="46" rx="8" fill="#eafafd" stroke="#0891b2" stroke-width="1.5"/>
+      <text x="680" y="110" fill="#0891b2">df.with_columns(expr)</text>
+
+      <rect x="660" y="168" width="400" height="46" rx="8" fill="#eafafd" stroke="#0891b2" stroke-width="1.5"/>
+      <text x="680" y="196" fill="#0891b2">df.filter(expr)</text>
+
+      <rect x="660" y="232" width="400" height="46" rx="8" fill="#eafafd" stroke="#0891b2" stroke-width="1.5"/>
+      <text x="680" y="260" fill="#0891b2">df.group_by('g').agg(expr)</text>
+    </g>
+
+    <text x="540" y="305" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">the same expression syntax works in every context &mdash; no separate API to learn per operation</text>
+  </svg>
+</section>
+
+<main>
+
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Import</span><span class="card-sub">create</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">import polars <span class="flag">as</span> <span class="arg">pl</span></code><span class="star">&#9733;</span><div class="desc">Universal alias — always <code>pl</code>.</div></li>
+      <li class="create"><code class="cmd">import polars.selectors <span class="flag">as</span> <span class="arg">cs</span></code><div class="desc">Dtype- and name-based column selectors.</div></li>
+      <li class="create"><code class="cmd">pip install polars</code><div class="desc">Add extras, e.g. <code>polars[numpy,pandas,pyarrow]</code>.</div></li>
+      <li class="create"><code class="cmd">pl.__version__ &nbsp;/ pl.show_versions()</code><div class="desc">Check the installed Polars version.</div></li>
+      <li class="create"><code class="cmd">pl.Config.set_tbl_rows(<span class="num">n</span>)</code><div class="desc">Control how many rows print to the console.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 READING DATA -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Reading Data</span><span class="card-sub">create</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">pl.read_csv(<span class="arg">'f.csv'</span>)</code><span class="star">&#9733;</span><div class="desc">Read CSV eagerly into memory.</div></li>
+      <li class="create"><code class="cmd">pl.read_parquet(<span class="arg">'f.parquet'</span>)</code><span class="star">&#9733;</span><div class="desc">Read columnar Parquet — the Polars-native default.</div></li>
+      <li class="create"><code class="cmd">pl.read_json(<span class="arg">'f.json'</span>)</code><div class="desc">Read a JSON file.</div></li>
+      <li class="create"><code class="cmd">pl.scan_csv(<span class="arg">'f.csv'</span>)</code><span class="star">&#9733;</span><div class="desc">Lazy CSV read — no data loaded until <code>.collect()</code>.</div></li>
+      <li class="create"><code class="cmd">pl.read_database(<span class="arg">query, connection_uri</span>)</code><div class="desc">Read the result of a SQL query.</div></li>
+      <li class="create"><code class="cmd">pl.from_pandas(<span class="arg">pandas_df</span>)</code><div class="desc">Convert from a pandas DataFrame.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 WRITING DATA -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Writing Data</span><span class="card-sub">create</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">df.write_csv(<span class="arg">'f.csv'</span>)</code><span class="star">&#9733;</span><div class="desc">Write to CSV.</div></li>
+      <li class="create"><code class="cmd">df.write_parquet(<span class="arg">'f.parquet'</span>)</code><span class="star">&#9733;</span><div class="desc">Write columnar Parquet — fast, typed, compressed.</div></li>
+      <li class="create"><code class="cmd">df.write_json(<span class="arg">'f.json'</span>)</code><div class="desc">Write to a JSON file.</div></li>
+      <li class="create"><code class="cmd">df.write_database(<span class="arg">'table', connection_uri</span>)</code><div class="desc">Write to a relational database.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 CREATING DATAFRAMES & SERIES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Creating DataFrames &amp; Series</span><span class="card-sub">create</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">pl.DataFrame({<span class="arg">'a': [1,2,3]</span>})</code><span class="star">&#9733;</span><div class="desc">Dict keys become columns, values become rows.</div></li>
+      <li class="create"><code class="cmd">pl.Series(<span class="arg">'a', [1,2,3]</span>)</code><span class="star">&#9733;</span><div class="desc">One named, typed 1D array.</div></li>
+      <li class="create"><code class="cmd">pl.DataFrame({...}, schema={<span class="arg">'a': pl.Int64</span>})</code><div class="desc">Pass an explicit schema.</div></li>
+      <li class="create"><code class="cmd">df.lazy()</code><span class="star">&#9733;</span><div class="desc">Convert an eager DataFrame to a LazyFrame.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 INSPECT & EXPLORE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Inspect &amp; Explore</span><span class="card-sub">inspect</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">df.head(<span class="num">n</span>) &nbsp;/ df.tail(<span class="num">n</span>)</code><span class="star">&#9733;</span><div class="desc">First / last n rows (default 5).</div></li>
+      <li class="inspect"><code class="cmd">df.shape</code><span class="star">&#9733;</span><div class="desc">(rows, columns) tuple.</div></li>
+      <li class="inspect"><code class="cmd">df.schema &nbsp;/ df.dtypes</code><span class="star">&#9733;</span><div class="desc">Column name→type mapping / just the type list.</div></li>
+      <li class="inspect"><code class="cmd">df.columns</code><div class="desc">List of column names.</div></li>
+      <li class="inspect"><code class="cmd">df.describe()</code><span class="star">&#9733;</span><div class="desc">Summary stats for every column.</div></li>
+      <li class="inspect"><code class="cmd">df.glimpse()</code><div class="desc">Compact, transposed preview — great for wide frames.</div></li>
+      <li class="inspect"><code class="cmd">df.null_count()</code><span class="star">&#9733;</span><div class="desc">Missing-value count per column.</div></li>
+      <li class="inspect"><code class="cmd">df.estimated_size()</code><div class="desc">Approximate memory footprint in bytes.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 SELECTING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Selecting Columns &amp; Rows</span><span class="card-sub">select &amp; filter</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">df.select(<span class="arg">'a', 'b'</span>)</code><span class="star">&#9733;</span><div class="desc">Project a subset of columns.</div></li>
+      <li class="select"><code class="cmd">df.select(pl.col(<span class="arg">'a', 'b'</span>))</code><span class="star">&#9733;</span><div class="desc">Same, via the expression API.</div></li>
+      <li class="select"><code class="cmd">df[<span class="num">1, 1</span>] &nbsp;df[<span class="num">1:3</span>] &nbsp;df[:, <span class="num">1:</span>]</code><div class="desc">Positional <code>[]</code> indexing — like pandas' <code>.iloc</code>.</div></li>
+      <li class="select"><code class="cmd">df.filter(pl.col(<span class="arg">'age'</span>) &gt; <span class="num">24</span>)</code><span class="star">&#9733;</span><div class="desc">Keep rows matching a boolean expression.</div></li>
+      <li class="select"><code class="cmd">df.filter(a=<span class="num">1</span>, b=<span class="num">2</span>)</code><div class="desc">Keyword shortcut — equality filters only.</div></li>
+      <li class="select"><code class="cmd">df.get_column(<span class="arg">'a'</span>)</code><div class="desc">Pull one column out as a Series.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 FILTERING & BOOLEAN LOGIC -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Filtering &amp; Boolean Logic</span><span class="card-sub">select &amp; filter</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">df.filter((pl.col('a')&gt;1)&amp;(pl.col('b')&lt;9))</code><span class="star">&#9733;</span><div class="desc">Combine conditions with <code>&amp; | ~</code>, in parens.</div></li>
+      <li class="select"><code class="cmd">df.filter(pl.col('a')&gt;1, pl.col('b')&lt;9)</code><span class="star">&#9733;</span><div class="desc">Comma-separated = implicit AND, no parens needed.</div></li>
+      <li class="select"><code class="cmd">pl.col(<span class="arg">'a'</span>).is_in([...])</code><span class="star">&#9733;</span><div class="desc">Membership test against a list of values.</div></li>
+      <li class="select"><code class="cmd">pl.col(<span class="arg">'a'</span>).is_between(<span class="num">2, 4</span>)</code><span class="star">&#9733;</span><div class="desc">Inclusive range check.</div></li>
+      <li class="select"><code class="cmd">pl.col(<span class="arg">'a'</span>).is_null() &nbsp;/ .is_not_null()</code><div class="desc">Boolean null checks.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 COLUMN EXPRESSIONS & CASTING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Column Expressions &amp; Casting</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">df.with_columns(pl.col(<span class="arg">'a'</span>) * <span class="num">2</span>)</code><span class="star">&#9733;</span><div class="desc">Add or replace a column (returns a new DataFrame).</div></li>
+      <li class="shape"><code class="cmd">df.with_columns(new = expr)</code><span class="star">&#9733;</span><div class="desc">Keyword form — name the new column inline.</div></li>
+      <li class="shape"><code class="cmd">df.with_columns(pl.col(<span class="arg">'a'</span>).cast(pl.Float64))</code><span class="star">&#9733;</span><div class="desc">Cast a column to a new dtype.</div></li>
+      <li class="shape"><code class="cmd">df.rename({<span class="arg">'old': 'new'</span>})</code><span class="star">&#9733;</span><div class="desc">Rename one or more columns.</div></li>
+      <li class="shape"><code class="cmd">df.drop(<span class="arg">'a', 'b'</span>)</code><span class="star">&#9733;</span><div class="desc">Remove one or more columns.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 CONDITIONAL LOGIC -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Conditional Logic</span><span class="card-sub">select &amp; filter</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">pl.when(cond).then(val).otherwise(default)</code><span class="star">&#9733;</span><div class="desc">Vectorized if/elif/else — chain more <code>.when()</code> for elif.</div></li>
+      <li class="select"><code class="cmd">pl.coalesce(<span class="arg">'a', 'b'</span>, pl.lit(<span class="num">0</span>))</code><div class="desc">First non-null value across columns.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 MISSING VALUES & DUPLICATES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Missing Values &amp; Duplicates</span><span class="card-sub">clean &amp; transform</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">df.null_count()</code><span class="star">&#9733;</span><div class="desc">Missing-value count per column.</div></li>
+      <li class="clean"><code class="cmd">df.drop_nulls()</code><span class="star">&#9733;</span><div class="desc">Drop rows containing any null.</div></li>
+      <li class="clean"><code class="cmd">df.drop_nulls(subset=[<span class="arg">'a'</span>])</code><div class="desc">Drop rows null in specific columns only.</div></li>
+      <li class="clean"><code class="cmd">df.fill_null(<span class="arg">value</span>) &nbsp;/ strategy='forward'</code><span class="star">&#9733;</span><div class="desc">Replace nulls — constant or fill strategy.</div></li>
+      <li class="clean"><code class="cmd">df.fill_nan(<span class="arg">value</span>)</code><div class="desc">Separate from <code>fill_null</code> — NaN &ne; null in Polars.</div></li>
+      <li class="clean"><code class="cmd">df.unique()</code><span class="star">&#9733;</span><div class="desc">Remove duplicate rows.</div></li>
+      <li class="clean"><code class="cmd">df.unique(subset=[<span class="arg">'a', 'b'</span>])</code><div class="desc">De-duplicate on a subset of columns.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 STRING EXPRESSIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">String Expressions</span><span class="card-sub">.str accessor</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">pl.col('c').str.to_uppercase() / to_lowercase()</code><span class="star">&#9733;</span><div class="desc">Case conversion.</div></li>
+      <li class="clean"><code class="cmd">pl.col(<span class="arg">'c'</span>).str.strip_chars()</code><div class="desc">Strip whitespace (or given characters).</div></li>
+      <li class="clean"><code class="cmd">pl.col(<span class="arg">'c'</span>).str.contains(<span class="arg">'pat'</span>)</code><span class="star">&#9733;</span><div class="desc">Boolean mask — substring/regex match.</div></li>
+      <li class="clean"><code class="cmd">pl.col('c').str.replace('a','b') / replace_all(...)</code><div class="desc">Replace first match / all matches.</div></li>
+      <li class="clean"><code class="cmd">pl.col(<span class="arg">'c'</span>).str.split(<span class="arg">'-'</span>)</code><div class="desc">Split into a list column.</div></li>
+      <li class="clean"><code class="cmd">pl.col(<span class="arg">'c'</span>).str.len_chars()</code><div class="desc">Character count of each string.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 DATE & TIME EXPRESSIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Date &amp; Time Expressions</span><span class="card-sub">.dt accessor</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">pl.col('d').str.to_date('%Y-%m-%d')</code><span class="star">&#9733;</span><div class="desc">Parse a string column into a Date.</div></li>
+      <li class="clean"><code class="cmd">pl.col('d').dt.year() / .month() / .day()</code><span class="star">&#9733;</span><div class="desc">Extract date components.</div></li>
+      <li class="clean"><code class="cmd">pl.col(<span class="arg">'d'</span>).dt.weekday()</code><div class="desc">ISO weekday — 1 = Monday.</div></li>
+      <li class="clean"><code class="cmd">pl.col(<span class="arg">'d'</span>) + pl.duration(days=<span class="num">1</span>)</code><div class="desc">Date arithmetic with <code>pl.duration()</code>.</div></li>
+      <li class="clean"><code class="cmd">pl.date_range(<span class="arg">start, end, interval='1d'</span>)</code><div class="desc">Build a range of dates.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 NUMERIC & MATH EXPRESSIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Numeric &amp; Math Expressions</span><span class="card-sub">clean &amp; transform</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">pl.col('a').round(2) / .floor() / .ceil()</code><div class="desc">Rounding functions.</div></li>
+      <li class="clean"><code class="cmd">pl.col(<span class="arg">'a'</span>).abs()</code><div class="desc">Absolute value.</div></li>
+      <li class="clean"><code class="cmd">pl.col(<span class="arg">'a'</span>).clip(<span class="num">0, 100</span>)</code><div class="desc">Clamp values into a range.</div></li>
+      <li class="clean"><code class="cmd">pl.col('a') + pl.col('b')</code><span class="star">&#9733;</span><div class="desc">Elementwise arithmetic between expressions.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 ARRAY / LIST / STRUCT OPERATIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">List &amp; Struct Operations</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">df.explode(<span class="arg">'list_col'</span>)</code><span class="star">&#9733;</span><div class="desc">One output row per list element.</div></li>
+      <li class="shape"><code class="cmd">pl.col(<span class="arg">'list_col'</span>).list.len()</code><span class="star">&#9733;</span><div class="desc">Length of each list.</div></li>
+      <li class="shape"><code class="cmd">pl.col(<span class="arg">'list_col'</span>).list.get(<span class="num">0</span>)</code><div class="desc">Element at index 0 of each list.</div></li>
+      <li class="shape"><code class="cmd">pl.struct([<span class="arg">'a', 'b'</span>]).alias(<span class="arg">'s'</span>)</code><div class="desc">Bundle columns into a struct column.</div></li>
+      <li class="shape"><code class="cmd">df.unnest(<span class="arg">'s'</span>)</code><span class="star">&#9733;</span><div class="desc">Expand a struct column back into flat columns.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 JOINS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Joins</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">df1.join(df2, on=<span class="arg">'key'</span>, how=<span class="arg">'inner'</span>)</code><span class="star">&#9733;</span><div class="desc">SQL-style join on a shared column.</div></li>
+      <li class="shape"><code class="cmd">df1.join(df2, on=<span class="arg">'key'</span>, how=<span class="arg">'left'</span>)</code><span class="star">&#9733;</span><div class="desc">Keep every row of <code>df1</code>.</div></li>
+      <li class="shape"><code class="cmd">df1.join(df2, left_on=<span class="arg">'a'</span>, right_on=<span class="arg">'b'</span>)</code><div class="desc">Join on differently named key columns.</div></li>
+      <li class="shape"><code class="cmd">df1.join(df2, on=<span class="arg">'key'</span>, how=<span class="arg">'anti'</span>)</code><span class="star">&#9733;</span><div class="desc">Rows in <code>df1</code> with NO match in <code>df2</code>.</div></li>
+      <li class="shape"><code class="cmd">df1.join_asof(df2, on=<span class="arg">'date'</span>, by=<span class="arg">'id'</span>)</code><div class="desc">Nearest-match join — common for time series.</div></li>
+      <li class="shape"><code class="cmd">df1.join(df2, how=<span class="arg">'cross'</span>)</code><div class="desc">Cartesian product.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 COMBINING: CONCAT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Combining: Concatenate</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">pl.concat([<span class="arg">df1, df2</span>])</code><span class="star">&#9733;</span><div class="desc">Stack rows (default: vertical).</div></li>
+      <li class="shape"><code class="cmd">pl.concat([<span class="arg">df1, df2</span>], how=<span class="arg">'diagonal'</span>)</code><div class="desc">Stack rows, aligning by name, filling gaps with null.</div></li>
+      <li class="shape"><code class="cmd">df1.hstack(df2)</code><div class="desc">Stack columns side by side, no key needed.</div></li>
+      <li class="shape"><code class="cmd">df1.vstack(df2)</code><div class="desc">Append rows in place — mutates <code>df1</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 GROUPBY & AGGREGATION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">GroupBy &amp; Aggregation</span><span class="card-sub">aggregate / stats</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">df.group_by(<span class="arg">'g'</span>).agg(pl.col(<span class="arg">'x'</span>).mean())</code><span class="star">&#9733;</span><div class="desc">Per-group mean of one column.</div></li>
+      <li class="stats"><code class="cmd">df.group_by('g').agg(pl.col('x').sum().alias('x_sum'))</code><span class="star">&#9733;</span><div class="desc">Multiple named aggregates per group.</div></li>
+      <li class="stats"><code class="cmd">df.group_by(<span class="arg">'g'</span>).agg(pl.all().sum())</code><div class="desc">Aggregate every remaining column at once.</div></li>
+      <li class="stats"><code class="cmd">df.group_by([<span class="arg">'g1', 'g2'</span>]).len()</code><span class="star">&#9733;</span><div class="desc">Row count per group — Polars' <code>.size()</code>.</div></li>
+      <li class="stats"><code class="cmd">df.group_by_dynamic(<span class="arg">'date'</span>, every=<span class="arg">'1mo'</span>).agg(...)</code><div class="desc">Time-bucketed grouping — like pandas' <code>resample</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 WINDOW EXPRESSIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Window Expressions — .over()</span><span class="card-sub">aggregate / stats</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">pl.col('x').sum().over('g')</code><span class="star">&#9733;</span><div class="desc">Group aggregate broadcast back to every row.</div></li>
+      <li class="stats"><code class="cmd">pl.col(<span class="arg">'x'</span>).rank().over(<span class="arg">'g'</span>)</code><span class="star">&#9733;</span><div class="desc">Per-group ranking.</div></li>
+      <li class="stats"><code class="cmd">pl.col('x').cum_sum().over('g')</code><span class="star">&#9733;</span><div class="desc">Per-group running total.</div></li>
+      <li class="stats"><code class="cmd">pl.col(<span class="arg">'x'</span>).shift(<span class="num">1</span>).over(<span class="arg">'g'</span>)</code><div class="desc">Per-group lag.</div></li>
+      <li class="stats"><code class="cmd">pl.col(<span class="arg">'x'</span>).rolling_mean(window_size=<span class="num">3</span>)</code><div class="desc">Moving average over a fixed window.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 SORTING & TOP-N -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Sorting &amp; Top-N</span><span class="card-sub">select &amp; filter</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">df.sort(<span class="arg">'a'</span>)</code><span class="star">&#9733;</span><div class="desc">Ascending sort by one or more columns.</div></li>
+      <li class="select"><code class="cmd">df.sort(<span class="arg">'a'</span>, descending=<span class="arg">True</span>)</code><span class="star">&#9733;</span><div class="desc">Descending sort.</div></li>
+      <li class="select"><code class="cmd">df.sort([<span class="arg">'a','b'</span>], descending=[<span class="arg">False,True</span>])</code><div class="desc">Mixed sort direction, per column.</div></li>
+      <li class="select"><code class="cmd">df.top_k(<span class="num">n</span>, by=<span class="arg">'a'</span>)</code><span class="star">&#9733;</span><div class="desc">Top n rows by a column's value.</div></li>
+      <li class="select"><code class="cmd">df.bottom_k(<span class="num">n</span>, by=<span class="arg">'a'</span>)</code><div class="desc">Bottom n rows by a column's value.</div></li>
+    </ul>
+  </article>
+
+  <!-- 20 RESHAPING: PIVOT & UNPIVOT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">20</span><span class="card-title">Reshaping: Pivot &amp; Unpivot</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">df.pivot(index=<span class="arg">'g'</span>, on=<span class="arg">'k'</span>, values=<span class="arg">'v'</span>)</code><span class="star">&#9733;</span><div class="desc">Long &#8594; wide (<code>on</code> replaces pandas' <code>columns=</code>).</div></li>
+      <li class="shape"><code class="cmd">df.unpivot(index=<span class="arg">'g'</span>)</code><span class="star">&#9733;</span><div class="desc">Wide &#8594; long — Polars' modern name for <code>melt</code>.</div></li>
+      <li class="shape"><code class="cmd">df.transpose()</code><div class="desc">Flip rows and columns.</div></li>
+    </ul>
+  </article>
+
+  <!-- 21 LAZY EXECUTION & PERFORMANCE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">21</span><span class="card-title">Lazy Execution &amp; Performance</span><span class="card-sub">handle with care</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">df.lazy()</code><span class="star">&#9733;</span><div class="desc">Start a query plan instead of running immediately.</div></li>
+      <li class="danger"><code class="cmd">lazy_df.collect()</code><span class="star">&#9733;</span><div class="desc">Optimize the whole plan, then execute it once.</div></li>
+      <li class="clean"><code class="cmd">lazy_df.explain()</code><div class="desc">Print the (optimized) query plan.</div></li>
+      <li class="clean"><code class="cmd">lazy_df.collect(streaming=<span class="arg">True</span>)</code><div class="desc">Process larger-than-RAM data in batches.</div></li>
+      <li class="danger"><code class="cmd">pl.scan_parquet(<span class="arg">'f.parquet'</span>)</code><span class="star">&#9733;</span><div class="desc">Lazy scan — enables predicate/projection pushdown.</div></li>
+    </ul>
+  </article>
+
+  <!-- STAR: COMMON DATA TYPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Common Data Types</span><span class="card-sub">anywhere you see dtype:</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">pl.Int8/16/32/64 &nbsp;pl.UInt8..64</code><span class="star">&#9733;</span><div class="desc">Signed / unsigned integers.</div></li>
+      <li class="inspect"><code class="cmd">pl.Float32 &nbsp;/ pl.Float64</code><div class="desc">Floating-point numeric types.</div></li>
+      <li class="inspect"><code class="cmd">pl.Utf8 (alias pl.String)</code><span class="star">&#9733;</span><div class="desc">Text / string columns.</div></li>
+      <li class="inspect"><code class="cmd">pl.Boolean</code><div class="desc">True / False values.</div></li>
+      <li class="inspect"><code class="cmd">pl.Date &nbsp;pl.Datetime &nbsp;pl.Duration</code><span class="star">&#9733;</span><div class="desc">Calendar date, date+time, and time delta.</div></li>
+      <li class="inspect"><code class="cmd">pl.List(inner) &nbsp;/ pl.Struct</code><div class="desc">Nested column types — list / struct.</div></li>
+      <li class="inspect"><code class="cmd">pl.Categorical</code><div class="desc">Efficient encoding for repeated strings.</div></li>
+    </ul>
+  </article>
+
+  <!-- STAR: JOIN HOW QUICK-READ -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Join how= Quick-Read</span><span class="card-sub">df.join(..., how=)</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">'inner'</code><span class="star">&#9733;</span><div class="desc">Only keys present in both DataFrames.</div></li>
+      <li class="select"><code class="cmd">'left'</code><span class="star">&#9733;</span><div class="desc">All rows from the left frame, matched where possible.</div></li>
+      <li class="select"><code class="cmd">'full'</code><div class="desc">Every key from both sides — Polars' name for outer.</div></li>
+      <li class="select"><code class="cmd">'semi'</code><div class="desc">Left rows that have a match — right columns dropped.</div></li>
+      <li class="select"><code class="cmd">'anti'</code><span class="star">&#9733;</span><div class="desc">Left rows with <b>no</b> match in the right — great for exclusions.</div></li>
+      <li class="select"><code class="cmd">'cross'</code><div class="desc">Cartesian product, no key needed.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ PERFORMANCE CONCEPTS DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Why Polars is fast, visually</h2>
+  <p class="sub">Three ideas do most of the work: automatic multi-threading, a lazy query optimizer, and zero-copy Apache Arrow memory. Based on the official Polars user-guide diagrams.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>Expressions run in parallel &#9733;</h3>
+      <p>Independent expressions inside one <code>select</code>/<code>with_columns</code> call are automatically spread across CPU cores.</p>
+      <svg viewBox="0 0 390 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="three expressions each processed by a separate CPU core in parallel, then merged into one result">
+        <defs><marker id="arrP" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker></defs>
+        <g font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">
+          <rect x="10" y="12" width="110" height="30" rx="5" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.5"/><text x="65" y="31" fill="#7c3aed">col('a').sum()</text>
+          <rect x="10" y="65" width="110" height="30" rx="5" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.5"/><text x="65" y="84" fill="#7c3aed">col('b').mean()</text>
+          <rect x="10" y="118" width="110" height="30" rx="5" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.5"/><text x="65" y="137" fill="#7c3aed">col('c').max()</text>
+
+          <rect x="160" y="12" width="60" height="30" rx="5" fill="#fff" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="3 2"/><text x="190" y="31" fill="#7c3aed">core 1</text>
+          <rect x="160" y="65" width="60" height="30" rx="5" fill="#fff" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="3 2"/><text x="190" y="84" fill="#7c3aed">core 2</text>
+          <rect x="160" y="118" width="60" height="30" rx="5" fill="#fff" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="3 2"/><text x="190" y="137" fill="#7c3aed">core 3</text>
+        </g>
+        <line x1="120" y1="27" x2="158" y2="27" stroke="#7c3aed" stroke-width="1.4" marker-end="url(#arrP)"/>
+        <line x1="120" y1="80" x2="158" y2="80" stroke="#7c3aed" stroke-width="1.4" marker-end="url(#arrP)"/>
+        <line x1="120" y1="133" x2="158" y2="133" stroke="#7c3aed" stroke-width="1.4" marker-end="url(#arrP)"/>
+        <path d="M220,27  C 280,27  280,75 300,75" fill="none" stroke="#7c3aed" stroke-width="1.4" marker-end="url(#arrP)"/>
+        <path d="M220,80  L 298,78" fill="none" stroke="#7c3aed" stroke-width="1.4" marker-end="url(#arrP)"/>
+        <path d="M220,133 C 280,133 280,82 300,80" fill="none" stroke="#7c3aed" stroke-width="1.4" marker-end="url(#arrP)"/>
+        <rect x="305" y="55" width="75" height="50" rx="6" fill="#f5f0fd" stroke="#7c3aed" stroke-width="2"/>
+        <text x="342" y="85" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#7c3aed">result</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Eager vs. lazy execution</h3>
+      <p>Eager runs and materializes every step. Lazy (<code>.lazy()...collect()</code>) builds one plan the optimizer can reorder before running it once.</p>
+      <svg viewBox="0 0 390 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="eager execution materializes each step; lazy execution builds a plan and runs it once at collect">
+        <defs><marker id="arrX" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+        <text x="10" y="18" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#64748b">eager</text>
+        <g font-family="JetBrains Mono, monospace" font-size="9.5" text-anchor="middle">
+          <rect x="10"  y="24" width="80" height="30" rx="5" fill="#f1f3f6" stroke="#64748b" stroke-width="1.5"/><text x="50" y="42" fill="#64748b">df</text>
+          <rect x="110" y="24" width="90" height="30" rx="5" fill="#f1f3f6" stroke="#64748b" stroke-width="1.5"/><text x="155" y="42" fill="#64748b">.filter()</text>
+          <rect x="220" y="24" width="90" height="30" rx="5" fill="#f1f3f6" stroke="#64748b" stroke-width="1.5"/><text x="265" y="42" fill="#64748b">.select()</text>
+        </g>
+        <line x1="90"  y1="39" x2="108" y2="39" stroke="#64748b" stroke-width="1.4" marker-end="url(#arrX)"/>
+        <line x1="200" y1="39" x2="218" y2="39" stroke="#64748b" stroke-width="1.4" marker-end="url(#arrX)"/>
+        <text x="195" y="68" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#64748b">each step runs &amp; materializes immediately</text>
+
+        <text x="10" y="92" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#7c3aed">lazy</text>
+        <g font-family="JetBrains Mono, monospace" font-size="9.5" text-anchor="middle">
+          <rect x="10"  y="98" width="70" height="30" rx="5" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4 3"/><text x="45" y="116" fill="#7c3aed">scan</text>
+          <rect x="95" y="98" width="80" height="30" rx="5" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4 3"/><text x="135" y="116" fill="#7c3aed">filter</text>
+          <rect x="190" y="98" width="80" height="30" rx="5" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4 3"/><text x="230" y="116" fill="#7c3aed">select</text>
+          <rect x="285" y="98" width="90" height="30" rx="5" fill="#1a1d24"/><text x="330" y="116" fill="#fff" font-weight="700">.collect()</text>
+        </g>
+        <line x1="80" y1="113" x2="93" y2="113" stroke="#7c3aed" stroke-width="1.2" stroke-dasharray="2 2"/>
+        <line x1="175" y1="113" x2="188" y2="113" stroke="#7c3aed" stroke-width="1.2" stroke-dasharray="2 2"/>
+        <line x1="270" y1="113" x2="283" y2="113" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#arrX)"/>
+        <text x="195" y="145" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#7c3aed">optimizer reorders steps; one pass, at .collect()</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Predicate &amp; projection pushdown</h3>
+      <p>The lazy optimizer pushes filters and column selection down into the scan itself, so unneeded rows &amp; columns are never read.</p>
+      <svg viewBox="0 0 390 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="naive plan reads all data then filters and selects late; optimized plan reads only the needed columns and rows directly from the source">
+        <defs><marker id="arrPD" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrPD2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker></defs>
+        <text x="10" y="18" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#dc2626">naive</text>
+        <g font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">
+          <rect x="10" y="24" width="120" height="30" rx="5" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.5"/><text x="70" y="42" fill="#dc2626">read all cols+rows</text>
+          <rect x="150" y="24" width="90" height="30" rx="5" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.5"/><text x="195" y="42" fill="#dc2626">filter</text>
+          <rect x="260" y="24" width="110" height="30" rx="5" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.5"/><text x="315" y="42" fill="#dc2626">select 2 cols</text>
+        </g>
+        <line x1="130" y1="39" x2="148" y2="39" stroke="#dc2626" stroke-width="1.4" marker-end="url(#arrPD)"/>
+        <line x1="240" y1="39" x2="258" y2="39" stroke="#dc2626" stroke-width="1.4" marker-end="url(#arrPD)"/>
+
+        <text x="10" y="92" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#059669">optimized</text>
+        <g font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">
+          <rect x="10" y="98" width="150" height="30" rx="5" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/><text x="85" y="116" fill="#059669">scan: 2 cols, matched rows</text>
+          <rect x="200" y="98" width="90" height="30" rx="5" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/><text x="245" y="116" fill="#059669">result</text>
+        </g>
+        <line x1="160" y1="113" x2="198" y2="113" stroke="#059669" stroke-width="1.4" marker-end="url(#arrPD2)"/>
+        <text x="195" y="145" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#059669">far fewer bytes read from disk/Parquet</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Zero-copy Arrow interop</h3>
+      <p>Polars uses Apache Arrow's columnar memory layout, so converting to/from pandas or NumPy is often near-instant — no copying.</p>
+      <svg viewBox="0 0 390 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a central Apache Arrow memory hub connected by dashed zero-copy arrows to Polars, pandas, and NumPy">
+        <defs><marker id="arrZ" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker></defs>
+        <circle cx="195" cy="80" r="42" fill="#eff4fe" stroke="#2563eb" stroke-width="2"/>
+        <text x="195" y="76" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700" fill="#2563eb">Apache</text>
+        <text x="195" y="90" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700" fill="#2563eb">Arrow</text>
+
+        <path d="M195,38 L195,15" fill="none" stroke="#2563eb" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arrZ)" marker-start="url(#arrZ)"/>
+        <rect x="150" y="2" width="90" height="24" rx="5" fill="#fff" stroke="#2563eb" stroke-width="1.5"/><text x="195" y="18" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#2563eb">Polars</text>
+
+        <path d="M160,105 L60,140" fill="none" stroke="#2563eb" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arrZ)" marker-start="url(#arrZ)"/>
+        <rect x="15" y="135" width="90" height="24" rx="5" fill="#fff" stroke="#2563eb" stroke-width="1.5"/><text x="60" y="151" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#2563eb">pandas</text>
+
+        <path d="M230,105 L330,140" fill="none" stroke="#2563eb" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arrZ)" marker-start="url(#arrZ)"/>
+        <rect x="285" y="135" width="90" height="24" rx="5" fill="#fff" stroke="#2563eb" stroke-width="1.5"/><text x="330" y="151" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#2563eb">NumPy</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">eager vs lazy</span><span class="v"><code>df.lazy()...collect()</code> lets the optimizer rewrite your plan first</span></div>
+    <div><span class="k">expressions are reusable</span><span class="v">the same <code>pl.col(...)</code> expr works in select/filter/agg/with_columns</span></div>
+    <div><span class="k">no inplace</span><span class="v">every method returns a new object — always reassign, <code>df = df.with_columns(...)</code></span></div>
+    <div><span class="k">null vs NaN</span><span class="v">null is the universal missing marker; NaN is a distinct float value</span></div>
+    <div><span class="k">group_by row order</span><span class="v">not guaranteed by default — pass <code>maintain_order=True</code> if needed</span></div>
+    <div><span class="k">melt &#8594; unpivot</span><span class="v">pandas' <code>melt</code>/<code>columns=</code> became Polars' <code>unpivot</code>/<code>on=</code></span></div>
+    <div><span class="k">outer &#8594; full</span><span class="v">pandas' <code>how='outer'</code> is Polars' <code>how='full'</code></span></div>
+    <div><span class="k">multi-threaded by default</span><span class="v">expressions inside one context run in parallel automatically</span></div>
+  </div>
+</section>
+
+<footer>
+  Polars cheat sheet &middot; synthesized from the official Polars Python API reference (docs.pola.rs), the franzdiebold PDF cheat sheet, rhosignal.com's tested pandas&#8594;polars cheatsheet, a community GitHub gist, and dailydoseofds.com's pandas/polars/SQL/PySpark translation guide.<br>
+  Examples shown for Polars 1.x &middot; syntax has moved quickly across versions (e.g. <code>groupby&#8594;group_by</code>, <code>melt&#8594;unpivot</code>) — always cross-check against docs.pola.rs for your installed version.
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FastAPI Cheat Sheet — AI Systems</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --req:#2563eb;   --req-bg:#eff6ff;
+  --param:#d97706; --param-bg:#fffbeb;
+  --model:#7c3aed; --model-bg:#f5f3ff;
+  --auth:#be123c;  --auth-bg:#fff1f2;
+  --infra:#0891b2; --infra-bg:#ecfeff;
+  --ink:#0f172a;   --paper:#f8fafc;
+  --line:#e2e8f0;  --muted:#64748b;
+  --code-bg:#1a1e2e;
+  --kw:#f472b6; --fn:#60a5fa; --str:#4ade80;
+  --tp:#67e8f9; --num:#fb923c; --dec:#c084fc;
+  --cm:#64748b; --cls:#fbbf24;
+  --star:#92400e; --warn:#dc2626;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  --sans:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased;line-height:1.5}
+
+/* ── header ── */
+header{border-bottom:2px solid var(--ink);padding:2rem clamp(1rem,4vw,3rem) 1.5rem;max-width:1600px;margin:0 auto}
+.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem}
+h1{font-size:clamp(1.9rem,4.5vw,3rem);font-weight:700;letter-spacing:-.025em;line-height:1;margin-bottom:.6rem}
+h1 .fast{color:var(--req)}
+h1 .api{color:var(--model)}
+.lede{max-width:62ch;font-size:1rem;color:#374151;margin-bottom:1rem}
+.install-pill{display:inline-flex;align-items:center;gap:.6rem;background:var(--code-bg);color:#e2e8f0;font-family:var(--mono);font-size:.82rem;padding:.45rem .9rem;border-radius:8px;margin-bottom:1.1rem}
+.install-pill .prompt{color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:.4rem .9rem;font-family:var(--mono);font-size:.72rem}
+.legend span{display:inline-flex;align-items:center;gap:.4rem}
+.dot{width:10px;height:10px;border-radius:2px;display:inline-block;flex-shrink:0}
+.dot.req{background:var(--req)} .dot.param{background:var(--param)}
+.dot.model{background:var(--model)} .dot.auth{background:var(--auth)}
+.dot.infra{background:var(--infra)} .dot.warn{background:var(--warn)}
+.star-lbl{color:var(--star);font-weight:700}
+
+/* ── diagrams ── */
+.diag-wrap{max-width:1600px;margin:0 auto;padding:1.6rem clamp(1rem,4vw,3rem) .5rem}
+.diag-title{font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.8rem}
+.diag-grid{display:grid;gap:1.2rem;grid-template-columns:1fr}
+@media(min-width:860px){.diag-grid{grid-template-columns:1.15fr 1fr}}
+.diag-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:1rem 1.1rem 1rem}
+.diag-card h3{font-size:.88rem;font-weight:700;margin-bottom:.5rem;font-family:var(--mono)}
+.diag-svg{width:100%;height:auto;display:block}
+
+/* ── main cards ── */
+main{max-width:1600px;margin:0 auto;padding:1.4rem clamp(1rem,4vw,3rem) 4rem;column-gap:1.3rem}
+@media(min-width:720px){main{column-count:2}}
+@media(min-width:1200px){main{column-count:3}}
+.card{break-inside:avoid;background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:1.3rem;overflow:hidden}
+.card-head{display:flex;align-items:center;gap:.6rem;padding:.75rem .9rem .65rem;border-bottom:1px solid var(--line)}
+.num-badge{font-family:var(--mono);font-size:.72rem;font-weight:700;background:var(--ink);color:#fff;border-radius:4px;padding:.1rem .38rem}
+.card-title{font-size:.93rem;font-weight:700;letter-spacing:-.01em;flex:1}
+.cat-badge{font-family:var(--mono);font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:.18rem .5rem;border-radius:9999px;white-space:nowrap}
+.cat-req{background:var(--req-bg);color:var(--req)}
+.cat-param{background:var(--param-bg);color:#92400e}
+.cat-model{background:var(--model-bg);color:var(--model)}
+.cat-auth{background:var(--auth-bg);color:var(--auth)}
+.cat-infra{background:var(--infra-bg);color:#0e7490}
+
+/* method badges in code-area heading */
+.method{font-family:var(--mono);font-size:.65rem;font-weight:700;padding:.1rem .38rem;border-radius:3px;display:inline-block;margin-bottom:.2rem}
+.m-get{background:#dbeafe;color:var(--req)}
+.m-post{background:#dcfce7;color:#15803d}
+.m-put{background:#fef3c7;color:#92400e}
+.m-delete{background:#fee2e2;color:var(--warn)}
+.m-patch{background:#ede9fe;color:var(--model)}
+
+/* lede row inside card */
+.card-lede{padding:.55rem .9rem .4rem;font-size:.78rem;color:#475569;border-bottom:1px solid var(--line)}
+.card-lede strong{color:var(--ink)}
+.tip{display:block;font-size:.73rem;color:var(--model);font-style:italic;margin-top:.25rem}
+.tip.warn{color:var(--warn)}
+.tip.green{color:#15803d}
+
+/* entry list */
+ul.entries{list-style:none}
+ul.entries li{border-left:3px solid transparent;border-bottom:1px solid #f1f5f9;padding:.5rem .9rem}
+ul.entries li:last-child{border-bottom:none}
+ul.entries li.req{border-left-color:var(--req)}
+ul.entries li.param{border-left-color:var(--param)}
+ul.entries li.model{border-left-color:var(--model)}
+ul.entries li.auth{border-left-color:var(--auth)}
+ul.entries li.infra{border-left-color:var(--infra)}
+ul.entries li.warn-li{border-left-color:var(--warn);background:#fff5f5}
+
+.entry-head{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+code.sym{font-family:var(--mono);font-size:.79rem;font-weight:600;color:var(--ink)}
+.star{color:var(--star);font-size:.72rem;font-weight:700;font-family:var(--mono)}
+.warn-badge{color:var(--warn);font-size:.65rem;font-weight:700;font-family:var(--mono);text-transform:uppercase}
+.entry-desc{font-size:.75rem;color:#52576180;color:#52576b;margin-top:.15rem}
+
+/* code blocks */
+.code-block{background:var(--code-bg);padding:.75rem .9rem;font-family:var(--mono);font-size:.76rem;line-height:1.65;overflow-x:auto;color:#cdd6f4;border-radius:0;white-space:pre}
+.code-block:last-child{border-radius:0 0 10px 10px}
+.code-block+.code-block{border-top:1px solid #2a2e48}
+/* syntax */
+.kw{color:var(--kw)} .fn{color:var(--fn)} .str{color:var(--str)}
+.tp{color:var(--tp)} .num{color:var(--num)} .dec{color:var(--dec)}
+.cm{color:var(--cm)} .cls{color:var(--cls)}
+
+/* status codes strip */
+.sc-strip{max-width:1600px;margin:0 auto;padding:0 clamp(1rem,4vw,3rem) 1.5rem}
+.sc-strip h2{font-size:1.35rem;font-weight:700;margin-bottom:.9rem;padding-top:1.5rem;border-top:2px solid var(--ink)}
+.sc-grid{display:grid;gap:.7rem .5rem;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));background:#fff;border:1px solid var(--line);border-radius:10px;padding:1rem 1.1rem}
+.sc-row{display:flex;align-items:center;gap:.6rem;font-family:var(--mono);font-size:.78rem}
+.sc-code{font-weight:700;min-width:42px}
+.sc-2xx .sc-code{color:#15803d} .sc-3xx .sc-code{color:var(--req)}
+.sc-4xx .sc-code{color:var(--param)} .sc-5xx .sc-code{color:var(--warn)}
+.sc-desc{color:#52576b}
+
+/* quick-wins strip */
+.qw-strip{max-width:1600px;margin:0 auto;padding:0 clamp(1rem,4vw,3rem) 4rem}
+.qw-strip h2{font-size:1.35rem;font-weight:700;margin-bottom:.9rem;padding-top:1.5rem;border-top:2px solid var(--ink)}
+.qw-inner{background:var(--ink);color:#e2e8f0;border-radius:10px;padding:1.1rem 1.3rem;font-family:var(--mono);font-size:.79rem;display:grid;gap:.5rem;grid-template-columns:1fr}
+@media(min-width:680px){.qw-inner{grid-template-columns:1fr 1fr}}
+.qw-inner div{display:flex;gap:.7rem;align-items:baseline}
+.qw-inner .k{color:#fbbf24;white-space:nowrap;font-weight:700;min-width:9rem}
+.qw-inner .v{color:#94a3b8}
+
+footer{max-width:1600px;margin:0 auto;padding:1.5rem clamp(1rem,4vw,3rem) 3rem;border-top:1px solid var(--line);font-size:.72rem;color:var(--muted);font-family:var(--mono);line-height:1.8}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · Python Web Framework · v0.115+</div>
+  <h1><span class="fast">Fast</span><span class="api">API</span> cheat sheet</h1>
+  <p class="lede">FastAPI resolves every function parameter automatically — from the URL path, the query string, the request body, or injected dependencies. Learn that rule once and every endpoint makes sense.</p>
+  <div class="install-pill"><span class="prompt">$</span> pip install "fastapi[standard]" &nbsp;·&nbsp; uvicorn main:app --reload</div>
+  <div class="legend">
+    <span><i class="dot req"></i>routes / HTTP</span>
+    <span><i class="dot param"></i>parameters</span>
+    <span><i class="dot model"></i>pydantic / DI</span>
+    <span><i class="dot auth"></i>security / errors</span>
+    <span><i class="dot infra"></i>middleware / router / infra</span>
+    <span class="star-lbl">★</span><span>most common</span>
+    <span><i class="dot warn"></i>gotcha</span>
+  </div>
+</header>
+
+<!-- ── SIGNATURE DIAGRAMS ── -->
+<section class="diag-wrap">
+  <div class="diag-title">How FastAPI resolves a function parameter &amp; the full request lifecycle</div>
+  <div class="diag-grid">
+
+    <!-- Param resolution decision tree -->
+    <div class="diag-card">
+      <h3>Parameter Resolution — the one rule to know</h3>
+      <svg class="diag-svg" viewBox="0 0 520 310" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Decision tree showing how FastAPI resolves function parameters">
+        <defs>
+          <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#0f172a"/>
+          </marker>
+        </defs>
+        <!-- start box -->
+        <rect x="160" y="8" width="200" height="36" rx="8" fill="#1a1e2e" stroke="#334155" stroke-width="1.5"/>
+        <text x="260" y="31" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" fill="#cdd6f4">def endpoint(name: str)</text>
+        <!-- arrow down -->
+        <line x1="260" y1="44" x2="260" y2="65" stroke="#0f172a" stroke-width="1.5" marker-end="url(#a)"/>
+        <!-- diamond 1 -->
+        <polygon points="260,65 360,100 260,135 160,100" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+        <text x="260" y="96" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10.5" fill="#1e40af">name in</text>
+        <text x="260" y="112" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10.5" fill="#1e40af">URL path?</text>
+        <!-- YES right -->
+        <line x1="360" y1="100" x2="440" y2="100" stroke="#2563eb" stroke-width="1.5" marker-end="url(#a)"/>
+        <text x="395" y="93" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" fill="#2563eb">YES</text>
+        <rect x="440" y="80" width="72" height="40" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+        <text x="476" y="106" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700" fill="#2563eb">Path</text>
+        <!-- NO down -->
+        <line x1="260" y1="135" x2="260" y2="158" stroke="#0f172a" stroke-width="1.5" marker-end="url(#a)"/>
+        <text x="247" y="150" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" fill="#64748b">NO</text>
+        <!-- diamond 2 -->
+        <polygon points="260,158 360,193 260,228 160,193" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+        <text x="260" y="189" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10.5" fill="#6d28d9">type is a</text>
+        <text x="260" y="205" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10.5" fill="#6d28d9">BaseModel?</text>
+        <!-- YES right -->
+        <line x1="360" y1="193" x2="440" y2="193" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#a)"/>
+        <text x="395" y="186" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" fill="#7c3aed">YES</text>
+        <rect x="440" y="173" width="72" height="40" rx="8" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.5"/>
+        <text x="476" y="199" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700" fill="#7c3aed">Body</text>
+        <!-- NO down -->
+        <line x1="260" y1="228" x2="260" y2="252" stroke="#0f172a" stroke-width="1.5" marker-end="url(#a)"/>
+        <text x="247" y="244" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" fill="#64748b">NO</text>
+        <!-- two outcomes -->
+        <line x1="180" y1="268" x2="340" y2="268" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="260" y1="252" x2="260" y2="268" stroke="#0f172a" stroke-width="1.5"/>
+        <line x1="180" y1="268" x2="180" y2="280" stroke="#d97706" stroke-width="1.5" marker-end="url(#a)"/>
+        <line x1="340" y1="268" x2="340" y2="280" stroke="#d97706" stroke-width="1.5" marker-end="url(#a)"/>
+        <rect x="110" y="280" width="140" height="22" rx="6" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+        <text x="180" y="296" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#92400e">Query (optional)</text>
+        <rect x="270" y="280" width="140" height="22" rx="6" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+        <text x="340" y="296" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#92400e">Query (required)</text>
+        <text x="180" y="310" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#64748b">has default value</text>
+        <text x="340" y="310" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#64748b">no default</text>
+      </svg>
+    </div>
+
+    <!-- Request lifecycle -->
+    <div class="diag-card">
+      <h3>Request Lifecycle — where each concept plugs in</h3>
+      <svg class="diag-svg" viewBox="0 0 460 310" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FastAPI request lifecycle showing middleware, routing, parameter resolution, dependency injection, handler and response flow">
+        <defs>
+          <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#0f172a"/>
+          </marker>
+        </defs>
+        <g font-family="JetBrains Mono,monospace" text-anchor="middle">
+          <!-- Client -->
+          <rect x="10" y="130" width="60" height="40" rx="8" fill="#1a1e2e"/>
+          <text x="40" y="156" font-size="11" font-weight="700" fill="#e2e8f0">Client</text>
+          <line x1="70" y1="150" x2="90" y2="150" stroke="#0f172a" stroke-width="1.5" marker-end="url(#b)"/>
+          <!-- Middleware -->
+          <rect x="90" y="108" width="80" height="84" rx="8" fill="#ecfeff" stroke="#0891b2" stroke-width="1.5"/>
+          <text x="130" y="144" font-size="10" fill="#0e7490">Middle-</text>
+          <text x="130" y="158" font-size="10" fill="#0e7490">ware</text>
+          <text x="130" y="183" font-size="8.5" fill="#64748b">logging</text>
+          <text x="130" y="194" font-size="8.5" fill="#64748b">CORS</text>
+          <line x1="170" y1="150" x2="190" y2="150" stroke="#0f172a" stroke-width="1.5" marker-end="url(#b)"/>
+          <!-- Route Match -->
+          <rect x="190" y="118" width="80" height="64" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="230" y="144" font-size="10" fill="#1e40af">Route</text>
+          <text x="230" y="158" font-size="10" fill="#1e40af">Match</text>
+          <text x="230" y="175" font-size="8.5" fill="#64748b">@app.get</text>
+          <line x1="270" y1="150" x2="290" y2="150" stroke="#0f172a" stroke-width="1.5" marker-end="url(#b)"/>
+          <!-- Params + Depends -->
+          <rect x="290" y="100" width="80" height="100" rx="8" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.5"/>
+          <text x="330" y="130" font-size="10" fill="#6d28d9">Params</text>
+          <text x="330" y="144" font-size="8.5" fill="#94a3b8">Path/Query</text>
+          <text x="330" y="156" font-size="8.5" fill="#94a3b8">Body/Form</text>
+          <line x1="330" y1="165" x2="330" y2="172" stroke="#7c3aed" stroke-width="1" stroke-dasharray="2 2"/>
+          <text x="330" y="184" font-size="10" fill="#6d28d9">Depends</text>
+          <text x="330" y="196" font-size="8.5" fill="#94a3b8">auth / DB</text>
+          <line x1="370" y1="150" x2="390" y2="150" stroke="#0f172a" stroke-width="1.5" marker-end="url(#b)"/>
+          <!-- Handler -->
+          <rect x="390" y="120" width="65" height="60" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+          <text x="422" y="144" font-size="10" fill="#065f46">Handler</text>
+          <text x="422" y="158" font-size="8.5" fill="#64748b">def / async</text>
+          <text x="422" y="170" font-size="8.5" fill="#64748b">def</text>
+
+          <!-- Response path (bottom arc) -->
+          <path d="M422 180 Q422 260 260 270 Q130 270 40 195" fill="none" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#b)"/>
+          <text x="240" y="290" font-size="9.5" fill="#7c3aed">Response Model → validate &amp; serialize → JSON</text>
+
+          <!-- Labels along the top -->
+          <text x="130" y="88" font-size="8.5" fill="#0891b2" font-weight="700">§11</text>
+          <text x="230" y="105" font-size="8.5" fill="#2563eb" font-weight="700">§02–03</text>
+          <text x="330" y="87" font-size="8.5" fill="#7c3aed" font-weight="700">§04–08</text>
+          <text x="422" y="108" font-size="8.5" fill="#059669" font-weight="700">§02–03</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── COMMAND CARDS ── -->
+<main>
+
+  <!-- §01 Setup -->
+  <article class="card">
+    <div class="card-head"><span class="num-badge">01</span><span class="card-title">Install &amp; Run</span><span class="cat-badge cat-infra">infra</span></div>
+    <div class="card-lede"><strong>One command</strong> installs everything; auto-docs at /docs and /redoc with zero config.</div>
+    <ul class="entries">
+      <li class="infra"><div class="entry-head"><code class="sym">pip install "fastapi[standard]"</code><span class="star">★</span></div><div class="entry-desc">Includes uvicorn, email-validator, and extras.</div></li>
+      <li class="infra"><div class="entry-head"><code class="sym">uvicorn main:app --reload</code><span class="star">★</span></div><div class="entry-desc">Dev server with auto-reload. <code>fastapi dev main.py</code> also works.</div></li>
+      <li class="infra"><div class="entry-head"><code class="sym">fastapi run main.py</code></div><div class="entry-desc">Production mode (no reload).</div></li>
+    </ul>
+    <div class="code-block"><span class="kw">from</span> fastapi <span class="kw">import</span> <span class="cls">FastAPI</span>
+
+app = <span class="cls">FastAPI</span>()
+
+<span class="dec">@app.get</span>(<span class="str">"/"</span>)
+<span class="kw">def</span> <span class="fn">root</span>():
+    <span class="kw">return</span> {<span class="str">"message"</span>: <span class="str">"Hello FastAPI"</span>}</div>
+  </article>
+
+  <!-- §02 GET -->
+  <article class="card">
+    <div class="card-head"><span class="num-badge">02</span><span class="card-title">Route Decorators</span><span class="cat-badge cat-req">routes</span></div>
+    <div class="card-lede">One decorator per HTTP verb. FastAPI auto-generates Swagger docs from type hints.</div>
+    <ul class="entries">
+      <li class="req"><div class="entry-head"><span class="method m-get">GET</span>&nbsp;<code class="sym">@app.get("/path")</code><span class="star">★</span></div><div class="entry-desc">Read / fetch data. Returns JSON by default.</div></li>
+      <li class="req"><div class="entry-head"><span class="method m-post">POST</span>&nbsp;<code class="sym">@app.post("/path")</code><span class="star">★</span></div><div class="entry-desc">Create resource. Body is parsed from JSON.</div></li>
+      <li class="req"><div class="entry-head"><span class="method m-put">PUT</span>&nbsp;<code class="sym">@app.put("/path/{id}")</code></div><div class="entry-desc">Full replacement update.</div></li>
+      <li class="req"><div class="entry-head"><span class="method m-patch">PATCH</span>&nbsp;<code class="sym">@app.patch("/path/{id}")</code></div><div class="entry-desc">Partial update.</div></li>
+      <li class="req"><div class="entry-head"><span class="method m-delete">DELETE</span>&nbsp;<code class="sym">@app.delete("/path/{id}")</code></div><div class="entry-desc">Remove resource.</div></li>
+    </ul>
+    <div class="code-block"><span class="dec">@app.get</span>(<span class="str">"/items/{item_id}"</span>)
+<span class="kw">def</span> <span class="fn">read_item</span>(item_id: <span class="tp">int</span>):
+    <span class="kw">return</span> {<span class="str">"id"</span>: item_id}
+
+<span class="dec">@app.post</span>(<span class="str">"/items/"</span>, status_code=<span class="num">201</span>)
+<span class="kw">def</span> <span class="fn">create_item</span>(item: <span class="cls">Item</span>):
+    <span class="kw">return</span> item
+
+<span class="dec">@app.delete</span>(<span class="str">"/items/{id}"</span>)
+<span class="kw">def</span> <span class="fn">delete_item</span>(id: <span class="tp">int</span>):
+    <span class="kw">return</span> {<span class="str">"deleted"</span>: id}</div>
+  </article>
+
+  <!-- §03 Path & Query -->
+  <article class="card">
+    <div class="card-head"><span class="num-badge">03</span><span class="card-title">Path &amp; Query Parameters</span><span class="cat-badge cat-param">params</span></div>
+    <div class="card-lede">Path params are <strong>in the URL</strong>. Everything else with a default is a <strong>query param</strong>. Use <code>Path()</code> / <code>Query()</code> to add validation.</div>
+    <ul class="entries">
+      <li class="param"><div class="entry-head"><code class="sym">Path(..., ge=1)</code></div><div class="entry-desc">Validates ≥1; <code>...</code> means required.</div></li>
+      <li class="param"><div class="entry-head"><code class="sym">Query(None, min_length=3)</code><span class="star">★</span></div><div class="entry-desc">Optional query with min-length validation.</div></li>
+      <li class="param"><div class="entry-head"><code class="sym">q: list[str] = Query([])</code></div><div class="entry-desc">Accepts repeated: <code>?q=a&amp;q=b</code></div></li>
+    </ul>
+    <div class="code-block"><span class="kw">from</span> fastapi <span class="kw">import</span> Path, Query
+
+<span class="dec">@app.get</span>(<span class="str">"/users/{user_id}"</span>)
+<span class="kw">def</span> <span class="fn">get_user</span>(
+    user_id: <span class="tp">int</span> = Path(..., ge=<span class="num">1</span>),  <span class="cm"># required int ≥1</span>
+    active: <span class="tp">bool</span> = <span class="kw">True</span>,            <span class="cm"># optional query</span>
+    q: <span class="tp">str</span> = Query(<span class="kw">None</span>, min_length=<span class="num">3</span>),
+):
+    <span class="kw">return</span> {<span class="str">"user_id"</span>: user_id, <span class="str">"active"</span>: active}</div>
+  </article>
+
+  <!-- §04 Pydantic Body -->
+  <article class="card">
+    <div class="card-head"><span class="num-badge">04</span><span class="card-title">Request Body (Pydantic)</span><span class="cat-badge cat-model">pydantic</span></div>
+    <div class="card-lede">Declare a <strong>class inheriting BaseModel</strong> — FastAPI auto-validates, serializes, and documents the JSON body.
+      <span class="tip">Pydantic v2 is the default since FastAPI 0.100+. Use <code>model_config = ConfigDict(...)</code> instead of inner <code>Config</code> class.</span>
+    </div>
+    <ul class="entries">
+      <li class="model"><div class="entry-head"><code class="sym">name: str</code><span class="star">★</span></div><div class="entry-desc">Required field.</div></li>
+      <li class="model"><div class="entry-head"><code class="sym">desc: str | None = None</code><span class="star">★</span></div><div class="entry-desc">Optional field.</div></li>
+      <li class="model"><div class="entry-head"><code class="sym">price: float = Field(..., gt=0)</code></div><div class="entry-desc">Required with validation — must be &gt;0.</div></li>
+      <li class="model"><div class="entry-head"><code class="sym">Nested models</code></div><div class="entry-desc">Just annotate a field with another BaseModel type.</div></li>
+    </ul>
+    <div class="code-block"><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field
+
+<span class="kw">class</span> <span class="cls">Item</span>(BaseModel):
+    name: <span class="tp">str</span>
+    description: <span class="tp">str</span> | <span class="kw">None</span> = <span class="kw">None</span>
+    price: <span class="tp">float</span> = Field(..., gt=<span class="num">0</span>)
+    tax: <span class="tp">float</span> = <span class="num">0.0</span>
+
+<span class="dec">@app.post</span>(<span class="str">"/items/"</span>)
+<span class="kw">def</span> <span class="fn">create_item</span>(item: <span class="cls">Item</span>):
+    total = item.price * (<span class="num">1</span> + item.tax)
+    <span class="kw">return</span> {<span class="str">"total"</span>: total, **item.model_dump()}</div>
+  </article>
+
+  <!-- §05 Response Models -->
+  <article class="card">
+    <div class="card-head"><span class="num-badge">05</span><span class="card-title">Response Models &amp; Status Codes</span><span class="cat-badge cat-model">pydantic</span></div>
+    <div class="card-lede"><code>response_model</code> filters output — <strong>never leaks password hashes</strong> or internal fields. Pair with status codes for correct REST semantics.
+      <span class="tip green">Use <code>status.HTTP_201_CREATED</code> constants over magic numbers.</span>
+    </div>
+    <div class="code-block"><span class="kw">from</span> fastapi <span class="kw">import</span> status
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+
+<span class="kw">class</span> <span class="cls">UserIn</span>(BaseModel):
+    username: <span class="tp">str</span>; password: <span class="tp">str</span>
+
+<span class="kw">class</span> <span class="cls">UserOut</span>(BaseModel):
+    username: <span class="tp">str</span>  <span class="cm"># no password here!</span>
+
+<span class="dec">@app.post</span>(
+    <span class="str">"/users/"</span>,
+    response_model=<span class="cls">UserOut</span>,              <span class="cm"># strips extra fields</span>
+    status_code=status.HTTP_201_CREATED,
+)
+<span class="kw">def</span> <span class="fn">create_user</span>(user: <span class="cls">UserIn</span>) -> <span class="cls">UserOut</span>:
+    <span class="kw">return</span> user  <span class="cm"># password is filtered out</span></div>
+  </article>
+
+  <!-- §06 Form / File / Cookie / Header -->
+  <article class="card">
+    <div class="card-head"><span class="num-badge">06</span><span class="card-title">Form · File · Cookie · Header</span><span class="cat-badge cat-param">params</span></div>
+    <div class="card-lede">Non-JSON parameter sources. Install <code>python-multipart</code> for Form/File support.
+      <span class="tip warn">⚠ Cannot mix JSON Body and Form/File in the same endpoint.</span>
+    </div>
+    <ul class="entries">
+      <li class="param warn-li"><div class="entry-head"><code class="sym">Form(...)</code></div><div class="entry-desc">HTML form field. Needs <code>python-multipart</code>.</div></li>
+      <li class="param"><div class="entry-head"><code class="sym">UploadFile = File(...)</code><span class="star">★</span></div><div class="entry-desc">Streams to disk. Better than <code>bytes</code> for large files.</div></li>
+      <li class="param"><div class="entry-head"><code class="sym">Cookie(None)</code></div><div class="entry-desc">Read HTTP cookies. <code>None</code> → optional.</div></li>
+      <li class="param"><div class="entry-head"><code class="sym">Header(None)</code></div><div class="entry-desc">FastAPI auto-converts <code>user_agent</code> → <code>User-Agent</code>.</div></li>
+    </ul>
+    <div class="code-block"><span class="kw">from</span> fastapi <span class="kw">import</span> Form, File, UploadFile, Cookie, Header
+
+<span class="dec">@app.post</span>(<span class="str">"/login/"</span>)
+<span class="kw">def</span> <span class="fn">login</span>(
+    username: <span class="tp">str</span> = Form(...),
+    password: <span class="tp">str</span> = Form(...),
+):
+    <span class="kw">return</span> {<span class="str">"user"</span>: username}
+
+<span class="dec">@app.post</span>(<span class="str">"/upload/"</span>)
+<span class="kw">async def</span> <span class="fn">upload</span>(file: <span class="cls">UploadFile</span> = File(...)):
+    contents = <span class="kw">await</span> file.read()
+    <span class="kw">return</span> {<span class="str">"name"</span>: file.filename, <span class="str">"size"</span>: len(contents)}</div>
+  </article>
+
+  <!-- §07 Dependency Injection -->
+  <article class="card">
+    <div class="card-head"><span class="num-badge">07</span><span class="card-title">Dependency Injection</span><span class="cat-badge cat-model">pydantic / DI</span></div>
+    <div class="card-lede">Share logic (auth, DB sessions, pagination) across routes with <code>Depends()</code>. Dependencies can nest and chain automatically.
+      <span class="tip green">Use <strong>yield</strong> for cleanup (e.g., close DB session after response).</span>
+    </div>
+    <div class="code-block"><span class="kw">from</span> fastapi <span class="kw">import</span> Depends
+
+<span class="kw">def</span> <span class="fn">pagination</span>(skip: <span class="tp">int</span> = <span class="num">0</span>, limit: <span class="tp">int</span> = <span class="num">20</span>):
+    <span class="kw">return</span> {<span class="str">"skip"</span>: skip, <span class="str">"limit"</span>: limit}
+
+<span class="dec">@app.get</span>(<span class="str">"/items/"</span>)
+<span class="kw">def</span> <span class="fn">list_items</span>(pg: <span class="tp">dict</span> = Depends(pagination)):
+    <span class="kw">return</span> pg
+
+<span class="cm"># Yield dependency — cleanup always runs</span>
+<span class="kw">def</span> <span class="fn">get_db</span>():
+    db = SessionLocal()
+    <span class="kw">try</span>:
+        <span class="kw">yield</span> db
+    <span class="kw">finally</span>:
+        db.close()
+
+<span class="dec">@app.get</span>(<span class="str">"/users/"</span>)
+<span class="kw">def</span> <span class="fn">get_users</span>(db = Depends(get_db)):
+    <span class="kw">return</span> db.query(<span class="cls">User</span>).all()</div>
+  </article>
+
+  <!-- §08 Security -->
+  <article class="card">
+    <div class="card-head"><span class="num-badge">08</span><span class="card-title">Security &amp; OAuth2 / JWT</span><span class="cat-badge cat-auth">security</span></div>
+    <div class="card-lede"><code>OAuth2PasswordBearer</code> adds a login button to <code>/docs</code>. Combine with <code>python-jose</code> for JWT and <code>passlib</code> for bcrypt hashing.
+      <span class="tip warn">⚠ Never store plain-text passwords. Always hash with bcrypt via passlib.</span>
+    </div>
+    <div class="code-block"><span class="kw">from</span> fastapi.security <span class="kw">import</span> OAuth2PasswordBearer
+<span class="kw">from</span> passlib.context <span class="kw">import</span> CryptContext
+
+oauth2 = <span class="cls">OAuth2PasswordBearer</span>(tokenUrl=<span class="str">"token"</span>)
+pwd_ctx = <span class="cls">CryptContext</span>(schemes=[<span class="str">"bcrypt"</span>])
+
+<span class="kw">def</span> <span class="fn">get_hash</span>(pw): <span class="kw">return</span> pwd_ctx.hash(pw)
+<span class="kw">def</span> <span class="fn">verify</span>(pw, hashed): <span class="kw">return</span> pwd_ctx.verify(pw, hashed)
+
+<span class="dec">@app.get</span>(<span class="str">"/users/me"</span>)
+<span class="kw">def</span> <span class="fn">read_me</span>(token: <span class="tp">str</span> = Depends(oauth2)):
+    user = decode_jwt(token)  <span class="cm"># verify via python-jose</span>
+    <span class="kw">return</span> user
+
+<span class="cm"># API Key alternative</span>
+<span class="kw">from</span> fastapi.security <span class="kw">import</span> APIKeyHeader
+api_key = <span class="cls">APIKeyHeader</span>(name=<span class="str">"X-API-Key"</span>)</div>
+  </article>
+
+  <!-- §09 HTTP Exceptions -->
+  <article class="card">
+    <div class="card-head"><span class="num-badge">09</span><span class="card-title">HTTP Exceptions &amp; Error Handling</span><span class="cat-badge cat-auth">security</span></div>
+    <div class="card-lede">Always use <code>HTTPException</code> — never return a raw error dict. Register custom handlers for global behavior.
+      <span class="tip green">Override <code>RequestValidationError</code> to customize the 422 response format.</span>
+    </div>
+    <ul class="entries">
+      <li class="auth"><div class="entry-head"><code class="sym">raise HTTPException(404, detail="...")</code><span class="star">★</span></div><div class="entry-desc">Abort with an HTTP error code.</div></li>
+      <li class="auth"><div class="entry-head"><code class="sym">headers={"WWW-Authenticate":"Bearer"}</code></div><div class="entry-desc">Custom headers on the error response.</div></li>
+      <li class="auth"><div class="entry-head"><code class="sym">@app.exception_handler(MyError)</code></div><div class="entry-desc">Catch custom exception types globally.</div></li>
+    </ul>
+    <div class="code-block"><span class="kw">from</span> fastapi <span class="kw">import</span> HTTPException
+<span class="kw">from</span> fastapi.exceptions <span class="kw">import</span> RequestValidationError
+<span class="kw">from</span> fastapi.responses <span class="kw">import</span> JSONResponse
+
+<span class="dec">@app.get</span>(<span class="str">"/items/{id}"</span>)
+<span class="kw">def</span> <span class="fn">read_item</span>(id: <span class="tp">int</span>):
+    <span class="kw">if</span> id <span class="kw">not in</span> items:
+        <span class="kw">raise</span> HTTPException(
+            status_code=<span class="num">404</span>, detail=<span class="str">"Item not found"</span>
+        )
+
+<span class="dec">@app.exception_handler</span>(<span class="cls">RequestValidationError</span>)
+<span class="kw">async def</span> <span class="fn">val_handler</span>(req, exc):
+    <span class="kw">return</span> JSONResponse(
+        {<span class="str">"errors"</span>: exc.errors()}, status_code=<span class="num">422</span>
+    )</div>
+  </article>
+
+  <!-- §10 Middleware & CORS -->
+  <article class="card">
+    <div class="card-head"><span class="num-badge">10</span><span class="card-title">Middleware &amp; CORS</span><span class="cat-badge cat-infra">infra</span></div>
+    <div class="card-lede">Middleware wraps every request/response. CORS is the most common middleware for browser-facing APIs.
+      <span class="tip warn">⚠ Never use <code>allow_origins=["*"]</code> with <code>allow_credentials=True</code> in production.</span>
+    </div>
+    <div class="code-block"><span class="kw">from</span> fastapi.middleware.cors <span class="kw">import</span> CORSMiddleware
+<span class="kw">from</span> fastapi <span class="kw">import</span> Request
+
+app.add_middleware(
+    <span class="cls">CORSMiddleware</span>,
+    allow_origins=[<span class="str">"https://example.com"</span>],
+    allow_credentials=<span class="kw">True</span>,
+    allow_methods=[<span class="str">"*"</span>], allow_headers=[<span class="str">"*"</span>],
+)
+
+<span class="cm"># Custom middleware — timing / logging</span>
+<span class="dec">@app.middleware</span>(<span class="str">"http"</span>)
+<span class="kw">async def</span> <span class="fn">add_timing</span>(request: <span class="cls">Request</span>, call_next):
+    <span class="kw">import</span> time; t = time.time()
+    response = <span class="kw">await</span> call_next(request)
+    response.headers[<span class="str">"X-Process-Time"</span>] = str(time.time() - t)
+    <span class="kw">return</span> response</div>
+  </article>
+
+  <!-- §11 APIRouter -->
+  <article class="card">
+    <div class="card-head"><span class="num-badge">11</span><span class="card-title">APIRouter &amp; Project Structure</span><span class="cat-badge cat-infra">infra</span></div>
+    <div class="card-lede">Split large apps into multiple files. <code>APIRouter</code> works exactly like <code>FastAPI()</code>.
+      <span class="tip green">Use <code>prefix=</code> to avoid repeating <code>/users</code> on every route.</span>
+    </div>
+    <div class="code-block"><span class="cm"># routers/users.py</span>
+<span class="kw">from</span> fastapi <span class="kw">import</span> APIRouter
+router = <span class="cls">APIRouter</span>()
+
+<span class="dec">@router.get</span>(<span class="str">"/"</span>, tags=[<span class="str">"users"</span>])
+<span class="kw">def</span> <span class="fn">list_users</span>(): <span class="kw">return</span> []
+
+<span class="dec">@router.get</span>(<span class="str">"/{id}"</span>)
+<span class="kw">def</span> <span class="fn">get_user</span>(id: <span class="tp">int</span>): ...
+
+<span class="cm"># main.py</span>
+<span class="kw">from</span> routers <span class="kw">import</span> users
+app.include_router(
+    users.router,
+    prefix=<span class="str">"/users"</span>,
+    dependencies=[Depends(verify_token)],  <span class="cm"># protects all routes</span>
+)</div>
+  </article>
+
+  <!-- §12 Background Tasks & Lifespan -->
+  <article class="card">
+    <div class="card-head"><span class="num-badge">12</span><span class="card-title">Background Tasks &amp; Lifespan</span><span class="cat-badge cat-infra">infra</span></div>
+    <div class="card-lede">Background tasks run <strong>after</strong> the response is sent. Lifespan loads/tears down resources (ML models, DB pools) at startup/shutdown.
+      <span class="tip">For heavy CPU/long work use Celery or ARQ — not BackgroundTasks.</span>
+    </div>
+    <div class="code-block"><span class="kw">from</span> fastapi <span class="kw">import</span> BackgroundTasks
+<span class="kw">from</span> contextlib <span class="kw">import</span> asynccontextmanager
+
+<span class="dec">@asynccontextmanager</span>
+<span class="kw">async def</span> <span class="fn">lifespan</span>(app: <span class="cls">FastAPI</span>):
+    <span class="cm"># startup — load model once, not per request</span>
+    app.state.model = load_ml_model()
+    <span class="kw">yield</span>
+    <span class="cm"># shutdown — release resources</span>
+    app.state.model = <span class="kw">None</span>
+
+app = <span class="cls">FastAPI</span>(lifespan=lifespan)
+
+<span class="kw">def</span> <span class="fn">send_email</span>(to: <span class="tp">str</span>, body: <span class="tp">str</span>):
+    ...  <span class="cm"># slow I/O, runs after response</span>
+
+<span class="dec">@app.post</span>(<span class="str">"/notify/"</span>)
+<span class="kw">def</span> <span class="fn">notify</span>(email: <span class="tp">str</span>, bg: <span class="cls">BackgroundTasks</span>):
+    bg.add_task(send_email, email, <span class="str">"Welcome!"</span>)
+    <span class="kw">return</span> {<span class="str">"status"</span>: <span class="str">"queued"</span>}</div>
+  </article>
+
+  <!-- §13 WebSockets & Streaming -->
+  <article class="card">
+    <div class="card-head"><span class="num-badge">13</span><span class="card-title">WebSockets &amp; Streaming</span><span class="cat-badge cat-infra">infra</span></div>
+    <div class="card-lede">WebSockets enable real-time bidirectional comms. <code>StreamingResponse</code> with <code>text/event-stream</code> gives Server-Sent Events (SSE — great for LLM token streaming).
+    </div>
+    <div class="code-block"><span class="kw">from</span> fastapi <span class="kw">import</span> WebSocket
+<span class="kw">from</span> fastapi.responses <span class="kw">import</span> StreamingResponse
+
+<span class="dec">@app.websocket</span>(<span class="str">"/ws"</span>)
+<span class="kw">async def</span> <span class="fn">ws_endpoint</span>(ws: <span class="cls">WebSocket</span>):
+    <span class="kw">await</span> ws.accept()
+    <span class="kw">while</span> <span class="kw">True</span>:
+        data = <span class="kw">await</span> ws.receive_text()
+        <span class="kw">await</span> ws.send_text(f<span class="str">"echo: {data}"</span>)
+
+<span class="cm"># SSE — LLM token streaming</span>
+<span class="kw">def</span> <span class="fn">token_gen</span>(prompt: <span class="tp">str</span>):
+    <span class="kw">for</span> token <span class="kw">in</span> llm.stream(prompt):
+        <span class="kw">yield</span> f<span class="str">"data: {token}\n\n"</span>
+
+<span class="dec">@app.get</span>(<span class="str">"/stream"</span>)
+<span class="kw">def</span> <span class="fn">stream</span>(prompt: <span class="tp">str</span>):
+    <span class="kw">return</span> StreamingResponse(
+        token_gen(prompt), media_type=<span class="str">"text/event-stream"</span>
+    )</div>
+  </article>
+
+  <!-- §14 Database & Testing -->
+  <article class="card">
+    <div class="card-head"><span class="num-badge">14</span><span class="card-title">Database &amp; Testing</span><span class="cat-badge cat-infra">infra</span></div>
+    <div class="card-lede">SQLAlchemy via yield-dependency ensures sessions always close. <code>TestClient</code> needs no real server.
+      <span class="tip green">Use <code>app.dependency_overrides</code> to swap the real DB for a test DB.</span>
+    </div>
+    <div class="code-block"><span class="cm"># database.py</span>
+<span class="kw">from</span> sqlalchemy <span class="kw">import</span> create_engine
+<span class="kw">from</span> sqlalchemy.orm <span class="kw">import</span> sessionmaker
+
+engine = create_engine(<span class="str">"sqlite:///./test.db"</span>)
+SessionLocal = sessionmaker(bind=engine, autoflush=<span class="kw">False</span>)
+
+<span class="cm"># testing</span>
+<span class="kw">from</span> fastapi.testclient <span class="kw">import</span> TestClient
+
+client = <span class="cls">TestClient</span>(app)
+
+<span class="kw">def</span> <span class="fn">test_read_root</span>():
+    r = client.get(<span class="str">"/"</span>)
+    <span class="kw">assert</span> r.status_code == <span class="num">200</span>
+    <span class="kw">assert</span> r.json() == {<span class="str">"message"</span>: <span class="str">"Hello FastAPI"</span>}
+
+<span class="cm"># Override DB for tests</span>
+app.dependency_overrides[get_db] = lambda: test_db_session</div>
+  </article>
+
+  <!-- §15 ML Inference — AI-specific card -->
+  <article class="card">
+    <div class="card-head"><span class="num-badge">⚡</span><span class="card-title">ML Model Inference Endpoint</span><span class="cat-badge cat-model">AI systems</span></div>
+    <div class="card-lede">Load the model <strong>once in lifespan</strong>, not inside the handler — avoids re-loading on every request.
+      <span class="tip green">UploadFile streams the file; use await file.read() for small images, chunked reading for large payloads.</span>
+    </div>
+    <div class="code-block"><span class="kw">from</span> contextlib <span class="kw">import</span> asynccontextmanager
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="dec">@asynccontextmanager</span>
+<span class="kw">async def</span> <span class="fn">lifespan</span>(app):
+    app.state.model = load_model(<span class="str">"model.pkl"</span>)
+    <span class="kw">yield</span>
+
+app = <span class="cls">FastAPI</span>(lifespan=lifespan)
+
+<span class="kw">class</span> <span class="cls">PredictRequest</span>(BaseModel):
+    features: list[<span class="tp">float</span>]
+
+<span class="dec">@app.post</span>(<span class="str">"/predict"</span>, response_model=dict)
+<span class="kw">def</span> <span class="fn">predict</span>(req: <span class="cls">PredictRequest</span>, request: <span class="cls">Request</span>):
+    model = request.app.state.model
+    X = np.array([req.features])
+    pred = model.predict(X).tolist()
+    <span class="kw">return</span> {<span class="str">"prediction"</span>: pred}</div>
+  </article>
+
+</main>
+
+<!-- ── HTTP STATUS CODES ── -->
+<section class="sc-strip">
+  <h2>Common HTTP Status Codes</h2>
+  <div class="sc-grid">
+    <div class="sc-row sc-2xx"><span class="sc-code">200</span><span class="sc-desc">OK — default GET/PUT success</span></div>
+    <div class="sc-row sc-2xx"><span class="sc-code">201</span><span class="sc-desc">Created — POST success</span></div>
+    <div class="sc-row sc-2xx"><span class="sc-code">202</span><span class="sc-desc">Accepted — async task queued</span></div>
+    <div class="sc-row sc-2xx"><span class="sc-code">204</span><span class="sc-desc">No Content — DELETE success</span></div>
+    <div class="sc-row sc-3xx"><span class="sc-code">301</span><span class="sc-desc">Moved Permanently</span></div>
+    <div class="sc-row sc-3xx"><span class="sc-code">307</span><span class="sc-desc">Temporary Redirect</span></div>
+    <div class="sc-row sc-4xx"><span class="sc-code">400</span><span class="sc-desc">Bad Request — malformed</span></div>
+    <div class="sc-row sc-4xx"><span class="sc-code">401</span><span class="sc-desc">Unauthorized — auth required</span></div>
+    <div class="sc-row sc-4xx"><span class="sc-code">403</span><span class="sc-desc">Forbidden — permission denied</span></div>
+    <div class="sc-row sc-4xx"><span class="sc-code">404</span><span class="sc-desc">Not Found</span></div>
+    <div class="sc-row sc-4xx"><span class="sc-code">409</span><span class="sc-desc">Conflict — duplicate resource</span></div>
+    <div class="sc-row sc-4xx"><span class="sc-code">422</span><span class="sc-desc">Unprocessable — Pydantic failed</span></div>
+    <div class="sc-row sc-5xx"><span class="sc-code">500</span><span class="sc-desc">Internal Server Error</span></div>
+    <div class="sc-row sc-5xx"><span class="sc-code">503</span><span class="sc-desc">Service Unavailable</span></div>
+  </div>
+</section>
+
+<!-- ── QUICK WINS ── -->
+<section class="qw-strip">
+  <h2>Worth memorizing</h2>
+  <div class="qw-inner">
+    <div><span class="k">body ≠ form</span><span class="v">Cannot mix Pydantic body and Form() in one endpoint</span></div>
+    <div><span class="k">async def</span><span class="v">Use for I/O-bound work; sync def for CPU-bound or SQLAlchemy</span></div>
+    <div><span class="k">lifespan</span><span class="v">Load ML models here, not inside route handlers</span></div>
+    <div><span class="k">response_model</span><span class="v">Filters output — protects against leaking passwords/internals</span></div>
+    <div><span class="k">yield deps</span><span class="v">Cleanup code always runs, even if the handler raises</span></div>
+    <div><span class="k">/docs + /redoc</span><span class="v">Auto-generated, zero config. Disable with docs_url=None</span></div>
+    <div><span class="k">python-multipart</span><span class="v">Required for Form() and File() — not included by default</span></div>
+    <div><span class="k">model_dump()</span><span class="v">Pydantic v2 name; .dict() still works but is deprecated</span></div>
+  </div>
+</section>
+
+<footer>
+  FastAPI cheat sheet · synthesized from: fastapi.tiangolo.com · devsheets.io · cheatsheets.zip · github.com/Vasu-Devs/fastapi-cheatsheet · Chandra Sekhar's AI Systems PDF<br>
+  FastAPI 0.100+ (Pydantic v2). <code>async def</code> uses Starlette's ASGI event loop; plain <code>def</code> runs in a thread pool.
+</footer>
+
+</body>
+</html>

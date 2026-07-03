@@ -1,0 +1,1298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PostgreSQL Master Reference — SQL Grammar, Data-Flow, Practice &amp; PostGIS</title>
+<style>
+  :root{
+    --slate:#1c2733;--slate2:#243343;--ink:#0e1620;
+    --parch:#f4efe4;--pg:#336791;--pg-light:#5b8bb5;
+    --amber:#e8a838;--teal:#3a9b8f;--rust:#c1553a;
+    --line:rgba(244,239,228,.16);
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#0a1018;color:var(--parch);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;line-height:1.5}
+  .poster{width:1100px;max-width:100%;margin:34px auto;background:var(--slate);
+    border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    box-shadow:0 24px 60px rgba(0,0,0,.45);position:relative}
+  .poster::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.05;
+    background-image:linear-gradient(var(--pg-light) 1px,transparent 1px),
+                     linear-gradient(90deg,var(--pg-light) 1px,transparent 1px);background-size:28px 28px}
+  .pad{padding:38px 46px 46px;position:relative}
+  .prompt{font-family:var(--mono);font-size:13px;color:var(--pg-light);
+    border-bottom:1px solid var(--line);padding:13px 46px;background:var(--ink);
+    display:flex;align-items:center;gap:10px;letter-spacing:.02em}
+  .prompt .dot{width:11px;height:11px;border-radius:50%;background:#3b4a5a;flex:none}
+  .prompt .dot.r{background:#c1553a}.prompt .dot.y{background:#e8a838}.prompt .dot.g{background:#3a9b8f}
+  .prompt .cmd{color:var(--parch)}
+  .prompt .blink{color:var(--amber);animation:bl 1.1s steps(1) infinite}
+  @keyframes bl{50%{opacity:0}}
+  .pno{margin-left:auto;color:#6b8199;font-size:11px;letter-spacing:.18em;text-transform:uppercase}
+  h1{font-size:32px;line-height:1.08;margin:6px 0 6px;font-weight:800;letter-spacing:-.02em}
+  h1 .accent{color:var(--amber)}
+  .sub{color:#aebccb;font-size:14px;margin:0 0 22px;max-width:64ch}
+  h2{font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);
+    margin:30px 0 11px;font-weight:700;display:flex;align-items:center;gap:10px}
+  h2::before{content:"";width:26px;height:2px;background:var(--teal);display:inline-block}
+  h3{font-size:14.5px;margin:18px 0 7px;color:var(--parch);font-weight:700}
+  p{font-size:13.5px;color:#c7d2dd}
+  .ebnf{font-family:var(--mono);font-size:12.4px;line-height:1.8;background:var(--ink);
+    border:1px solid var(--line);border-left:3px solid var(--pg);border-radius:8px;
+    padding:16px 18px;overflow-x:auto;white-space:pre;color:#cdd9e4;margin:10px 0}
+  .nt{color:var(--pg-light)}.kw{color:var(--amber);font-weight:600}.op{color:var(--teal)}
+  .lit{color:#d98c6a}.cm{color:#5f7488;font-style:italic}.pg-ext{color:var(--rust);font-weight:600}
+  .out{color:#7fae8f}
+  table{border-collapse:collapse;width:100%;margin:11px 0;font-size:12.8px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:var(--slate2);color:var(--amber);font-weight:700;font-size:11px;
+    letter-spacing:.05em;text-transform:uppercase}
+  td code,p code,li code{font-family:var(--mono);background:rgba(91,139,181,.14);
+    color:#cfe0ef;padding:1px 6px;border-radius:4px;font-size:11.5px}
+  tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+  .mini td,.mini th{padding:5px 8px;font-size:11.8px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:820px){.grid2{grid-template-columns:1fr}}
+  .card{background:var(--slate2);border:1px solid var(--line);border-radius:9px;padding:15px 17px}
+  .card h3{margin-top:0}
+  .tag{display:inline-block;font-family:var(--mono);font-size:10px;padding:1px 7px;border-radius:20px;
+    border:1px solid currentColor;letter-spacing:.04em;vertical-align:middle}
+  .tag.std{color:var(--teal)}.tag.ext{color:var(--rust)}
+  .legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);font-size:11.2px;
+    background:var(--ink);border:1px solid var(--line);border-radius:8px;padding:11px 15px;margin:13px 0}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .sw{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .pipe{display:flex;flex-direction:column;margin:16px 0}
+  .stage{display:grid;grid-template-columns:50px 142px 1fr;align-items:stretch;
+    border:1px solid var(--line);border-bottom:none;background:var(--slate2)}
+  .stage:last-child{border-bottom:1px solid var(--line);border-radius:0 0 9px 9px}
+  .stage:first-child{border-radius:9px 9px 0 0}
+  .stage .n{background:var(--ink);color:var(--amber);font-family:var(--mono);font-weight:700;
+    font-size:16px;display:flex;align-items:center;justify-content:center;border-right:1px solid var(--line)}
+  .stage .op-name{font-family:var(--mono);font-weight:700;color:var(--teal);font-size:13px;
+    padding:10px 11px;display:flex;flex-direction:column;justify-content:center;gap:3px;border-right:1px solid var(--line)}
+  .stage .op-name small{color:#8aa0b4;font-weight:400;font-size:10.5px;font-family:var(--sans)}
+  .stage .desc{padding:10px 13px;font-size:12.4px;color:#c7d2dd;display:flex;align-items:center}
+  .stage .desc b{color:var(--parch)}
+  .flowtag{font-family:var(--mono);font-size:10.5px;color:var(--pg-light)}
+  .demo{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;margin-top:6px}
+  @media(max-width:820px){.demo{grid-template-columns:1fr}}
+  .callout{border-left:3px solid var(--amber);background:rgba(232,168,56,.07);
+    padding:10px 14px;border-radius:0 8px 8px 0;font-size:12.8px;margin:13px 0;color:#e4dcc8}
+  .callout.warn{border-color:var(--rust);background:rgba(193,85,58,.09)}
+  .callout b{color:var(--parch)}
+  .foot{font-size:10.5px;color:#6b8199;border-top:1px solid var(--line);margin-top:30px;padding-top:13px;
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-family:var(--mono)}
+  .cover{width:1100px;max-width:100%;margin:34px auto;background:linear-gradient(160deg,#16202b,#0c141d);
+    border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.5);position:relative}
+  .cover .pad{padding:46px 46px 40px}
+  .cover h1{font-size:42px;margin:0 0 8px}
+  .cover .tagline{color:#aebccb;font-size:15px;max-width:60ch;margin:0 0 6px}
+  .cover .meta{font-family:var(--mono);font-size:12px;color:var(--teal);margin-bottom:26px}
+  .toc{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+  @media(max-width:820px){.toc{grid-template-columns:1fr}}
+  .toc a{display:flex;gap:13px;align-items:baseline;text-decoration:none;color:var(--parch);
+    background:var(--slate2);border:1px solid var(--line);border-radius:8px;padding:11px 15px;transition:.15s}
+  .toc a:hover{border-color:var(--pg-light);background:#2a3a4c;transform:translateX(2px)}
+  .toc .tn{font-family:var(--mono);color:var(--amber);font-weight:700;font-size:15px;flex:none;width:24px}
+  .toc .tt{font-weight:700;font-size:13.5px}
+  .toc .td{display:block;color:#8aa0b4;font-size:11.5px;font-weight:400;margin-top:2px}
+  .toolbar{position:sticky;top:0;z-index:50;background:#070b11;border-bottom:1px solid var(--line);
+    padding:9px 18px;display:flex;gap:13px;align-items:center;font-size:13px;flex-wrap:wrap}
+  .toolbar b{color:var(--amber);font-family:var(--mono)}
+  .toolbar a{color:var(--pg-light);text-decoration:none;font-family:var(--mono);font-size:11.5px}
+  .toolbar a:hover{color:var(--parch)}
+  .toolbar .spacer{flex:1}
+  @media print{
+    body{background:#fff}.toolbar{display:none}
+    .poster,.cover{box-shadow:none;margin:0 0 8px;border-radius:0;width:100%;break-inside:avoid;page-break-after:always}
+    .poster::before{opacity:.04}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <b>postgres=#</b>
+  <span style="color:#aebccb">PostgreSQL Master Reference · v18 + PostGIS 3.6 · 17 posters</span>
+  <span class="spacer"></span>
+  <a href="#cover">contents</a>
+  <a href="#p1">1</a><a href="#p2">2</a><a href="#p3">3</a><a href="#p4">4</a>
+  <a href="#p5">5</a><a href="#p6">6</a><a href="#p7">7</a><a href="#p8">8</a><a href="#p9">9</a>
+  <a href="#p10" style="color:var(--rust)">10</a><a href="#p11" style="color:var(--rust)">11</a><a href="#p12" style="color:var(--rust)">12</a><a href="#p13" style="color:var(--rust)">13</a><a href="#p14" style="color:var(--rust)">14</a><a href="#p15" style="color:var(--rust)">15</a><a href="#p16" style="color:var(--rust)">16</a><a href="#p17" style="color:var(--rust)">17</a>
+  <a href="javascript:window.print()">⎙ PDF</a>
+</div>
+
+<!-- COVER -->
+<section class="cover" id="cover">
+  <div class="prompt"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span>postgres=#</span><span class="cmd">\i master_reference.sql</span><span class="blink">█</span></div>
+  <div class="pad">
+    <h1>PostgreSQL <span style="color:var(--amber)">Master Reference</span></h1>
+    <p class="tagline">SQL grammar in EBNF, the logical data-flow that explains every rule, the practical
+      fluency to write correct queries, and a rigorous PostGIS spatial extension — a progressive learning arc, not a feature dump.</p>
+    <p class="meta">Verified against PostgreSQL 18 (stable 18.4) &amp; PostGIS 3.6.2 · notation: [ ] optional · { } repeat · | choice</p>
+    <p class="meta" style="color:var(--rust);margin-top:-18px">Posters 10–17 cover PostGIS end-to-end: types, queries, indexing, data loading, QGIS, validity, vector tiles &amp; routing.</p>
+    <div class="toc">
+      <a href="#p1"><span class="tn">01</span><span><span class="tt">SELECT — Grammar &amp; Execution Flow</span><span class="td">Full query EBNF + the 8-stage pipeline behind alias &amp; aggregate rules</span></span></a>
+      <a href="#p2"><span class="tn">02</span><span><span class="tt">Data Types</span><span class="td">text, numeric, temporal, boolean, jsonb, arrays, uuid + casting</span></span></a>
+      <a href="#p3"><span class="tn">03</span><span><span class="tt">Filtering, NULL Logic &amp; CASE</span><span class="td">WHERE precision, three-valued logic, conditional expressions</span></span></a>
+      <a href="#p4"><span class="tn">04</span><span><span class="tt">Functions &amp; Operators</span><span class="td">String, date/time, math, conversion &amp; the aggregate catalog</span></span></a>
+      <a href="#p5"><span class="tn">05</span><span><span class="tt">JOINs, Set Ops &amp; Subqueries</span><span class="td">Every way to combine relations: horizontal, vertical, nested</span></span></a>
+      <a href="#p6"><span class="tn">06</span><span><span class="tt">GROUP BY vs Window Functions</span><span class="td">Collapse vs preserve, with the OVER grammar</span></span></a>
+      <a href="#p7"><span class="tn">07</span><span><span class="tt">CTEs &amp; Recursion</span><span class="td">WITH for readability; RECURSIVE for hierarchies, worked end-to-end</span></span></a>
+      <a href="#p8"><span class="tn">08</span><span><span class="tt">DML · DDL · TCL · DCL</span><span class="td">Writing rows, defining structure, transactions, access control</span></span></a>
+      <a href="#p9"><span class="tn">09</span><span><span class="tt">Indexes &amp; EXPLAIN Performance</span><span class="td">Which index when, reading the plan, costly mistakes</span></span></a>
+      <a href="#p10" style="border-color:rgba(193,85,58,.4)"><span class="tn" style="color:var(--rust)">10</span><span><span class="tt">PostGIS — Spatial Types &amp; SRID</span><span class="td">Setup, geometry hierarchy, WKT/EWKT, the geometry-vs-geography trap</span></span></a>
+      <a href="#p11" style="border-color:rgba(193,85,58,.4)"><span class="tn" style="color:var(--rust)">11</span><span><span class="tt">PostGIS — Functions &amp; Queries</span><span class="td">Constructors, relationships, measurement, processing, output</span></span></a>
+      <a href="#p12" style="border-color:rgba(193,85,58,.4)"><span class="tn" style="color:var(--rust)">12</span><span><span class="tt">PostGIS — Spatial Indexing &amp; Performance</span><span class="td">GiST/R-Tree, the &amp;&amp; prefilter, filter-and-refine, KNN search</span></span></a>
+      <a href="#p13" style="border-color:rgba(193,85,58,.4)"><span class="tn" style="color:var(--rust)">13</span><span><span class="tt">PostGIS — Loading &amp; Exporting Data</span><span class="td">shp2pgsql, ogr2ogr, raster2pgsql, osm2pgsql, \copy, pgsql2shp</span></span></a>
+      <a href="#p14" style="border-color:rgba(193,85,58,.4)"><span class="tn" style="color:var(--rust)">14</span><span><span class="tt">PostGIS — QGIS Integration &amp; Maps</span><span class="td">Layer requirements, unique key, metadata views, EPSG, projections</span></span></a>
+      <a href="#p15" style="border-color:rgba(193,85,58,.4)"><span class="tn" style="color:var(--rust)">15</span><span><span class="tt">PostGIS — Validity &amp; Processing</span><span class="td">ST_MakeValid, buffers, overlays, simplify, dump/collect</span></span></a>
+      <a href="#p16" style="border-color:rgba(193,85,58,.4)"><span class="tn" style="color:var(--rust)">16</span><span><span class="tt">PostGIS — Vector Tiles &amp; Clustering</span><span class="td">ST_AsMVT pipeline, DBSCAN/KMeans hotspots, web delivery</span></span></a>
+      <a href="#p17" style="border-color:rgba(193,85,58,.4)"><span class="tn" style="color:var(--rust)">17</span><span><span class="tt">pgRouting — Response Logistics</span><span class="td">Network build, Dijkstra, driving-distance isochrones, cost matrix</span></span></a>
+    </div>
+  </div>
+</section>
+
+<!-- POSTER 1 -->
+<section class="poster" id="p1">
+  <div class="prompt"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span>postgres=#</span><span class="cmd">\h SELECT</span><span class="blink">█</span><span class="pno">01 / 09</span></div>
+  <div class="pad">
+    <h1>The <span class="accent">SELECT</span> Statement — Grammar &amp; Execution Flow</h1>
+    <p class="sub">SQL is written in one order and <b>executed in another</b>. The grammar says what's legal;
+      the pipeline says <i>why</i> — why an alias works in <code>ORDER BY</code> but not <code>WHERE</code>,
+      why aggregates are banned in <code>WHERE</code> but allowed in <code>HAVING</code>.</p>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--pg-light)"></span>nonterminal</span>
+      <span><span class="sw" style="background:var(--amber)"></span>keyword</span>
+      <span><span class="sw" style="background:var(--teal)"></span>metasymbol</span>
+      <span><span class="sw" style="background:var(--rust)"></span>PostgreSQL extension</span>
+    </div>
+    <h2>Complete SELECT grammar (written order)</h2>
+<div class="ebnf"><span class="nt">select_query</span> <span class="op">=</span> <span class="op">[</span> <span class="nt">with_clause</span> <span class="op">]</span> <span class="nt">query_body</span> <span class="op">[</span> <span class="kw">ORDER</span> <span class="kw">BY</span> <span class="nt">sort_item</span> <span class="op">{</span><span class="lit">","</span> <span class="nt">sort_item</span><span class="op">}</span> <span class="op">]</span> <span class="op">[</span> <span class="nt">limit_clause</span> <span class="op">]</span> <span class="op">[</span> <span class="nt">lock</span> <span class="op">]</span> <span class="lit">";"</span> <span class="op">;</span>
+<span class="nt">query_body</span>   <span class="op">=</span> <span class="nt">query_term</span> <span class="op">{</span> <span class="op">(</span> <span class="kw">UNION</span> <span class="op">|</span> <span class="kw">EXCEPT</span> <span class="op">)</span> <span class="op">[</span> <span class="kw">ALL</span> <span class="op">]</span> <span class="nt">query_term</span> <span class="op">}</span> <span class="op">;</span>
+<span class="nt">query_term</span>   <span class="op">=</span> <span class="nt">query_prim</span> <span class="op">{</span> <span class="kw">INTERSECT</span> <span class="op">[</span> <span class="kw">ALL</span> <span class="op">]</span> <span class="nt">query_prim</span> <span class="op">}</span> <span class="op">;</span>
+<span class="nt">query_prim</span>   <span class="op">=</span> <span class="nt">select_block</span> <span class="op">|</span> <span class="kw">VALUES</span> <span class="nt">rows</span> <span class="op">|</span> <span class="kw">TABLE</span> <span class="nt">name</span> <span class="op">|</span> <span class="lit">"("</span> <span class="nt">query_body</span> <span class="lit">")"</span> <span class="op">;</span>
+
+<span class="nt">select_block</span> <span class="op">=</span> <span class="kw">SELECT</span> <span class="op">[</span> <span class="kw">ALL</span> <span class="op">|</span> <span class="kw">DISTINCT</span> <span class="op">[</span> <span class="pg-ext">ON</span> <span class="lit">"("</span> <span class="nt">expr</span> <span class="op">{</span><span class="lit">","</span> <span class="nt">expr</span><span class="op">}</span> <span class="lit">")"</span> <span class="op">]</span> <span class="op">]</span> <span class="nt">select_list</span>
+            <span class="op">[</span> <span class="kw">FROM</span> <span class="nt">from_item</span> <span class="op">{</span><span class="lit">","</span> <span class="nt">from_item</span><span class="op">}</span> <span class="op">]</span>   <span class="cm">-- PG: FROM optional → SELECT now();</span>
+            <span class="op">[</span> <span class="kw">WHERE</span> <span class="nt">condition</span> <span class="op">]</span>
+            <span class="op">[</span> <span class="kw">GROUP</span> <span class="kw">BY</span> <span class="nt">group_item</span> <span class="op">{</span><span class="lit">","</span> <span class="nt">group_item</span><span class="op">}</span> <span class="op">]</span> <span class="op">[</span> <span class="kw">HAVING</span> <span class="nt">condition</span> <span class="op">]</span>
+            <span class="op">[</span> <span class="kw">WINDOW</span> <span class="nt">name</span> <span class="kw">AS</span> <span class="lit">"("</span> <span class="nt">window_def</span> <span class="lit">")"</span> <span class="op">]</span> <span class="op">;</span>
+<span class="nt">limit_clause</span> <span class="op">=</span> <span class="pg-ext">LIMIT</span> <span class="op">(</span><span class="nt">n</span><span class="op">|</span><span class="kw">ALL</span><span class="op">)</span> <span class="op">[</span> <span class="pg-ext">OFFSET</span> <span class="nt">m</span> <span class="op">]</span>  <span class="op">|</span>  <span class="kw">OFFSET</span> <span class="nt">m</span> <span class="op">[</span> <span class="kw">FETCH</span> <span class="op">(</span><span class="kw">FIRST</span><span class="op">|</span><span class="kw">NEXT</span><span class="op">)</span> <span class="nt">n</span> <span class="kw">ROWS</span> <span class="op">(</span><span class="kw">ONLY</span><span class="op">|</span><span class="kw">WITH</span> <span class="kw">TIES</span><span class="op">)</span> <span class="op">]</span> <span class="op">;</span></div>
+    <h2>The execution pipeline — tables in, table out</h2>
+    <div class="pipe">
+      <div class="stage"><div class="n">1</div><div class="op-name">FROM / JOIN<small>relation ⋈</small></div>
+        <div class="desc"><span>Assemble sources; multiple tables cross-join, then JOIN conditions apply. <span class="flowtag">→ T₁</span></span></div></div>
+      <div class="stage"><div class="n">2</div><div class="op-name">WHERE<small>select σ</small></div>
+        <div class="desc"><span>Keep rows where predicate is <b>TRUE</b> (not FALSE/NULL). No aggregates — groups don't exist yet. <span class="flowtag">→ T₂</span></span></div></div>
+      <div class="stage"><div class="n">3</div><div class="op-name">GROUP BY<small>group γ</small></div>
+        <div class="desc"><span>Partition by key; <b>collapse</b> each group to one row. Cardinality drops. <span class="flowtag">→ T₃</span></span></div></div>
+      <div class="stage"><div class="n">4</div><div class="op-name">HAVING<small>select σ</small></div>
+        <div class="desc"><span>Filter <b>group rows</b>; aggregates legal here because groups now exist. <span class="flowtag">→ T₄</span></span></div></div>
+      <div class="stage"><div class="n">5</div><div class="op-name">SELECT<small>project π</small></div>
+        <div class="desc"><span>Evaluate output expressions &amp; <b>window functions</b>; assign aliases — result columns now exist. <span class="flowtag">→ T₅</span></span></div></div>
+      <div class="stage"><div class="n">6</div><div class="op-name">DISTINCT<small>dedup δ</small></div>
+        <div class="desc"><span>Remove duplicate result rows. <span class="flowtag">→ T₆</span></span></div></div>
+      <div class="stage"><div class="n">7</div><div class="op-name">ORDER BY<small>sort τ</small></div>
+        <div class="desc"><span>Impose order; <b>aliases from step 5 visible here</b> — the only place order is guaranteed. <span class="flowtag">→ T₇</span></span></div></div>
+      <div class="stage"><div class="n">8</div><div class="op-name">LIMIT / OFFSET<small>slice</small></div>
+        <div class="desc"><span>Skip OFFSET, return at most LIMIT. Delivered to client. <span class="flowtag">→ RESULT</span></span></div></div>
+    </div>
+    <div class="callout"><b>The alias rule, explained by the pipeline.</b> <code>WHERE</code> (2) runs before <code>SELECT</code> (5),
+      so a SELECT alias is invisible to WHERE/HAVING — repeat the full expression. <code>ORDER BY</code> (7) runs after
+      SELECT, so it <i>can</i> use the alias.</div>
+    <h2>Relational-algebra equivalent</h2>
+<div class="ebnf"><span class="cm">SELECT dept, SUM(sales) AS total FROM s WHERE region='East' GROUP BY dept HAVING SUM(sales)>150 ORDER BY total DESC;</span>
+<span class="op">τ</span><sub>total↓</sub> <span class="op">(</span> <span class="op">π</span><sub>dept,total</sub> <span class="op">(</span> <span class="op">σ</span><sub>SUM>150</sub> <span class="op">(</span> <sub>dept</sub><span class="op">γ</span><sub>SUM(sales)→total</sub> <span class="op">(</span> <span class="op">σ</span><sub>region='East'</sub> <span class="op">(</span> <span class="nt">s</span> <span class="op">)</span> <span class="op">)</span> <span class="op">)</span> <span class="op">)</span> <span class="op">)</span>
+  sort         project       HAVING            GROUP+aggregate          WHERE       source</div>
+    <div class="callout warn"><b>Three PostgreSQL divergences.</b>
+      ① <code>LIMIT</code>/<code>OFFSET</code> aren't standard (portable: <code>OFFSET … FETCH</code>).
+      ② <code>DISTINCT ON (k)</code> keeps the first row per key — PG-only.
+      ③ <code>FROM</code> may be omitted entirely.</div>
+    <div class="foot"><span>Execution order is logical; the planner may reorder physically but results match this model.</span><span>postgresql.org/docs/18/sql-select.html</span></div>
+  </div>
+</section>
+
+<!-- POSTER 2 -->
+<section class="poster" id="p2">
+  <div class="prompt"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span>postgres=#</span><span class="cmd">\dT  -- data types</span><span class="blink">█</span><span class="pno">02 / 09</span></div>
+  <div class="pad">
+    <h1>Data <span class="accent">Types</span> — the Vocabulary</h1>
+    <p class="sub">Every column, expression and comparison has a type. Choosing well prevents silent bugs
+      (float money, naive timestamps) and unlocks the right operators and indexes.</p>
+    <div class="grid2">
+      <div>
+        <h2>Numeric</h2>
+        <table class="mini">
+          <tr><th>Type</th><th>Use for</th><th>Note</th></tr>
+          <tr><td><code>smallint/int/bigint</code></td><td>Whole numbers</td><td>2 / 4 / 8 bytes</td></tr>
+          <tr><td><code>numeric(p,s)</code></td><td><b>Money, exact</b></td><td>Arbitrary precision, no rounding error</td></tr>
+          <tr><td><code>real / double precision</code></td><td>Scientific</td><td>Float — never for currency</td></tr>
+          <tr><td><code>serial / bigserial</code></td><td>Auto-increment</td><td>Legacy; prefer <code>GENERATED … IDENTITY</code></td></tr>
+        </table>
+      </div>
+      <div>
+        <h2>Text</h2>
+        <table class="mini">
+          <tr><th>Type</th><th>Use for</th><th>Note</th></tr>
+          <tr><td><code>text</code></td><td><b>Default choice</b></td><td>Unlimited; no perf penalty in PG</td></tr>
+          <tr><td><code>varchar(n)</code></td><td>Length-capped</td><td>Enforces a max; otherwise = text</td></tr>
+          <tr><td><code>char(n)</code></td><td>Fixed width</td><td>Space-padded; rarely wanted</td></tr>
+        </table>
+        <div class="callout" style="margin-top:8px"><code>text</code> and <code>varchar</code> perform identically in PG — reach for <code>text</code> unless you need a hard length limit.</div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div>
+        <h2>Temporal</h2>
+        <table class="mini">
+          <tr><th>Type</th><th>Stores</th></tr>
+          <tr><td><code>date</code></td><td>Calendar day, no time</td></tr>
+          <tr><td><code>time [tz]</code></td><td>Time of day</td></tr>
+          <tr><td><code>timestamp</code></td><td>Date+time, <b>no zone</b> (naive)</td></tr>
+          <tr><td><code>timestamptz</code></td><td><b>Zone-aware — use this</b></td></tr>
+          <tr><td><code>interval</code></td><td>Duration (<code>'2 days 3 hours'</code>)</td></tr>
+        </table>
+        <div class="callout warn" style="margin-top:8px"><b>Default to <code>timestamptz</code>.</b> It stores UTC and converts on display; <code>timestamp</code> drops zone context and causes off-by-hours bugs.</div>
+      </div>
+      <div>
+        <h2>Boolean, UUID &amp; semi-structured</h2>
+        <table class="mini">
+          <tr><th>Type</th><th>Values / use</th></tr>
+          <tr><td><code>boolean</code></td><td><code>TRUE</code> / <code>FALSE</code> / <code>NULL</code></td></tr>
+          <tr><td><code>uuid</code></td><td>128-bit id; <code>gen_random_uuid()</code></td></tr>
+          <tr><td><code>bytea</code></td><td>Raw binary</td></tr>
+          <tr><td><code>enum</code></td><td><code>CREATE TYPE mood AS ENUM(…)</code></td></tr>
+          <tr><td><code>jsonb</code></td><td><b>Indexed JSON</b>; <code>-&gt;</code> <code>-&gt;&gt;</code> <code>@&gt;</code></td></tr>
+          <tr><td><code>type[]</code></td><td>Array: <code>int[]</code>, <code>text[]</code></td></tr>
+          <tr><td><code>tsvector</code> / <code>int4range</code></td><td>Full-text / range types</td></tr>
+        </table>
+      </div>
+    </div>
+    <h2>Casting &amp; literals</h2>
+<div class="ebnf"><span class="kw">SELECT</span> '2026-06-29'<span class="op">::</span><span class="kw">date</span>,           <span class="cm">-- PG cast shorthand ::</span>
+       <span class="kw">CAST</span>('42' <span class="kw">AS</span> <span class="kw">int</span>),           <span class="cm">-- SQL-standard cast</span>
+       3.0<span class="op">::</span><span class="kw">numeric</span> / 2,          <span class="cm">-- 1.5  (int/int truncates to 1)</span>
+       '{1,2,3}'<span class="op">::</span><span class="kw">int</span>[],            <span class="cm">-- array literal</span>
+       '{"a":1}'<span class="op">::</span><span class="kw">jsonb</span> <span class="op">-&gt;&gt;</span> 'a';    <span class="cm">-- → '1' (text)</span></div>
+    <div class="callout"><b>Integer division truncates.</b> <code>5/2 = 2</code>. Force real division by casting one side: <code>5::numeric/2 = 2.5</code>.</div>
+    <div class="foot"><span>Type drives operators, indexes &amp; comparison semantics — choose deliberately.</span><span>postgresql.org/docs/18/datatype.html</span></div>
+  </div>
+</section>
+
+<!-- POSTER 3 -->
+<section class="poster" id="p3">
+  <div class="prompt"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span>postgres=#</span><span class="cmd">-- WHERE · NULL · CASE</span><span class="blink">█</span><span class="pno">03 / 09</span></div>
+  <div class="pad">
+    <h1>Filtering, <span class="accent">NULL Logic</span> &amp; CASE</h1>
+    <p class="sub"><code>WHERE</code> keeps a row only when its condition is <b>TRUE</b>. NULL turns Boolean logic from
+      two values into three — the source of more silent bugs than any other SQL feature.</p>
+    <h2>Predicate toolkit</h2>
+    <table>
+      <tr><th>Predicate</th><th>Matches</th><th>Example</th></tr>
+      <tr><td><code>= &lt;&gt; &lt; &gt; &lt;= &gt;=</code></td><td>Comparison</td><td><code>price &gt;= 100</code></td></tr>
+      <tr><td><code>BETWEEN a AND b</code></td><td>Inclusive range</td><td><code>age BETWEEN 18 AND 65</code></td></tr>
+      <tr><td><code>IN (…)</code></td><td>Any of a set</td><td><code>state IN ('AP','TS')</code></td></tr>
+      <tr><td><code>LIKE</code> / <code>ILIKE</code></td><td>Pattern (<code>%</code> <code>_</code>); ILIKE case-insensitive</td><td><code>name ILIKE 'kal%'</code></td></tr>
+      <tr><td><code>~</code> / <code>~*</code></td><td>POSIX regex / case-insensitive</td><td><code>code ~ '^[A-Z]{3}$'</code></td></tr>
+      <tr><td><code>IS [NOT] NULL</code></td><td>Null test</td><td><code>deleted_at IS NULL</code></td></tr>
+      <tr><td><code>IS [NOT] DISTINCT FROM</code></td><td>NULL-safe equality</td><td><code>a IS NOT DISTINCT FROM b</code></td></tr>
+    </table>
+    <div class="grid2">
+      <div>
+        <h2>Three-valued logic</h2>
+        <p style="margin-top:0">Any comparison with NULL yields <b>UNKNOWN</b>. A row passes WHERE only on TRUE.</p>
+        <table class="mini">
+          <tr><th>AND</th><th>T</th><th>F</th><th>NULL</th></tr>
+          <tr><td>T</td><td>T</td><td>F</td><td>NULL</td></tr>
+          <tr><td>F</td><td>F</td><td>F</td><td>F</td></tr>
+          <tr><td>NULL</td><td>NULL</td><td>F</td><td>NULL</td></tr>
+        </table>
+        <table class="mini">
+          <tr><th>OR</th><th>T</th><th>F</th><th>NULL</th></tr>
+          <tr><td>T</td><td>T</td><td>T</td><td>T</td></tr>
+          <tr><td>F</td><td>T</td><td>F</td><td>NULL</td></tr>
+          <tr><td>NULL</td><td>T</td><td>NULL</td><td>NULL</td></tr>
+        </table>
+      </div>
+      <div>
+        <h2>NULL traps &amp; fixes</h2>
+        <table class="mini">
+          <tr><th>Trap</th><th>Fix</th></tr>
+          <tr><td><code>x = NULL</code> never true</td><td><code>x IS NULL</code></td></tr>
+          <tr><td><code>NOT IN (…,NULL)</code> → 0 rows</td><td>Filter NULLs / <code>NOT EXISTS</code></td></tr>
+          <tr><td><code>COUNT(col)</code> skips NULLs</td><td><code>COUNT(*)</code> for total rows</td></tr>
+          <tr><td><code>a = b</code> false when both NULL</td><td><code>IS NOT DISTINCT FROM</code></td></tr>
+          <tr><td><code>'x'||NULL</code> → NULL</td><td><code>COALESCE(col,'')</code></td></tr>
+        </table>
+        <div class="callout warn" style="margin-top:8px"><b>UNIQUE allows many NULLs.</b> NULL ≠ NULL, so duplicate NULLs pass a unique constraint unless you add <code>NULLS NOT DISTINCT</code> (PG 15+).</div>
+      </div>
+    </div>
+    <h2>Conditional expressions</h2>
+<div class="ebnf"><span class="cm">-- CASE: the if/else of SQL</span>
+<span class="kw">SELECT</span> name,
+  <span class="kw">CASE</span> <span class="kw">WHEN</span> score &gt;= 90 <span class="kw">THEN</span> 'A'
+       <span class="kw">WHEN</span> score &gt;= 75 <span class="kw">THEN</span> 'B'
+       <span class="kw">ELSE</span> 'C' <span class="kw">END</span> <span class="kw">AS</span> grade
+<span class="kw">FROM</span> students<span class="op">;</span>
+
+<span class="cm">-- NULL helpers</span>
+<span class="kw">COALESCE</span>(a, b, 0)   <span class="cm">-- first non-NULL argument</span>
+<span class="kw">NULLIF</span>(x, 0)        <span class="cm">-- NULL if x=0 (guard division)</span>
+<span class="kw">GREATEST</span>(a,b,c) / <span class="kw">LEAST</span>(a,b,c)   <span class="cm">-- ignore NULLs</span></div>
+    <div class="callout"><b>Conditional aggregation</b> — pivot without a pivot:
+      <code>SUM(CASE WHEN region='East' THEN sales ELSE 0 END)</code>. Cleaner:
+      <code>SUM(sales) FILTER (WHERE region='East')</code>.</div>
+    <div class="foot"><span>WHERE filters rows (pre-group); HAVING filters groups (post-group).</span><span>postgresql.org/docs/18/functions-conditional.html</span></div>
+  </div>
+</section>
+
+<!-- POSTER 4 -->
+<section class="poster" id="p4">
+  <div class="prompt"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span>postgres=#</span><span class="cmd">\df  -- functions</span><span class="blink">█</span><span class="pno">04 / 09</span></div>
+  <div class="pad">
+    <h1><span class="accent">Functions</span> &amp; Operators</h1>
+    <p class="sub">The working toolkit, grouped by what you're transforming. Scalar functions act per row;
+      aggregates collapse many rows into one.</p>
+    <div class="grid2">
+      <div>
+        <h2>String</h2>
+        <table class="mini">
+          <tr><th>Function</th><th>Result</th></tr>
+          <tr><td><code>a || b</code></td><td>Concatenate</td></tr>
+          <tr><td><code>length(s)</code></td><td>Character count</td></tr>
+          <tr><td><code>lower / upper / initcap</code></td><td>Case transforms</td></tr>
+          <tr><td><code>trim / ltrim / rtrim</code></td><td>Strip whitespace</td></tr>
+          <tr><td><code>substring(s,from,len)</code></td><td>Extract slice</td></tr>
+          <tr><td><code>replace(s,old,new)</code></td><td>Substitute</td></tr>
+          <tr><td><code>split_part(s,delim,n)</code></td><td>Nth field</td></tr>
+          <tr><td><code>position(sub in s)</code></td><td>Index of substring</td></tr>
+          <tr><td><code>format('%s=%s',k,v)</code></td><td>printf-style build</td></tr>
+          <tr><td><code>string_agg(x,',')</code></td><td><i>aggregate</i>: join rows</td></tr>
+        </table>
+      </div>
+      <div>
+        <h2>Date / time</h2>
+        <table class="mini">
+          <tr><th>Function</th><th>Result</th></tr>
+          <tr><td><code>now() / current_date</code></td><td>Current moment / day</td></tr>
+          <tr><td><code>age(ts)</code></td><td>Interval from now</td></tr>
+          <tr><td><code>date_trunc('month',ts)</code></td><td>Round down to unit</td></tr>
+          <tr><td><code>extract(year from ts)</code></td><td>Pull a field</td></tr>
+          <tr><td><code>ts + interval '1 day'</code></td><td>Date arithmetic</td></tr>
+          <tr><td><code>to_char(ts,'YYYY-MM')</code></td><td>Format to text</td></tr>
+          <tr><td><code>to_date(s,'DD/MM/YYYY')</code></td><td>Parse from text</td></tr>
+          <tr><td><code>generate_series(a,b,step)</code></td><td>Row-set of values</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="grid2">
+      <div>
+        <h2>Math &amp; conversion</h2>
+        <table class="mini">
+          <tr><th>Function</th><th>Result</th></tr>
+          <tr><td><code>round(x,n) / trunc</code></td><td>Round / truncate</td></tr>
+          <tr><td><code>ceil / floor / abs</code></td><td>Standard math</td></tr>
+          <tr><td><code>mod(a,b) / a % b</code></td><td>Remainder</td></tr>
+          <tr><td><code>power(a,b) / sqrt</code></td><td>Exponent / root</td></tr>
+          <tr><td><code>random()</code></td><td>0 ≤ x &lt; 1</td></tr>
+          <tr><td><code>x::type / cast(x as t)</code></td><td>Convert type</td></tr>
+        </table>
+      </div>
+      <div>
+        <h2>Aggregates</h2>
+        <table class="mini">
+          <tr><th>Function</th><th>Result</th></tr>
+          <tr><td><code>count(*) / count(col)</code></td><td>All rows / non-NULL</td></tr>
+          <tr><td><code>sum / avg / min / max</code></td><td>Standard rollups</td></tr>
+          <tr><td><code>array_agg(x)</code></td><td>Collect into array</td></tr>
+          <tr><td><code>string_agg(x,sep)</code></td><td>Collect into string</td></tr>
+          <tr><td><code>jsonb_agg(x)</code></td><td>Collect into JSON</td></tr>
+          <tr><td><code>bool_and / bool_or</code></td><td>Logical rollup</td></tr>
+          <tr><td><code>percentile_cont(0.5) WITHIN GROUP (ORDER BY x)</code></td><td>Median</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="callout"><b>FILTER beats CASE inside aggregates.</b> Instead of
+      <code>SUM(CASE WHEN paid THEN amt END)</code>, write <code>SUM(amt) FILTER (WHERE paid)</code> — clearer and
+      NULL-clean. Any aggregate accepts <code>FILTER (WHERE …)</code>.</div>
+    <div class="callout warn"><b>DISTINCT inside an aggregate.</b> <code>COUNT(DISTINCT user_id)</code> counts unique values;
+      plain <code>COUNT(user_id)</code> counts non-NULL occurrences — they differ whenever duplicates exist.</div>
+    <div class="foot"><span>Scalar = per row · Aggregate = many → one · both composable with window OVER.</span><span>postgresql.org/docs/18/functions.html</span></div>
+  </div>
+</section>
+
+<!-- POSTER 5 -->
+<section class="poster" id="p5">
+  <div class="prompt"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span>postgres=#</span><span class="cmd">\d  -- combine relations</span><span class="blink">█</span><span class="pno">05 / 09</span></div>
+  <div class="pad">
+    <h1><span class="accent">JOINs</span>, Set Ops &amp; Subqueries</h1>
+    <p class="sub">Three ways to combine relations: <b>JOINs</b> widen rows (more columns), <b>set operations</b>
+      stack rows (same columns), <b>subqueries</b> nest one query inside another.</p>
+    <h2>Join grammar</h2>
+<div class="ebnf"><span class="nt">from_item</span> <span class="op">=</span> <span class="nt">source</span> <span class="op">{</span> <span class="nt">join</span> <span class="op">}</span> <span class="op">;</span>
+<span class="nt">join</span> <span class="op">=</span> <span class="op">(</span> <span class="op">[</span><span class="kw">INNER</span><span class="op">]</span> <span class="op">|</span> <span class="op">(</span><span class="kw">LEFT</span><span class="op">|</span><span class="kw">RIGHT</span><span class="op">|</span><span class="kw">FULL</span><span class="op">)</span> <span class="op">[</span><span class="kw">OUTER</span><span class="op">]</span> <span class="op">)</span> <span class="kw">JOIN</span> <span class="nt">source</span> <span class="op">(</span> <span class="kw">ON</span> <span class="nt">cond</span> <span class="op">|</span> <span class="kw">USING</span> <span class="lit">"("</span><span class="nt">col…</span><span class="lit">")"</span> <span class="op">)</span>
+     <span class="op">|</span> <span class="kw">CROSS</span> <span class="kw">JOIN</span> <span class="nt">source</span>  <span class="op">|</span>  <span class="kw">NATURAL</span> <span class="op">…</span> <span class="kw">JOIN</span> <span class="nt">source</span>  <span class="op">|</span>  <span class="op">[</span><span class="kw">LATERAL</span><span class="op">]</span> <span class="op">…</span> <span class="op">;</span></div>
+    <table>
+      <tr><th>Join</th><th>Keeps</th><th>Unmatched rows</th></tr>
+      <tr><td><code>INNER</code></td><td>Matching pairs only</td><td>Dropped both sides</td></tr>
+      <tr><td><code>LEFT OUTER</code></td><td>All left + matches</td><td>Left kept, right = NULL</td></tr>
+      <tr><td><code>RIGHT OUTER</code></td><td>All right + matches</td><td>Right kept, left = NULL</td></tr>
+      <tr><td><code>FULL OUTER</code></td><td>Everything</td><td>Either side padded NULL</td></tr>
+      <tr><td><code>CROSS</code></td><td>Every combination</td><td>Cartesian product</td></tr>
+      <tr><td><code>LATERAL</code></td><td>Per-row correlated subquery</td><td>Right may reference left's columns</td></tr>
+    </table>
+    <div class="grid2">
+      <div class="card">
+        <h3 style="color:var(--teal)">ON vs USING vs NATURAL</h3>
+        <p style="font-size:12.5px;margin:0"><code>ON a.id=b.id</code> — explicit, both columns survive.<br>
+        <code>USING (id)</code> — equal-named cols, merged to one.<br>
+        <code>NATURAL JOIN</code> — auto-matches all shared names; convenient but fragile — a new shared column silently changes results.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--amber)">Set operations</h3>
+        <div class="ebnf" style="margin:6px 0;font-size:11.5px">q1 <span class="kw">UNION</span> [<span class="kw">ALL</span>] q2  <span class="cm">-- combine</span>
+q1 <span class="kw">INTERSECT</span> q2    <span class="cm">-- in both</span>
+q1 <span class="kw">EXCEPT</span> q2       <span class="cm">-- in q1 not q2</span></div>
+        <p style="font-size:11.5px;margin:0;color:#8aa0b4">Same column count &amp; compatible types. Default dedups; <code>ALL</code> keeps dups. <code>INTERSECT</code> binds tighter than <code>UNION</code>/<code>EXCEPT</code>.</p>
+      </div>
+    </div>
+    <h2>Subqueries — four shapes</h2>
+<div class="ebnf"><span class="cm">-- 1. Scalar: returns one value, usable anywhere a value fits</span>
+<span class="kw">SELECT</span> name, salary, (<span class="kw">SELECT</span> avg(salary) <span class="kw">FROM</span> emp) <span class="kw">AS</span> company_avg <span class="kw">FROM</span> emp<span class="op">;</span>
+
+<span class="cm">-- 2. IN / ANY / ALL: membership against a column of values</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> emp <span class="kw">WHERE</span> dept_id <span class="kw">IN</span> (<span class="kw">SELECT</span> id <span class="kw">FROM</span> dept <span class="kw">WHERE</span> region='East')<span class="op">;</span>
+
+<span class="cm">-- 3. EXISTS: correlated true/false test — stops at first match, NULL-safe</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> dept d <span class="kw">WHERE</span> <span class="kw">EXISTS</span> (<span class="kw">SELECT</span> 1 <span class="kw">FROM</span> emp e <span class="kw">WHERE</span> e.dept_id = d.id)<span class="op">;</span>
+
+<span class="cm">-- 4. Derived table: a subquery in FROM, aliased like a table</span>
+<span class="kw">SELECT</span> region, max_sal <span class="kw">FROM</span> (<span class="kw">SELECT</span> region, max(salary) max_sal <span class="kw">FROM</span> emp <span class="kw">GROUP BY</span> region) t<span class="op">;</span></div>
+    <div class="callout warn"><b>EXISTS over IN for NULL safety.</b> <code>NOT IN (subquery)</code> returns <i>zero rows</i> if the
+      subquery yields a single NULL. <code>NOT EXISTS</code> has no such trap and usually plans better for anti-joins.</div>
+    <div class="foot"><span>JOIN = wider rows · SET = stacked rows · SUBQUERY = nested logic. Correlated subqueries re-run per outer row.</span><span>postgresql.org/docs/18/queries-table-expressions.html</span></div>
+  </div>
+</section>
+
+<!-- POSTER 6 -->
+<section class="poster" id="p6">
+  <div class="prompt"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span>postgres=#</span><span class="cmd">-- collapse vs keep</span><span class="blink">█</span><span class="pno">06 / 09</span></div>
+  <div class="pad">
+    <h1><span class="accent">GROUP BY</span> vs <span class="accent">Window Functions</span></h1>
+    <p class="sub">Same arithmetic, opposite shapes. <b>GROUP BY folds</b> many rows into one summary.
+      A <b>window function keeps</b> every row and attaches a value computed over a window of related rows.</p>
+    <div class="grid2">
+      <div class="card">
+        <h3 style="color:var(--amber)">GROUP BY — collapses (N → G)</h3>
+        <div class="ebnf" style="margin:6px 0;font-size:11.5px"><span class="kw">SELECT</span> dept, <span class="kw">SUM</span>(sales) <span class="kw">AS</span> total
+<span class="kw">FROM</span> s <span class="kw">GROUP BY</span> dept<span class="op">;</span></div>
+        <table class="mini"><tr><th>dept</th><th>total</th></tr><tr><td>East</td><td>400</td></tr><tr><td>West</td><td>800</td></tr></table>
+        <p style="font-size:11.5px;color:#8aa0b4">Employees gone — you <b>can't</b> also select <code>employee</code>; no single value per group.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--teal)">WINDOW — preserves (N → N)</h3>
+        <div class="ebnf" style="margin:6px 0;font-size:11.5px"><span class="kw">SELECT</span> employee, dept, sales,
+  <span class="kw">SUM</span>(sales) <span class="kw">OVER</span> (<span class="kw">PARTITION BY</span> dept) <span class="kw">AS</span> dt
+<span class="kw">FROM</span> s<span class="op">;</span></div>
+        <table class="mini"><tr><th>emp</th><th>dept</th><th>sales</th><th>dt</th></tr>
+          <tr><td>Asha</td><td>East</td><td>100</td><td>400</td></tr>
+          <tr><td>Bina</td><td>East</td><td>300</td><td>400</td></tr>
+          <tr><td>Deepa</td><td>West</td><td>600</td><td>800</td></tr></table>
+        <p style="font-size:11.5px;color:#8aa0b4">Every row survives and knows its group total. Detail <b>and</b> aggregate together.</p>
+      </div>
+    </div>
+    <h2>The OVER clause grammar</h2>
+<div class="ebnf"><span class="nt">window_call</span> <span class="op">=</span> <span class="nt">func</span> <span class="lit">"("</span><span class="op">[</span><span class="nt">args</span><span class="op">]</span><span class="lit">")"</span> <span class="op">[</span> <span class="kw">FILTER</span> <span class="lit">"("</span><span class="kw">WHERE</span> <span class="nt">cond</span><span class="lit">")"</span> <span class="op">]</span> <span class="kw">OVER</span> <span class="op">(</span> <span class="nt">window_def</span> <span class="op">)</span> <span class="op">;</span>
+<span class="nt">window_def</span> <span class="op">=</span> <span class="op">[</span> <span class="kw">PARTITION</span> <span class="kw">BY</span> <span class="nt">expr…</span> <span class="op">]</span>   <span class="cm">-- like GROUP BY, rows NOT collapsed</span>
+             <span class="op">[</span> <span class="kw">ORDER</span> <span class="kw">BY</span> <span class="nt">sort…</span> <span class="op">]</span>      <span class="cm">-- order for ranking &amp; running totals</span>
+             <span class="op">[</span> <span class="nt">frame</span> <span class="op">]</span> <span class="op">;</span>
+<span class="nt">frame</span> <span class="op">=</span> <span class="op">(</span><span class="kw">ROWS</span><span class="op">|</span><span class="kw">RANGE</span><span class="op">|</span><span class="kw">GROUPS</span><span class="op">)</span> <span class="kw">BETWEEN</span> <span class="nt">start</span> <span class="kw">AND</span> <span class="nt">end</span> <span class="op">;</span>
+<span class="nt">start/end</span> <span class="op">=</span> <span class="kw">UNBOUNDED PRECEDING</span> <span class="op">|</span> <span class="nt">n</span> <span class="kw">PRECEDING</span> <span class="op">|</span> <span class="kw">CURRENT ROW</span> <span class="op">|</span> <span class="nt">n</span> <span class="kw">FOLLOWING</span> <span class="op">|</span> <span class="kw">UNBOUNDED FOLLOWING</span> <span class="op">;</span></div>
+    <h2>Window function catalog</h2>
+    <table>
+      <tr><th>Function</th><th>Returns</th><th>Needs ORDER BY</th></tr>
+      <tr><td><code>ROW_NUMBER()</code></td><td>Unique sequential index</td><td>Yes</td></tr>
+      <tr><td><code>RANK() / DENSE_RANK()</code></td><td>Rank with / without gaps after ties</td><td>Yes</td></tr>
+      <tr><td><code>LAG(x,n) / LEAD(x,n)</code></td><td>Value n rows back / ahead</td><td>Yes</td></tr>
+      <tr><td><code>SUM(x) OVER(ORDER BY …)</code></td><td>Running / cumulative total</td><td>Yes</td></tr>
+      <tr><td><code>NTILE(k)</code></td><td>Split into k buckets</td><td>Yes</td></tr>
+      <tr><td><code>FIRST_VALUE / LAST_VALUE / NTH_VALUE</code></td><td>Value at frame edge / position</td><td>Usually</td></tr>
+    </table>
+    <div class="callout"><b>Decision rule.</b> One row per group (a report)? → <code>GROUP BY</code>.
+      Every row plus a peer-computed value (rank, running total, share, diff-from-avg)? → window <code>OVER (…)</code>.
+      Windowing runs <i>after</i> grouping, so the two can coexist.</div>
+    <div class="foot"><span>Math: GROUP BY = γ in bag algebra (many→one). Window = per-row map over an ordered context (one→one). Neither is in pure relational calculus.</span><span>postgresql.org/docs/18/tutorial-window.html</span></div>
+  </div>
+</section>
+
+<!-- POSTER 7 -->
+<section class="poster" id="p7">
+  <div class="prompt"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span>postgres=#</span><span class="cmd">WITH RECURSIVE …</span><span class="blink">█</span><span class="pno">07 / 09</span></div>
+  <div class="pad">
+    <h1><span class="accent">CTEs</span> &amp; Recursion</h1>
+    <p class="sub">A Common Table Expression names a subquery up front, so complex logic reads top-to-bottom instead
+      of inside-out. <code>RECURSIVE</code> extends this to hierarchies and graphs — the standard way to walk a tree.</p>
+    <h2>Grammar</h2>
+<div class="ebnf"><span class="nt">with_clause</span> <span class="op">=</span> <span class="kw">WITH</span> <span class="op">[</span> <span class="kw">RECURSIVE</span> <span class="op">]</span> <span class="nt">cte</span> <span class="op">{</span><span class="lit">","</span> <span class="nt">cte</span><span class="op">}</span> <span class="op">;</span>
+<span class="nt">cte</span> <span class="op">=</span> <span class="nt">name</span> <span class="op">[</span> <span class="lit">"("</span><span class="nt">col…</span><span class="lit">")"</span> <span class="op">]</span> <span class="kw">AS</span> <span class="op">[</span> <span class="op">[</span><span class="kw">NOT</span><span class="op">]</span> <span class="kw">MATERIALIZED</span> <span class="op">]</span> <span class="lit">"("</span> <span class="nt">query</span> <span class="lit">")"</span> <span class="op">;</span></div>
+    <div class="grid2">
+      <div class="card">
+        <h3 style="color:var(--teal)">Plain CTE — readability</h3>
+        <div class="ebnf" style="margin:6px 0;font-size:11.5px"><span class="kw">WITH</span> regional <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> region, <span class="kw">SUM</span>(sales) total
+  <span class="kw">FROM</span> s <span class="kw">GROUP BY</span> region
+)
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> regional
+<span class="kw">WHERE</span> total &gt; 500
+<span class="kw">ORDER BY</span> total <span class="kw">DESC</span><span class="op">;</span></div>
+        <p style="font-size:11.5px;margin:0;color:#8aa0b4">Name the intermediate result once, reuse it. Chains of CTEs read as sequential steps.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--rust)">MATERIALIZED control</h3>
+        <p style="font-size:12.5px;margin:0">PG may inline a CTE into the outer query for speed. Force "compute once"
+          with <code>AS MATERIALIZED</code>, or allow inlining with <code>NOT MATERIALIZED</code>. Use MATERIALIZED when the
+          CTE is expensive and referenced multiple times.</p>
+      </div>
+    </div>
+    <h2>Recursive CTE — walking a hierarchy</h2>
+    <p style="margin-top:0">Two parts joined by <code>UNION ALL</code>: a <b>base case</b> (anchor) and a
+      <b>recursive case</b> that references the CTE itself. PG iterates until the recursive part returns no new rows.</p>
+<div class="ebnf"><span class="cm">-- employees(id, name, manager_id) → everyone under Asha, with depth</span>
+<span class="kw">WITH</span> <span class="kw">RECURSIVE</span> chain <span class="kw">AS</span> (
+  <span class="cm">-- base case: the starting node</span>
+  <span class="kw">SELECT</span> id, name, manager_id, 1 <span class="kw">AS</span> depth
+  <span class="kw">FROM</span> employees <span class="kw">WHERE</span> name = 'Asha'
+  <span class="kw">UNION</span> <span class="kw">ALL</span>
+  <span class="cm">-- recursive case: children of rows already found</span>
+  <span class="kw">SELECT</span> e.id, e.name, e.manager_id, c.depth + 1
+  <span class="kw">FROM</span> employees e
+  <span class="kw">JOIN</span> chain c <span class="kw">ON</span> e.manager_id = c.id
+)
+<span class="kw">SELECT</span> <span class="kw">repeat</span>('  ', depth-1) || name <span class="kw">AS</span> tree, depth <span class="kw">FROM</span> chain <span class="kw">ORDER BY</span> depth<span class="op">;</span></div>
+    <div class="demo">
+      <div><h3 style="color:var(--teal)">Input: employees</h3>
+        <table class="mini"><tr><th>id</th><th>name</th><th>mgr</th></tr>
+          <tr><td>1</td><td>Asha</td><td>—</td></tr><tr><td>2</td><td>Bina</td><td>1</td></tr>
+          <tr><td>3</td><td>Chandu</td><td>1</td></tr><tr><td>4</td><td>Deepa</td><td>2</td></tr></table></div>
+      <div><h3 style="color:var(--amber)">Output: chain</h3>
+        <table class="mini"><tr><th>tree</th><th>depth</th></tr>
+          <tr><td>Asha</td><td>1</td></tr><tr><td>&nbsp;&nbsp;Bina</td><td>2</td></tr>
+          <tr><td>&nbsp;&nbsp;Chandu</td><td>2</td></tr><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;Deepa</td><td>3</td></tr></table></div>
+    </div>
+    <div class="callout warn"><b>Guard against infinite loops.</b> On cyclic graphs an unguarded recursive CTE never
+      terminates. PG 14+ offers <code>UNION … CYCLE col SET is_cycle USING path</code>; otherwise track a visited
+      path array and filter.</div>
+    <div class="callout"><b>Data-modifying CTEs (PG extension).</b>
+      <code>WITH moved AS (DELETE FROM old WHERE … RETURNING *) INSERT INTO archive SELECT * FROM moved;</code> —
+      delete and re-insert atomically in one statement.</div>
+    <div class="foot"><span>CTEs = top-down readability · RECURSIVE = anchor + UNION ALL self-reference until fixpoint.</span><span>postgresql.org/docs/18/queries-with.html</span></div>
+  </div>
+</section>
+
+<!-- POSTER 8 -->
+<section class="poster" id="p8">
+  <div class="prompt"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span>postgres=#</span><span class="cmd">\h  -- DML·DDL·TCL·DCL</span><span class="blink">█</span><span class="pno">08 / 09</span></div>
+  <div class="pad">
+    <h1>Beyond SELECT: <span class="accent">Write, Define, Control</span></h1>
+    <p class="sub"><b>DML</b> changes rows · <b>DDL</b> changes structure · <b>TCL</b> controls transactions · <b>DCL</b> controls access.</p>
+    <h2>DML — manipulate data</h2>
+<div class="ebnf"><span class="nt">insert</span> <span class="op">=</span> <span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="nt">table</span> <span class="op">[</span><span class="lit">"("</span><span class="nt">col…</span><span class="lit">")"</span><span class="op">]</span> <span class="op">(</span> <span class="kw">VALUES</span> <span class="nt">row…</span> <span class="op">|</span> <span class="nt">select_query</span> <span class="op">)</span>
+         <span class="op">[</span> <span class="pg-ext">ON</span> <span class="pg-ext">CONFLICT</span> <span class="op">[</span><span class="nt">target</span><span class="op">]</span> <span class="op">(</span> <span class="kw">DO</span> <span class="kw">NOTHING</span> <span class="op">|</span> <span class="kw">DO</span> <span class="kw">UPDATE</span> <span class="kw">SET</span> <span class="nt">col</span><span class="lit">"="</span><span class="kw">EXCLUDED</span><span class="lit">.</span><span class="nt">col</span> <span class="op">)</span> <span class="op">]</span>   <span class="cm">-- UPSERT</span>
+         <span class="op">[</span> <span class="kw">RETURNING</span> <span class="op">(</span><span class="lit">"*"</span><span class="op">|</span><span class="nt">expr…</span><span class="op">)</span> <span class="op">]</span> <span class="op">;</span>     <span class="cm">-- RETURNING = PG ext</span>
+<span class="nt">update</span> <span class="op">=</span> <span class="kw">UPDATE</span> <span class="nt">table</span> <span class="kw">SET</span> <span class="nt">col</span><span class="lit">"="</span><span class="nt">expr…</span> <span class="op">[</span> <span class="kw">FROM</span> <span class="nt">from_item</span> <span class="op">]</span> <span class="op">[</span> <span class="kw">WHERE</span> <span class="nt">cond</span> <span class="op">]</span> <span class="op">[</span> <span class="kw">RETURNING</span> <span class="op">…</span> <span class="op">]</span> <span class="op">;</span>
+<span class="nt">delete</span> <span class="op">=</span> <span class="kw">DELETE</span> <span class="kw">FROM</span> <span class="nt">table</span> <span class="op">[</span> <span class="kw">USING</span> <span class="nt">from_item</span> <span class="op">]</span> <span class="op">[</span> <span class="kw">WHERE</span> <span class="nt">cond</span> <span class="op">]</span> <span class="op">[</span> <span class="kw">RETURNING</span> <span class="op">…</span> <span class="op">]</span> <span class="op">;</span>
+<span class="nt">merge</span>  <span class="op">=</span> <span class="kw">MERGE</span> <span class="kw">INTO</span> <span class="nt">tgt</span> <span class="kw">USING</span> <span class="nt">src</span> <span class="kw">ON</span> <span class="nt">cond</span> <span class="op">{</span> <span class="kw">WHEN</span> <span class="op">[</span><span class="kw">NOT</span><span class="op">]</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span> <span class="op">(</span><span class="kw">INSERT</span><span class="op">|</span><span class="kw">UPDATE</span><span class="op">|</span><span class="kw">DELETE</span><span class="op">)</span> <span class="op">}</span> <span class="op">;</span></div>
+    <div class="callout warn"><b>WHERE-less <code>UPDATE</code>/<code>DELETE</code> hits every row.</b> Wrap risky writes in
+      <code>BEGIN; … ROLLBACK;</code> to preview the row count before committing.</div>
+    <h2>DDL — define structure</h2>
+<div class="ebnf"><span class="nt">create_table</span> <span class="op">=</span> <span class="kw">CREATE</span> <span class="op">[</span><span class="kw">TEMP</span><span class="op">|</span><span class="kw">UNLOGGED</span><span class="op">]</span> <span class="kw">TABLE</span> <span class="op">[</span><span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span><span class="op">]</span> <span class="nt">name</span>
+   <span class="lit">"("</span> <span class="nt">col</span> <span class="nt">type</span> <span class="op">{</span><span class="nt">constraint</span><span class="op">}</span> <span class="op">{</span><span class="lit">","</span> <span class="op">…</span><span class="op">}</span> <span class="lit">")"</span> <span class="op">[</span> <span class="kw">PARTITION</span> <span class="kw">BY</span> <span class="op">(</span><span class="kw">RANGE</span><span class="op">|</span><span class="kw">LIST</span><span class="op">|</span><span class="kw">HASH</span><span class="op">)</span> <span class="op">…</span> <span class="op">]</span> <span class="op">;</span>
+<span class="nt">constraint</span> <span class="op">=</span> <span class="kw">PRIMARY KEY</span> <span class="op">|</span> <span class="kw">UNIQUE</span> <span class="op">[</span><span class="kw">NULLS NOT DISTINCT</span><span class="op">]</span> <span class="op">|</span> <span class="kw">NOT NULL</span> <span class="op">|</span> <span class="kw">DEFAULT</span> <span class="nt">expr</span>
+           <span class="op">|</span> <span class="kw">CHECK</span> <span class="lit">"("</span><span class="nt">cond</span><span class="lit">")"</span> <span class="op">|</span> <span class="kw">GENERATED ALWAYS AS IDENTITY</span> <span class="op">|</span> <span class="kw">REFERENCES</span> <span class="nt">tbl</span> <span class="op">[</span><span class="kw">ON DELETE</span> <span class="nt">action</span><span class="op">]</span> <span class="op">;</span>
+<span class="nt">alter</span> <span class="op">=</span> <span class="kw">ALTER TABLE</span> <span class="nt">name</span> <span class="op">(</span> <span class="kw">ADD</span><span class="op">|</span><span class="kw">DROP</span><span class="op">|</span><span class="kw">ALTER</span> <span class="kw">COLUMN</span> <span class="op">…</span> <span class="op">|</span> <span class="kw">ADD CONSTRAINT</span> <span class="op">…</span> <span class="op">|</span> <span class="kw">RENAME</span> <span class="op">…</span> <span class="op">)</span> <span class="op">;</span>
+<span class="nt">drop</span>  <span class="op">=</span> <span class="kw">DROP</span> <span class="op">(</span><span class="kw">TABLE</span><span class="op">|</span><span class="kw">VIEW</span><span class="op">|</span><span class="kw">INDEX</span><span class="op">)</span> <span class="op">[</span><span class="kw">IF</span> <span class="kw">EXISTS</span><span class="op">]</span> <span class="nt">name</span> <span class="op">[</span><span class="kw">CASCADE</span><span class="op">|</span><span class="kw">RESTRICT</span><span class="op">]</span> <span class="op">;</span></div>
+    <div class="grid2">
+      <div class="card"><h3 style="color:var(--teal)">TCL — transactions</h3>
+        <div class="ebnf" style="margin:6px 0;font-size:11px"><span class="kw">BEGIN</span> [<span class="kw">ISOLATION LEVEL</span> <span class="nt">lvl</span>]<span class="op">;</span>
+<span class="kw">SAVEPOINT</span> sp<span class="op">;</span>  <span class="kw">ROLLBACK TO</span> sp<span class="op">;</span>
+<span class="kw">COMMIT</span><span class="op">;</span>   <span class="kw">ROLLBACK</span><span class="op">;</span></div>
+        <p style="font-size:11px;margin:0;color:#8aa0b4">Levels: <code>READ COMMITTED</code> (default) · <code>REPEATABLE READ</code> · <code>SERIALIZABLE</code>. ACID is per-transaction.</p>
+      </div>
+      <div class="card"><h3 style="color:var(--amber)">DCL — access</h3>
+        <div class="ebnf" style="margin:6px 0;font-size:11px"><span class="kw">GRANT</span> <span class="nt">priv</span> <span class="kw">ON</span> <span class="nt">obj</span> <span class="kw">TO</span> <span class="nt">role</span><span class="op">;</span>
+<span class="kw">REVOKE</span> <span class="nt">priv</span> <span class="kw">ON</span> <span class="nt">obj</span> <span class="kw">FROM</span> <span class="nt">role</span><span class="op">;</span></div>
+        <p style="font-size:11px;margin:0;color:#8aa0b4">priv = <code>SELECT</code>/<code>INSERT</code>/<code>UPDATE</code>/<code>DELETE</code>/<code>ALL</code>. Row-level security via <code>CREATE POLICY</code>.</p>
+      </div>
+    </div>
+    <div class="foot"><span>RETURNING, ON CONFLICT, data-modifying CTEs &amp; NULLS NOT DISTINCT are PostgreSQL extensions.</span><span>postgresql.org/docs/18/sql-commands.html</span></div>
+  </div>
+</section>
+
+<!-- POSTER 9 -->
+<section class="poster" id="p9">
+  <div class="prompt"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span>postgres=#</span><span class="cmd">EXPLAIN ANALYZE …</span><span class="blink">█</span><span class="pno">09 / 09</span></div>
+  <div class="pad">
+    <h1><span class="accent">Indexes</span> &amp; EXPLAIN Performance</h1>
+    <p class="sub">An index is a shortcut the planner <i>may</i> use. Knowing which index suits which query — and reading
+      the plan to confirm it's used — is the difference between a 5ms and a 5s query.</p>
+    <h2>Index types — which when</h2>
+    <table>
+      <tr><th>Type</th><th>Best for</th><th>Example</th></tr>
+      <tr><td><b>B-tree</b> (default)</td><td>Equality &amp; range on scalars; sorting</td><td><code>WHERE price &gt; 100 ORDER BY price</code></td></tr>
+      <tr><td><b>Hash</b></td><td>Equality only</td><td><code>WHERE id = 42</code></td></tr>
+      <tr><td><b>GIN</b></td><td>Multi-value: jsonb, arrays, full-text</td><td><code>WHERE tags @&gt; '{sql}'</code></td></tr>
+      <tr><td><b>GiST</b></td><td>Geometric, ranges, nearest-neighbour</td><td><code>WHERE geom &amp;&amp; box</code></td></tr>
+      <tr><td><b>BRIN</b></td><td>Huge, naturally-ordered tables (time-series)</td><td><code>WHERE created_at &gt; …</code></td></tr>
+      <tr><td><b>SP-GiST</b></td><td>Non-balanced: quadtrees, IP ranges</td><td><code>WHERE inet &amp;&amp; '10.0.0.0/8'</code></td></tr>
+    </table>
+    <div class="grid2">
+      <div class="card"><h3 style="color:var(--teal)">Targeted index recipes</h3>
+        <div class="ebnf" style="margin:6px 0;font-size:11px"><span class="cm">-- composite: order matters (leftmost prefix)</span>
+<span class="kw">CREATE INDEX</span> <span class="kw">ON</span> orders (cust_id, created_at)<span class="op">;</span>
+<span class="cm">-- partial: index only rows you query</span>
+<span class="kw">CREATE INDEX</span> <span class="kw">ON</span> users (email) <span class="kw">WHERE</span> active<span class="op">;</span>
+<span class="cm">-- expression: match the WHERE expression</span>
+<span class="kw">CREATE INDEX</span> <span class="kw">ON</span> users (<span class="kw">lower</span>(email))<span class="op">;</span>
+<span class="cm">-- covering: serve query from index alone</span>
+<span class="kw">CREATE INDEX</span> <span class="kw">ON</span> orders (cust_id) <span class="kw">INCLUDE</span> (total)<span class="op">;</span></div>
+      </div>
+      <div class="card"><h3 style="color:var(--rust)">Why an index gets ignored</h3>
+        <p style="font-size:12px;margin:0">• <b>Function on the column</b>: <code>WHERE lower(email)=…</code> skips a plain <code>email</code> index — index the expression instead.<br>
+        • <b>Leading wildcard</b>: <code>LIKE '%x'</code> can't use B-tree.<br>
+        • <b>Type mismatch</b> forces a cast.<br>
+        • <b>Tiny table</b>: a seq scan is genuinely faster.<br>
+        • <b>Stale stats</b>: run <code>ANALYZE</code>.</p>
+      </div>
+    </div>
+    <h2>Reading EXPLAIN</h2>
+<div class="ebnf"><span class="kw">EXPLAIN</span> <span class="op">[</span> <span class="kw">ANALYZE</span> <span class="op">]</span> <span class="op">[</span> <span class="kw">BUFFERS</span> <span class="op">]</span> <span class="op">[</span> <span class="kw">FORMAT</span> <span class="op">(</span><span class="kw">TEXT</span><span class="op">|</span><span class="kw">JSON</span><span class="op">)</span> <span class="op">]</span> <span class="nt">statement</span> <span class="op">;</span>
+<span class="cm">-- ANALYZE actually runs it, showing real rows + timing (use a transaction for writes).</span>
+
+<span class="out">Index Scan</span> using orders_cust_idx on orders  (cost=0.42..8.4 rows=1 width=36)
+  (actual time=0.018..0.020 rows=1 loops=1)        <span class="cm">← actual ≈ estimate = healthy</span></div>
+    <table class="mini">
+      <tr><th>Plan node</th><th>Meaning</th><th>Concern</th></tr>
+      <tr><td><code>Seq Scan</code></td><td>Read whole table</td><td>Bad on large tables w/ selective filter</td></tr>
+      <tr><td><code>Index Scan / Index Only Scan</code></td><td>Use index; "Only" = no heap fetch</td><td>Good</td></tr>
+      <tr><td><code>Bitmap Heap Scan</code></td><td>Many matching rows via index</td><td>Fine for medium selectivity</td></tr>
+      <tr><td><code>Nested Loop</code></td><td>Probe inner per outer row</td><td>Blows up if outer rows large</td></tr>
+      <tr><td><code>Hash Join / Merge Join</code></td><td>Build hash / merge sorted inputs</td><td>Good for large joins</td></tr>
+    </table>
+    <div class="callout"><b>The estimate-vs-actual gap is the tell.</b> When the planner expected <code>rows=1</code> but got
+      <code>rows=50000</code>, its choices rested on wrong stats — run <code>ANALYZE</code>, then match the index to the
+      <i>actual</i> WHERE/JOIN/ORDER BY columns.</div>
+    <div class="callout warn"><b>Version note.</b> Verified on PostgreSQL 18 (stable 18.4, May 2026); v19 GA expected Sept 2026 —
+      additive only. Always run the latest minor of your major version.</div>
+    <div class="foot"><span>Index = optional shortcut · EXPLAIN ANALYZE = ground truth · match index to real query shape.</span><span>postgresql.org/docs/18/using-explain.html</span></div>
+  </div>
+</section>
+
+<!-- ============================ POSTGIS SECTION ============================ -->
+
+<!-- POSTER 10 -->
+<section class="poster" id="p10">
+  <div class="prompt"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span>postgis=#</span><span class="cmd">CREATE EXTENSION postgis;</span><span class="blink">█</span><span class="pno">10 / 12 · POSTGIS</span></div>
+  <div class="pad">
+    <h1><span class="accent">PostGIS</span> — Spatial Types &amp; SRID</h1>
+    <p class="sub">PostGIS turns PostgreSQL into a spatial database: new column types, ~300 <code>ST_</code> functions, and
+      spatial indexes. Everything starts with two decisions — which <b>geometry type</b>, and <b>geometry vs geography</b>.</p>
+
+    <div class="legend">
+      <span><span class="sw" style="background:var(--pg-light)"></span>spatial type</span>
+      <span><span class="sw" style="background:var(--amber)"></span>function / keyword</span>
+      <span><span class="sw" style="background:var(--teal)"></span>operator</span>
+      <span><span class="sw" style="background:var(--rust)"></span>critical gotcha</span>
+    </div>
+
+    <h2>Enable &amp; verify</h2>
+<div class="ebnf"><span class="kw">CREATE</span> <span class="kw">EXTENSION</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> postgis<span class="op">;</span>          <span class="cm">-- core: types, functions, GiST support</span>
+<span class="kw">CREATE</span> <span class="kw">EXTENSION</span> postgis_raster<span class="op">;</span>            <span class="cm">-- optional: raster / coverage</span>
+<span class="kw">CREATE</span> <span class="kw">EXTENSION</span> postgis_topology<span class="op">;</span>          <span class="cm">-- optional: topological model</span>
+<span class="kw">SELECT</span> <span class="kw">postgis_full_version</span>()<span class="op">;</span>             <span class="cm">-- → POSTGIS 3.6.2, GEOS 3.14, PROJ 8.2 …</span></div>
+
+    <h2>The geometry type hierarchy</h2>
+    <div class="grid2">
+      <div>
+        <table class="mini">
+          <tr><th>Type</th><th>Is</th><th>WKT example</th></tr>
+          <tr><td><code>POINT</code></td><td>One location</td><td><code>POINT(77.6 14.4)</code></td></tr>
+          <tr><td><code>LINESTRING</code></td><td>Ordered vertices</td><td><code>LINESTRING(0 0, 1 1, 2 1)</code></td></tr>
+          <tr><td><code>POLYGON</code></td><td>Ring(s); first = outer</td><td><code>POLYGON((0 0,4 0,4 4,0 4,0 0))</code></td></tr>
+          <tr><td><code>MULTIPOINT</code></td><td>Many points</td><td><code>MULTIPOINT((0 0),(1 1))</code></td></tr>
+          <tr><td><code>MULTILINESTRING</code></td><td>Many lines</td><td>…</td></tr>
+          <tr><td><code>MULTIPOLYGON</code></td><td>Many polygons (islands)</td><td>…</td></tr>
+          <tr><td><code>GEOMETRYCOLLECTION</code></td><td>Mixed bag</td><td><code>GEOMETRYCOLLECTION(POINT(0 0),…)</code></td></tr>
+        </table>
+      </div>
+      <div>
+        <h3 style="margin-top:0">Dimensionality suffixes</h3>
+        <p style="font-size:12.5px;margin:0 0 8px">Append <code>Z</code> (elevation), <code>M</code> (measure), or <code>ZM</code>:
+          <code>POINTZ</code>, <code>LINESTRINGM</code>, <code>POINTZM</code>.</p>
+        <h3>Representations</h3>
+        <table class="mini">
+          <tr><th>Form</th><th>Meaning</th></tr>
+          <tr><td><b>WKT</b></td><td>Well-Known Text (human-readable)</td></tr>
+          <tr><td><b>WKB</b></td><td>Well-Known Binary (storage/wire)</td></tr>
+          <tr><td><b>EWKT/EWKB</b></td><td>PostGIS extended: embeds SRID + Z/M<br><code>SRID=4326;POINT(77.6 14.4)</code></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <h2>SRID — the coordinate reference system</h2>
+    <p style="margin-top:0">Every geometry carries an <b>SRID</b> (Spatial Reference ID) declaring how its numbers map to the
+      Earth. Stored in the <code>spatial_ref_sys</code> table. The two you'll meet constantly:</p>
+    <table class="mini">
+      <tr><th>SRID</th><th>System</th><th>Units</th><th>Use</th></tr>
+      <tr><td><code>4326</code></td><td>WGS 84 lon/lat</td><td><b>degrees</b></td><td>GPS, global storage, web data</td></tr>
+      <tr><td><code>3857</code></td><td>Web Mercator</td><td>metres (projected)</td><td>Tile maps (Google/OSM/Leaflet)</td></tr>
+      <tr><td><code>326xx/327xx</code></td><td>UTM zone N/S</td><td>metres</td><td>Accurate regional measurement</td></tr>
+    </table>
+    <div class="callout warn"><b>Mixed SRIDs error out.</b> <code>ST_Distance(a,b)</code> on
+      <code>SRID 4326</code> vs <code>SRID 0</code> raises <code>Operation on mixed SRID geometries</code>. Reproject one with
+      <code>ST_Transform(geom, 3857)</code> first. Use <code>ST_SetSRID</code> only to <i>label</i> an unlabelled geometry — it does not reproject.</div>
+
+    <h2 style="color:var(--rust)">⚠ The defining gotcha: geometry ≠ geography</h2>
+    <table>
+      <tr><th>&nbsp;</th><th>geometry</th><th>geography</th></tr>
+      <tr><td><b>Math</b></td><td>Flat / Cartesian (planar)</td><td>Curved / geodesic (spheroid)</td></tr>
+      <tr><td><b>Units</b></td><td>Whatever the SRID says — <b>4326 ⇒ degrees</b></td><td>Always <b>metres</b></td></tr>
+      <tr><td><b>Speed</b></td><td>Fast</td><td>Slower (great-circle math)</td></tr>
+      <tr><td><b>Function library</b></td><td>Full (~300 funcs)</td><td>Subset: ST_Distance, ST_DWithin, ST_Area, ST_Length, ST_Intersects, ST_Covers…</td></tr>
+      <tr><td><b>Best for</b></td><td>Projected/local data; heavy processing</td><td>Global lon/lat, correct distances out of the box</td></tr>
+    </table>
+    <div class="callout warn"><b>SRID 4326 on a <code>geometry</code> column is the #1 production bug.</b>
+      <code>ST_Distance</code> on two <code>geometry(Point,4326)</code> values returns a number <i>in degrees</i> — a
+      "1 km" radius search silently matches points 111 km away. Fix: store as <code>geography(Point,4326)</code>, or cast
+      per-query: <code>ST_Distance(a::geography, b::geography)</code> → metres. A degree of longitude is ~111 km at the
+      equator but shrinks to 0 at the poles, so degree "distance" is meaningless.</div>
+
+    <h2>Defining a spatial table</h2>
+<div class="ebnf"><span class="cm">-- typed, constrained columns (recommended over bare 'geometry')</span>
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> shelters (
+  id        <span class="kw">bigint</span> <span class="kw">GENERATED ALWAYS AS IDENTITY</span> <span class="kw">PRIMARY KEY</span>,
+  name      <span class="kw">text</span> <span class="kw">NOT NULL</span>,
+  geom      <span class="pg-ext">geometry</span>(Point, 4326),    <span class="cm">-- planar; great for tile maps after transform</span>
+  location  <span class="pg-ext">geography</span>(Point, 4326)    <span class="cm">-- geodesic; metres for nearby-search</span>
+)<span class="op">;</span>
+<span class="cm">-- registered metadata view (auto-maintained):</span>
+<span class="kw">SELECT</span> f_table_name, f_geometry_column, srid, type <span class="kw">FROM</span> geometry_columns<span class="op">;</span></div>
+
+    <div class="foot"><span>PostGIS 3.6.2 (Feb 2026) · pairs with PostgreSQL 18, GEOS 3.14, PROJ 8.2 · OGC Simple Features compliant.</span><span>postgis.net/docs · workshops/postgis-intro</span></div>
+  </div>
+</section>
+
+<!-- POSTER 11 -->
+<section class="poster" id="p11">
+  <div class="prompt"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span>postgis=#</span><span class="cmd">\df ST_*  -- spatial functions</span><span class="blink">█</span><span class="pno">11 / 12 · POSTGIS</span></div>
+  <div class="pad">
+    <h1>PostGIS — <span class="accent">Functions</span> &amp; Queries</h1>
+    <p class="sub">Nearly all spatial functions are prefixed <code>ST_</code> (Spatial Type, from the OGC standard).
+      Grouped by purpose: <b>construct</b> geometries, <b>inspect</b> them, test <b>relationships</b>,
+      <b>measure</b>, <b>process</b>, and <b>output</b>.</p>
+
+    <div class="grid2">
+      <div>
+        <h2>Constructors</h2>
+        <table class="mini">
+          <tr><th>Function</th><th>Builds geometry from</th></tr>
+          <tr><td><code>ST_MakePoint(x,y[,z])</code></td><td>Raw coordinates (no SRID!)</td></tr>
+          <tr><td><code>ST_Point(x,y,srid)</code></td><td>Coordinates + SRID</td></tr>
+          <tr><td><code>ST_GeomFromText(wkt,srid)</code></td><td>WKT string</td></tr>
+          <tr><td><code>ST_GeogFromText(ewkt)</code></td><td>Text → geography</td></tr>
+          <tr><td><code>ST_GeomFromGeoJSON(json)</code></td><td>GeoJSON</td></tr>
+          <tr><td><code>ST_SetSRID(geom,srid)</code></td><td>Labels SRID (no reproject)</td></tr>
+        </table>
+        <div class="callout" style="margin-top:8px"><code>ST_MakePoint</code> returns SRID 0. Always wrap:
+          <code>ST_SetSRID(ST_MakePoint(lon,lat),4326)</code>.</div>
+      </div>
+      <div>
+        <h2>Accessors / inspectors</h2>
+        <table class="mini">
+          <tr><th>Function</th><th>Returns</th></tr>
+          <tr><td><code>ST_X(pt) / ST_Y(pt)</code></td><td>Coordinate (geometry only)</td></tr>
+          <tr><td><code>ST_GeometryType(g)</code></td><td><code>ST_Point</code> …</td></tr>
+          <tr><td><code>ST_SRID(g)</code></td><td>The SRID</td></tr>
+          <tr><td><code>ST_NPoints(g)</code></td><td>Vertex count</td></tr>
+          <tr><td><code>ST_IsValid(g)</code></td><td>OGC validity (self-intersect?)</td></tr>
+          <tr><td><code>ST_AsText(g) / ST_AsEWKT(g)</code></td><td>Back to WKT / EWKT</td></tr>
+        </table>
+        <div class="callout warn" style="margin-top:8px">Many functions <b>assume valid geometry</b>. Repair with
+          <code>ST_MakeValid(geom)</code> before area/overlay operations.</div>
+      </div>
+    </div>
+
+    <h2>Spatial relationships <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#8aa0b4">— return boolean; most are index-aware</span></h2>
+    <table class="mini">
+      <tr><th>Function</th><th>True when</th></tr>
+      <tr><td><code>ST_Intersects(a,b)</code></td><td>They share any point (most common test)</td></tr>
+      <tr><td><code>ST_Contains(a,b)</code> / <code>ST_Within(a,b)</code></td><td>a fully contains b / b within a</td></tr>
+      <tr><td><code>ST_Covers(a,b)</code> / <code>ST_CoveredBy</code></td><td>Like contains, boundary-inclusive (preferred)</td></tr>
+      <tr><td><code>ST_DWithin(a,b,d)</code></td><td>Within distance d (metres for geography) — <b>index-aware</b></td></tr>
+      <tr><td><code>ST_Touches / ST_Crosses / ST_Overlaps</code></td><td>Boundary-only / partial / same-dim overlap</td></tr>
+      <tr><td><code>ST_Disjoint(a,b)</code></td><td>Share no point (<b>not</b> index-aware — negation)</td></tr>
+    </table>
+
+    <div class="grid2">
+      <div>
+        <h2>Measurement</h2>
+        <table class="mini">
+          <tr><th>Function</th><th>Returns</th></tr>
+          <tr><td><code>ST_Distance(a,b)</code></td><td>Min distance (SRID units / m for geog)</td></tr>
+          <tr><td><code>ST_Length(line)</code></td><td>Length</td></tr>
+          <tr><td><code>ST_Area(poly)</code></td><td>Area</td></tr>
+          <tr><td><code>ST_Perimeter(poly)</code></td><td>Boundary length</td></tr>
+          <tr><td><code>ST_Azimuth(a,b)</code></td><td>Bearing in radians</td></tr>
+        </table>
+      </div>
+      <div>
+        <h2>Processing / output</h2>
+        <table class="mini">
+          <tr><th>Function</th><th>Produces</th></tr>
+          <tr><td><code>ST_Buffer(g,d)</code></td><td>Zone within d (geometry)</td></tr>
+          <tr><td><code>ST_Transform(g,srid)</code></td><td>Reproject to new CRS</td></tr>
+          <tr><td><code>ST_Union(g) / ST_Intersection</code></td><td>Merge / overlap</td></tr>
+          <tr><td><code>ST_Centroid / ST_Envelope</code></td><td>Center / bounding box</td></tr>
+          <tr><td><code>ST_Simplify(g,tol)</code></td><td>Fewer vertices</td></tr>
+          <tr><td><code>ST_AsGeoJSON / ST_AsMVT</code></td><td>Web output / vector tiles</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <h2>Worked query — nearest shelters within 2 km</h2>
+<div class="ebnf"><span class="cm">-- geography column → distance in METRES, ST_DWithin uses the spatial index</span>
+<span class="kw">SELECT</span> name,
+       <span class="kw">ST_Distance</span>(location, ref.g) <span class="kw">AS</span> metres
+<span class="kw">FROM</span> shelters,
+     <span class="op">(</span><span class="kw">SELECT</span> <span class="kw">ST_SetSRID</span>(<span class="kw">ST_MakePoint</span>(79.99, 14.44), 4326)<span class="op">::</span><span class="pg-ext">geography</span> <span class="kw">AS</span> g<span class="op">)</span> ref
+<span class="kw">WHERE</span> <span class="kw">ST_DWithin</span>(location, ref.g, 2000)   <span class="cm">-- 2000 m; prefiltered by GiST index</span>
+<span class="kw">ORDER BY</span> location <span class="op">&lt;-&gt;</span> ref.g                 <span class="cm">-- KNN operator: true index-ordered nearest-first</span>
+<span class="kw">LIMIT</span> 5<span class="op">;</span></div>
+
+    <h2>Worked query — spatial join (points-in-polygon count)</h2>
+<div class="ebnf"><span class="cm">-- "how many shelters in each district?"  ST_Contains is index-aware</span>
+<span class="kw">SELECT</span> d.name, <span class="kw">count</span>(s.*) <span class="kw">AS</span> n
+<span class="kw">FROM</span> districts d
+<span class="kw">LEFT JOIN</span> shelters s <span class="kw">ON</span> <span class="kw">ST_Contains</span>(d.geom, s.geom)
+<span class="kw">GROUP BY</span> d.name <span class="kw">ORDER BY</span> n <span class="kw">DESC</span><span class="op">;</span></div>
+
+    <div class="callout"><b>Constructor SRID discipline.</b> The three most common "why is my result wrong" causes:
+      forgetting SRID on <code>ST_MakePoint</code> (defaults to 0), storing lon/lat in <code>geometry</code> instead of
+      <code>geography</code>, and passing lat/lon <i>reversed</i> — PostGIS expects <b>(longitude, latitude)</b>, i.e. (X, Y).</div>
+
+    <div class="foot"><span>~300 ST_ functions; geography supports a deliberate subset. Index-aware predicates auto-add a bounding-box prefilter.</span><span>postgis.net/docs/reference.html</span></div>
+  </div>
+</section>
+
+<!-- POSTER 12 -->
+<section class="poster" id="p12">
+  <div class="prompt"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span>postgis=#</span><span class="cmd">CREATE INDEX … USING GIST</span><span class="blink">█</span><span class="pno">12 / 12 · POSTGIS</span></div>
+  <div class="pad">
+    <h1>PostGIS — <span class="accent">Spatial Indexing</span> &amp; Performance</h1>
+    <p class="sub">A spatial index can't index irregular shapes directly, so it indexes each geometry's <b>bounding box</b>
+      in a GiST R-Tree. Queries then run in two phases: a fast index <b>filter</b>, then an exact <b>refine</b>.</p>
+
+    <h2>Create the index — and the one fatal typo</h2>
+<div class="ebnf"><span class="kw">CREATE</span> <span class="kw">INDEX</span> shelters_geom_gix <span class="kw">ON</span> shelters <span class="kw">USING</span> <span class="pg-ext">GIST</span> (geom)<span class="op">;</span>
+<span class="kw">ANALYZE</span> shelters<span class="op">;</span>   <span class="cm">-- refresh planner stats so the index actually gets chosen</span>
+
+<span class="cm">-- geography indexes identically; GiST handles the sphere/dateline/poles correctly</span>
+<span class="kw">CREATE</span> <span class="kw">INDEX</span> shelters_geog_gix <span class="kw">ON</span> shelters <span class="kw">USING</span> <span class="pg-ext">GIST</span> (location)<span class="op">;</span></div>
+    <div class="callout warn"><b>Omit <code>USING GIST</code> and you get a B-tree.</b> A B-tree tries to index the whole geometry and
+      errors with <code>index row requires N bytes, maximum size is 8191</code> — and even when it builds, it can't answer
+      spatial queries. The <code>USING GIST</code> clause is mandatory for spatial columns.</div>
+
+    <h2>The filter-and-refine model</h2>
+    <div class="pipe">
+      <div class="stage"><div class="n">1</div><div class="op-name">Index filter<small>bounding box</small></div>
+        <div class="desc"><span>GiST R-Tree returns rows whose <b>bounding boxes</b> overlap the query box. Fast, approximate, may include false positives. <span class="flowtag">→ candidates</span></span></div></div>
+      <div class="stage"><div class="n">2</div><div class="op-name">Exact refine<small>true geometry</small></div>
+        <div class="desc"><span>The exact predicate (e.g. <code>ST_Intersects</code>) runs only on candidates, confirming real matches. <span class="flowtag">→ result</span></span></div></div>
+    </div>
+    <p style="font-size:12.8px">Index-aware functions (<code>ST_Intersects</code>, <code>ST_Contains</code>, <code>ST_Covers</code>,
+      <code>ST_DWithin</code>, <code>ST_Within</code> …) <b>inject phase 1 automatically</b>. <code>ST_DWithin</code> internally expands
+      the bounding box by the distance and applies <code>&amp;&amp;</code> on both sides — which is why it's vastly faster than
+      filtering on <code>ST_Distance(...) &lt; d</code>.</p>
+
+    <h2>Spatial operators</h2>
+    <table class="mini">
+      <tr><th>Op</th><th>Meaning</th><th>Use</th></tr>
+      <tr><td><code>&amp;&amp;</code></td><td>Bounding boxes overlap/touch (2-D)</td><td>Manual index prefilter; pair with exact test</td></tr>
+      <tr><td><code>&lt;-&gt;</code></td><td>Distance between geometries (KNN)</td><td><code>ORDER BY geom &lt;-&gt; pt</code> — index-ordered nearest-neighbour</td></tr>
+      <tr><td><code>&lt;#&gt;</code></td><td>Distance between bounding boxes (KNN)</td><td>Approximate nearest, cheapest</td></tr>
+      <tr><td><code>~ / @</code></td><td>Box contains / contained by</td><td>Pure box containment</td></tr>
+    </table>
+    <div class="callout"><b>Why <code>ST_Relate</code> &amp; <code>ST_Distance</code> stay slow.</b> They are <i>not</i> index-aware — no
+      automatic <code>&amp;&amp;</code> prefilter. For a bounding-box search without an exact predicate, add <code>&amp;&amp;</code> yourself:
+      <code>WHERE a.geom &amp;&amp; b.geom</code>. For nearest-neighbour, prefer the <code>&lt;-&gt;</code> KNN operator over sorting by
+      <code>ST_Distance</code>.</div>
+
+    <h2>Index choice for spatial data</h2>
+    <table class="mini">
+      <tr><th>Index</th><th>When</th></tr>
+      <tr><td><b>GiST</b></td><td><b>Default.</b> R-Tree over bounding boxes; handles all geometry &amp; geography</td></tr>
+      <tr><td><b>SP-GiST</b></td><td>Point-heavy data with strong spatial clustering (space-partitioned)</td></tr>
+      <tr><td><b>BRIN</b></td><td>Huge tables already physically sorted by location; tiny index, weaker filtering — poor for trajectories</td></tr>
+    </table>
+
+    <h2>Confirm the index is used</h2>
+<div class="ebnf"><span class="kw">EXPLAIN</span> <span class="kw">ANALYZE</span>
+<span class="kw">SELECT</span> name <span class="kw">FROM</span> shelters
+<span class="kw">WHERE</span> <span class="kw">ST_DWithin</span>(location, :pt<span class="op">::</span><span class="pg-ext">geography</span>, 2000)<span class="op">;</span>
+<span class="cm">-- want to see:  Index Scan using shelters_geog_gix   (not Seq Scan)</span></div>
+    <div class="callout warn"><b>If you still see <code>Seq Scan</code>:</b> run <code>ANALYZE</code> (stale stats), check the function is
+      index-aware, confirm both sides share one SRID/type, and ensure you didn't wrap the column in a function
+      (<code>ST_Transform(geom,…)</code> in the WHERE defeats the index — index the transformed expression instead, or store
+      a second projected column).</div>
+
+    <div class="foot"><span>GiST R-Tree on bounding boxes · filter-then-refine · index-aware predicates auto-prefilter · &lt;-&gt; for true KNN. PostGIS 3.6.2.</span><span>postgis.net/workshops/postgis-intro/indexing.html</span></div>
+  </div>
+</section>
+
+<!-- POSTER 13 -->
+<section class="poster" id="p13">
+  <div class="prompt"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span>postgis=#</span><span class="cmd">shp2pgsql · ogr2ogr · raster2pgsql</span><span class="blink">█</span><span class="pno">13 / 17 · POSTGIS</span></div>
+  <div class="pad">
+    <h1>PostGIS — <span class="accent">Loading</span> &amp; Exporting Data</h1>
+    <p class="sub">Spatial data arrives as Shapefiles, GeoJSON, GeoPackage, rasters, or OSM extracts. These command-line
+      loaders convert each into PostGIS rows. Every workflow — QGIS, IDRM ingest, ETL — starts here.</p>
+
+    <h2>shp2pgsql — the Shapefile loader (ships with PostGIS)</h2>
+<div class="ebnf"><span class="cm"># emits SQL; pipe straight into psql. Flags matter:</span>
+shp2pgsql <span class="op">-I</span> <span class="op">-D</span> <span class="op">-s</span> 4326 <span class="op">-g</span> geom roads.shp public.roads | psql -d gisdb
+<span class="cm">#  -s 4326   source SRID (REQUIRED — wrong/missing SRID is the usual first bug)</span>
+<span class="cm">#  -I        build a GiST spatial index after load</span>
+<span class="cm">#  -D        dump format (much faster than INSERTs for big files)</span>
+<span class="cm">#  -g geom   name the geometry column 'geom' (QGIS-friendly)</span>
+<span class="cm">#  mode:  -c create (default) · -a append · -d drop+create · -p prepare-only</span>
+<span class="cm">#  -G        load as geography instead of geometry   ·   -W LATIN1  fix encoding</span></div>
+
+    <h2>ogr2ogr — the universal converter (GDAL; bundled with QGIS)</h2>
+<div class="ebnf"><span class="cm"># reads ~100 formats. Destination FIRST, then source:</span>
+ogr2ogr <span class="op">-f</span> <span class="lit">"PostgreSQL"</span> \
+  PG:<span class="lit">"host=localhost dbname=gisdb user=gis password=••• "</span> \
+  shelters.geojson \
+  <span class="op">-nln</span> shelters <span class="cm"># new layer (table) name</span> \
+  <span class="op">-nlt</span> PROMOTE_TO_MULTI <span class="cm"># Polygon → MultiPolygon (mixed-type safety)</span> \
+  <span class="op">-lco</span> GEOMETRY_NAME=geom <span class="cm"># geometry column name</span> \
+  <span class="op">-lco</span> FID=gid <span class="cm"># primary-key column (QGIS needs one)</span> \
+  <span class="op">-t_srs</span> EPSG:4326 <span class="cm"># reproject on the way in</span></div>
+    <div class="callout"><b>QGIS-ready defaults.</b> Always set <code>GEOMETRY_NAME=geom</code> and <code>FID=gid</code> on import —
+      QGIS needs a single integer key and looks for a conventionally named geometry column. <code>PROMOTE_TO_MULTI</code> avoids
+      "found Polygon, expected MultiPolygon" failures on mixed Shapefiles.</div>
+
+    <div class="grid2">
+      <div>
+        <h2>raster2pgsql — rasters</h2>
+        <div class="ebnf" style="margin:6px 0;font-size:11px">raster2pgsql <span class="op">-I</span> <span class="op">-C</span> <span class="op">-s</span> 4326 \
+  <span class="op">-t</span> 256x256 <span class="op">-F</span> \
+  flood_depth.tif public.flood | psql -d gisdb
+<span class="cm"># -I index · -C constraints (registers in</span>
+<span class="cm">#    raster_columns) · -t tile size</span>
+<span class="cm"># -s SRID · -F add filename column</span>
+<span class="cm"># -R register out-of-db (keep file on disk)</span></div>
+        <p style="font-size:11.5px;margin:0;color:#8aa0b4">Tiling (<code>-t</code>) is essential — untiled rasters force whole-file reads. For IDRM flood/hazard layers, COG + <code>-R</code> keeps storage lean.</p>
+      </div>
+      <div>
+        <h2>osm2pgsql — OpenStreetMap</h2>
+        <div class="ebnf" style="margin:6px 0;font-size:11px">osm2pgsql <span class="op">--create</span> <span class="op">--database</span> gisdb \
+  --slim -G andhra.osm.pbf
+<span class="cm"># → planet_osm_point / _line</span>
+<span class="cm">#   / _roads / _polygon tables</span></div>
+        <p style="font-size:11.5px;margin:0;color:#8aa0b4">Base layer for basemaps &amp; routing. Pair with <code>osm2pgrouting</code> to build a pgRouting network (poster 17).</p>
+      </div>
+    </div>
+
+    <h2>Plain SQL &amp; CSV — when you already have lon/lat columns</h2>
+<div class="ebnf"><span class="cm">-- load a CSV of coordinates, then build geometry from the columns</span>
+\copy raw_points(name, lon, lat) <span class="kw">FROM</span> 'incidents.csv' <span class="kw">WITH</span> (<span class="kw">FORMAT</span> csv, <span class="kw">HEADER</span>)<span class="op">;</span>
+<span class="kw">ALTER TABLE</span> raw_points <span class="kw">ADD COLUMN</span> geom <span class="pg-ext">geometry</span>(Point, 4326)<span class="op">;</span>
+<span class="kw">UPDATE</span> raw_points <span class="kw">SET</span> geom = <span class="kw">ST_SetSRID</span>(<span class="kw">ST_MakePoint</span>(lon, lat), 4326)<span class="op">;</span>  <span class="cm">-- (lon, lat) order!</span></div>
+
+    <h2>Exporting back out</h2>
+    <table class="mini">
+      <tr><th>Target</th><th>Command</th></tr>
+      <tr><td>Shapefile</td><td><code>pgsql2shp -f out.shp gisdb "SELECT * FROM roads"</code></td></tr>
+      <tr><td>GeoJSON / GPKG / any</td><td><code>ogr2ogr -f GPKG out.gpkg PG:"…" -sql "SELECT …"</code></td></tr>
+      <tr><td>Inline GeoJSON</td><td><code>SELECT ST_AsGeoJSON(geom) FROM roads;</code></td></tr>
+    </table>
+
+    <div class="foot"><span>shp2pgsql &amp; raster2pgsql ship with PostGIS · ogr2ogr/osm2pgsql via GDAL/QGIS · always pipe to psql, always set SRID.</span><span>postgis.net/workshops/postgis-intro/loading_data.html</span></div>
+  </div>
+</section>
+
+<!-- POSTER 14 -->
+<section class="poster" id="p14">
+  <div class="prompt"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span>postgis=#</span><span class="cmd">-- QGIS layer + map production</span><span class="blink">█</span><span class="pno">14 / 17 · POSTGIS</span></div>
+  <div class="pad">
+    <h1>PostGIS — <span class="accent">QGIS</span> Integration &amp; Map Production</h1>
+    <p class="sub">QGIS reads PostGIS tables directly as live layers. Three things make a table (or view) load cleanly:
+      a <b>registered geometry column</b>, a <b>declared SRID</b>, and exactly one <b>unique integer key</b>.</p>
+
+    <h2>What QGIS requires of a layer</h2>
+    <table>
+      <tr><th>Requirement</th><th>Why</th><th>How</th></tr>
+      <tr><td>Single unique key</td><td>QGIS needs a stable feature id to page &amp; edit</td><td>A <code>bigint</code> PK; for views add one (below)</td></tr>
+      <tr><td>Typmod geometry column</td><td>So the SRID &amp; type register correctly</td><td><code>geometry(Point,4326)</code>, not bare <code>geometry</code></td></tr>
+      <tr><td>Declared SRID</td><td>Reproject-on-the-fly &amp; correct placement</td><td><code>ST_SetSRID</code> / typed column / <code>ST_Transform</code></td></tr>
+      <tr><td>Spatial index</td><td>Pan/zoom stays fast on big layers</td><td><code>CREATE INDEX … USING GIST (geom)</code></td></tr>
+    </table>
+
+    <div class="callout warn"><b>Views need a manufactured key.</b> A view has no primary key, so QGIS may refuse it or pick the
+      wrong column. Add a synthetic unique id and pick it in the "Add PostGIS layer" dialog:
+      <code>ROW_NUMBER() OVER () AS qgis_id</code>. Also cast the geometry to typmod form in the view
+      (<code>geom::geometry(Point,4326)</code>) so it registers in <code>geometry_columns</code>.</div>
+
+    <h2>The metadata catalog QGIS reads</h2>
+    <table class="mini">
+      <tr><th>Object</th><th>Holds</th></tr>
+      <tr><td><code>spatial_ref_sys</code></td><td>Every SRID: <code>srid</code>, <code>auth_name</code> (EPSG), <code>srtext</code>, <code>proj4text</code></td></tr>
+      <tr><td><code>geometry_columns</code></td><td>View: table, column, <code>coord_dimension</code>, <code>srid</code>, <code>type</code> for each geometry</td></tr>
+      <tr><td><code>geography_columns</code></td><td>Same, for geography columns (auto-maintained)</td></tr>
+    </table>
+<div class="ebnf"><span class="cm">-- inspect what QGIS will see</span>
+<span class="kw">SELECT</span> f_table_name, f_geometry_column, srid, type <span class="kw">FROM</span> geometry_columns<span class="op">;</span>
+<span class="cm">-- find an EPSG code by name (e.g. UTM 44N for Andhra Pradesh)</span>
+<span class="kw">SELECT</span> srid, auth_name, srtext <span class="kw">FROM</span> spatial_ref_sys <span class="kw">WHERE</span> srtext <span class="kw">ILIKE</span> '%UTM zone 44N%'<span class="op">;</span>
+<span class="cm">-- confirm a column's SRID</span>
+<span class="kw">SELECT</span> <span class="kw">Find_SRID</span>('public', 'shelters', 'geom')<span class="op">;</span></div>
+
+    <h2>Common projections for an Indian deployment</h2>
+    <table class="mini">
+      <tr><th>EPSG</th><th>System</th><th>Use</th></tr>
+      <tr><td><code>4326</code></td><td>WGS 84 lon/lat</td><td>Storage, GPS, exchange</td></tr>
+      <tr><td><code>3857</code></td><td>Web Mercator</td><td>Web/tile basemaps</td></tr>
+      <tr><td><code>32644</code></td><td>WGS 84 / UTM 44N</td><td>Metric measurement, most of AP/Telangana</td></tr>
+      <tr><td><code>7755</code></td><td>WGS 84 / India zone (NIANG)</td><td>National grid</td></tr>
+    </table>
+
+    <h2>Dual-projection pattern (store once, map two ways)</h2>
+<div class="ebnf"><span class="cm">-- keep a metric copy alongside lon/lat so QGIS can measure AND web-map</span>
+<span class="kw">ALTER TABLE</span> shelters <span class="kw">ADD COLUMN</span> geom_utm <span class="pg-ext">geometry</span>(Point, 32644)<span class="op">;</span>
+<span class="kw">UPDATE</span> shelters <span class="kw">SET</span> geom_utm = <span class="kw">ST_Transform</span>(geom, 32644)<span class="op">;</span>
+<span class="kw">CREATE INDEX</span> <span class="kw">ON</span> shelters <span class="kw">USING</span> <span class="pg-ext">GIST</span> (geom_utm)<span class="op">;</span>   <span class="cm">-- QGIS shows both columns as choosable layers</span></div>
+    <div class="callout"><b>Import path tip.</b> In QGIS, prefer <b>Database → DB Manager → Import</b> or <b>"Export to PostgreSQL"</b>
+      over drag-and-drop — both use <code>COPY</code> under the hood (far faster than row-by-row <code>INSERT</code>), and let
+      you set the SRID, primary key, and geometry column name at load time.</div>
+
+    <div class="foot"><span>Registered geometry column + one unique key + declared SRID = a layer QGIS loads, styles, edits &amp; reprojects live.</span><span>postgis.net · QGIS PostGIS data provider</span></div>
+  </div>
+</section>
+
+<!-- POSTER 15 -->
+<section class="poster" id="p15">
+  <div class="prompt"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span>postgis=#</span><span class="cmd">ST_MakeValid · ST_Buffer · ST_Union</span><span class="blink">█</span><span class="pno">15 / 17 · POSTGIS</span></div>
+  <div class="pad">
+    <h1>PostGIS — <span class="accent">Validity</span> &amp; Geometry Processing</h1>
+    <p class="sub">PostGIS follows the OGC rule that most functions <b>assume valid, simple geometry</b>. Real-world admin
+      boundaries, flood polygons and digitized data routinely violate that — so validate first, then process.</p>
+
+    <h2>Validity — inspect &amp; repair</h2>
+    <table class="mini">
+      <tr><th>Function</th><th>Returns / does</th></tr>
+      <tr><td><code>ST_IsValid(g)</code></td><td>boolean — is it OGC-valid?</td></tr>
+      <tr><td><code>ST_IsValidReason(g)</code></td><td>Text: e.g. <i>"Ring Self-intersection at …"</i></td></tr>
+      <tr><td><code>ST_IsValidDetails(g)</code></td><td>Reason + offending location</td></tr>
+      <tr><td><code>ST_MakeValid(g)</code></td><td>Repairs in place (accepts invalid input)</td></tr>
+      <tr><td><code>ST_IsSimple(g)</code></td><td>No self-intersection (lines/points)</td></tr>
+    </table>
+<div class="ebnf"><span class="cm">-- find and fix invalid polygons in one pass, see what was wrong</span>
+<span class="kw">UPDATE</span> districts
+<span class="kw">SET</span> geom = <span class="kw">ST_MakeValid</span>(geom)
+<span class="kw">WHERE</span> <span class="kw">NOT</span> <span class="kw">ST_IsValid</span>(geom)
+<span class="kw">RETURNING</span> name, <span class="kw">ST_IsValidReason</span>(geom)<span class="op">;</span>
+
+<span class="cm">-- enforce validity going forward with a CHECK constraint</span>
+<span class="kw">ALTER TABLE</span> districts <span class="kw">ADD CONSTRAINT</span> geom_valid <span class="kw">CHECK</span> (<span class="kw">ST_IsValid</span>(geom))<span class="op">;</span></div>
+    <div class="callout warn"><b>Why it matters.</b> <code>ST_Area</code>, <code>ST_Intersection</code>, <code>ST_Union</code> and overlays give
+      wrong answers or errors on invalid input. PostGIS does <i>not</i> validate on load (too slow), so an explicit
+      <code>ST_MakeValid</code> step belongs in every ingest pipeline.</div>
+
+    <h2>Processing &amp; analysis toolkit</h2>
+    <div class="grid2">
+      <div>
+        <table class="mini">
+          <tr><th>Function</th><th>Produces</th></tr>
+          <tr><td><code>ST_Buffer(g,d)</code></td><td>Zone within distance d (e.g. evacuation radius)</td></tr>
+          <tr><td><code>ST_Union(g)</code></td><td>Dissolve/merge many into one</td></tr>
+          <tr><td><code>ST_Intersection(a,b)</code></td><td>Overlapping portion</td></tr>
+          <tr><td><code>ST_Difference(a,b)</code></td><td>a minus b</td></tr>
+          <tr><td><code>ST_ConvexHull(g)</code></td><td>Tightest enclosing convex polygon</td></tr>
+        </table>
+      </div>
+      <div>
+        <table class="mini">
+          <tr><th>Function</th><th>Produces</th></tr>
+          <tr><td><code>ST_Simplify(g,tol)</code></td><td>Fewer vertices (may break topology)</td></tr>
+          <tr><td><code>ST_SimplifyPreserveTopology</code></td><td>Simplify without self-intersecting</td></tr>
+          <tr><td><code>ST_Collect(g)</code></td><td>Bundle into Multi* / collection (agg)</td></tr>
+          <tr><td><code>ST_Dump(g)</code></td><td>Explode collection → one row per part</td></tr>
+          <tr><td><code>ST_Centroid / ST_PointOnSurface</code></td><td>Center / guaranteed-inside point</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <h2>Worked example — 5 km evacuation zone, dissolved</h2>
+<div class="ebnf"><span class="cm">-- buffer each hazard point 5 km (metric SRID!), merge overlaps, count affected shelters</span>
+<span class="kw">WITH</span> zone <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> <span class="kw">ST_Union</span>(<span class="kw">ST_Buffer</span>(<span class="kw">ST_Transform</span>(geom, 32644), 5000)) <span class="kw">AS</span> g   <span class="cm">-- 5000 m in UTM 44N</span>
+  <span class="kw">FROM</span> hazards <span class="kw">WHERE</span> kind = 'flood'
+)
+<span class="kw">SELECT</span> <span class="kw">count</span>(*) <span class="kw">AS</span> shelters_at_risk
+<span class="kw">FROM</span> shelters s, zone
+<span class="kw">WHERE</span> <span class="kw">ST_Intersects</span>(<span class="kw">ST_Transform</span>(s.geom, 32644), zone.g)<span class="op">;</span></div>
+    <div class="callout"><b>Buffer in metres, not degrees.</b> <code>ST_Buffer</code> on a 4326 geometry buffers by <i>degrees</i>.
+      Transform to a metric CRS (UTM/local grid) first, or use <code>geography</code>. Same rule as the distance trap on poster 10.</div>
+
+    <div class="foot"><span>Validate → repair → process. ST_MakeValid before any overlay; ST_SimplifyPreserveTopology before any tiling.</span><span>postgis.net/docs · ST_MakeValid, ST_IsValidReason</span></div>
+  </div>
+</section>
+
+<!-- POSTER 16 -->
+<section class="poster" id="p16">
+  <div class="prompt"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span>postgis=#</span><span class="cmd">ST_AsMVT · ST_ClusterDBSCAN</span><span class="blink">█</span><span class="pno">16 / 17 · POSTGIS</span></div>
+  <div class="pad">
+    <h1>PostGIS — <span class="accent">Vector Tiles</span> &amp; Clustering</h1>
+    <p class="sub">Serve maps to the browser as <b>Mapbox Vector Tiles</b> generated in-database, and reduce thousands of
+      incident points to meaningful <b>clusters</b> — both are single-query operations PostGIS does natively.</p>
+
+    <h2>The canonical vector-tile pipeline</h2>
+    <p style="margin-top:0">A tile server converts a <code>{z}/{x}/{y}</code> request into one query. Three functions cooperate:
+      <code>ST_TileEnvelope</code> builds the tile's bounds, <code>ST_AsMVTGeom</code> clips &amp; quantizes geometry into tile space,
+      <code>ST_AsMVT</code> aggregates rows into the binary tile.</p>
+<div class="ebnf"><span class="kw">WITH</span> mvtgeom <span class="kw">AS</span> (
+  <span class="kw">SELECT</span>
+    <span class="kw">ST_AsMVTGeom</span>(
+      <span class="kw">ST_Transform</span>(geom, 3857),               <span class="cm">-- tile space is Web Mercator</span>
+      <span class="kw">ST_TileEnvelope</span>(:z, :x, :y),           <span class="cm">-- bounds for this tile</span>
+      extent <span class="op">=&gt;</span> 4096, buffer <span class="op">=&gt;</span> 64           <span class="cm">-- standard grid + edge buffer</span>
+    ) <span class="kw">AS</span> geom,
+    name, kind                                <span class="cm">-- attributes ride along into the tile</span>
+  <span class="kw">FROM</span> shelters
+  <span class="kw">WHERE</span> geom <span class="op">&amp;&amp;</span> <span class="kw">ST_Transform</span>(                   <span class="cm">-- && = index prefilter to this tile</span>
+        <span class="kw">ST_TileEnvelope</span>(:z, :x, :y, margin <span class="op">=&gt;</span> 64.0/4096), 4326)
+)
+<span class="kw">SELECT</span> <span class="kw">ST_AsMVT</span>(mvtgeom.*) <span class="kw">FROM</span> mvtgeom<span class="op">;</span>            <span class="cm">-- → bytea, send as application/x-protobuf</span></div>
+    <div class="callout"><b>Why each piece exists.</b> The <code>&amp;&amp;</code> filter uses the GiST index so only this tile's rows are read.
+      <code>ST_AsMVTGeom</code> clips to the tile, fixes validity, and rescales to the 0–4096 integer grid. The
+      <code>buffer</code> avoids clipped labels/lines at tile edges. Wrap as a <code>z/x/y</code> endpoint and any MapLibre/Leaflet
+      client renders it.</div>
+    <div class="callout"><b>Composite (multi-layer) tiles.</b> <code>UNION</code> several <code>ST_AsMVTGeom</code> sub-selects, each tagged
+      with a layer name passed as <code>ST_AsMVT(rows.*, 'layername')</code> — one request returns roads + shelters + hazards together.</div>
+
+    <h2>Clustering — turn point swarms into insight</h2>
+    <table>
+      <tr><th>Function</th><th>Kind</th><th>Use for</th></tr>
+      <tr><td><code>ST_ClusterDBSCAN(geom, eps, minpts)</code></td><td>Window fn</td><td>Density hotspots; eps in CRS units, noise = NULL cluster</td></tr>
+      <tr><td><code>ST_ClusterKMeans(geom, k)</code></td><td>Window fn</td><td>Partition into exactly k groups (e.g. k zones)</td></tr>
+      <tr><td><code>ST_ClusterWithin(geom, d)</code></td><td>Aggregate</td><td>Group geometries within distance d</td></tr>
+      <tr><td><code>ST_ClusterIntersecting(geom)</code></td><td>Aggregate</td><td>Connected/touching sets</td></tr>
+    </table>
+<div class="ebnf"><span class="cm">-- incident hotspots: DBSCAN, 250 m radius, ≥5 incidents to form a cluster</span>
+<span class="kw">SELECT</span> id, kind,
+  <span class="kw">ST_ClusterDBSCAN</span>(<span class="kw">ST_Transform</span>(geom, 32644), eps <span class="op">=&gt;</span> 250, minpoints <span class="op">=&gt;</span> 5)
+    <span class="kw">OVER</span> () <span class="kw">AS</span> cluster_id          <span class="cm">-- window fn: every row keeps its cluster label</span>
+<span class="kw">FROM</span> incidents<span class="op">;</span>
+
+<span class="cm">-- then summarize each cluster into a hull + count for the map</span>
+<span class="kw">SELECT</span> cluster_id, <span class="kw">count</span>(*) <span class="kw">AS</span> n,
+       <span class="kw">ST_ConvexHull</span>(<span class="kw">ST_Collect</span>(geom)) <span class="kw">AS</span> footprint
+<span class="kw">FROM</span> clustered <span class="kw">WHERE</span> cluster_id <span class="kw">IS NOT NULL</span> <span class="kw">GROUP BY</span> cluster_id<span class="op">;</span></div>
+    <div class="callout"><b>DBSCAN vs K-Means.</b> DBSCAN finds <i>natural</i> dense groups, leaves outliers unclustered (NULL), and needs
+      no preset count — ideal for "where are incidents concentrating?". K-Means forces every point into exactly
+      <code>k</code> clusters — use when you must split into a fixed number of response zones.</div>
+
+    <div class="foot"><span>ST_TileEnvelope → ST_AsMVTGeom → ST_AsMVT = tiles from SQL · DBSCAN/KMeans are window functions over geometry. PostGIS 3.6.</span><span>postgis.net/docs · ST_AsMVT, ST_ClusterDBSCAN</span></div>
+  </div>
+</section>
+
+<!-- POSTER 17 -->
+<section class="poster" id="p17">
+  <div class="prompt"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span>postgis=#</span><span class="cmd">CREATE EXTENSION pgrouting;</span><span class="blink">█</span><span class="pno">17 / 17 · PGROUTING</span></div>
+  <div class="pad">
+    <h1><span class="accent">pgRouting</span> — Response Logistics</h1>
+    <p class="sub">pgRouting adds graph algorithms on top of PostGIS: shortest path, reachable area, cost matrices.
+      The disaster-response capstone — route responders, compute coverage, assign the nearest unit.</p>
+
+    <h2>The network model</h2>
+    <p style="margin-top:0">Every algorithm runs over an <b>edges SQL</b> result exposing four columns (plus optional reverse cost):</p>
+<div class="ebnf"><span class="kw">CREATE</span> <span class="kw">EXTENSION</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> pgrouting<span class="op">;</span>   <span class="cm">-- requires PostGIS</span>
+
+<span class="cm">-- edges table contract:  id · source · target · cost · [reverse_cost]</span>
+<span class="cm">--   source/target are vertex IDs at each end of the edge (the road segment)</span>
+<span class="cm">--   cost = travel impedance (length, or seconds = length / speed)</span>
+<span class="cm">--   reverse_cost lets one row model a two-way street with direction-specific cost</span>
+
+<span class="cm">-- build vertices &amp; populate source/target from geometry (modern API):</span>
+<span class="kw">SELECT</span> pgr_extractVertices('SELECT id, geom FROM roads')<span class="op">;</span>
+<span class="cm">-- (pgr_createTopology is DEPRECATED since pgRouting 3.8 — prefer pgr_extractVertices)</span>
+<span class="kw">CREATE INDEX</span> <span class="kw">ON</span> roads (source)<span class="op">;</span>  <span class="kw">CREATE INDEX</span> <span class="kw">ON</span> roads (target)<span class="op">;</span>   <span class="cm">-- essential for speed</span></div>
+    <div class="callout warn"><b>Use a metric CRS for cost.</b> If <code>cost</code> is segment length, the geometry must be in metres
+      (UTM/local grid), not degrees — otherwise impedances are nonsense. Transform the network once at build time.</div>
+
+    <h2>Core algorithms</h2>
+    <table>
+      <tr><th>Function</th><th>Answers</th></tr>
+      <tr><td><code>pgr_dijkstra(edges, start, end)</code></td><td>Shortest path between two vertices</td></tr>
+      <tr><td><code>pgr_dijkstra(edges, start, end[])</code></td><td>One-to-many shortest paths (one load of the graph)</td></tr>
+      <tr><td><code>pgr_drivingDistance(edges, start, max)</code></td><td>All vertices reachable within a cost budget → <b>isochrone</b></td></tr>
+      <tr><td><code>pgr_dijkstraCostMatrix(edges, vids)</code></td><td>All-pairs cost matrix (assignment/VRP input)</td></tr>
+      <tr><td><code>pgr_aStar(edges, start, end)</code></td><td>Dijkstra + geometry heuristic — faster on big road nets</td></tr>
+      <tr><td><code>pgr_KSP(edges, start, end, k)</code></td><td>K shortest paths (alternative routes if one is blocked)</td></tr>
+    </table>
+
+    <h2>Worked — fastest route, ambulance → incident</h2>
+<div class="ebnf"><span class="kw">SELECT</span> seq, node, edge, cost, agg_cost
+<span class="kw">FROM</span> pgr_dijkstra(
+  'SELECT id, source, target, cost, reverse_cost FROM roads',
+  :ambulance_vertex,        <span class="cm">-- start vertex id</span>
+  :incident_vertex,         <span class="cm">-- end vertex id</span>
+  directed <span class="op">=&gt;</span> true                <span class="cm">-- respect one-way streets</span>
+)<span class="op">;</span>
+<span class="cm">-- join edge ids back to roads.geom to draw the route on the map / emit GeoJSON</span></div>
+
+    <h2>Worked — 10-minute reachable area (isochrone)</h2>
+<div class="ebnf"><span class="cm">-- which areas can a unit reach within 600 s? (cost column = seconds)</span>
+<span class="kw">SELECT</span> dd.node, dd.agg_cost, v.geom
+<span class="kw">FROM</span> pgr_drivingDistance(
+       'SELECT id, source, target, cost FROM roads',
+       :station_vertex, 600, directed <span class="op">=&gt;</span> false) dd
+<span class="kw">JOIN</span> roads_vertices_pgr v <span class="kw">ON</span> v.id = dd.node<span class="op">;</span>
+<span class="cm">-- wrap the reachable nodes in ST_ConcaveHull for a coverage polygon</span></div>
+
+    <div class="callout"><b>IDRM patterns.</b> <code>drivingDistance</code> → coverage gaps (areas no unit reaches in time);
+      <code>dijkstraCostMatrix</code> → assign each incident to its nearest available responder;
+      <code>KSP</code> → reroute when the primary path crosses a flooded/blocked edge (drop those edges from the edges-SQL with a <code>WHERE</code>).</div>
+
+    <div class="callout warn"><b>Version note.</b> Verified against pgRouting 3.8 on PostGIS 3.6 / PostgreSQL 18.
+      <code>pgr_createTopology</code> &amp; <code>pgr_createVerticesTable</code> are deprecated since 3.8 — use <code>pgr_extractVertices</code>.
+      Returned columns &amp; signatures are stable across the 3.x series.</div>
+
+    <div class="foot"><span>Graph over PostGIS · edges SQL {id,source,target,cost[,reverse_cost]} · Dijkstra/A*/drivingDistance/costMatrix · metric CRS for costs.</span><span>docs.pgrouting.org · pgr_dijkstra, pgr_drivingDistance</span></div>
+  </div>
+</section>
+
+</body>
+</html>
