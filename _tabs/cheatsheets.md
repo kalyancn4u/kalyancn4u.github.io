@@ -3,11 +3,11 @@ layout: page
 title: Cheat Sheets
 icon: fas fa-book
 order: 4
-redirect_to: https://kalyancn4u.github.io/assets/html/cheatsheets/
-external_url: true
+permalink: /cheatsheets/
 description: Curated collection of developer cheat sheets covering Cloud, DevOps, Databases, Data Science, Machine Learning, and Backend Engineering.
+# redirect_to: https://kalyancn4u.github.io/assets/html/cheatsheets/
+# external_url: true
 ---
-# permalink: /cheatsheets/
 
 <meta http-equiv="refresh" content="0; url={{ '/assets/html/cheatsheets/' | relative_url }}">
 
@@ -30,6 +30,6 @@ If the redirect does not happen automatically, click below:
       href="{{ '/assets/html/cheatsheets/' | relative_url }}"
       target="_blank"
       rel="noopener noreferrer">
-    📚 Open Cheat Sheets
+    📚 Open → Developer Cheat Sheets
   </a>
 </p>
