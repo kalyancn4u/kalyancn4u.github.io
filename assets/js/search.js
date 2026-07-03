@@ -1,3 +1,17 @@
+console.log("✓ search.js loaded");
+
+const response = await fetch("/search.json");
+console.log("✓ fetch started");
+
+const documents = await response.json();
+console.log("✓", documents.length, "documents loaded");
+
+input.addEventListener("input", () => {
+    console.log("Typed:", input.value);
+    const matches = fuse.search(input.value);
+    console.log(matches);
+});
+
 document.addEventListener("DOMContentLoaded", async () => {
 
   const input = document.getElementById("search-input");
