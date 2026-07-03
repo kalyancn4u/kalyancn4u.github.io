@@ -5,7 +5,7 @@ permalink: /search/
 icon: fas fa-search
 ---
 
-<div class="mb-3">
+<div style="margin-bottom: 1rem;">
   <input
     id="search-input"
     class="form-control"
