@@ -10,6 +10,8 @@ icon: fas fa-search
   type="search"
   placeholder="Search">
 
+<h2>Search Results...</h2>
+
 <div id="search-results"></div>
 
 <script src="/assets/js/search.js"></script>
