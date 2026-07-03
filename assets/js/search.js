@@ -5,9 +5,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (!input || !results) return;
 
-  const response = await fetch("/search.json");
+  # const response = await fetch("/search.json");
+  const response = await fetch("/assets/js/data/search.json");
   const documents = await response.json();
-
+  
   const fuse = new Fuse(documents, {
     includeScore: true,
     includeMatches: true,
