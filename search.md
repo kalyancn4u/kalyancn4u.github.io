@@ -6,12 +6,14 @@ icon: fas fa-search
 ---
 
 <input
-  id="search-input"
-  type="search"
-  placeholder="Search">
+    id="search-input"
+    type="search"
+    class="form-control"
+    placeholder="Search...">
 
-<h2>Search Results...</h2>
+<br>
 
 <div id="search-results"></div>
 
+<script src="/assets/js/fuse.min.js"></script>
 <script src="/assets/js/search.js"></script>
