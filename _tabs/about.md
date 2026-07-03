@@ -7,7 +7,7 @@ icon: "fas fa-info-circle"  # quote it
 order: 5                    # integer; controls tab position
 ---
 
-<div hidden>
+<div hidden><p>
 cv
 resume
 bio
@@ -15,7 +15,7 @@ curriculum vitae
 profile
 portfolio
 professional summary
-</div>
+</p></div>
 
 > Add Markdown syntax content to file `_tabs/about.md`{: .filepath } and it will show up on this page.
 {: .prompt-tip }
