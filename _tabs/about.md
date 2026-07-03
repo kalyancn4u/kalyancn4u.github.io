@@ -20,7 +20,7 @@ shortcuts:
   - about
 ---
 
-<div hidden><p>
+<div hidden><pre>
 cv
 resume
 bio
@@ -28,7 +28,7 @@ curriculum vitae
 profile
 portfolio
 professional summary
-</p></div>
+</pre></div>
 
 > Add Markdown syntax content to file `_tabs/about.md`{: .filepath } and it will show up on this page.
 {: .prompt-tip }
