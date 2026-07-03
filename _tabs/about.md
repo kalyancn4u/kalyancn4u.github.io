@@ -5,6 +5,11 @@ title: About Me
 permalink: /about/          # optional for tabs, but fine to keep
 icon: "fas fa-info-circle"  # quote it
 order: 5                    # integer; controls tab position
+aliases:
+  - bio
+  - cv
+  - resume
+  - curriculum vitae
 ---
 
 <div hidden><p>
