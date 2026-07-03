@@ -7,7 +7,7 @@ const documents = await response.json();
 console.log("✓", documents.length, "documents loaded");
 
 input.addEventListener("input", () => {
-    console.log("Typed:", input.value);
+    console.log("Typed Input:", input.value);
     const matches = fuse.search(input.value);
     console.log(matches);
 });
