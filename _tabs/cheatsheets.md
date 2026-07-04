@@ -2,7 +2,7 @@
 layout: page
 title: Cheat Sheets
 icon: fas fa-book
-order: 4
+order: 5
 permalink: /cheatsheets/
 description: Curated collection of developer cheat sheets covering Cloud, DevOps, Databases, Data Science, Machine Learning, and Backend Engineering.
 # redirect_to: https://kalyancn4u.github.io/assets/html/cheatsheets/
