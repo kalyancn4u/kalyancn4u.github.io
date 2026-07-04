@@ -6,7 +6,7 @@ permalink: /
 # permalink: /about/          # optional for tabs, but fine to keep
 
 icon: "fas fa-info-circle"  # quote it
-order: 5                    # integer; controls tab position
+order: 6                    # integer; controls tab position
 
 aliases:
   - bio
