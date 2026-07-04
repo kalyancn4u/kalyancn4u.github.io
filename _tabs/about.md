@@ -2,7 +2,8 @@
 # the default layout is 'page'
 layout: page
 title: About Me
-permalink: /about/          # optional for tabs, but fine to keep
+# permalink: /about/          # optional for tabs, but fine to keep
+permalink: /
 
 icon: "fas fa-info-circle"  # quote it
 order: 5                    # integer; controls tab position
