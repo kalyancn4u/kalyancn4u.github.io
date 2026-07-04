@@ -1,10 +1,7 @@
 ---
 # the default layout is 'page'
 layout: page
-# layout: home
 title: About Me
-
-# permalink: /about/
 permalink: /about/          # optional for tabs, but fine to keep
 
 icon: "fas fa-info-circle"  # quote it
