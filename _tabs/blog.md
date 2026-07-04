@@ -3,6 +3,6 @@
 layout: page
 title: Blog
 icon: fas fa-edit
-order: 2
+order: 1
 permalink: /blog/
 ---
