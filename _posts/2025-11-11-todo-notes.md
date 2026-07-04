@@ -1,0 +1,110 @@
+---
+layout: post
+title: "TODO — Notes"
+description: "TODO Notes. A placeholder for notes, TBD!"
+author: technical_notes
+date: 2025-11-11 12:34:56 +0000
+categories: [Notes, TODO]
+tags: [TODO]
+# image: /assets/img/posts/todo-list.webp
+toc: false
+math: false
+mermaid: false
+---
+
+**Role:** You are an expert Data Scientist and a skilled technical writer. Your goal is to create a definitive, high-quality educational resource.
+
+**Primary Task:** Create a comprehensive guide on the **"DSML: Machine Learning Lifecycle."**
+
+The output must be a single, well-structured Markdown document suitable for a Jekyll-based blog using the "Chirpy" theme.
+
+**Audience:** The guide is for a **novice** (e.g., a student or a professional new to data science). All concepts must be explained from the ground up.
+
+**Key Requirements:**
+
+1.  **Comprehensive & Concise:** The guide must cover the entire ML lifecycle from start to finish. It should be detailed enough for "mastery" but written **clearly and concisely**, with no repetition or unnecessary filler.
+2.  **Novice-Friendly Language:** Explain all technical jargon and acronyms immediately. Use simple analogies or examples where possible to clarify complex ideas.
+3.  **Logical Structure:** The content must flow harmoniously from one stage to the next. Use Markdown headings (`##`, `###`) to create a clear hierarchy.
+4.  **Technical Accuracy:** All definitions, steps, and concepts must be 100% technically correct. If any code snippets or mathematical formulas are used, they must be valid.
+5.  **Source Validation:** Base the content on multiple, top-tier, authoritative sources in the field of machine learning (e.g., leading university CS departments, major tech company AI blogs, seminal textbooks).
+
+**Required Content: Jargon & Hierarchy Tables**
+
+You must include two specific tables:
+
+* **Table 1: Lifecycle Stage Synonyms**
+    * This table should map different jargon/terms that are often used interchangeably for the same lifecycle phase.
+    * *Example Columns: "Common Phase Name", "Alternative Terms / Synonyms"*
+
+* **Table 2: Lifecycle Hierarchy**
+    * This table should hierarchically differentiate between major phases and the sub-tasks within them.
+    * *Example: Show that "Feature Engineering" is a sub-task of "Data Preparation," which itself is a major phase.*
+
+**Formatting & Delivery:**
+
+1.  **Markdown for Jekyll (Chirpy):** Ensure the Markdown is clean and will render correctly. Use lists, bolding, and blockquotes (`>`) effectively for readability.
+2.  **No Inline Citations:** Do not use in-text citations, footnotes, or any mention of the sources within the main body of the article.
+3.  **References Section:** At the very end of the document, add a final section: `## References`.
+    * In this section, list the authoritative sources you used.
+    * Format each source as a clickable link that **opens in a new tab**.
+    * Use the HTML snippet: `[Source Title](URL_HERE){:target="_blank"}`
+
+---
+
+**TODO CCC**
+
+**[GitHub Pages documentation](https://docs.github.com/en/pages){:target="_blank"}**
+
+**[GitHub Actions documentation](https://docs.github.com/en/actions){:target="_blank"}**
+
+**[Machine Learning Life-cycle](https://www.geeksforgeeks.org/machine-learning/machine-learning-lifecycle/){:target="_blank"}**
+
+**[Vital Flux: Analytics Yogi](https://vitalflux.com/){:target="_blank"}**
+
+**API Guide: API Design, Documentation & Best Practices**
+- https://stoplight.io/api-documentation-guide
+- https://swagger.io/resources/articles/best-practices-in-api-design/
+- https://docs.cloud.google.com/api-gateway/docs
+- https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/32713.pdf
+- https://apiguide.readthedocs.io/en/latest/
+- https://blog.dreamfactory.com/8-api-documentation-examples
+- https://docs.apigee.com/
+- https://microsoft.github.io/code-with-engineering-playbook/design/design-patterns/rest-api-design-guidance/
+- https://apidog.com/compare/apidog-vs-stoplight/
+- https://www.geeksforgeeks.org/software-testing/what-is-an-api/
+- https://www.postman.com/api-platform/api-design/
+- https://docs.github.com/en/rest
+- https://swagger.io/
+- https://docs.apigee.com/api-platform/publish/specs/intro
+- https://docs.cloud.google.com/apis/design
+
+**System Analysis & Design: Documentation & Best Practices**
+- https://www.geeksforgeeks.org/system-design/system-design-tutorial/
+
+**MIS types**
+- https://en.wikipedia.org/wiki/Management_information_system
+- https://www.geeksforgeeks.org/computer-organization-architecture/management-information-system-mis/
+- https://www.coursera.org/in/articles/management-information-system
+- https://www.indeed.com/career-advice/career-development/types-of-management-information-system
+- https://www.tutorialspoint.com/management_information_system/mis_quick_guide.htm
+- https://www.conceptdraw.com/examples/chart-of-management-information-system-with-diagram
+
+- https://insurance-companies.co/management-information-systems-examples/
+- https://insurance-companies.co/information-systems-types/
+- https://www.shiksha.com/online-courses/articles/difference-between-mis-and-dss-blogId-158159
+- https://www.tutorialspoint.com/difference-between-mis-and-dss
+- https://www.geeksforgeeks.org/computer-organization-architecture/difference-between-management-information-system-mis-and-decision-support-system-dss/
+- https://diceus.com/difference-between-mis-and-erp/
+
+**Andrej Karpathy's NanoChat**
+- https://github.com/karpathy/nanochat
+
+**Consistent Hashing**
+- https://en.wikipedia.org/wiki/Consistent_hashing
+- https://www.geeksforgeeks.org/system-design/consistent-hashing/
+- https://highscalability.com/consistent-hashing-algorithm/
+- https://www.hellointerview.com/learn/system-design/core-concepts/consistent-hashing
+- https://bytebytego.com/courses/system-design-interview/design-consistent-hashing
+- https://www.toptal.com/big-data/consistent-hashing
+- https://ably.com/blog/implementing-efficient-consistent-hashing
+- https://docs.aws.amazon.com/wellarchitected/latest/reducing-scope-of-impact-with-cell-based-architecture/consistent-hashing.html
