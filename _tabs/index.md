@@ -1,6 +1,6 @@
 ---
 # blog/index.html   (moved from root)
-layout: home
+layout: posts
 title: Blog
 icon: fas fa-edit
 order: 1
