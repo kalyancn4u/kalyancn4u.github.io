@@ -1,7 +1,7 @@
 ---
 # the default layout is 'page'
-# layout: page
-layout: home
+layout: page
+# layout: home
 title: About Me
 
 # permalink: /about/
