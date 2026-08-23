@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Top PostgreSQL Extensions: From Novice to Mastery"
+title: "Top PostgreSQL Extensions"
 description: "A practical guide to the most useful PostgreSQL extensions—what they do, when to use them, and which are especially relevant to IDRM"
 author: technical_notes
 date: 2026-08-21 12:34:56 +0530
