@@ -10,7 +10,7 @@ toc: true
 math: true
 mermaid: true
 pin: true
-----------
+---
 
 > **TL;DR:** Don't install PostgreSQL extensions merely because they are popular. Start with a small, production-ready baseline, then add extensions only when a real requirement justifies them.
 > {: .prompt-tip }
