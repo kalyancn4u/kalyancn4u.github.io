@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conda Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --chan:#4f46e5;   --chan-bg:#eef0fd;
+    --cache:#d97706;  --cache-bg:#fdf6ec;
+    --env:#059669;    --env-bg:#ecf7f2;
+    --shell:#64748b;  --shell-bg:#f1f3f6;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .kw{font-family:var(--mono); color:var(--env)}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.chan{background:var(--chan)} .dot.cache{background:var(--cache)}
+  .dot.env{background:var(--env)}   .dot.shell{background:var(--shell)}
+  .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:780px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.chan{border-left-color:var(--chan)}
+  ul.cmds li.cache{border-left-color:var(--cache)}
+  ul.cmds li.env{border-left-color:var(--env)}
+  ul.cmds li.shell{border-left-color:var(--shell)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.82rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .arg{color:var(--chan); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.94em; background:#f4f2ee; padding:0 .2em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .dgrid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:820px){ .dgrid{grid-template-columns:1fr 1fr} }
+  .dcard{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .dcard.wide{grid-column:1/-1}
+  .dcard h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .dcard p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .dcard .bsvg{width:100%; height:auto; display:block}
+  .dcard .bsvg text{font-family:var(--mono)}
+
+  /* annotated yaml block */
+  .yml{
+    background:var(--ink); color:#e8e6e1; border-radius:8px;
+    padding:.9rem 1rem; font-family:var(--mono); font-size:.78rem;
+    line-height:1.75; overflow-x:auto; white-space:pre;
+  }
+  .yml .k{color:#7dd3fc}
+  .yml .v{color:#e8e6e1}
+  .yml .c{color:#94a3b8; font-style:italic}
+  .yml .hi{color:#fbbf24; font-weight:700}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner .v code{color:#e8e6e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · cross-language package &amp; environment manager</div>
+  <h1><span class="kw">conda</span> cheat sheet</h1>
+  <p class="lede">Almost every conda command moves a package along one line: from a <b>channel</b> on the internet, into your local <b>package cache</b>, linked into an <b>environment</b>, and put on <code>PATH</code> by your <b>shell</b>. Learn that line once and the flags stop being arbitrary.</p>
+  <div class="legend">
+    <span><i class="dot chan"></i>channel / remote</span>
+    <span><i class="dot cache"></i>package cache</span>
+    <span><i class="dot env"></i>environment (prefix)</span>
+    <span><i class="dot shell"></i>shell / session</span>
+    <span><i class="dot danger"></i>destructive</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>docs.conda.io</b> (official cheatsheet + concepts) · <b>conda-forge.org</b> · <b>anaconda.com/docs</b> · <b>github.com/conda-forge/miniforge</b> · <b>conda.org</b> (CEP-29 MatchSpec) · <b>bioconda</b> · <b>readthedocs conda guide</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The four places &amp; the commands that move packages between them</div>
+  <svg class="flow-svg" viewBox="0 0 1100 370" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram: conda install downloads from a channel into the package cache, links it into an environment, and conda activate puts the environment on the shell PATH.">
+    <defs>
+      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <!-- boxes -->
+    <g>
+      <rect x="20" y="120" width="195" height="125" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="117" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Channel</text>
+      <text x="117" y="171" text-anchor="middle" font-size="10.5" fill="#4f46e5">conda-forge, defaults…</text>
+      <text x="117" y="192" text-anchor="middle" font-size="10.5" fill="#4f46e5">serves repodata.json</text>
+      <text x="117" y="222" text-anchor="middle" font-size="10.5" fill="#4f46e5">conda config --show-sources</text>
+    </g>
+    <g>
+      <rect x="303" y="120" width="195" height="125" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="400" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Package Cache</text>
+      <text x="400" y="171" text-anchor="middle" font-size="10.5" fill="#b45309">~/miniconda3/pkgs</text>
+      <text x="400" y="192" text-anchor="middle" font-size="10.5" fill="#b45309">downloaded once, shared</text>
+      <text x="400" y="222" text-anchor="middle" font-size="10.5" fill="#b45309">conda clean --all</text>
+    </g>
+    <g>
+      <rect x="586" y="120" width="195" height="125" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="683" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Environment</text>
+      <text x="683" y="171" text-anchor="middle" font-size="10.5" fill="#059669">envs/NAME  (the "prefix")</text>
+      <text x="683" y="192" text-anchor="middle" font-size="10.5" fill="#059669">hard-links, not copies</text>
+      <text x="683" y="222" text-anchor="middle" font-size="10.5" fill="#059669">conda list</text>
+    </g>
+    <g>
+      <rect x="869" y="120" width="205" height="125" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="971" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Shell</text>
+      <text x="971" y="171" text-anchor="middle" font-size="10.5" fill="#64748b">env's bin/ prepended to PATH</text>
+      <text x="971" y="192" text-anchor="middle" font-size="10.5" fill="#64748b">(base) → (myenv)</text>
+      <text x="971" y="222" text-anchor="middle" font-size="10.5" fill="#64748b">which python</text>
+    </g>
+
+    <!-- forward arrows -->
+    <line x1="215" y1="150" x2="301" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <text x="258" y="142" text-anchor="middle" font-size="11" font-weight="700" fill="#d97706">download</text>
+
+    <line x1="498" y1="150" x2="584" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <text x="541" y="142" text-anchor="middle" font-size="11" font-weight="700" fill="#059669">link</text>
+
+    <line x1="781" y1="150" x2="867" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <text x="824" y="142" text-anchor="middle" font-size="11" font-weight="700" fill="#64748b">activate</text>
+
+    <!-- the big install bracket -->
+    <path d="M117 262 L117 285 L683 285 L683 262" fill="none" stroke="#059669" stroke-width="1.8"/>
+    <line x1="683" y1="285" x2="683" y2="264" stroke="#059669" stroke-width="1.8" marker-end="url(#ar)"/>
+    <rect x="318" y="272" width="164" height="26" rx="6" fill="#fbfaf8" stroke="#059669" stroke-width="1.5"/>
+    <text x="400" y="290" text-anchor="middle" font-size="12" font-weight="700" fill="#059669">conda install</text>
+
+    <!-- reverse arrows -->
+    <line x1="867" y1="325" x2="783" y2="325" stroke="#64748b" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+    <text x="825" y="343" text-anchor="middle" font-size="10.5" fill="#64748b">conda deactivate</text>
+
+    <line x1="584" y1="325" x2="500" y2="325" stroke="#059669" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+    <text x="542" y="343" text-anchor="middle" font-size="10.5" fill="#059669">conda remove</text>
+
+    <line x1="301" y1="325" x2="217" y2="325" stroke="#d97706" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+    <text x="259" y="343" text-anchor="middle" font-size="10.5" fill="#b45309">conda clean</text>
+
+    <!-- group labels -->
+    <text x="117" y="100" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#4f46e5">THE INTERNET</text>
+    <text x="683" y="100" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">YOUR MACHINE</text>
+  </svg>
+</section>
+
+<!-- ============ COMMAND CARDS ============ -->
+<main>
+
+  <!-- 01 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; Verify</span><span class="card-sub">once per machine</span></div>
+    <ul class="cmds">
+      <li class="shell"><code class="cmd">conda info</code><div class="desc">Version, config, envs dir, package cache dir. First thing to run.<span class="star">★</span></div></li>
+      <li class="shell"><code class="cmd">conda init <span class="arg">bash</span></code><div class="desc">Wire <code>conda activate</code> into your shell rc. Also <code>zsh</code>, <code>fish</code>, <code>powershell</code>. Restart the shell after.</div></li>
+      <li class="env"><code class="cmd">conda update <span class="flag">-n</span> <span class="arg">base</span> conda</code><div class="desc">Update conda itself. It lives in <code>base</code> — nothing else should.</div></li>
+      <li class="shell"><code class="cmd">conda config <span class="flag">--set</span> auto_activate_base false</code><div class="desc">Stop auto-activating <code>base</code> in every new terminal.</div></li>
+      <li class="shell"><code class="cmd">conda <span class="arg">COMMAND</span> <span class="flag">--help</span></code><div class="desc">Every subcommand documents its own flags.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Create Environments</span><span class="card-sub">one per project</span></div>
+    <ul class="cmds">
+      <li class="env"><code class="cmd">conda create <span class="flag">-n</span> <span class="arg">myenv</span> python=3.12</code><div class="desc">The default move. Pin Python at creation — changing it later triggers a full re-solve.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">conda create <span class="flag">-n</span> <span class="arg">myenv</span> python=3.12 numpy pandas</code><div class="desc">Name everything up front: one solve beats five.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">conda create <span class="flag">-p</span> <span class="arg">./.venv</span> python=3.12</code><div class="desc"><code>-p</code> puts the env in a project folder instead of the shared envs dir.</div></li>
+      <li class="env"><code class="cmd">conda create <span class="flag">--clone</span> <span class="arg">myenv</span> <span class="flag">-n</span> <span class="arg">myenv-exp</span></code><div class="desc">Copy an env before a risky change. Cheap — it re-uses the cache.</div></li>
+      <li class="env"><code class="cmd">conda rename <span class="flag">-n</span> <span class="arg">old</span> <span class="arg">new</span></code><div class="desc">Rename in place (clone + remove under the hood).</div></li>
+      <li class="danger"><code class="cmd">conda remove <span class="flag">-n</span> <span class="arg">myenv</span> <span class="flag">--all</span></code><div class="desc">Delete an entire environment.<span class="badge-danger">destructive</span></div></li>
+    </ul>
+  </article>
+
+  <!-- 03 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Activate &amp; Run</span><span class="card-sub">the daily loop</span></div>
+    <ul class="cmds">
+      <li class="shell"><code class="cmd">conda activate <span class="arg">myenv</span></code><div class="desc">Prepends the env's <code>bin/</code> to <code>PATH</code>. Prompt shows <code>(myenv)</code>.<span class="star">★</span></div></li>
+      <li class="shell"><code class="cmd">conda deactivate</code><div class="desc">Pop back one level. Repeat to leave <code>base</code>.</div></li>
+      <li class="env"><code class="cmd">conda env list</code><div class="desc">All envs + paths. <code>*</code> marks the active one. Same as <code>conda info --envs</code>.<span class="star">★</span></div></li>
+      <li class="shell"><code class="cmd">conda run <span class="flag">-n</span> <span class="arg">myenv</span> python app.py</code><div class="desc">Run one command inside an env without activating — ideal for cron, Make, CI.</div></li>
+      <li class="shell"><code class="cmd">conda env config vars set <span class="arg">KEY=val</span> <span class="flag">-n</span> <span class="arg">myenv</span></code><div class="desc">Env vars that set on activate and unset on deactivate.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Install Packages</span><span class="card-sub">into the active env</span></div>
+    <ul class="cmds">
+      <li class="chan"><code class="cmd">conda install <span class="arg">numpy pandas</span></code><div class="desc">Dependencies and platform binaries are resolved for you.<span class="star">★</span></div></li>
+      <li class="chan"><code class="cmd">conda install <span class="flag">-c</span> <span class="arg">conda-forge</span> <span class="arg">polars</span></code><div class="desc">Pull from a named channel for this command only.<span class="star">★</span></div></li>
+      <li class="chan"><code class="cmd">conda install <span class="arg">conda-forge::polars</span></code><div class="desc">Identical, inline form. Handy when channels differ per package.</div></li>
+      <li class="chan"><code class="cmd">conda install <span class="flag">-n</span> <span class="arg">myenv</span> <span class="arg">scipy</span></code><div class="desc">Target another env without activating it.</div></li>
+      <li class="chan"><code class="cmd">conda install <span class="arg">scipy</span> <span class="flag">--yes</span></code><div class="desc">Skip the confirm prompt. Required in scripts &amp; Dockerfiles.</div></li>
+      <li class="chan"><code class="cmd">conda install <span class="arg">scipy</span> <span class="flag">--dry-run</span></code><div class="desc">Show the solve result and change nothing.</div></li>
+      <li class="cache"><code class="cmd">conda install <span class="arg">./pkg.conda</span></code><div class="desc">Offline, from a local file. <b>Does not resolve dependencies.</b></div></li>
+    </ul>
+  </article>
+
+  <!-- 05 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Version &amp; Build Specs</span><span class="card-sub">MatchSpec</span></div>
+    <ul class="cmds">
+      <li class="chan"><code class="cmd">conda install <span class="arg">numpy=1.26</span></code><div class="desc"><b>Fuzzy.</b> One <code>=</code> means <code>1.26.*</code> — any patch.<span class="star">★</span></div></li>
+      <li class="chan"><code class="cmd">conda install <span class="arg">numpy==1.26.4</span></code><div class="desc"><b>Exact.</b> Two <code>==</code> pins that release precisely.</div></li>
+      <li class="chan"><code class="cmd">conda install <span class="arg">"numpy&gt;=1.24,&lt;2"</span></code><div class="desc">AND. <b>Quote it</b> — the shell eats <code>&lt;</code> <code>&gt;</code> <code>*</code> <code>|</code>.<span class="star">★</span></div></li>
+      <li class="chan"><code class="cmd">conda install <span class="arg">"numpy=1.24|1.26"</span></code><div class="desc">OR — either minor line is acceptable.</div></li>
+      <li class="chan"><code class="cmd">conda install <span class="arg">"pytorch=2.*=cuda*"</span></code><div class="desc">Third field is the <b>build string</b> — how it was compiled (CUDA vs CPU, Python ABI).</div></li>
+      <li class="chan"><code class="cmd">conda install <span class="arg">"pkg[version='&gt;=1.2',build=py311*]"</span></code><div class="desc">Bracket form: same grammar, explicit keys.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Inspect &amp; Search</span><span class="card-sub">read the env</span></div>
+    <ul class="cmds">
+      <li class="env"><code class="cmd">conda list</code><div class="desc">Everything in the active env, with versions.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">conda list <span class="flag">--show-channel-urls</span></code><div class="desc"><b>Which channel each package came from.</b> The first thing to check when an env misbehaves.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">conda list <span class="arg">^scikit</span></code><div class="desc">The positional arg is a regex filter.</div></li>
+      <li class="chan"><code class="cmd">conda search <span class="arg">polars</span></code><div class="desc">All versions/builds available in your channels.</div></li>
+      <li class="chan"><code class="cmd">conda search <span class="arg">polars</span> <span class="flag">--info</span></code><div class="desc">Dependencies, license, md5, per build.</div></li>
+      <li class="chan"><code class="cmd">conda repoquery depends <span class="arg">scipy</span></code><div class="desc">What scipy needs.</div></li>
+      <li class="chan"><code class="cmd">conda repoquery whoneeds <span class="arg">numpy</span></code><div class="desc">Reverse: what would break if numpy moved.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Update &amp; Remove</span><span class="card-sub">mind the difference</span></div>
+    <ul class="cmds">
+      <li class="chan"><code class="cmd">conda update <span class="arg">numpy</span></code><div class="desc">Highest version <b>within the same major</b>. Conservative.</div></li>
+      <li class="chan"><code class="cmd">conda install <span class="arg">numpy</span></code><div class="desc">Highest version, period. Use this to cross a major boundary.</div></li>
+      <li class="chan"><code class="cmd">conda update <span class="flag">--all</span></code><div class="desc">Re-solve the whole env. Do it on a clone first.</div></li>
+      <li class="env"><code class="cmd">conda remove <span class="arg">numpy</span></code><div class="desc">Uninstall from active env. <code>conda uninstall</code> is an alias.</div></li>
+      <li class="env"><code class="cmd">conda remove <span class="flag">-n</span> <span class="arg">myenv</span> <span class="arg">numpy</span></code><div class="desc">Remove from a specific env.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Channels &amp; .condarc</span><span class="card-sub">where packages come from</span></div>
+    <ul class="cmds">
+      <li class="chan"><code class="cmd">conda config <span class="flag">--show-sources</span></code><div class="desc">Every config file in play and what it sets. Start debugging here.<span class="star">★</span></div></li>
+      <li class="chan"><code class="cmd">conda config <span class="flag">--add</span> channels <span class="arg">conda-forge</span></code><div class="desc">Prepend → <b>highest</b> priority. <code>--append</code> puts it last instead.</div></li>
+      <li class="chan"><code class="cmd">conda config <span class="flag">--set</span> channel_priority strict</code><div class="desc">Don't let the solver mix channels for the same package. Strongly recommended.<span class="star">★</span></div></li>
+      <li class="chan"><code class="cmd">conda config <span class="flag">--show</span> channel_priority</code><div class="desc">Confirm which mode is actually active.</div></li>
+      <li class="chan"><code class="cmd">conda install <span class="flag">-c</span> <span class="arg">conda-forge</span> <span class="flag">--override-channels</span> <span class="arg">pkg</span></code><div class="desc">Ignore configured channels entirely for this solve.</div></li>
+      <li class="chan"><code class="cmd">conda config <span class="flag">--remove</span> channels <span class="arg">defaults</span></code><div class="desc">Commit to one ecosystem. Mixing <code>defaults</code> + <code>conda-forge</code> is the classic breakage.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Export</span><span class="card-sub">two different jobs</span></div>
+    <ul class="cmds">
+      <li class="env"><code class="cmd">conda env export <span class="flag">--from-history</span> &gt; <span class="arg">environment.yml</span></code><div class="desc"><b>Portable.</b> Only what you explicitly asked for → re-solves on any OS. Omits pip packages.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">conda env export &gt; <span class="arg">environment.yml</span></code><div class="desc">Full transitive tree with builds. Faithful, but usually <b>not</b> portable across OSes.</div></li>
+      <li class="env"><code class="cmd">conda list <span class="flag">--explicit</span> &gt; <span class="arg">spec.txt</span></code><div class="desc"><b>Lockfile.</b> Exact URLs, no solve on restore. Same-platform only.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">conda export <span class="flag">--format</span>=environment-yaml</code><div class="desc">Newer unified exporter. Also <code>environment-json</code>, <code>explicit</code>, <code>requirements</code>.</div></li>
+      <li class="env"><code class="cmd">conda export <span class="flag">--file</span>=<span class="arg">environment.yaml</span></code><div class="desc">Format inferred from the filename.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Import &amp; Recreate</span><span class="card-sub">the other half</span></div>
+    <ul class="cmds">
+      <li class="env"><code class="cmd">conda env create <span class="flag">-f</span> <span class="arg">environment.yml</span></code><div class="desc">Build the env from YAML. Name comes from the file.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">conda env create <span class="flag">-f</span> <span class="arg">environment.yml</span> <span class="flag">-n</span> <span class="arg">other</span></code><div class="desc">Override the name in the file.</div></li>
+      <li class="env"><code class="cmd">conda create <span class="flag">-n</span> <span class="arg">myenv</span> <span class="flag">--file</span> <span class="arg">spec.txt</span></code><div class="desc">Restore from an explicit lockfile — no solve, near-instant.</div></li>
+      <li class="env"><code class="cmd">conda env update <span class="flag">-f</span> <span class="arg">environment.yml</span> <span class="flag">--prune</span></code><div class="desc">Sync an existing env to the file. <code>--prune</code> drops what's no longer listed.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">conda compare <span class="arg">environment.yml</span></code><div class="desc">Diff the active env against a spec file before you act.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">pip Inside Conda</span><span class="card-sub">order matters</span></div>
+    <ul class="cmds">
+      <li class="env"><code class="cmd">conda install <span class="arg">pip</span></code><div class="desc">Install pip <b>into the env</b>, so <code>pip</code> isn't the base/system one.</div></li>
+      <li class="env"><code class="cmd">python <span class="flag">-m</span> pip install <span class="arg">some-pypi-only-pkg</span></code><div class="desc">Unambiguous — uses the active env's interpreter.<span class="star">★</span></div></li>
+      <li class="danger"><code class="cmd">conda install <span class="arg">anything</span>   <span class="flag"># after pip</span></code><div class="desc">Conda can't see pip's files and may overwrite them. <b>Rebuild the env instead.</b><span class="badge-danger">breaks envs</span></div></li>
+      <li class="env"><code class="cmd">conda list <span class="flag">--show-channel-urls</span></code><div class="desc">pip-installed packages show as <code>pypi</code> — that's your audit.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Revisions &amp; Repair</span><span class="card-sub">undo a bad solve</span></div>
+    <ul class="cmds">
+      <li class="env"><code class="cmd">conda list <span class="flag">--revisions</span></code><div class="desc">Every transaction on this env, numbered. Conda's answer to <code>git log</code>.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">conda install <span class="flag">--revision</span> <span class="arg">3</span></code><div class="desc">Roll the env back to that state.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">conda doctor</code><div class="desc">Health check: missing files, altered files, integrity problems.</div></li>
+      <li class="chan"><code class="cmd">conda clean <span class="flag">--index-cache</span></code><div class="desc">Fixes stale-repodata weirdness after adding a channel.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Disk &amp; Speed</span><span class="card-sub">housekeeping</span></div>
+    <ul class="cmds">
+      <li class="cache"><code class="cmd">conda clean <span class="flag">--all</span> <span class="flag">--dry-run</span></code><div class="desc">Preview the reclaim first. Always.</div></li>
+      <li class="cache"><code class="cmd">conda clean <span class="flag">--all</span></code><div class="desc">Drop unused tarballs, unused packages, index cache. Existing envs are hard-linked and stay intact.<span class="star">★</span></div></li>
+      <li class="cache"><code class="cmd">conda clean <span class="flag">--tarballs</span></code><div class="desc">Just the downloaded archives — the biggest, safest win.</div></li>
+      <li class="chan"><code class="cmd">conda config <span class="flag">--set</span> solver libmamba</code><div class="desc">The fast C++ solver. Default since conda 23.10 — verify with <code>conda config --show solver</code>.</div></li>
+      <li class="shell"><code class="cmd">mamba install <span class="arg">pkg</span></code><div class="desc">Drop-in, same flags, same <code>.condarc</code>. <code>micromamba</code> is a single static binary — ideal for CI.</div></li>
+    </ul>
+  </article>
+
+  <!-- STAR -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">★</span><span class="card-title">Naming an Environment</span><span class="card-sub">anywhere you see ENVNAME</span></div>
+    <ul class="cmds">
+      <li class="env"><code class="cmd"><span class="flag">-n</span> <span class="arg">myenv</span></code><div class="desc"><code>--name</code>. Lives in the shared envs dir; shows up in <code>conda env list</code>.</div></li>
+      <li class="env"><code class="cmd"><span class="flag">-p</span> <span class="arg">./.venv</span></code><div class="desc"><code>--prefix</code>. Any path. Project-local, ships with the repo, but not listed by name.</div></li>
+      <li class="env"><code class="cmd"><span class="flag">(omitted)</span></code><div class="desc">Acts on the <b>currently active</b> env — which may be <code>base</code>. Check your prompt first.</div></li>
+      <li class="shell"><code class="cmd">conda config <span class="flag">--set</span> env_prompt <span class="arg">'({name})'</span></code><div class="desc">Keeps the prompt short for <code>-p</code> envs instead of printing the whole path.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>The five things that actually confuse people</h2>
+  <p class="sub">Not more commands — the models underneath them.</p>
+
+  <div class="dgrid">
+
+    <!-- D1: SOLVE PIPELINE -->
+    <div class="dcard wide">
+      <h3>What <code>conda install</code> really does</h3>
+      <p>A solve is not a download. Conda reads your channel list <b>in priority order</b>, fetches each channel's index, and only then goes shopping — recursively, for every dependency.</p>
+      <svg viewBox="0 0 1040 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Five-step install pipeline: read channels in priority order, download repodata, search highest-priority channel first, download and link the package, then repeat for every dependency.">
+        <defs>
+          <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+          </marker>
+          <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#d97706"/>
+          </marker>
+        </defs>
+
+        <g font-size="11" text-anchor="middle">
+          <rect x="10"  y="40" width="178" height="66" rx="9" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.6"/>
+          <text x="99"  y="58" font-size="10" font-weight="700" fill="#4f46e5">1 · READ</text>
+          <text x="99"  y="78" fill="#1a1d24">channels, in</text>
+          <text x="99"  y="94" fill="#1a1d24">priority order</text>
+
+          <rect x="222" y="40" width="178" height="66" rx="9" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.6"/>
+          <text x="311" y="58" font-size="10" font-weight="700" fill="#4f46e5">2 · FETCH</text>
+          <text x="311" y="78" fill="#1a1d24">repodata.json</text>
+          <text x="311" y="94" fill="#1a1d24">(the whole index)</text>
+
+          <rect x="434" y="40" width="178" height="66" rx="9" fill="#f1f3f6" stroke="#64748b" stroke-width="1.6"/>
+          <text x="523" y="58" font-size="10" font-weight="700" fill="#64748b">3 · SOLVE</text>
+          <text x="523" y="78" fill="#1a1d24">search top channel</text>
+          <text x="523" y="94" fill="#1a1d24">first, then down</text>
+
+          <rect x="646" y="40" width="178" height="66" rx="9" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+          <text x="735" y="58" font-size="10" font-weight="700" fill="#b45309">4 · FETCH</text>
+          <text x="735" y="78" fill="#1a1d24">download to cache,</text>
+          <text x="735" y="94" fill="#1a1d24">link into env</text>
+
+          <rect x="858" y="40" width="172" height="66" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+          <text x="944" y="58" font-size="10" font-weight="700" fill="#059669">5 · REPEAT</text>
+          <text x="944" y="78" fill="#1a1d24">for every</text>
+          <text x="944" y="94" fill="#1a1d24">dependency</text>
+        </g>
+
+        <line x1="188" y1="73" x2="220" y2="73" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#ar2)"/>
+        <line x1="400" y1="73" x2="432" y2="73" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#ar2)"/>
+        <line x1="612" y1="73" x2="644" y2="73" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#ar2)"/>
+        <line x1="824" y1="73" x2="856" y2="73" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#ar2)"/>
+
+        <!-- recursion loop -->
+        <path d="M944 106 L944 145 L523 145 L523 108" fill="none" stroke="#d97706" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ar3)"/>
+        <text x="733" y="163" text-anchor="middle" font-size="10.5" fill="#b45309" font-weight="700">every dependency re-enters the solve — this is why big envs are slow</text>
+
+        <text x="99"  y="25" text-anchor="middle" font-size="9" letter-spacing="1.6" fill="#94a3b8">CONFIG</text>
+        <text x="523" y="25" text-anchor="middle" font-size="9" letter-spacing="1.6" fill="#94a3b8">SOLVER (libmamba)</text>
+        <text x="944" y="25" text-anchor="middle" font-size="9" letter-spacing="1.6" fill="#94a3b8">RECURSION</text>
+      </svg>
+    </div>
+
+    <!-- D2: CHANNEL PRIORITY -->
+    <div class="dcard wide">
+      <h3>channel_priority: <code>strict</code> vs <code>flexible</code> vs <code>disabled</code></h3>
+      <p>The single biggest source of broken conda environments. Suppose <code>conda-forge</code> sits above <code>defaults</code>, and both ship <code>some-pkg</code> — conda-forge at 1.0, defaults at 1.2.</p>
+      <svg viewBox="0 0 1040 260" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison of strict, flexible and disabled channel priority outcomes when conda-forge has some-pkg 1.0 and defaults has some-pkg 1.2.">
+        <!-- channel stack -->
+        <g font-size="11">
+          <text x="14" y="22" font-size="9.5" letter-spacing="1.6" fill="#94a3b8">YOUR CHANNEL LIST</text>
+          <rect x="14" y="34" width="228" height="40" rx="7" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.8"/>
+          <text x="28" y="52" font-weight="700" fill="#1a1d24">1. conda-forge</text>
+          <text x="28" y="67" font-size="10" fill="#4f46e5">some-pkg 1.0</text>
+
+          <rect x="14" y="82" width="228" height="40" rx="7" fill="#f1f3f6" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <text x="28" y="100" font-weight="700" fill="#6b7280">2. defaults</text>
+          <text x="28" y="115" font-size="10" fill="#6b7280">some-pkg 1.2</text>
+
+          <text x="14" y="150" font-size="10.5" fill="#6b7280">higher in the list =</text>
+          <text x="14" y="166" font-size="10.5" fill="#6b7280">higher priority</text>
+        </g>
+
+        <!-- three outcome columns -->
+        <g font-size="11" text-anchor="middle">
+          <!-- strict -->
+          <rect x="286" y="34" width="228" height="196" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="1.8"/>
+          <text x="400" y="56" font-size="12" font-weight="700" fill="#059669">strict</text>
+          <text x="400" y="74" font-size="9.5" fill="#059669">RECOMMENDED</text>
+          <line x1="302" y1="86" x2="498" y2="86" stroke="#059669" stroke-width="1" opacity=".4"/>
+          <text x="400" y="106" font-size="10" fill="#525761">lower channels are</text>
+          <text x="400" y="120" font-size="10" fill="#525761">invisible for a name</text>
+          <text x="400" y="148" font-size="10.5" fill="#1a1d24">install some-pkg</text>
+          <text x="400" y="164" font-size="11" font-weight="700" fill="#059669">→ 1.0</text>
+          <text x="400" y="190" font-size="10.5" fill="#1a1d24">install some-pkg=1.2</text>
+          <text x="400" y="206" font-size="11" font-weight="700" fill="#dc2626">→ fails</text>
+          <text x="400" y="222" font-size="9.5" fill="#6b7280">no ABI mixing. ever.</text>
+
+          <!-- flexible -->
+          <rect x="538" y="34" width="228" height="196" rx="9" fill="#fdf6ec" stroke="#d97706" stroke-width="1.8"/>
+          <text x="652" y="56" font-size="12" font-weight="700" fill="#b45309">flexible</text>
+          <text x="652" y="74" font-size="9.5" fill="#b45309">CURRENT DEFAULT</text>
+          <line x1="554" y1="86" x2="750" y2="86" stroke="#d97706" stroke-width="1" opacity=".4"/>
+          <text x="652" y="106" font-size="10" fill="#525761">drops to a lower channel</text>
+          <text x="652" y="120" font-size="10" fill="#525761">only if it must</text>
+          <text x="652" y="148" font-size="10.5" fill="#1a1d24">install some-pkg</text>
+          <text x="652" y="164" font-size="11" font-weight="700" fill="#b45309">→ 1.0</text>
+          <text x="652" y="190" font-size="10.5" fill="#1a1d24">install some-pkg=1.2</text>
+          <text x="652" y="206" font-size="11" font-weight="700" fill="#b45309">→ 1.2, from defaults</text>
+          <text x="652" y="222" font-size="9.5" fill="#6b7280">quietly mixes channels</text>
+
+          <!-- disabled -->
+          <rect x="790" y="34" width="236" height="196" rx="9" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.8"/>
+          <text x="908" y="56" font-size="12" font-weight="700" fill="#dc2626">disabled</text>
+          <text x="908" y="74" font-size="9.5" fill="#dc2626">HERE BE DRAGONS</text>
+          <line x1="806" y1="86" x2="1010" y2="86" stroke="#dc2626" stroke-width="1" opacity=".4"/>
+          <text x="908" y="106" font-size="10" fill="#525761">channels are equal;</text>
+          <text x="908" y="120" font-size="10" fill="#525761">newest version wins</text>
+          <text x="908" y="148" font-size="10.5" fill="#1a1d24">install some-pkg</text>
+          <text x="908" y="164" font-size="11" font-weight="700" fill="#dc2626">→ 1.2, from defaults</text>
+          <text x="908" y="190" font-size="10.5" fill="#1a1d24">install some-pkg=1.2</text>
+          <text x="908" y="206" font-size="11" font-weight="700" fill="#dc2626">→ 1.2</text>
+          <text x="908" y="222" font-size="9.5" fill="#6b7280">binary incompatibility risk</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D3: MATCHSPEC ANATOMY -->
+    <div class="dcard wide">
+      <h3>Anatomy of a package spec</h3>
+      <p>Three optional fields hang off the package name. Getting <code>=</code> vs <code>==</code> wrong is the most common pinning bug in a shared <code>environment.yml</code>.</p>
+      <svg viewBox="0 0 1040 245" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Anatomy of the spec conda-forge::pytorch=2.4=cuda-star, labelling channel, package name, version and build string.">
+        <!-- the spec string -->
+        <g font-size="26" font-weight="700">
+          <text x="286" y="60" fill="#4f46e5">conda-forge</text>
+          <text x="458" y="60" fill="#94a3b8">::</text>
+          <text x="489" y="60" fill="#1a1d24">pytorch</text>
+          <text x="598" y="60" fill="#b45309">=</text>
+          <text x="614" y="60" fill="#059669">2.4</text>
+          <text x="660" y="60" fill="#b45309">=</text>
+          <text x="676" y="60" fill="#d97706">cuda*</text>
+        </g>
+
+        <!-- underlines -->
+        <line x1="286" y1="74" x2="456" y2="74" stroke="#4f46e5" stroke-width="2.5"/>
+        <line x1="489" y1="74" x2="597" y2="74" stroke="#1a1d24" stroke-width="2.5"/>
+        <line x1="614" y1="74" x2="659" y2="74" stroke="#059669" stroke-width="2.5"/>
+        <line x1="676" y1="74" x2="754" y2="74" stroke="#d97706" stroke-width="2.5"/>
+
+        <!-- leaders -->
+        <path d="M371 76 L371 96 L215 110 L215 128" fill="none" stroke="#4f46e5" stroke-width="1.2"/>
+        <path d="M543 76 L543 130 L470 150 L470 168" fill="none" stroke="#1a1d24" stroke-width="1.2"/>
+        <path d="M636 76 L636 96 L740 110 L740 128" fill="none" stroke="#059669" stroke-width="1.2"/>
+        <path d="M715 76 L715 130 L900 150 L900 168" fill="none" stroke="#d97706" stroke-width="1.2"/>
+
+        <!-- labels -->
+        <g font-size="11" text-anchor="middle">
+          <text x="215" y="143" font-weight="700" fill="#4f46e5">CHANNEL · optional</text>
+          <text x="215" y="159" fill="#525761">same as -c conda-forge</text>
+
+          <text x="470" y="183" font-weight="700" fill="#1a1d24">NAME · required</text>
+          <text x="470" y="199" fill="#525761">the only mandatory field</text>
+
+          <text x="740" y="143" font-weight="700" fill="#059669">VERSION · optional</text>
+          <text x="740" y="159" fill="#525761">omit it and you get "newest"</text>
+
+          <text x="900" y="183" font-weight="700" fill="#d97706">BUILD STRING · optional</text>
+          <text x="900" y="199" fill="#525761">how it was compiled: cuda*, py311*</text>
+        </g>
+
+        <!-- bottom rules -->
+        <line x1="20" y1="216" x2="1020" y2="216" stroke="#e7e3db" stroke-width="1"/>
+        <g font-size="11.5">
+          <text x="20"  y="236" fill="#b45309" font-weight="700">=2.4</text>
+          <text x="66"  y="236" fill="#525761">fuzzy → any 2.4.x</text>
+          <text x="220" y="236" fill="#94a3b8">·</text>
+          <text x="244" y="236" fill="#059669" font-weight="700">==2.4.1</text>
+          <text x="312" y="236" fill="#525761">exact → that release only</text>
+          <text x="510" y="236" fill="#94a3b8">·</text>
+          <text x="534" y="236" fill="#4f46e5" font-weight="700">"&gt;=1.8,&lt;2"</text>
+          <text x="640" y="236" fill="#525761">AND</text>
+          <text x="682" y="236" fill="#94a3b8">·</text>
+          <text x="706" y="236" fill="#4f46e5" font-weight="700">"1.8|2.0"</text>
+          <text x="798" y="236" fill="#525761">OR</text>
+          <text x="828" y="236" fill="#94a3b8">·</text>
+          <text x="852" y="236" fill="#dc2626" font-weight="700">always quote</text>
+          <text x="948" y="236" fill="#525761">&lt; &gt; * |</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D4: PIP ORDER -->
+    <div class="dcard">
+      <h3>conda + pip: the one rule</h3>
+      <p>Conda tracks what conda installed. It cannot see pip's files — so pip goes <b>last</b>, or not at all.</p>
+      <svg viewBox="0 0 470 250" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Safe order: conda create, all conda installs, then pip last. Broken order: conda install after pip overwrites pip's files.">
+        <defs>
+          <marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#059669"/>
+          </marker>
+          <marker id="arR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+          </marker>
+        </defs>
+
+        <!-- safe lane -->
+        <text x="14" y="22" font-size="11" font-weight="700" fill="#059669">✓ SAFE</text>
+        <g font-size="10.5" text-anchor="middle">
+          <rect x="14"  y="34" width="98" height="34" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+          <text x="63"  y="55" fill="#1a1d24">conda create</text>
+          <rect x="132" y="34" width="122" height="34" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+          <text x="193" y="55" fill="#1a1d24">conda install ×N</text>
+          <rect x="274" y="34" width="98" height="34" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/>
+          <text x="323" y="55" fill="#1a1d24">pip install</text>
+          <rect x="392" y="34" width="64" height="34" rx="7" fill="#f1f3f6" stroke="#64748b" stroke-width="1.5"/>
+          <text x="424" y="55" fill="#1a1d24">export</text>
+        </g>
+        <line x1="112" y1="51" x2="130" y2="51" stroke="#059669" stroke-width="1.5" marker-end="url(#arG)"/>
+        <line x1="254" y1="51" x2="272" y2="51" stroke="#059669" stroke-width="1.5" marker-end="url(#arG)"/>
+        <line x1="372" y1="51" x2="390" y2="51" stroke="#059669" stroke-width="1.5" marker-end="url(#arG)"/>
+        <text x="14" y="88" font-size="10" fill="#6b7280">pip is the last thing to touch the env.</text>
+
+        <line x1="14" y1="104" x2="456" y2="104" stroke="#e7e3db" stroke-width="1"/>
+
+        <!-- broken lane -->
+        <text x="14" y="128" font-size="11" font-weight="700" fill="#dc2626">✗ BROKEN</text>
+        <g font-size="10.5" text-anchor="middle">
+          <rect x="14"  y="140" width="122" height="34" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+          <text x="75"  y="161" fill="#1a1d24">conda install</text>
+          <rect x="156" y="140" width="98" height="34" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/>
+          <text x="205" y="161" fill="#1a1d24">pip install</text>
+          <rect x="274" y="140" width="122" height="34" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="2"/>
+          <text x="335" y="161" fill="#dc2626" font-weight="700">conda install</text>
+        </g>
+        <line x1="136" y1="157" x2="154" y2="157" stroke="#059669" stroke-width="1.5" marker-end="url(#arG)"/>
+        <line x1="254" y1="157" x2="272" y2="157" stroke="#dc2626" stroke-width="1.5" marker-end="url(#arR)"/>
+        <text x="410" y="155" font-size="18" font-weight="700" fill="#dc2626">✗</text>
+        <text x="410" y="171" font-size="9" fill="#dc2626">clobbers</text>
+
+        <text x="14" y="196" font-size="10" fill="#6b7280">Conda re-solves and may overwrite files pip put</text>
+        <text x="14" y="210" font-size="10" fill="#6b7280">there. The env drifts into an unreproducible state.</text>
+        <text x="14" y="232" font-size="10.5" font-weight="700" fill="#059669">Fix: don't repair it — rebuild the env from the file.</text>
+      </svg>
+    </div>
+
+    <!-- D5: ENVIRONMENT.YML -->
+    <div class="dcard">
+      <h3>Anatomy of <code>environment.yml</code></h3>
+      <p>The file you should commit. Channel order <i>is</i> priority order, and the <code>pip:</code> block must come last.</p>
+      <div class="yml"><span class="k">name</span>: <span class="v">myproject</span>
+<span class="k">channels</span>:
+  - <span class="v">conda-forge</span>          <span class="c"># highest priority</span>
+  - <span class="v">nodefaults</span>           <span class="c"># opt out of `defaults`</span>
+<span class="k">dependencies</span>:
+  - <span class="v">python=3.12</span>          <span class="c"># fuzzy: any 3.12.x</span>
+  - <span class="v">numpy&gt;=1.26</span>
+  - <span class="v">pytorch=2.4=cuda*</span>    <span class="c"># pin the build too</span>
+  - <span class="v">pip</span>                  <span class="c"># pip itself must be a dep</span>
+  - <span class="hi">pip:</span>                 <span class="c"># ← LAST. always.</span>
+      - <span class="v">some-pypi-only-pkg==1.2.0</span></div>
+      <p style="margin-top:.75rem; margin-bottom:0">
+        <b>Create:</b> <code>conda env create -f environment.yml</code><br>
+        <b>Sync:</b> <code>conda env update -f environment.yml --prune</code>
+      </p>
+    </div>
+
+    <!-- D6: DISTRIBUTION CHOOSER -->
+    <div class="dcard wide">
+      <h3>Which installer? <code>conda</code> is the tool — these are the ways to get it</h3>
+      <p>They all give you the same <code>conda</code> command. They differ in what's preinstalled and which channel is wired in by default.</p>
+      <svg viewBox="0 0 1040 215" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison of Anaconda, Miniconda, Miniforge and micromamba installers by size, default channel and best use.">
+        <g font-size="10.5">
+          <!-- Anaconda -->
+          <rect x="10" y="14" width="243" height="188" rx="9" fill="#f1f3f6" stroke="#94a3b8" stroke-width="1.6"/>
+          <text x="26" y="38" font-size="13" font-weight="700" fill="#1a1d24">Anaconda</text>
+          <text x="26" y="54" font-size="9.5" fill="#6b7280">the full distribution</text>
+          <line x1="26" y1="64" x2="237" y2="64" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="26" y="84"  fill="#525761">size · several GB, 600+ pkgs</text>
+          <text x="26" y="104" fill="#525761">channel · defaults (Anaconda)</text>
+          <text x="26" y="124" fill="#525761">mamba · no</text>
+          <text x="26" y="150" font-weight="700" fill="#1a1d24">Best for: teaching, day one,</text>
+          <text x="26" y="164" font-weight="700" fill="#1a1d24">"just give me everything".</text>
+          <text x="26" y="188" font-size="9.5" fill="#dc2626">⚠ commercial ToS may apply</text>
+
+          <!-- Miniconda -->
+          <rect x="267" y="14" width="243" height="188" rx="9" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+          <text x="283" y="38" font-size="13" font-weight="700" fill="#1a1d24">Miniconda</text>
+          <text x="283" y="54" font-size="9.5" fill="#b45309">minimal, from Anaconda</text>
+          <line x1="283" y1="64" x2="494" y2="64" stroke="#f0d9b5" stroke-width="1"/>
+          <text x="283" y="84"  fill="#525761">size · ~100 MB</text>
+          <text x="283" y="104" fill="#525761">channel · defaults (Anaconda)</text>
+          <text x="283" y="124" fill="#525761">mamba · solver only (libmamba)</text>
+          <text x="283" y="150" font-weight="700" fill="#1a1d24">Best for: you want conda and</text>
+          <text x="283" y="164" font-weight="700" fill="#1a1d24">nothing else. Docker-friendly.</text>
+          <text x="283" y="188" font-size="9.5" fill="#dc2626">⚠ same ToS caveat as above</text>
+
+          <!-- Miniforge -->
+          <rect x="524" y="14" width="243" height="188" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="2.2"/>
+          <text x="540" y="38" font-size="13" font-weight="700" fill="#1a1d24">Miniforge</text>
+          <text x="540" y="54" font-size="9.5" fill="#059669">minimal, from conda-forge</text>
+          <line x1="540" y1="64" x2="751" y2="64" stroke="#a7e0c8" stroke-width="1"/>
+          <text x="540" y="84"  fill="#525761">size · ~100 MB</text>
+          <text x="540" y="104" fill="#525761">channel · conda-forge only</text>
+          <text x="540" y="124" fill="#525761">mamba · yes, bundled</text>
+          <text x="540" y="150" font-weight="700" fill="#059669">Best for: most people, most</text>
+          <text x="540" y="164" font-weight="700" fill="#059669">days. ARM/Apple Silicon, HPC.</text>
+          <text x="540" y="188" font-size="9.5" fill="#059669">✓ fully open source · Mambaforge is retired</text>
+
+          <!-- micromamba -->
+          <rect x="781" y="14" width="249" height="188" rx="9" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.6"/>
+          <text x="797" y="38" font-size="13" font-weight="700" fill="#1a1d24">micromamba</text>
+          <text x="797" y="54" font-size="9.5" fill="#4f46e5">not conda at all — a clone</text>
+          <line x1="797" y1="64" x2="1014" y2="64" stroke="#c7cdf7" stroke-width="1"/>
+          <text x="797" y="84"  fill="#525761">size · one static binary, ~5 MB</text>
+          <text x="797" y="104" fill="#525761">channel · conda-forge</text>
+          <text x="797" y="124" fill="#525761">base env · none. no Python.</text>
+          <text x="797" y="150" font-weight="700" fill="#4f46e5">Best for: CI, Docker layers,</text>
+          <text x="797" y="164" font-weight="700" fill="#4f46e5">anywhere startup cost matters.</text>
+          <text x="797" y="188" font-size="9.5" fill="#6b7280">reads the same .condarc</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WORTH MEMORIZING ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">= vs ==</span><span class="v">one equals is fuzzy (<code>=1.26</code> → <code>1.26.*</code>); two is exact</span></div>
+    <div><span class="k">install ≠ update</span><span class="v"><code>update</code> stays inside the major version; <code>install</code> takes the newest</span></div>
+    <div><span class="k">pip goes last</span><span class="v">conda after pip can silently clobber pip's files</span></div>
+    <div><span class="k">strict priority</span><span class="v">the fix for 90% of "unsatisfiable" and ABI errors</span></div>
+    <div><span class="k">never touch base</span><span class="v">base holds conda itself — one broken solve there bricks everything</span></div>
+    <div><span class="k">-n vs -p</span><span class="v">name (shared envs dir) vs prefix (any path, project-local)</span></div>
+    <div><span class="k">--from-history</span><span class="v">the portable export; plain <code>env export</code> pins builds to your OS</span></div>
+    <div><span class="k">--explicit</span><span class="v">a real lockfile: exact URLs, no solve, same-platform only</span></div>
+    <div><span class="k">quote your specs</span><span class="v">the shell eats <code>&lt;</code> <code>&gt;</code> <code>*</code> <code>|</code> before conda ever sees them</span></div>
+    <div><span class="k">list --revisions</span><span class="v">conda has an undo — <code>install --revision N</code></span></div>
+    <div><span class="k">one env per project</span><span class="v">envs are hard-linked, so they're far cheaper than they look</span></div>
+    <div><span class="k">clean --all</span><span class="v">safe: it only drops cache entries no env is linking to</span></div>
+  </div>
+</section>
+
+<footer>
+  Conda cheat sheet · synthesized from the official conda documentation (docs.conda.io — cheatsheet, concepts, package specification), conda-forge.org, Anaconda's own docs and pip-interoperability guidance, the Miniforge repository, conda.org CEP-29 (MatchSpec), and the Bioconda FAQ.<br>
+  Commands shown for conda ≈ 24.x–26.x · libmamba is the default solver since 23.10 · <code>conda export --format=…</code> is the newer unified exporter; <code>conda env export</code> still works everywhere.
+</footer>
+
+</body>
+</html>

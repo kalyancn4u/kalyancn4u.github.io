@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>boto3 &middot; Amazon S3 &mdash; Python Reference Sheet</title>
+<meta name="description" content="A standalone, colour-coded reference for boto3 and Amazon S3: sessions, clients vs resources, listing, transfers, multipart, presigned URLs, encryption, paginators, errors and the 2025 checksum change.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1a1d24; --body:#3f444f; --muted:#6b7280; --faint:#94a3b8;
+  --line:#e7e3db; --line2:#efece4; --bg:#fbfaf8; --panel:#f4f2ec; --panel2:#efece4;
+  --slate:#64748b; --indigo:#4f46e5; --green:#059669; --amber:#d97706;
+  --violet:#7c3aed; --teal:#0d9488; --red:#dc2626; --gold:#d4a017;
+  --aws-ink:#232f3e; --aws-orange:#ff9900; --s3-green:#569a31;
+  --dark:#111827; --dark2:#1f2937;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--body);
+  font-family:var(--sans); font-size:15px; line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1680px; margin:0 auto; padding:0 22px 72px}
+
+/* ─────────── header ─────────── */
+header.top{padding:52px 0 26px; border-bottom:2px solid var(--ink)}
+.eyebrow{
+  font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 14px;
+}
+.wordmark{
+  font-family:var(--mono); font-weight:700; letter-spacing:-.035em;
+  font-size:clamp(38px,7vw,74px); line-height:1; margin:0 0 4px;
+}
+.wordmark .w-boto{color:var(--aws-ink)}
+.wordmark .w-3{color:var(--aws-orange)}
+.wordmark .w-sep{color:var(--faint); font-weight:400}
+.wordmark .w-s3{color:var(--s3-green)}
+.subword{
+  font-family:var(--mono); font-size:clamp(13px,1.6vw,17px); font-weight:500;
+  color:var(--muted); letter-spacing:-.01em; margin:0 0 18px;
+}
+.lede{
+  font-size:16.5px; max-width:78ch; color:var(--body); margin:0 0 22px;
+}
+.lede b{color:var(--ink); font-weight:600}
+.lede code{font-family:var(--mono); font-size:.9em; background:var(--panel2); padding:1px 5px; border-radius:4px; color:var(--ink)}
+
+.legend{display:flex; flex-wrap:wrap; gap:7px 9px; margin:0 0 18px}
+.lg{
+  display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:600;
+  font-family:var(--mono); letter-spacing:.01em; color:var(--body);
+  border:1px solid var(--line); border-radius:999px; padding:4px 11px 4px 8px; background:#fff;
+}
+.sw{width:9px; height:9px; border-radius:2px; flex:none}
+.meta{
+  font-size:12px; color:var(--muted); font-family:var(--mono);
+  border-top:1px dashed var(--line); padding-top:14px; line-height:1.75;
+}
+.meta b{color:var(--body)}
+
+/* ─────────── hero ─────────── */
+.hero{margin:30px 0 8px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff}
+.hero-cap{
+  background:var(--panel); border-bottom:1px solid var(--line); padding:11px 18px;
+  font-family:var(--mono); font-size:11.5px; font-weight:700; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--muted);
+}
+.hero svg{display:block; width:100%; height:auto}
+
+/* annotated quickstart */
+.quick{
+  margin:22px 0 6px; border:1px solid var(--line); border-radius:12px; overflow:hidden;
+  background:var(--dark);
+}
+.quick-cap{
+  background:var(--dark2); padding:10px 18px; color:#cbd5e1;
+  font-family:var(--mono); font-size:11.5px; font-weight:700; letter-spacing:.13em; text-transform:uppercase;
+}
+pre.quick-inner{
+  margin:0; padding:18px 20px; white-space:pre; overflow-x:auto;
+  font-family:var(--mono); font-size:12.9px; line-height:1.85; color:#e5e7eb; tab-size:2;
+}
+
+/* code token colours (dark panel) */
+.k{color:#c084fc} .f{color:#93c5fd} .s{color:#86efac} .n{color:#fcd34d}
+.c{color:#6b7280; font-style:italic} .a{color:#f0abfc} .p{color:#9ca3af}
+
+/* ─────────── part bars ─────────── */
+.partbar{
+  margin:44px 0 20px; padding:13px 18px; border-radius:10px;
+  background:var(--ink); color:#fff; display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+}
+.partbar .pt{
+  font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--aws-orange);
+}
+.partbar .pn{font-size:15.5px; font-weight:600; letter-spacing:-.01em}
+.partbar .pd{font-size:12.5px; color:#94a3b8; font-family:var(--mono)}
+
+/* ─────────── masonry cards ─────────── */
+main.grid{column-count:1; column-gap:20px; column-fill:balance; margin-top:20px}
+@media(min-width:760px){main.grid{column-count:2}}
+@media(min-width:1200px){main.grid{column-count:3}}
+@media(min-width:1620px){main.grid{column-count:4}}
+
+article.card{
+  break-inside:avoid; page-break-inside:avoid; -webkit-column-break-inside:avoid;
+  display:inline-block; width:100%; margin:0 0 20px;
+  border:1px solid var(--line); border-left:4px solid var(--slate);
+  border-radius:9px; background:#fff; overflow:hidden;
+}
+article.card.c-slate{border-left-color:var(--slate)}
+article.card.c-indigo{border-left-color:var(--indigo)}
+article.card.c-green{border-left-color:var(--green)}
+article.card.c-amber{border-left-color:var(--amber)}
+article.card.c-violet{border-left-color:var(--violet)}
+article.card.c-teal{border-left-color:var(--teal)}
+article.card.c-red{border-left-color:var(--red)}
+
+.head{display:flex; align-items:baseline; gap:10px; padding:13px 15px 10px; border-bottom:1px solid var(--line2)}
+.num{font-family:var(--mono); font-size:11px; font-weight:700; color:var(--faint); flex:none; padding-top:1px}
+.ttl{font-size:14.5px; font-weight:700; color:var(--ink); letter-spacing:-.012em; line-height:1.3}
+.sub{padding:9px 15px 0; font-size:12.5px; color:var(--muted); line-height:1.55}
+ul.body{list-style:none; margin:0; padding:10px 15px 15px}
+ul.body li{padding:6px 0; border-bottom:1px dotted var(--line); font-size:13.2px; line-height:1.58}
+ul.body li:last-child{border-bottom:0}
+code.cmd{
+  display:block; font-family:var(--mono); font-size:12.3px; color:var(--ink);
+  background:var(--panel); border-radius:5px; padding:5px 8px; margin:0 0 4px;
+  overflow-x:auto; white-space:pre; line-height:1.6;
+}
+.dsc{display:block; font-size:12.4px; color:var(--muted); line-height:1.55}
+.dsc b{color:var(--body); font-weight:600}
+.star{color:var(--gold); font-weight:700; font-family:var(--mono)}
+.tag{
+  display:inline-block; font-family:var(--mono); font-size:9.5px; font-weight:700;
+  letter-spacing:.07em; text-transform:uppercase; padding:1px 5px; border-radius:3px;
+  vertical-align:2px; margin-left:5px;
+}
+.t-new{background:#f3e8ff; color:#6b21a8}
+.t-warn{background:#fef2f2; color:#b91c1c}
+.t-old{background:#f1f5f9; color:#64748b}
+
+/* code token colours (light card) */
+code.cmd .k{color:#a626a4} code.cmd .f{color:#4f46e5} code.cmd .s{color:#0a7d3f}
+code.cmd .n{color:#b45309} code.cmd .c{color:#94a3b8; font-style:italic}
+code.cmd .a{color:#0d9488} code.cmd .p{color:#94a3b8}
+
+/* ─────────── concept diagram grid ─────────── */
+.concepts{margin-top:48px}
+.sec-h{
+  font-size:12px; font-family:var(--mono); font-weight:700; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--muted); padding-bottom:10px;
+  border-bottom:2px solid var(--ink); margin:0 0 22px;
+}
+.cgrid{display:grid; grid-template-columns:1fr; gap:20px}
+@media(min-width:1400px){.cgrid{grid-template-columns:1fr 1fr}}
+.dia{border:1px solid var(--line); border-radius:11px; overflow:hidden; background:#fff}
+.dia-h{
+  padding:11px 16px; border-bottom:1px solid var(--line2); background:var(--panel);
+  font-size:13px; font-weight:700; color:var(--ink); letter-spacing:-.01em;
+}
+.dia-h span{display:block; font-weight:500; font-size:11.5px; color:var(--muted); font-family:var(--mono); margin-top:2px}
+.dia svg{display:block; width:100%; height:auto}
+
+/* ─────────── dark memorize strip ─────────── */
+.memo{margin-top:48px; background:var(--dark); border-radius:12px; overflow:hidden}
+.memo-h{
+  padding:16px 22px; border-bottom:1px solid #374151; color:#f9fafb;
+  font-family:var(--mono); font-size:11.5px; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+}
+.memo-b{padding:8px 22px 22px}
+.memo-row{
+  display:grid; grid-template-columns:1fr; gap:3px;
+  padding:12px 0; border-bottom:1px solid #1f2937;
+}
+@media(min-width:820px){.memo-row{grid-template-columns:minmax(220px,.9fr) 1.6fr; gap:22px; align-items:baseline}}
+.memo-row:last-child{border-bottom:0}
+.memo-k{font-family:var(--mono); font-size:12.4px; color:#fcd34d; font-weight:500; line-height:1.6}
+.memo-v{font-size:13px; color:#d1d5db; line-height:1.6}
+.memo-v b{color:#fff; font-weight:600}
+
+/* ─────────── footer ─────────── */
+footer.foot{
+  margin-top:44px; padding-top:20px; border-top:1px solid var(--line);
+  font-size:12px; color:var(--muted); line-height:1.8; font-family:var(--mono);
+}
+footer.foot b{color:var(--body)}
+footer.foot a{color:var(--indigo); text-decoration:none; border-bottom:1px dotted var(--faint)}
+
+/* ---------- responsive: wide SVGs scroll instead of shrinking their text away ---------- */
+.scroller{overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; scrollbar-width:thin; scrollbar-color:var(--line2) transparent;}
+.scroller::-webkit-scrollbar{height:7px}
+.scroller::-webkit-scrollbar-thumb{background:var(--line2); border-radius:4px}
+.scroller::-webkit-scrollbar-track{background:transparent}
+.hero>.scroller{border-radius:12px 12px 0 0}
+.hero svg{min-width:1133px}
+.dia  svg{min-width:640px}
+.swipe{display:none; font-family:var(--mono); font-size:10.5px; color:var(--muted);
+       padding:7px 14px 9px; border-top:1px dashed var(--line2); background:var(--panel);
+       letter-spacing:.02em; -webkit-user-select:none; user-select:none;}
+@media(max-width:1176px){ .hero .swipe{display:block} }
+@media(max-width:683px){ .dia .swipe{display:block} }
+.meta, footer.foot, .memo-k{overflow-wrap:anywhere}
+html,body{overflow-x:hidden}
+@media(max-width:739px){
+  .wrap{padding-left:14px; padding-right:14px}
+  pre.quick-inner{font-size:12px; padding:15px 14px}
+  .lede{font-size:15.5px}
+  .partbar{padding:11px 14px; gap:8px}
+}
+
+/* ---------- short parts must not out-column their card count ----------
+   column-count + column-fill:balance + break-inside:avoid degenerates when a
+   section has fewer cards than columns: the balancer piles them into the first
+   columns and leaves the rest blank. Cap each part at ceil(cards/2) columns. */
+@media(min-width:1200px){ main.grid.g-max2{column-count:2} }
+@media(min-width:1620px){ main.grid.g-max2{column-count:2} main.grid.g-max3{column-count:3} }
+@media(min-width:1200px){ main.grid.g-max3{column-count:3} }
+
+/* ---------- code lines wrap instead of being silently clipped ----------
+   at a 350px column, ~55% of the code lines were wider than the card and were
+   sitting in their own horizontal scrollbar, i.e. invisible. */
+code.cmd{white-space:pre-wrap; overflow-wrap:break-word; overflow-x:visible;
+         padding-left:20px; text-indent:-12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <p class="eyebrow">Python &middot; AWS SDK &middot; Object storage reference</p>
+  <h1 class="wordmark"><span class="w-boto">boto</span><span class="w-3">3</span> <span class="w-sep">&middot;</span> <span class="w-s3">s3</span></h1>
+  <p class="subword">boto3 1.43.x &nbsp;/&nbsp; botocore &nbsp;/&nbsp; s3transfer &nbsp;&mdash;&nbsp; verified July 2026</p>
+  <p class="lede">
+    S3 is a <b>flat key&rarr;bytes store</b> behind an HTTP API. boto3 gives you three doors into it:
+    a <b>Session</b> that resolves credentials, a <b>Client</b> that maps 1:1 onto the S3 API, and a
+    <b>Resource</b> that wraps the same calls in objects. On top sits a <b>transfer manager</b> that quietly
+    turns one <code>upload_file</code> into many parallel part uploads. Everything below is one of those four things.
+  </p>
+
+  <div class="legend">
+    <span class="lg"><span class="sw" style="background:var(--slate)"></span>setup &middot; session &middot; config</span>
+    <span class="lg"><span class="sw" style="background:var(--indigo)"></span>buckets &amp; listing</span>
+    <span class="lg"><span class="sw" style="background:var(--green)"></span>objects &mdash; the core</span>
+    <span class="lg"><span class="sw" style="background:var(--amber)"></span>transfers &amp; multipart</span>
+    <span class="lg"><span class="sw" style="background:var(--violet)"></span>access &middot; presign &middot; crypto</span>
+    <span class="lg"><span class="sw" style="background:var(--teal)"></span>advanced &amp; interop</span>
+    <span class="lg"><span class="sw" style="background:var(--red)"></span>gotcha / changed</span>
+    <span class="lg"><span class="star">&#9733;</span>most common</span>
+  </div>
+
+  <p class="meta">
+    <b>Verified against</b> boto3 1.43.52 developer guide &amp; S3 customization reference &middot; Amazon S3 User Guide &middot;
+    boto/boto3 issue #4392 (S3 default integrity) &middot; boto3 discussions #3563 (resources) &amp; #4789 (2026 retries) &middot; PyPI boto3.<br>
+    <b>Conventions</b> &mdash; <code>s3</code> = <code>boto3.client('s3')</code>. Bucket names use the AWS
+    documentation placeholder style. Sizes are binary (1&nbsp;MB = 1048576&nbsp;B).
+  </p>
+</header>
+
+<section class="hero">
+  <div class="hero-cap">Mental model &mdash; where a call goes, and what it lands on</div>
+  <div class="scroller">
+<svg viewBox="0 0 1200 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="boto3 request pipeline and the S3 object model">
+    <defs>
+      <marker id="hb-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="#64748b"/>
+      </marker>
+      <marker id="hb-aro" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="#d97706"/>
+      </marker>
+    </defs>
+
+    <!-- BAND A -->
+    <text x="34" y="34" font-family="JetBrains Mono, monospace" font-size="11.5" font-weight="700" fill="#94a3b8" letter-spacing="1.6">BAND A &mdash; ONE CALL, END TO END</text>
+    <line x1="34" y1="46" x2="1166" y2="46" stroke="#e2e8f0" stroke-width="1"/>
+
+    <!-- credential chain -->
+    <rect x="34" y="66" width="176" height="112" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.4"/>
+    <text x="122" y="88" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" font-weight="700" fill="#334155">credential chain</text>
+    <text x="122" y="108" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">1 &nbsp;explicit kwargs</text>
+    <text x="122" y="124" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">2 &nbsp;env AWS_*</text>
+    <text x="122" y="140" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">3 &nbsp;~/.aws/ + SSO</text>
+    <text x="122" y="156" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">4 &nbsp;IMDS / task role</text>
+    <text x="122" y="172" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#94a3b8">first hit wins</text>
+
+    <line x1="212" y1="122" x2="256" y2="122" stroke="#64748b" stroke-width="1.6" marker-end="url(#hb-ar)"/>
+
+    <!-- session -->
+    <rect x="258" y="82" width="130" height="80" rx="8" fill="#fff" stroke="#64748b" stroke-width="1.4"/>
+    <text x="323" y="110" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12.5" font-weight="700" fill="#1a1d24">Session</text>
+    <text x="323" y="130" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">creds + region</text>
+    <text x="323" y="146" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">+ profile</text>
+
+    <line x1="390" y1="122" x2="434" y2="122" stroke="#64748b" stroke-width="1.6" marker-end="url(#hb-ar)"/>
+
+    <!-- the two doors -->
+    <rect x="436" y="62" width="196" height="56" rx="8" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.6"/>
+    <text x="534" y="86" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12.5" font-weight="700" fill="#3730a3">client('s3')</text>
+    <text x="534" y="104" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#4f46e5">1:1 with the API &middot; use this</text>
+
+    <rect x="436" y="126" width="196" height="56" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="4 3"/>
+    <text x="534" y="150" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12.5" font-weight="700" fill="#64748b">resource('s3')</text>
+    <text x="534" y="168" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#94a3b8">frozen &mdash; no new features</text>
+
+    <line x1="634" y1="122" x2="678" y2="122" stroke="#64748b" stroke-width="1.6" marker-end="url(#hb-ar)"/>
+
+    <!-- botocore -->
+    <rect x="680" y="72" width="196" height="100" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.4"/>
+    <text x="778" y="94" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="#1a1d24">botocore</text>
+    <text x="778" y="114" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">serialize &rarr; SigV4 sign</text>
+    <text x="778" y="130" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">checksum &rarr; retry</text>
+    <text x="778" y="146" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">parse &rarr; dict</text>
+    <text x="778" y="163" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#94a3b8">botocore, not boto3, does the work</text>
+
+    <line x1="878" y1="122" x2="922" y2="122" stroke="#64748b" stroke-width="1.6" marker-end="url(#hb-ar)"/>
+    <text x="900" y="112" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#94a3b8">HTTPS</text>
+
+    <!-- S3 -->
+    <rect x="924" y="72" width="242" height="100" rx="8" fill="#f0fdf4" stroke="#569a31" stroke-width="1.8"/>
+    <text x="1045" y="98" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" fill="#3f6b23">Amazon S3</text>
+    <text x="1045" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#4d7d2a">REST over HTTP &middot; regional</text>
+    <text x="1045" y="136" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#4d7d2a">strongly read-after-write</text>
+    <text x="1045" y="156" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#94a3b8">every op is a separate request</text>
+
+    <!-- transfer manager bypass -->
+    <path d="M534 190 L534 216 L778 216 L778 190" fill="none" stroke="#d97706" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#hb-aro)"/>
+    <rect x="560" y="222" width="436" height="34" rx="6" fill="#fffbeb" stroke="#d97706" stroke-width="1.2"/>
+    <text x="778" y="244" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#92400e">
+      transfer manager: upload_file / download_file / copy &rarr; fan out into N parallel part requests
+    </text>
+
+    <!-- BAND B -->
+    <text x="34" y="300" font-family="JetBrains Mono, monospace" font-size="11.5" font-weight="700" fill="#94a3b8" letter-spacing="1.6">BAND B &mdash; WHAT IT LANDS ON</text>
+    <line x1="34" y1="312" x2="1166" y2="312" stroke="#e2e8f0" stroke-width="1"/>
+
+    <rect x="34" y="330" width="150" height="106" rx="8" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.5"/>
+    <text x="109" y="356" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12.5" font-weight="700" fill="#3730a3">Bucket</text>
+    <text x="109" y="376" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#4f46e5">globally unique name</text>
+    <text x="109" y="392" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#4f46e5">lives in ONE region</text>
+    <text x="109" y="412" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#64748b">policy &middot; versioning</text>
+    <text x="109" y="428" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#64748b">lifecycle &middot; BPA</text>
+
+    <line x1="186" y1="383" x2="230" y2="383" stroke="#64748b" stroke-width="1.6" marker-end="url(#hb-ar)"/>
+
+    <rect x="232" y="330" width="290" height="106" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+    <text x="377" y="354" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12.5" font-weight="700" fill="#065f46">Key &mdash; one flat string</text>
+    <text x="377" y="378" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#047857">"logs/2026/07/app.log"</text>
+    <text x="377" y="400" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#059669">the slashes are just characters</text>
+    <text x="377" y="420" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#dc2626">there are no directories</text>
+
+    <line x1="524" y1="383" x2="568" y2="383" stroke="#64748b" stroke-width="1.6" marker-end="url(#hb-ar)"/>
+
+    <rect x="570" y="330" width="240" height="106" rx="8" fill="#fff" stroke="#059669" stroke-width="1.5"/>
+    <text x="690" y="354" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12.5" font-weight="700" fill="#065f46">Object</text>
+    <text x="690" y="376" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#334155">Body (bytes) &middot; ContentType</text>
+    <text x="690" y="392" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#334155">Metadata &middot; Tags &middot; ETag</text>
+    <text x="690" y="408" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#334155">StorageClass &middot; VersionId</text>
+    <text x="690" y="426" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#94a3b8">immutable &mdash; a PUT replaces it</text>
+
+    <rect x="828" y="330" width="338" height="106" rx="8" fill="#111827" stroke="#111827"/>
+    <text x="848" y="354" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700" fill="#fcd34d">the one query that fakes folders</text>
+    <text x="848" y="376" font-family="JetBrains Mono, monospace" font-size="10.2" fill="#e5e7eb">list_objects_v2(Bucket=b,</text>
+    <text x="848" y="394" font-family="JetBrains Mono, monospace" font-size="10.2" fill="#e5e7eb">&#160;&#160;Prefix='logs/', Delimiter='/')</text>
+    <text x="848" y="414" font-family="JetBrains Mono, monospace" font-size="10.2" fill="#86efac">&rarr; Contents &nbsp;= keys at this level</text>
+    <text x="848" y="430" font-family="JetBrains Mono, monospace" font-size="10.2" fill="#86efac">&rarr; CommonPrefixes = "subfolders"</text>
+  </svg>
+  </div>
+  <div class="swipe">&#8596; swipe to see the whole diagram</div>
+</section>
+
+<section class="quick">
+  <div class="quick-cap">Quickstart &mdash; the twelve lines you actually retype</div>
+<pre class="quick-inner"><span class="k">import</span> boto3
+<span class="k">from</span> botocore.exceptions <span class="k">import</span> ClientError
+
+s3 = boto3.<span class="f">client</span>(<span class="s">"s3"</span>, region_name=<span class="s">"ap-south-1"</span>)          <span class="c"># one client, reuse it &mdash; thread-safe</span>
+
+s3.<span class="f">upload_file</span>(<span class="s">"report.pdf"</span>, <span class="s">"my-bucket"</span>, <span class="s">"docs/report.pdf"</span>)  <span class="c"># auto-multipart above 8 MB</span>
+s3.<span class="f">put_object</span>(Bucket=<span class="s">"my-bucket"</span>, Key=<span class="s">"hi.txt"</span>, Body=<span class="s">b"hello"</span>)   <span class="c"># in-memory bytes</span>
+
+body = s3.<span class="f">get_object</span>(Bucket=<span class="s">"my-bucket"</span>, Key=<span class="s">"hi.txt"</span>)[<span class="s">"Body"</span>]   <span class="c"># StreamingBody</span>
+<span class="k">with</span> body <span class="k">as</span> f: data = f.<span class="f">read</span>()                              <span class="c"># read once, then close</span>
+
+<span class="k">for</span> page <span class="k">in</span> s3.<span class="f">get_paginator</span>(<span class="s">"list_objects_v2"</span>).<span class="f">paginate</span>(       <span class="c"># NEVER call list_objects_v2 raw</span>
+        Bucket=<span class="s">"my-bucket"</span>, Prefix=<span class="s">"docs/"</span>):
+    <span class="k">for</span> obj <span class="k">in</span> page.<span class="f">get</span>(<span class="s">"Contents"</span>, []):                        <span class="c"># .get() &mdash; key is ABSENT if empty</span>
+        <span class="f">print</span>(obj[<span class="s">"Key"</span>], obj[<span class="s">"Size"</span>])</pre>
+</section>
+
+<div class="partbar">
+  <span class="pt">Part I</span>
+  <span class="pn">Getting a client</span>
+  <span class="pd">credentials &rarr; session &rarr; client &middot; get this wrong and nothing else matters</span>
+</div>
+
+<main class="grid g-max3">
+
+<article class="card c-slate">
+  <div class="head"><span class="num">01</span><span class="ttl">Install &amp; import</span></div>
+  <p class="sub">boto3 pulls botocore (the engine) and s3transfer (the transfer manager) with it.</p>
+  <ul class="body">
+    <li><code class="cmd">pip install boto3</code><span class="dsc">Ships <b>botocore</b> + <b>s3transfer</b> + <b>jmespath</b>. Python <b>3.10+</b> as of 2026 &mdash; 3.9 support ended 29 Apr 2026.</span></li>
+    <li><code class="cmd">pip install "boto3[crt]"</code><span class="dsc">Adds <b>awscrt</b>, the C-based transfer client. Faster multipart on fat pipes; opted into automatically (see card 15).</span></li>
+    <li><code class="cmd">pip install boto3-stubs[s3] mypy-boto3-s3</code><span class="dsc">Type hints &amp; editor completion. boto3 itself is dynamically generated, so IDEs are blind without these.</span></li>
+    <li><code class="cmd"><span class="k">import</span> boto3
+<span class="k">from</span> botocore.exceptions <span class="k">import</span> ClientError
+<span class="k">from</span> botocore.config <span class="k">import</span> Config</code><span class="dsc">The three imports every real script needs. <b>Exceptions and config live in botocore</b>, not boto3.</span></li>
+    <li><code class="cmd">boto3.__version__; boto3.<span class="f">set_stream_logger</span>(<span class="s">'botocore'</span>)</code><span class="dsc">Log every request/response for debugging. <b>Leaks credentials &amp; payloads</b> &mdash; never in production.</span></li>
+  </ul>
+</article>
+
+<article class="card c-slate">
+  <div class="head"><span class="num">02</span><span class="ttl">Credentials &mdash; the provider chain <span class="star">&#9733;</span></span></div>
+  <p class="sub">Never hardcode keys. boto3 searches these in order and stops at the first hit.</p>
+  <ul class="body">
+    <li><code class="cmd">boto3.<span class="f">client</span>(<span class="s">'s3'</span>, aws_access_key_id=..., aws_secret_access_key=...)</code><span class="dsc"><b>1 &mdash; explicit kwargs.</b> Highest priority. Use only for tests and third-party endpoints.</span></li>
+    <li><code class="cmd">AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_SESSION_TOKEN</code><span class="dsc"><b>2 &mdash; environment.</b> Also <code>AWS_DEFAULT_REGION</code>, <code>AWS_PROFILE</code>, <code>AWS_ENDPOINT_URL_S3</code>.</span></li>
+    <li><code class="cmd">~/.aws/credentials &nbsp;&middot;&nbsp; ~/.aws/config</code><span class="dsc"><b>3 &mdash; shared files</b>, written by <code>aws configure</code> / <code>aws sso login</code>. Profiles, <code>role_arn</code>, <code>source_profile</code> and SSO all resolve here.</span></li>
+    <li><code class="cmd"><span class="c"># nothing set &rarr; container / instance metadata</span></code><span class="dsc"><b>4 &mdash; IAM role</b> from ECS task metadata, EKS web identity, or EC2 IMDSv2. <b>This is the right answer in production</b> &mdash; rotating, no secrets on disk.</span></li>
+    <li><code class="cmd">boto3.<span class="f">Session</span>().<span class="f">get_credentials</span>().<span class="f">get_frozen_credentials</span>()</code><span class="dsc">Which identity did I actually get? Pair with <code>boto3.client('sts').get_caller_identity()</code> for a definitive answer.</span></li>
+  </ul>
+</article>
+
+<article class="card c-slate">
+  <div class="head"><span class="num">03</span><span class="ttl">Session &mdash; profiles &amp; assumed roles</span></div>
+  <p class="sub">A Session holds credentials + region; clients are cheap views onto it.</p>
+  <ul class="body">
+    <li><code class="cmd">sess = boto3.<span class="f">Session</span>(profile_name=<span class="s">'prod'</span>, region_name=<span class="s">'ap-south-1'</span>)
+s3 = sess.<span class="f">client</span>(<span class="s">'s3'</span>)</code><span class="dsc">Explicit sessions beat the implicit default one. <b>Required for multi-account or multi-region scripts.</b></span></li>
+    <li><code class="cmd">boto3.<span class="f">setup_default_session</span>(region_name=<span class="s">'eu-west-1'</span>)</code><span class="dsc">Sets the module-level default used by bare <code>boto3.client(...)</code>.</span></li>
+    <li><code class="cmd">c = boto3.<span class="f">client</span>(<span class="s">'sts'</span>).<span class="f">assume_role</span>(RoleArn=arn, RoleSessionName=<span class="s">'x'</span>)[<span class="s">'Credentials'</span>]
+s3 = boto3.<span class="f">client</span>(<span class="s">'s3'</span>, aws_access_key_id=c[<span class="s">'AccessKeyId'</span>],
+   aws_secret_access_key=c[<span class="s">'SecretAccessKey'</span>], aws_session_token=c[<span class="s">'SessionToken'</span>])</code><span class="dsc">Cross-account access. These credentials <b>expire</b> (default 1 h) &mdash; long jobs must refresh.</span></li>
+    <li><code class="cmd">sess.<span class="f">get_available_regions</span>(<span class="s">'s3'</span>) &nbsp;&middot;&nbsp; sess.region_name</code><span class="dsc">Introspection without a network call.</span></li>
+    <li><span class="dsc"><b>Threading:</b> <code>client</code> objects are thread-safe and should be shared. <b>Sessions and resources are not</b> &mdash; build one Session per thread.<span class="tag t-warn">trap</span></span></li>
+  </ul>
+</article>
+
+<article class="card c-slate">
+  <div class="head"><span class="num">04</span><span class="ttl">Client vs Resource &mdash; pick client <span class="star">&#9733;</span></span></div>
+  <p class="sub">Both do the same HTTP. Only one is still getting features.</p>
+  <ul class="body">
+    <li><code class="cmd">s3 = boto3.<span class="f">client</span>(<span class="s">'s3'</span>)
+s3.<span class="f">put_object</span>(Bucket=b, Key=k, Body=data)</code><span class="dsc"><b>Client</b> &mdash; one method per S3 API operation, CapitalCase kwargs, plain dicts back. Complete and current.</span></li>
+    <li><code class="cmd">r = boto3.<span class="f">resource</span>(<span class="s">'s3'</span>)
+r.<span class="f">Object</span>(b, k).<span class="f">put</span>(Body=data)
+r.<span class="f">Bucket</span>(b).objects.<span class="f">filter</span>(Prefix=<span class="s">'logs/'</span>).<span class="f">delete</span>()</code><span class="dsc"><b>Resource</b> &mdash; nicer for iteration and bulk delete, but AWS states it will get <b>no new features</b>; it stays functional for boto3's lifetime.<span class="tag t-old">frozen</span></span></li>
+    <li><code class="cmd">r.<span class="f">meta</span>.client.<span class="f">generate_presigned_url</span>(...)</code><span class="dsc">Escape hatch: every resource carries the underlying client at <code>.meta.client</code>.</span></li>
+    <li><span class="dsc"><b>Rule of thumb</b> &mdash; write client code; reach for a resource only for <code>bucket.objects.filter(...).delete()</code>, which has no one-line client equivalent.</span></li>
+    <li><span class="dsc"><b>Same transfer methods on both:</b> <code>upload_file</code>/<code>download_file</code> are injected into Client, Bucket and Object identically. No performance difference.</span></li>
+  </ul>
+</article>
+
+<article class="card c-slate">
+  <div class="head"><span class="num">05</span><span class="ttl">Client config &mdash; endpoints, retries, timeouts</span></div>
+  <p class="sub">Everything below is <code>botocore.config.Config</code>, passed as <code>config=</code>.</p>
+  <ul class="body">
+    <li><code class="cmd">cfg = <span class="f">Config</span>(region_name=<span class="s">'ap-south-1'</span>, signature_version=<span class="s">'s3v4'</span>,
+   s3={<span class="s">'addressing_style'</span>: <span class="s">'virtual'</span>})</code><span class="dsc">AWS's recommended baseline for presigned URLs. <code>'path'</code> style is what most S3-compatible stores need instead.</span></li>
+    <li><code class="cmd">boto3.<span class="f">client</span>(<span class="s">'s3'</span>, endpoint_url=<span class="s">'https://minio.local:9000'</span>)</code><span class="dsc">Point at MinIO, Ceph, R2, LocalStack, GCS. Usually pair with path addressing and see card 27.</span></li>
+    <li><code class="cmd"><span class="f">Config</span>(retries={<span class="s">'max_attempts'</span>: 10, <span class="s">'mode'</span>: <span class="s">'adaptive'</span>})</code><span class="dsc">Modes: <code>legacy</code> (today's default) &middot; <code>standard</code> &middot; <code>adaptive</code> (client-side rate limiting). <code>max_attempts</code> counts the first try.</span></li>
+    <li><code class="cmd"><span class="c"># AWS_NEW_RETRIES_2026=true &rarr; standard mode + retry quota</span></code><span class="dsc">AWS is switching the default from <code>legacy</code> to <code>standard</code>, no sooner than Nov 2026. Shorter backoff, fewer attempts, a quota that fails fast during outages. Pin <code>'mode': 'legacy'</code> to opt out.<span class="tag t-new">2026</span></span></li>
+    <li><code class="cmd"><span class="f">Config</span>(connect_timeout=5, read_timeout=60, max_pool_connections=50)</code><span class="dsc">Default pool is <b>10</b> &mdash; raise it when running transfers with high <code>max_concurrency</code> or you will serialise on the pool.</span></li>
+    <li><code class="cmd"><span class="f">Config</span>(user_agent_extra=<span class="s">'my-app/1.2'</span>)</code><span class="dsc">Shows up in CloudTrail &mdash; cheap request attribution.</span></li>
+  </ul>
+</article>
+</main>
+
+<div class="partbar">
+  <span class="pt">Part II</span>
+  <span class="pn">Buckets, keys and objects</span>
+  <span class="pd">the flat namespace &middot; list &rarr; put &rarr; get &rarr; copy &rarr; delete</span>
+</div>
+
+<main class="grid g-max4">
+
+<article class="card c-indigo">
+  <div class="head"><span class="num">06</span><span class="ttl">Buckets &mdash; create, list, delete</span></div>
+  <p class="sub">Names are globally unique, DNS-shaped, and permanently tied to one region.</p>
+  <ul class="body">
+    <li><code class="cmd">s3.<span class="f">list_buckets</span>()[<span class="s">'Buckets'</span>]</code><span class="dsc">Returns <code>Name</code> + <code>CreationDate</code> for every bucket in the account, regardless of region.</span></li>
+    <li><code class="cmd">s3.<span class="f">create_bucket</span>(Bucket=<span class="s">'amzn-s3-demo-bucket'</span>,
+   CreateBucketConfiguration={<span class="s">'LocationConstraint'</span>: <span class="s">'ap-south-1'</span>})</code><span class="dsc">Every region <b>except us-east-1</b> requires this block.</span></li>
+    <li><code class="cmd">s3.<span class="f">create_bucket</span>(Bucket=<span class="s">'amzn-s3-demo-bucket'</span>)  <span class="c"># us-east-1 ONLY</span></code><span class="dsc">Passing <code>LocationConstraint='us-east-1'</code> raises <code>InvalidLocationConstraint</code>. The asymmetry is historical and permanent.<span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd">s3.<span class="f">get_bucket_location</span>(Bucket=b)[<span class="s">'LocationConstraint'</span>]</code><span class="dsc">Returns <code>None</code> for us-east-1 &mdash; same asymmetry, mirrored.</span></li>
+    <li><code class="cmd">s3.<span class="f">head_bucket</span>(Bucket=b)</code><span class="dsc">Exists-and-I-can-reach-it check. <code>404</code> = missing, <code>403</code> = exists but not yours, <code>301</code> = wrong region.</span></li>
+    <li><code class="cmd">s3.<span class="f">delete_bucket</span>(Bucket=b)</code><span class="dsc">Fails unless <b>completely empty</b> &mdash; including every noncurrent version, delete marker and unfinished multipart upload.</span></li>
+  </ul>
+</article>
+
+<article class="card c-indigo">
+  <div class="head"><span class="num">07</span><span class="ttl">Listing objects &mdash; always paginate <span class="star">&#9733;</span></span></div>
+  <p class="sub">The single most common boto3 bug lives in this card.</p>
+  <ul class="body">
+    <li><code class="cmd">pages = s3.<span class="f">get_paginator</span>(<span class="s">'list_objects_v2'</span>).<span class="f">paginate</span>(
+   Bucket=b, Prefix=<span class="s">'logs/2026/'</span>)
+<span class="k">for</span> page <span class="k">in</span> pages:
+    <span class="k">for</span> o <span class="k">in</span> page.<span class="f">get</span>(<span class="s">'Contents'</span>, []): <span class="f">print</span>(o[<span class="s">'Key'</span>], o[<span class="s">'Size'</span>])</code><span class="dsc"><b>The canonical loop.</b> Handles continuation tokens for you and has no key limit.</span></li>
+    <li><code class="cmd">resp = s3.<span class="f">list_objects_v2</span>(Bucket=b)  <span class="c"># max 1000 keys, silently</span></code><span class="dsc">A raw call caps at <b>1000</b> and sets <code>IsTruncated=True</code>. Code that ignores it works in dev and loses data in prod.<span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd">resp.<span class="f">get</span>(<span class="s">'Contents'</span>, [])</code><span class="dsc">When nothing matches, <b><code>'Contents'</code> is absent entirely</b> &mdash; not an empty list. <code>resp['Contents']</code> raises <code>KeyError</code>.<span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd">.<span class="f">paginate</span>(Bucket=b, PaginationConfig={<span class="s">'MaxItems'</span>: 500, <span class="s">'PageSize'</span>: 100})</code><span class="dsc"><code>MaxItems</code> stops the whole iteration; <code>PageSize</code> only sizes each request. <code>StartingToken</code> resumes.</span></li>
+    <li><code class="cmd">s3.<span class="f">list_object_versions</span>(Bucket=b, Prefix=p)</code><span class="dsc">Versioned buckets: returns <code>Versions</code> <b>and</b> <code>DeleteMarkers</code>. Plain listing hides both.</span></li>
+    <li><code class="cmd"><span class="k">for</span> o <span class="k">in</span> boto3.<span class="f">resource</span>(<span class="s">'s3'</span>).<span class="f">Bucket</span>(b).objects.<span class="f">filter</span>(Prefix=p):</code><span class="dsc">The resource collection auto-paginates too, and is the tersest form. Add <code>.limit(n)</code> or <code>.page_size(n)</code>.</span></li>
+    <li><span class="dsc"><b>Cost note:</b> listing is billed per request, ~1000 keys each. Scanning a 10&nbsp;M-key bucket is 10&nbsp;000 LIST calls &mdash; prefer <b>S3 Inventory</b> for recurring full scans.</span></li>
+  </ul>
+</article>
+
+<article class="card c-indigo">
+  <div class="head"><span class="num">08</span><span class="ttl">Prefixes, delimiters &amp; fake folders</span></div>
+  <p class="sub">S3 has no directories. <code>Delimiter</code> is the illusion generator.</p>
+  <ul class="body">
+    <li><code class="cmd">Prefix=<span class="s">'logs/2026/'</span></code><span class="dsc">Plain string match on the key. <b>Recursive by nature</b> &mdash; returns everything below, at every depth.</span></li>
+    <li><code class="cmd">Prefix=<span class="s">'logs/'</span>, Delimiter=<span class="s">'/'</span></code><span class="dsc">Groups everything past the next <code>/</code> into <code>CommonPrefixes</code>. This is exactly what the console shows as folders.</span></li>
+    <li><code class="cmd">[p[<span class="s">'Prefix'</span>] <span class="k">for</span> p <span class="k">in</span> page.<span class="f">get</span>(<span class="s">'CommonPrefixes'</span>, [])]</code><span class="dsc">&rarr; <code>['logs/2025/', 'logs/2026/']</code>. Same absent-key caveat as <code>Contents</code>.</span></li>
+    <li><code class="cmd">paginator.<span class="f">paginate</span>(Bucket=b, Prefix=p, Delimiter=<span class="s">'/'</span>).<span class="f">search</span>(<span class="s">'CommonPrefixes[].Prefix'</span>)</code><span class="dsc">JMESPath straight off the paginator &mdash; a flat generator of strings.</span></li>
+    <li><span class="dsc"><b>"Create a folder"</b> = put a zero-byte object whose key ends in <code>/</code>. Purely cosmetic; nothing requires it.</span></li>
+    <li><span class="dsc"><b>"Delete a folder"</b> = list every key under the prefix and delete them all (card 13). There is no recursive delete API.<span class="tag t-warn">trap</span></span></li>
+    <li><span class="dsc"><b>Performance:</b> S3 scales per prefix. Random or hashed leading characters spread load; <code>2026-07-21-...</code> keys concentrate it.</span></li>
+  </ul>
+</article>
+
+<article class="card c-green">
+  <div class="head"><span class="num">09</span><span class="ttl">Put an object <span class="star">&#9733;</span></span></div>
+  <p class="sub">For bytes you already hold. For files on disk, use card 14 instead.</p>
+  <ul class="body">
+    <li><code class="cmd">s3.<span class="f">put_object</span>(Bucket=b, Key=<span class="s">'hi.txt'</span>, Body=<span class="s">b'hello'</span>)</code><span class="dsc"><code>Body</code> takes <b>bytes, str, or any file-like object</b>. Single request, <b>5 GB hard ceiling</b>.</span></li>
+    <li><code class="cmd">s3.<span class="f">put_object</span>(..., Body=json.<span class="f">dumps</span>(d).<span class="f">encode</span>(),
+   ContentType=<span class="s">'application/json'</span>)</code><span class="dsc">S3 <b>never sniffs</b> content type &mdash; unset means <code>binary/octet-stream</code>, and browsers will download instead of render.<span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd">Metadata={<span class="s">'author'</span>: <span class="s">'kalyan'</span>, <span class="s">'run-id'</span>: <span class="s">'42'</span>}</code><span class="dsc">User metadata: ASCII string values only, <b>2 KB total</b>, keys come back <b>lowercased</b>. Immutable without a copy.</span></li>
+    <li><code class="cmd">ContentEncoding=<span class="s">'gzip'</span> &nbsp;CacheControl=<span class="s">'max-age=3600'</span> &nbsp;ContentDisposition=<span class="s">'attachment'</span></code><span class="dsc">Standard HTTP headers stored with the object and replayed on GET.</span></li>
+    <li><code class="cmd">StorageClass=<span class="s">'INTELLIGENT_TIERING'</span></code><span class="dsc">Also <code>STANDARD</code> &middot; <code>STANDARD_IA</code> &middot; <code>ONEZONE_IA</code> &middot; <code>GLACIER_IR</code> &middot; <code>GLACIER</code> &middot; <code>DEEP_ARCHIVE</code> &middot; <code>EXPRESS_ONEZONE</code>.</span></li>
+    <li><code class="cmd">IfNoneMatch=<span class="s">'*'</span></code><span class="dsc">Conditional write: fails with <code>PreconditionFailed</code> if the key exists. <b>The atomic way to avoid overwrites</b> &mdash; a plain PUT always clobbers.</span></li>
+    <li><code class="cmd">Tagging=<span class="s">'env=prod&amp;team=data'</span></code><span class="dsc">URL-encoded on put; a dict-of-dicts everywhere else. Up to 10 tags, and they drive lifecycle rules and IAM conditions.</span></li>
+  </ul>
+</article>
+
+<article class="card c-green">
+  <div class="head"><span class="num">10</span><span class="ttl">Get an object <span class="star">&#9733;</span></span></div>
+  <p class="sub"><code>Body</code> is a live network stream, not a buffer.</p>
+  <ul class="body">
+    <li><code class="cmd">data = s3.<span class="f">get_object</span>(Bucket=b, Key=k)[<span class="s">'Body'</span>].<span class="f">read</span>()</code><span class="dsc">The one-liner. Fine below a few hundred MB; it materialises everything in RAM.</span></li>
+    <li><code class="cmd"><span class="k">with</span> s3.<span class="f">get_object</span>(Bucket=b, Key=k)[<span class="s">'Body'</span>] <span class="k">as</span> body:
+    <span class="k">for</span> chunk <span class="k">in</span> body.<span class="f">iter_chunks</span>(1024*1024): <span class="f">process</span>(chunk)</code><span class="dsc"><code>StreamingBody</code> is a context manager. <b>Not closing it leaks a pooled connection</b>, and enough leaks will hang your client.<span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd">body.<span class="f">iter_lines</span>() &nbsp;&middot;&nbsp; body.<span class="f">read</span>(amt)</code><span class="dsc">Line-wise for text logs; sized reads for framed formats. The stream is <b>one-shot</b> &mdash; you cannot seek or re-read it.</span></li>
+    <li><code class="cmd">s3.<span class="f">get_object</span>(Bucket=b, Key=k, Range=<span class="s">'bytes=0-1023'</span>)</code><span class="dsc">Byte-range GET. Reads a Parquet footer or a file header without paying for the whole object.</span></li>
+    <li><code class="cmd">VersionId=<span class="s">'3sL4kqtJl...'</span></code><span class="dsc">Reads a specific version. Omit it and you get the current one.</span></li>
+    <li><code class="cmd">IfNoneMatch=etag &nbsp;&middot;&nbsp; IfModifiedSince=dt</code><span class="dsc">Conditional GET &rarr; <code>304 Not Modified</code> as a <code>ClientError</code>. Cheap cache revalidation.</span></li>
+    <li><code class="cmd">r = s3.<span class="f">get_object</span>(...); r[<span class="s">'ContentLength'</span>], r[<span class="s">'ETag'</span>], r[<span class="s">'Metadata'</span>]</code><span class="dsc">The response dict carries all headers alongside <code>Body</code>.</span></li>
+  </ul>
+</article>
+
+<article class="card c-green">
+  <div class="head"><span class="num">11</span><span class="ttl">Head, exists &amp; metadata</span></div>
+  <p class="sub">A HEAD costs one request and transfers no body.</p>
+  <ul class="body">
+    <li><code class="cmd">m = s3.<span class="f">head_object</span>(Bucket=b, Key=k)
+m[<span class="s">'ContentLength'</span>], m[<span class="s">'LastModified'</span>], m[<span class="s">'ETag'</span>], m[<span class="s">'StorageClass'</span>]</code><span class="dsc">Size, mtime and metadata without downloading.</span></li>
+    <li><code class="cmd"><span class="k">try</span>: s3.<span class="f">head_object</span>(Bucket=b, Key=k); exists = <span class="k">True</span>
+<span class="k">except</span> ClientError <span class="k">as</span> e:
+    <span class="k">if</span> e.response[<span class="s">'Error'</span>][<span class="s">'Code'</span>] == <span class="s">'404'</span>: exists = <span class="k">False</span>
+    <span class="k">else</span>: <span class="k">raise</span></code><span class="dsc">The idiomatic exists-check. <b>head_object raises code <code>'404'</code></b> while <code>get_object</code> raises <code>'NoSuchKey'</code> &mdash; HEAD has no response body to carry the real code.<span class="tag t-warn">trap</span></span></li>
+    <li><span class="dsc">A <code>403</code> here can also mean <b>the object exists but you lack <code>s3:GetObject</code></b>. Absence and denial are indistinguishable without <code>s3:ListBucket</code>.</span></li>
+    <li><code class="cmd">m[<span class="s">'ETag'</span>].<span class="f">strip</span>(<span class="s">'"'</span>)</code><span class="dsc">ETag arrives <b>quoted</b>. It equals the MD5 only for single-part uploads; multipart ETags end in <code>-N</code>.<span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd">s3.<span class="f">get_object_attributes</span>(Bucket=b, Key=k,
+   ObjectAttributes=[<span class="s">'ObjectSize'</span>,<span class="s">'Checksum'</span>,<span class="s">'ObjectParts'</span>])</code><span class="dsc">The modern replacement: real checksums and per-part sizes, no ETag guesswork.</span></li>
+    <li><code class="cmd">s3.<span class="f">get_waiter</span>(<span class="s">'object_exists'</span>).<span class="f">wait</span>(Bucket=b, Key=k)</code><span class="dsc">Polls HEAD until it appears (20 &times; 5 s default). Also <code>object_not_exists</code>, <code>bucket_exists</code>.</span></li>
+  </ul>
+</article>
+
+<article class="card c-green">
+  <div class="head"><span class="num">12</span><span class="ttl">Copy, move &amp; rename</span></div>
+  <p class="sub">S3 has no rename. Every move is copy-then-delete, server-side.</p>
+  <ul class="body">
+    <li><code class="cmd">s3.<span class="f">copy_object</span>(Bucket=dst, Key=dk,
+   CopySource={<span class="s">'Bucket'</span>: src, <span class="s">'Key'</span>: sk})</code><span class="dsc">Server-side &mdash; no bytes cross your machine. <b>5 GB limit</b> per call.</span></li>
+    <li><code class="cmd">s3.<span class="f">copy</span>(CopySource={<span class="s">'Bucket'</span>: src, <span class="s">'Key'</span>: sk}, Bucket=dst, Key=dk)</code><span class="dsc">The <b>managed</b> copy: transparently switches to multipart copy above the threshold, so it handles objects up to 5 TB. <b>Prefer this.</b><span class="tag t-new">use this</span></span></li>
+    <li><code class="cmd">CopySource={..., <span class="s">'VersionId'</span>: v}</code><span class="dsc">Copying an old version forward is how you "restore" it in a versioned bucket.</span></li>
+    <li><code class="cmd">MetadataDirective=<span class="s">'REPLACE'</span>, Metadata={...}, ContentType=<span class="s">'text/csv'</span></code><span class="dsc">Default is <code>COPY</code> &mdash; metadata is inherited and your new values are <b>silently ignored</b>. This is the only way to edit metadata in place: copy onto itself.<span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd">TaggingDirective=<span class="s">'REPLACE'</span> &nbsp;&middot;&nbsp; StorageClass=<span class="s">'GLACIER_IR'</span></code><span class="dsc">Same pattern for tags; copy-onto-itself is also the way to change storage class outside lifecycle rules.</span></li>
+    <li><code class="cmd">s3.<span class="f">copy</span>(...); s3.<span class="f">delete_object</span>(Bucket=src, Key=sk)</code><span class="dsc">Move = these two lines. <b>Not atomic</b> &mdash; verify the copy landed before deleting.</span></li>
+  </ul>
+</article>
+
+<article class="card c-green">
+  <div class="head"><span class="num">13</span><span class="ttl">Delete &mdash; single &amp; batch</span></div>
+  <p class="sub">Deletes are cheap, fast, and quietly partial.</p>
+  <ul class="body">
+    <li><code class="cmd">s3.<span class="f">delete_object</span>(Bucket=b, Key=k)</code><span class="dsc">Succeeds with <code>204</code> even if the key never existed &mdash; deletes are idempotent, so this is <b>not</b> an existence test.</span></li>
+    <li><code class="cmd">s3.<span class="f">delete_objects</span>(Bucket=b, Delete={
+   <span class="s">'Objects'</span>: [{<span class="s">'Key'</span>: k} <span class="k">for</span> k <span class="k">in</span> batch], <span class="s">'Quiet'</span>: <span class="k">True</span>})</code><span class="dsc">Batch delete, <b>max 1000 keys per call</b>. Roughly 1000&times; cheaper than a loop.</span></li>
+    <li><code class="cmd">resp.<span class="f">get</span>(<span class="s">'Errors'</span>, [])</code><span class="dsc"><b>A 200 does not mean everything was deleted.</b> Per-key failures come back in <code>Errors</code> and are trivially missed.<span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd">boto3.<span class="f">resource</span>(<span class="s">'s3'</span>).<span class="f">Bucket</span>(b).objects.<span class="f">filter</span>(Prefix=<span class="s">'tmp/'</span>).<span class="f">delete</span>()</code><span class="dsc">Delete a whole prefix in one expression &mdash; it pages and batches internally. The one place the resource API clearly wins.</span></li>
+    <li><code class="cmd">s3.<span class="f">delete_object</span>(Bucket=b, Key=k, VersionId=v)</code><span class="dsc">On a versioned bucket, a delete <b>without</b> <code>VersionId</code> only writes a <b>delete marker</b>; the data (and its bill) stays. With <code>VersionId</code> it is permanent.<span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd">bkt.object_versions.<span class="f">all</span>().<span class="f">delete</span>()</code><span class="dsc">Empties a versioned bucket for real &mdash; versions <b>and</b> delete markers. Required before <code>delete_bucket</code>.</span></li>
+  </ul>
+</article>
+</main>
+
+<div class="partbar">
+  <span class="pt">Part III</span>
+  <span class="pn">Transfers at scale</span>
+  <span class="pd">s3transfer &middot; where one call quietly becomes many</span>
+</div>
+
+<main class="grid g-max2">
+
+<article class="card c-amber">
+  <div class="head"><span class="num">14</span><span class="ttl">upload_file &amp; download_file <span class="star">&#9733;</span></span></div>
+  <p class="sub">Managed transfers: retries, threading and multipart, handled for you.</p>
+  <ul class="body">
+    <li><code class="cmd">s3.<span class="f">upload_file</span>(<span class="s">'report.pdf'</span>, b, <span class="s">'docs/report.pdf'</span>)</code><span class="dsc">Positional order is <b>(Filename, Bucket, Key)</b> &mdash; the odd one out; every other method is keyword-first.</span></li>
+    <li><code class="cmd">s3.<span class="f">download_file</span>(b, <span class="s">'docs/report.pdf'</span>, <span class="s">'report.pdf'</span>)</code><span class="dsc">Order flips to <b>(Bucket, Key, Filename)</b>. Writes to a temp file and renames on success.</span></li>
+    <li><code class="cmd"><span class="k">with</span> <span class="f">open</span>(<span class="s">'f.bin'</span>, <span class="s">'rb'</span>) <span class="k">as</span> f: s3.<span class="f">upload_fileobj</span>(f, b, k)
+<span class="k">with</span> <span class="f">open</span>(<span class="s">'f.bin'</span>, <span class="s">'wb'</span>) <span class="k">as</span> f: s3.<span class="f">download_fileobj</span>(b, k, f)</code><span class="dsc">Any file-like object &mdash; <code>io.BytesIO</code>, a socket, a pipe. Must be opened in <b>binary</b> mode.</span></li>
+    <li><code class="cmd">ExtraArgs={<span class="s">'ContentType'</span>: <span class="s">'application/pdf'</span>,
+   <span class="s">'ServerSideEncryption'</span>: <span class="s">'aws:kms'</span>, <span class="s">'Metadata'</span>: {<span class="s">'run'</span>: <span class="s">'42'</span>}}</code><span class="dsc">The only way to set headers on a managed transfer. Allowed keys are fixed by <code>S3Transfer.ALLOWED_UPLOAD_ARGS</code> &mdash; anything else raises <code>ValueError</code>.</span></li>
+    <li><code class="cmd">S3Transfer.ALLOWED_DOWNLOAD_ARGS</code><span class="dsc">Much shorter: <code>ChecksumMode</code>, <code>VersionId</code>, the three <code>SSECustomer*</code>, <code>RequestPayer</code>, <code>ExpectedBucketOwner</code>.</span></li>
+    <li><span class="dsc"><b>Why prefer these over put_object:</b> no 5 GB ceiling, parallel parts, resumable retries per part, and constant memory regardless of file size.</span></li>
+    <li><span class="dsc">Identical methods exist on <code>Bucket</code> and <code>Object</code> resources. <b>No behavioural difference</b> &mdash; only the argument capitalisation changes.</span></li>
+  </ul>
+</article>
+
+<article class="card c-amber">
+  <div class="head"><span class="num">15</span><span class="ttl">TransferConfig &mdash; the real defaults</span></div>
+  <p class="sub">Verified from <code>boto3.s3.transfer.TransferConfig.DEFAULTS</code>.</p>
+  <ul class="body">
+    <li><code class="cmd"><span class="k">from</span> boto3.s3.transfer <span class="k">import</span> TransferConfig
+cfg = <span class="f">TransferConfig</span>(multipart_threshold=64*1024**2)
+s3.<span class="f">upload_file</span>(fn, b, k, Config=cfg)</code><span class="dsc">Passed as <code>Config=</code> (capital C) to any managed transfer.</span></li>
+    <li><code class="cmd">multipart_threshold = 8388608   <span class="c"># 8 MB</span>
+multipart_chunksize = 8388608   <span class="c"># 8 MB</span></code><span class="dsc">Above the threshold the transfer becomes multipart. <b>Raising the chunk size is the main knob for big files</b> &mdash; S3 allows at most <b>10 000 parts</b>, so 8 MB parts cap you around 80 GB.</span></li>
+    <li><code class="cmd">max_concurrency = 10</code><span class="dsc">Worker threads per transfer. Raise for fat pipes, lower to be polite &mdash; and raise <code>max_pool_connections</code> to match, or you will just queue.</span></li>
+    <li><code class="cmd">use_threads = <span class="k">True</span></code><span class="dsc">Set <code>False</code> in Lambda or any single-core, memory-tight context; <code>max_concurrency</code> is then ignored.</span></li>
+    <li><code class="cmd">max_bandwidth = <span class="k">None</span>   <span class="c"># bytes/sec, e.g. 5*1024**2</span></code><span class="dsc">Throttle so a backup job does not starve everything else on the box.</span></li>
+    <li><code class="cmd">num_download_attempts = 5 &middot; max_io_queue = 100 &middot; io_chunksize = 262144</code><span class="dsc">Download-side retry count and the write-queue depth. Memory ceiling &asymp; <code>max_io_queue &times; io_chunksize</code> (&asymp;&nbsp;25&nbsp;MB).</span></li>
+    <li><code class="cmd">preferred_transfer_client = <span class="s">'auto'</span>  <span class="c"># 'classic' | 'crt'</span></code><span class="dsc"><b>auto</b> upgrades to the C-based <b>CRT</b> transfer manager when <code>awscrt</code> is installed and the environment supports it. CRT <b>ignores</b> <code>use_threads</code>, <code>max_bandwidth</code>, <code>io_chunksize</code>, <code>max_io_queue</code> and <code>num_download_attempts</code> &mdash; pin <code>'classic'</code> if you depend on those.<span class="tag t-new">watch</span></span></li>
+  </ul>
+</article>
+
+<article class="card c-amber">
+  <div class="head"><span class="num">16</span><span class="ttl">Progress callbacks</span></div>
+  <p class="sub">A callable invoked with bytes-transferred-since-last-call.</p>
+  <ul class="body">
+    <li><code class="cmd"><span class="k">def</span> <span class="f">cb</span>(n): <span class="f">print</span>(n)          <span class="c"># n = DELTA, not cumulative</span>
+s3.<span class="f">upload_file</span>(fn, b, k, Callback=cb)</code><span class="dsc">Accumulate yourself. Misreading the delta as a total is the classic bug.<span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd"><span class="k">class</span> <span class="f">Progress</span>:
+    <span class="k">def</span> <span class="f">__init__</span>(self, total): self.total, self.seen = total, 0
+    <span class="k">def</span> <span class="f">__call__</span>(self, n):
+        self.seen += n
+        <span class="f">print</span>(<span class="s">f"{self.seen/self.total:.1%}"</span>, end=<span class="s">"\r"</span>)</code><span class="dsc">The stateful pattern. Get <code>total</code> from <code>os.path.getsize()</code> on upload, or <code>head_object</code>'s <code>ContentLength</code> on download.</span></li>
+    <li><code class="cmd">bar = tqdm(total=size, unit=<span class="s">'B'</span>, unit_scale=<span class="k">True</span>)
+s3.<span class="f">download_file</span>(b, k, fn, Callback=bar.<span class="f">update</span>)</code><span class="dsc"><code>tqdm.update</code> already takes a delta &mdash; it plugs straight in with no wrapper.</span></li>
+    <li><span class="dsc">Callbacks fire from <b>worker threads</b> and out of order. Guard shared state with a <code>Lock</code>; never do slow I/O inside one.</span></li>
+    <li><span class="dsc">Available on all four managed methods plus <code>copy()</code>. Not available on <code>put_object</code>/<code>get_object</code> &mdash; wrap the stream yourself there.</span></li>
+  </ul>
+</article>
+
+<article class="card c-amber">
+  <div class="head"><span class="num">17</span><span class="ttl">Manual multipart API</span></div>
+  <p class="sub">Only when you need control the transfer manager will not give you.</p>
+  <ul class="body">
+    <li><code class="cmd">u = s3.<span class="f">create_multipart_upload</span>(Bucket=b, Key=k)
+uid = u[<span class="s">'UploadId'</span>]</code><span class="dsc">Opens the upload. Nothing is visible at <code>Key</code> until you complete it.</span></li>
+    <li><code class="cmd">p = s3.<span class="f">upload_part</span>(Bucket=b, Key=k, UploadId=uid,
+   PartNumber=i, Body=chunk)
+parts.<span class="f">append</span>({<span class="s">'PartNumber'</span>: i, <span class="s">'ETag'</span>: p[<span class="s">'ETag'</span>]})</code><span class="dsc">Parts are <b>1-indexed</b>. Minimum <b>5 MB</b> each except the last; maximum <b>10 000</b> parts, 5 GB per part.</span></li>
+    <li><code class="cmd">s3.<span class="f">complete_multipart_upload</span>(Bucket=b, Key=k, UploadId=uid,
+   MultipartUpload={<span class="s">'Parts'</span>: <span class="f">sorted</span>(parts, key=<span class="k">lambda</span> p: p[<span class="s">'PartNumber'</span>])})</code><span class="dsc">Parts <b>must</b> be in ascending order or S3 rejects the manifest.</span></li>
+    <li><code class="cmd">s3.<span class="f">abort_multipart_upload</span>(Bucket=b, Key=k, UploadId=uid)</code><span class="dsc">Always in a <code>try/finally</code>. <b>Orphaned parts are invisible to listing and billed forever.</b><span class="tag t-warn">costs money</span></span></li>
+    <li><code class="cmd">s3.<span class="f">list_multipart_uploads</span>(Bucket=b)</code><span class="dsc">Find the orphans. Then add a lifecycle rule with <code>AbortIncompleteMultipartUpload: {DaysAfterInitiation: 7}</code> to every bucket &mdash; the single highest-value S3 hygiene rule.</span></li>
+    <li><code class="cmd">s3.<span class="f">upload_part_copy</span>(..., CopySource=..., CopySourceRange=<span class="s">'bytes=0-...'</span>)</code><span class="dsc">Server-side multipart copy &mdash; how <code>s3.copy()</code> beats the 5 GB <code>copy_object</code> limit internally.</span></li>
+  </ul>
+</article>
+</main>
+
+<div class="partbar">
+  <span class="pt">Part IV</span>
+  <span class="pn">Access, safety and the edges</span>
+  <span class="pd">presign &middot; encrypt &middot; govern &middot; iterate &middot; and the things that break</span>
+</div>
+
+<main class="grid g-max4">
+
+<article class="card c-violet">
+  <div class="head"><span class="num">18</span><span class="ttl">Presigned URLs <span class="star">&#9733;</span></span></div>
+  <p class="sub">Hand out time-limited access without handing out credentials.</p>
+  <ul class="body">
+    <li><code class="cmd">url = s3.<span class="f">generate_presigned_url</span>(<span class="s">'get_object'</span>,
+   Params={<span class="s">'Bucket'</span>: b, <span class="s">'Key'</span>: k}, ExpiresIn=3600)</code><span class="dsc">Pure local computation &mdash; <b>no network call</b>, and it does not check that the object exists.</span></li>
+    <li><code class="cmd">s3 = boto3.<span class="f">client</span>(<span class="s">'s3'</span>, region_name=r, config=<span class="f">Config</span>(
+   signature_version=<span class="s">'s3v4'</span>, s3={<span class="s">'addressing_style'</span>: <span class="s">'virtual'</span>}))</code><span class="dsc">AWS's documented recommendation. Signing with the <b>wrong region</b> produces a URL that 400s on use.<span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd">.<span class="f">generate_presigned_url</span>(<span class="s">'put_object'</span>, Params={<span class="s">'Bucket'</span>: b, <span class="s">'Key'</span>: k,
+   <span class="s">'ContentType'</span>: <span class="s">'image/png'</span>}, ExpiresIn=900)</code><span class="dsc">Browser then does a plain <code>PUT</code>. Every signed <code>Params</code> entry becomes a <b>required header</b> on the request.</span></li>
+    <li><span class="dsc"><b>Expiry is a min, not a max.</b> SigV4 caps at <b>7 days</b>, and the URL also dies the moment the signing credentials expire &mdash; a Lambda role signing a 24 h URL yields one valid for minutes.<span class="tag t-warn">trap</span></span></li>
+    <li><span class="dsc">The URL inherits <b>the signer's permissions</b>, and anyone holding it can use it. Treat it as a bearer token: short TTL, HTTPS only, never in a log or a query-string referrer.</span></li>
+    <li><code class="cmd">.<span class="f">generate_presigned_url</span>(<span class="s">'head_object'</span>|<span class="s">'delete_object'</span>|<span class="s">'list_objects_v2'</span>, ...)</code><span class="dsc">Most client methods can be presigned, not just GET/PUT.</span></li>
+  </ul>
+</article>
+
+<article class="card c-violet">
+  <div class="head"><span class="num">19</span><span class="ttl">Presigned POST &mdash; browser uploads</span></div>
+  <p class="sub">A form POST with a signed policy. Constrainable in ways a PUT URL is not.</p>
+  <ul class="body">
+    <li><code class="cmd">r = s3.<span class="f">generate_presigned_post</span>(b, k, ExpiresIn=3600)
+r[<span class="s">'url'</span>], r[<span class="s">'fields'</span>]</code><span class="dsc">Returns a form action plus hidden fields (<code>key</code>, <code>Policy</code>, <code>X-Amz-Signature</code>&hellip;). Post them all, with <b><code>file</code> last</b>.</span></li>
+    <li><code class="cmd">Conditions=[[<span class="s">'content-length-range'</span>, 0, 5*1024**2],
+   {<span class="s">'Content-Type'</span>: <span class="s">'image/png'</span>}]</code><span class="dsc"><b>The reason to choose POST:</b> you can cap the upload size server-side. A presigned PUT cannot &mdash; a client may send 5 TB.</span></li>
+    <li><code class="cmd">Fields={<span class="s">'acl'</span>: <span class="s">'private'</span>, <span class="s">'Content-Type'</span>: <span class="s">'image/png'</span>}</code><span class="dsc">Prefilled values. Anything in <code>Fields</code> must also appear in <code>Conditions</code>, or S3 rejects the policy.<span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd">Key=<span class="s">'uploads/${filename}'</span> + [<span class="s">'starts-with'</span>, <span class="s">'$key'</span>, <span class="s">'uploads/'</span>]</code><span class="dsc">Let the client pick the filename inside a prefix you control.</span></li>
+    <li><code class="cmd">requests.<span class="f">post</span>(r[<span class="s">'url'</span>], data=r[<span class="s">'fields'</span>], files={<span class="s">'file'</span>: fh})</code><span class="dsc">Success is <b>HTTP 204 with an empty body</b>, not 200. Checking for 200 will look like failure.<span class="tag t-warn">trap</span></span></li>
+  </ul>
+</article>
+
+<article class="card c-violet">
+  <div class="head"><span class="num">20</span><span class="ttl">Encryption &mdash; SSE-S3, KMS, SSE-C</span></div>
+  <p class="sub">Server-side encryption is on by default; the choice is who holds the key.</p>
+  <ul class="body">
+    <li><span class="dsc"><b>Default since 2023:</b> every new object is encrypted with <b>SSE-S3 (AES256)</b> at no cost. You only act to upgrade or to override.</span></li>
+    <li><code class="cmd">ServerSideEncryption=<span class="s">'AES256'</span></code><span class="dsc">SSE-S3 explicitly. AWS holds and rotates the key; nothing to configure.</span></li>
+    <li><code class="cmd">ServerSideEncryption=<span class="s">'aws:kms'</span>, SSEKMSKeyId=<span class="s">'arn:aws:kms:...'</span></code><span class="dsc">SSE-KMS &mdash; auditable in CloudTrail, revocable via key policy. Readers need <code>kms:Decrypt</code> as well as <code>s3:GetObject</code>; a missing KMS grant surfaces as a confusing <code>AccessDenied</code>.<span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd">BucketKeyEnabled=<span class="k">True</span></code><span class="dsc">Cuts KMS request cost by up to <b>99%</b> on high-volume buckets. Effectively free; enable it at the bucket level.</span></li>
+    <li><code class="cmd">SSECustomerAlgorithm=<span class="s">'AES256'</span>, SSECustomerKey=key_bytes</code><span class="dsc">SSE-C &mdash; you supply the key on <b>every</b> request, put and get. Lose it and the data is gone; AWS stores only an HMAC.</span></li>
+    <li><code class="cmd">s3.<span class="f">put_bucket_encryption</span>(Bucket=b, ServerSideEncryptionConfiguration={...})</code><span class="dsc">Set the bucket default once instead of tagging every call &mdash; and add a bucket policy denying puts without it.</span></li>
+  </ul>
+</article>
+
+<article class="card c-violet">
+  <div class="head"><span class="num">21</span><span class="ttl">Access control &amp; public exposure</span></div>
+  <p class="sub">Modern S3: policies for access, ACLs disabled, public access blocked.</p>
+  <ul class="body">
+    <li><code class="cmd">s3.<span class="f">put_public_access_block</span>(Bucket=b, PublicAccessBlockConfiguration={
+   <span class="s">'BlockPublicAcls'</span>: <span class="k">True</span>, <span class="s">'IgnorePublicAcls'</span>: <span class="k">True</span>,
+   <span class="s">'BlockPublicPolicy'</span>: <span class="k">True</span>, <span class="s">'RestrictPublicBuckets'</span>: <span class="k">True</span>})</code><span class="dsc"><b>All four are ON by default</b> for buckets created since Apr 2023. This is why your "public" bucket 403s.</span></li>
+    <li><code class="cmd">s3.<span class="f">put_bucket_policy</span>(Bucket=b, Policy=json.<span class="f">dumps</span>(policy))</code><span class="dsc">Resource ARNs: <code>arn:aws:s3:::bucket</code> for bucket-level actions (<code>ListBucket</code>), <code>arn:aws:s3:::bucket/*</code> for object-level. <b>Mixing them up is the #1 policy bug.</b><span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd">s3.<span class="f">get_bucket_policy_status</span>(Bucket=b)[<span class="s">'PolicyStatus'</span>][<span class="s">'IsPublic'</span>]</code><span class="dsc">A definitive yes/no on whether the bucket is publicly readable.</span></li>
+    <li><code class="cmd">ACL=<span class="s">'public-read'</span></code><span class="dsc"><b>Usually a no-op now.</b> New buckets default to <code>BucketOwnerEnforced</code> object ownership, which <b>disables ACLs entirely</b>; passing one raises <code>AccessControlListNotSupported</code>.<span class="tag t-old">legacy</span></span></li>
+    <li><code class="cmd">ExpectedBucketOwner=<span class="s">'123456789012'</span></code><span class="dsc">Fails the call if the bucket changed hands. Cheap defence against bucket-sniping and typo'd names.</span></li>
+    <li><code class="cmd">s3.<span class="f">put_bucket_cors</span>(...) &nbsp;&middot;&nbsp; s3.<span class="f">put_bucket_website</span>(...)</code><span class="dsc">CORS is required before any browser <code>fetch</code>/XHR against presigned URLs, including uploads.</span></li>
+  </ul>
+</article>
+
+<article class="card c-teal">
+  <div class="head"><span class="num">22</span><span class="ttl">Versioning, lifecycle &amp; tags</span></div>
+  <p class="sub">Bucket-level policy that quietly governs cost and recoverability.</p>
+  <ul class="body">
+    <li><code class="cmd">s3.<span class="f">put_bucket_versioning</span>(Bucket=b,
+   VersioningConfiguration={<span class="s">'Status'</span>: <span class="s">'Enabled'</span>})</code><span class="dsc">Once enabled it can only be <b>suspended</b>, never removed. Existing objects get <code>VersionId='null'</code>.</span></li>
+    <li><code class="cmd">s3.<span class="f">put_bucket_lifecycle_configuration</span>(Bucket=b,
+   LifecycleConfiguration={<span class="s">'Rules'</span>: [...]})</code><span class="dsc">Whole-config replace, not a merge &mdash; always <code>get</code>, mutate, then <code>put</code>.<span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd"><span class="s">'AbortIncompleteMultipartUpload'</span>: {<span class="s">'DaysAfterInitiation'</span>: 7}</code><span class="dsc">The rule every bucket should have. Sweeps up orphaned parts you cannot even see.</span></li>
+    <li><code class="cmd"><span class="s">'Transitions'</span>: [{<span class="s">'Days'</span>: 30, <span class="s">'StorageClass'</span>: <span class="s">'STANDARD_IA'</span>}]
+<span class="s">'NoncurrentVersionExpiration'</span>: {<span class="s">'NoncurrentDays'</span>: 90}</code><span class="dsc">Tiering plus version pruning &mdash; where versioned buckets stop growing without bound.</span></li>
+    <li><code class="cmd">s3.<span class="f">put_object_tagging</span>(Bucket=b, Key=k,
+   Tagging={<span class="s">'TagSet'</span>: [{<span class="s">'Key'</span>: <span class="s">'env'</span>, <span class="s">'Value'</span>: <span class="s">'prod'</span>}]})</code><span class="dsc">Also a full replace. Tags drive lifecycle filters, cost allocation and IAM conditions.</span></li>
+    <li><code class="cmd">s3.<span class="f">put_object_lock_configuration</span>(...) &nbsp;&middot;&nbsp; ObjectLockMode=<span class="s">'COMPLIANCE'</span></code><span class="dsc">WORM retention. <code>COMPLIANCE</code> cannot be shortened <b>by anyone, including the root account</b> &mdash; test with <code>GOVERNANCE</code> first.<span class="tag t-warn">irreversible</span></span></li>
+  </ul>
+</article>
+
+<article class="card c-teal">
+  <div class="head"><span class="num">23</span><span class="ttl">Paginators, waiters &amp; JMESPath</span></div>
+  <p class="sub">Three generic botocore facilities that make S3 code short.</p>
+  <ul class="body">
+    <li><code class="cmd">s3.<span class="f">can_paginate</span>(<span class="s">'list_objects_v2'</span>)</code><span class="dsc">Paginators exist for <code>list_objects_v2</code>, <code>list_object_versions</code>, <code>list_multipart_uploads</code>, <code>list_parts</code>.</span></li>
+    <li><code class="cmd">it = paginator.<span class="f">paginate</span>(Bucket=b, Prefix=p)
+keys = it.<span class="f">search</span>(<span class="s">'Contents[].Key'</span>)</code><span class="dsc"><code>.search()</code> applies JMESPath <b>across pages</b> and yields a flat generator &mdash; no nested loop, no <code>.get()</code> dance.</span></li>
+    <li><code class="cmd">it.<span class="f">search</span>(<span class="s">"Contents[?Size &gt; `1048576`].[Key,Size]"</span>)</code><span class="dsc">Server returns everything; JMESPath filters client-side. Backticks are JMESPath literals.</span></li>
+    <li><code class="cmd">it.<span class="f">search</span>(<span class="s">"sort_by(Contents, &amp;LastModified)[-1].Key"</span>)</code><span class="dsc">Newest key in a prefix. Note S3 returns keys in <b>lexicographic</b> order, never by date &mdash; sorting is always yours to do.</span></li>
+    <li><code class="cmd">s3.<span class="f">get_waiter</span>(<span class="s">'bucket_exists'</span>).<span class="f">wait</span>(Bucket=b,
+   WaiterConfig={<span class="s">'Delay'</span>: 2, <span class="s">'MaxAttempts'</span>: 30})</code><span class="dsc">Four S3 waiters: <code>bucket_exists</code>, <code>bucket_not_exists</code>, <code>object_exists</code>, <code>object_not_exists</code>. They raise <code>WaiterError</code> on timeout.</span></li>
+    <li><code class="cmd">s3.<span class="f">meta</span>.events.<span class="f">register</span>(<span class="s">'before-send.s3'</span>, hook)</code><span class="dsc">The extensibility hook &mdash; inject headers, log, or stub requests in tests without monkeypatching.</span></li>
+  </ul>
+</article>
+
+<article class="card c-teal">
+  <div class="head"><span class="num">24</span><span class="ttl">Interop &mdash; pandas, s3fs, wrangler</span></div>
+  <p class="sub">Most data work should not call boto3 directly at all.</p>
+  <ul class="body">
+    <li><code class="cmd">df = pd.<span class="f">read_parquet</span>(<span class="s">'s3://bucket/path/part-*.parquet'</span>)
+df.<span class="f">to_csv</span>(<span class="s">'s3://bucket/out.csv'</span>, index=<span class="k">False</span>)</code><span class="dsc">pandas speaks <code>s3://</code> natively via <b>s3fs</b>. Credentials resolve through the same boto3 chain.</span></li>
+    <li><code class="cmd">storage_options={<span class="s">'profile'</span>: <span class="s">'prod'</span>,
+   <span class="s">'client_kwargs'</span>: {<span class="s">'endpoint_url'</span>: <span class="s">'https://minio:9000'</span>}}</code><span class="dsc">How to pass profile, region or a custom endpoint through pandas / Dask / pyarrow.</span></li>
+    <li><code class="cmd"><span class="k">import</span> s3fs; fs = s3fs.<span class="f">S3FileSystem</span>()
+fs.<span class="f">ls</span>(<span class="s">'bucket/prefix'</span>); fs.<span class="f">glob</span>(<span class="s">'bucket/**/*.json'</span>)
+<span class="k">with</span> fs.<span class="f">open</span>(<span class="s">'bucket/k.txt'</span>, <span class="s">'rb'</span>) <span class="k">as</span> f: f.<span class="f">read</span>()</code><span class="dsc">A filesystem facade with <b>glob and caching</b>. Beware: it caches directory listings, so a fresh key may be invisible &mdash; call <code>fs.invalidate_cache()</code>.<span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd"><span class="k">import</span> awswrangler <span class="k">as</span> wr
+wr.s3.<span class="f">to_parquet</span>(df, path=<span class="s">'s3://b/t/'</span>, dataset=<span class="k">True</span>,
+   partition_cols=[<span class="s">'dt'</span>], database=<span class="s">'db'</span>, table=<span class="s">'t'</span>)</code><span class="dsc">AWS SDK for pandas &mdash; partitioned datasets plus Glue catalog registration in one call.</span></li>
+    <li><code class="cmd">smart_open.<span class="f">open</span>(<span class="s">'s3://b/big.gz'</span>, <span class="s">'rt'</span>)</code><span class="dsc">Streams and transparently decompresses at constant memory. Ideal for line-by-line log processing.</span></li>
+    <li><code class="cmd"><span class="k">from</span> moto <span class="k">import</span> mock_aws</code><span class="dsc">The standard way to unit-test S3 code with no network and no bucket.</span></li>
+  </ul>
+</article>
+
+<article class="card c-teal">
+  <div class="head"><span class="num">25</span><span class="ttl">The wider S3 API family</span></div>
+  <p class="sub"><code>'s3'</code> is one of six S3 clients boto3 exposes.</p>
+  <ul class="body">
+    <li><code class="cmd">boto3.<span class="f">client</span>(<span class="s">'s3'</span>)</code><span class="dsc">General purpose buckets and objects &mdash; everything above.</span></li>
+    <li><code class="cmd">boto3.<span class="f">client</span>(<span class="s">'s3control'</span>)</code><span class="dsc">Account-level: <b>S3 Batch Operations</b> jobs, Access Points, Storage Lens, account-wide public access block.</span></li>
+    <li><code class="cmd">s3.<span class="f">create_bucket</span>(Bucket=<span class="s">'my-data--use1-az4--x-s3'</span>,
+   CreateBucketConfiguration={
+     <span class="s">'Location'</span>: {<span class="s">'Type'</span>: <span class="s">'AvailabilityZone'</span>, <span class="s">'Name'</span>: <span class="s">'use1-az4'</span>},
+     <span class="s">'Bucket'</span>: {<span class="s">'Type'</span>: <span class="s">'Directory'</span>,
+                <span class="s">'DataRedundancy'</span>: <span class="s">'SingleAvailabilityZone'</span>}})</code><span class="dsc"><b>S3 Express One Zone</b> directory bucket &mdash; single-digit-ms latency, one AZ. Made on the ordinary <code>'s3'</code> client; the name suffix <code>--&lt;zone-id&gt;--x-s3</code> is mandatory.<span class="tag t-new">express</span></span></li>
+    <li><code class="cmd">s3.<span class="f">create_session</span>(Bucket=dirbucket, SessionMode=<span class="s">'ReadWrite'</span>)</code><span class="dsc">Directory buckets authenticate once per session rather than per request &mdash; that is where the latency win comes from. boto3 handles it for you; you need <code>s3express:CreateSession</code>.</span></li>
+    <li><code class="cmd">boto3.<span class="f">client</span>(<span class="s">'s3tables'</span>) &nbsp;&middot;&nbsp; boto3.<span class="f">client</span>(<span class="s">'s3vectors'</span>)</code><span class="dsc">Managed <b>Apache Iceberg</b> tables, and native <b>vector</b> storage/query for embeddings. Separate services with their own APIs.<span class="tag t-new">new</span></span></li>
+    <li><span class="dsc">Also <code>'s3outposts'</code> and <code>'s3files'</code>. Directory buckets support a <b>reduced</b> API surface &mdash; no ACLs, no versioning, no lifecycle transitions.</span></li>
+  </ul>
+</article>
+
+<article class="card c-red">
+  <div class="head"><span class="num">26</span><span class="ttl">Errors &amp; exceptions</span></div>
+  <p class="sub">Almost everything is a <code>ClientError</code> carrying a string code.</p>
+  <ul class="body">
+    <li><code class="cmd"><span class="k">except</span> ClientError <span class="k">as</span> e:
+    code = e.response[<span class="s">'Error'</span>][<span class="s">'Code'</span>]
+    status = e.response[<span class="s">'ResponseMetadata'</span>][<span class="s">'HTTPStatusCode'</span>]</code><span class="dsc">The universal handler. <code>e.response</code> also holds <code>RequestId</code> and <code>HostId</code> &mdash; both required if you open an AWS support case.</span></li>
+    <li><code class="cmd"><span class="k">except</span> s3.exceptions.NoSuchKey:</code><span class="dsc">Modelled exceptions hang off the <b>client instance</b>, not the module: <code>NoSuchBucket</code>, <code>NoSuchKey</code>, <code>BucketAlreadyOwnedByYou</code>, <code>InvalidObjectState</code>.</span></li>
+    <li><span class="dsc"><b><code>NoSuchKey</code> vs <code>'404'</code>:</b> <code>get_object</code> raises the named exception; <code>head_object</code> can only raise a bare <code>ClientError</code> with code <code>'404'</code>, because HEAD has no body to carry the code. Handle both.<span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd"><span class="s">'AccessDenied'</span> &middot; <span class="s">'InvalidAccessKeyId'</span> &middot; <span class="s">'SignatureDoesNotMatch'</span> &middot; <span class="s">'ExpiredToken'</span></code><span class="dsc"><code>SignatureDoesNotMatch</code> usually means clock skew or a wrong region, not a wrong secret.</span></li>
+    <li><code class="cmd"><span class="s">'SlowDown'</span> (503) &middot; <span class="s">'RequestTimeout'</span> &middot; <span class="s">'InternalError'</span> (500)</code><span class="dsc">Retryable. botocore already backs these off &mdash; do <b>not</b> add your own retry loop on top, or you will multiply the load.</span></li>
+    <li><code class="cmd"><span class="k">from</span> botocore.exceptions <span class="k">import</span> EndpointConnectionError, \
+   NoCredentialsError, ParamValidationError</code><span class="dsc">Client-side failures that never reach AWS &mdash; these are <b>not</b> <code>ClientError</code> subclasses and a bare <code>except ClientError</code> will miss them.<span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd"><span class="s">'PermanentRedirect'</span> / 301</code><span class="dsc">Right bucket, wrong region client. Recreate the client with the region from <code>get_bucket_location</code>.</span></li>
+  </ul>
+</article>
+
+<article class="card c-red">
+  <div class="head"><span class="num">27</span><span class="ttl">Data integrity &amp; the checksum change</span></div>
+  <p class="sub">The change that broke a lot of S3-compatible code in 2025.</p>
+  <ul class="body">
+    <li><span class="dsc"><b>Since boto3 1.36.0</b> (Jan 2025) the SDK computes an extra <b>CRC32</b> checksum on every upload and validates checksums on download, by default.<span class="tag t-new">changed</span></span></li>
+    <li><span class="dsc">Where it bites: operations that previously sent <code>Content-MD5</code> &mdash; notably <code>delete_objects</code> &mdash; now send CRC32 instead. <b>MinIO, GCS, Ceph and older emulators that only accept MD5 start failing.</b><span class="tag t-warn">trap</span></span></li>
+    <li><code class="cmd">AWS_REQUEST_CHECKSUM_CALCULATION=when_required
+AWS_RESPONSE_CHECKSUM_VALIDATION=when_required</code><span class="dsc">The escape hatch, as environment variables. Same names in <code>~/.aws/config</code>, or on the client:</span></li>
+    <li><code class="cmd">cfg = <span class="f">Config</span>(request_checksum_calculation=<span class="s">'when_required'</span>,
+             response_checksum_validation=<span class="s">'when_required'</span>)</code><span class="dsc">Scope it to the one client talking to a non-AWS endpoint &mdash; keep full protection against real S3.</span></li>
+    <li><code class="cmd">ChecksumAlgorithm=<span class="s">'SHA256'</span> &nbsp;&middot;&nbsp; ChecksumMode=<span class="s">'ENABLED'</span></code><span class="dsc">Opt into a stronger algorithm on upload; ask for validation on download. Available: <code>CRC32</code>, <code>CRC32C</code>, <code>CRC64NVME</code>, <code>SHA1</code>, <code>SHA256</code>.</span></li>
+    <li><code class="cmd">s3.<span class="f">get_object_attributes</span>(..., ObjectAttributes=[<span class="s">'Checksum'</span>])</code><span class="dsc">Read the stored whole-object checksum back &mdash; the correct integrity check, and the reason ETag is now obsolete for this purpose.</span></li>
+    <li><span class="dsc">AWS's own framing: the SDKs are built for AWS services, and new defaults may ship <b>before</b> third-party implementations support them. Pin your boto3 version if you target an emulator.</span></li>
+  </ul>
+</article>
+</main>
+
+<section class="concepts">
+  <h2 class="sec-h">Four things worth drawing</h2>
+  <div class="cgrid">
+
+    <div class="dia">
+      <div class="dia-h">1 &middot; There are no folders<span>how <code>Delimiter='/'</code> manufactures a directory tree</span></div>
+      <div class="scroller">
+<svg viewBox="0 0 700 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Flat key strings on the left become Contents and CommonPrefixes on the right">
+        <defs>
+          <marker id="d1-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="#4f46e5"/>
+          </marker>
+        </defs>
+        <text x="24" y="28" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#64748b">WHAT IS ACTUALLY STORED</text>
+        <rect x="24" y="40" width="278" height="176" rx="7" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+        <text x="40" y="66" font-family="JetBrains Mono, monospace" font-size="11" fill="#334155">logs/2025/dec.log</text>
+        <text x="40" y="92" font-family="JetBrains Mono, monospace" font-size="11" fill="#334155">logs/2026/jul/app.log</text>
+        <text x="40" y="118" font-family="JetBrains Mono, monospace" font-size="11" fill="#334155">logs/2026/jul/err.log</text>
+        <text x="40" y="144" font-family="JetBrains Mono, monospace" font-size="11" fill="#334155">logs/README.md</text>
+        <text x="40" y="170" font-family="JetBrains Mono, monospace" font-size="11" fill="#334155">data/train.parquet</text>
+        <text x="40" y="200" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8">five independent strings &mdash; no hierarchy anywhere</text>
+
+        <rect x="24" y="234" width="278" height="66" rx="7" fill="#111827"/>
+        <text x="40" y="258" font-family="JetBrains Mono, monospace" font-size="10.2" fill="#fcd34d">list_objects_v2(</text>
+        <text x="40" y="275" font-family="JetBrains Mono, monospace" font-size="10.2" fill="#e5e7eb">&#160;&#160;Prefix='logs/', Delimiter='/')</text>
+        <text x="40" y="292" font-family="JetBrains Mono, monospace" font-size="9.6" fill="#9ca3af">the delimiter does all the work</text>
+
+        <line x1="312" y1="176" x2="372" y2="176" stroke="#4f46e5" stroke-width="1.8" marker-end="url(#d1-ar)"/>
+
+        <text x="384" y="28" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#64748b">WHAT COMES BACK</text>
+
+        <rect x="384" y="40" width="292" height="112" rx="7" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.4"/>
+        <text x="400" y="64" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#3730a3">CommonPrefixes</text>
+        <text x="400" y="88" font-family="JetBrains Mono, monospace" font-size="11" fill="#4f46e5">logs/2025/</text>
+        <text x="400" y="110" font-family="JetBrains Mono, monospace" font-size="11" fill="#4f46e5">logs/2026/</text>
+        <text x="400" y="134" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#6366f1">the console draws these as folder icons</text>
+
+        <rect x="384" y="166" width="292" height="94" rx="7" fill="#ecfdf5" stroke="#059669" stroke-width="1.4"/>
+        <text x="400" y="190" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#065f46">Contents</text>
+        <text x="400" y="214" font-family="JetBrains Mono, monospace" font-size="11" fill="#047857">logs/README.md</text>
+        <text x="400" y="240" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#059669">only keys at this level &mdash; nothing deeper</text>
+
+        <rect x="384" y="274" width="292" height="60" rx="7" fill="#fef2f2" stroke="#dc2626" stroke-width="1.3"/>
+        <text x="400" y="296" font-family="JetBrains Mono, monospace" font-size="10.4" font-weight="700" fill="#b91c1c">data/train.parquet is absent</text>
+        <text x="400" y="316" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#dc2626">it never matched Prefix='logs/'</text>
+
+        <text x="24" y="330" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">Drop the Delimiter and you get all four logs/ keys, flat.</text>
+        <text x="24" y="350" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">Drop the Prefix and you get the whole bucket.</text>
+        <text x="24" y="376" font-family="JetBrains Mono, monospace" font-size="10.4" font-weight="700" fill="#dc2626">Deleting "a folder" = deleting every key under the prefix.</text>
+      </svg>
+      </div>
+      <div class="swipe">&#8596; swipe to see the whole diagram</div>
+    </div>
+
+    <div class="dia">
+      <div class="dia-h">2 &middot; The multipart lifecycle<span>what <code>upload_file</code> is doing above 8&nbsp;MB</span></div>
+      <div class="scroller">
+<svg viewBox="0 0 700 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Multipart upload lifecycle from create through parallel parts to complete or abort">
+        <defs>
+          <marker id="d2-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="#d97706"/>
+          </marker>
+          <marker id="d2-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/>
+          </marker>
+        </defs>
+
+        <text x="24" y="28" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#64748b">SIZE DECIDES, NOT YOU</text>
+        <rect x="24" y="40" width="652" height="42" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+        <line x1="230" y1="46" x2="230" y2="76" stroke="#d97706" stroke-width="1.6" stroke-dasharray="4 3"/>
+        <text x="120" y="66" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#334155">&lt; 8 MB &rarr; one PUT</text>
+        <text x="230" y="36" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700" fill="#92400e">multipart_threshold = 8 MB</text>
+        <text x="450" y="66" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#92400e">&ge; 8 MB &rarr; split into 8 MB parts, uploaded in parallel</text>
+
+        <rect x="24" y="106" width="150" height="52" rx="7" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+        <text x="99" y="130" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.6" font-weight="700" fill="#92400e">create_multipart</text>
+        <text x="99" y="148" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.6" fill="#b45309">&rarr; UploadId</text>
+
+        <line x1="180" y1="132" x2="216" y2="132" stroke="#d97706" stroke-width="1.7" marker-end="url(#d2-ar)"/>
+
+        <rect x="220" y="96" width="200" height="152" rx="7" fill="#fff" stroke="#d97706" stroke-width="1.5"/>
+        <text x="320" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.6" font-weight="700" fill="#92400e">upload_part &times; N</text>
+        <rect x="238" y="130" width="164" height="17" rx="3" fill="#fde68a"/>
+        <text x="246" y="143" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#78350f">PartNumber=1 &rarr; ETag</text>
+        <rect x="238" y="152" width="164" height="17" rx="3" fill="#fde68a"/>
+        <text x="246" y="165" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#78350f">PartNumber=2 &rarr; ETag</text>
+        <rect x="238" y="174" width="164" height="17" rx="3" fill="#fde68a"/>
+        <text x="246" y="187" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#78350f">PartNumber=3 &rarr; ETag</text>
+        <text x="320" y="210" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#94a3b8">max_concurrency=10 threads</text>
+        <text x="320" y="228" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#94a3b8">min 5 MB each &middot; max 10 000 parts</text>
+        <text x="320" y="242" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#94a3b8">each part retried independently</text>
+
+        <line x1="426" y1="132" x2="462" y2="132" stroke="#d97706" stroke-width="1.7" marker-end="url(#d2-ar)"/>
+
+        <rect x="466" y="106" width="210" height="52" rx="7" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+        <text x="571" y="128" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.6" font-weight="700" fill="#065f46">complete_multipart</text>
+        <text x="571" y="146" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.6" fill="#047857">object appears &mdash; atomically</text>
+
+        <path d="M426 200 L446 200 L446 232 L462 232" fill="none" stroke="#dc2626" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#d2-arr)"/>
+        <rect x="466" y="206" width="210" height="52" rx="7" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+        <text x="571" y="228" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.6" font-weight="700" fill="#b91c1c">abort_multipart</text>
+        <text x="571" y="246" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.6" fill="#dc2626">on any failure &mdash; use try/finally</text>
+
+        <rect x="24" y="286" width="652" height="88" rx="7" fill="#111827"/>
+        <text x="44" y="310" font-family="JetBrains Mono, monospace" font-size="10.6" font-weight="700" fill="#fcd34d">Neither completed nor aborted?</text>
+        <text x="44" y="330" font-family="JetBrains Mono, monospace" font-size="10.2" fill="#e5e7eb">The parts stay in the bucket, invisible to list_objects_v2, and you are billed for them forever.</text>
+        <text x="44" y="350" font-family="JetBrains Mono, monospace" font-size="10.2" fill="#86efac">Find them: list_multipart_uploads(Bucket=b)</text>
+        <text x="44" y="366" font-family="JetBrains Mono, monospace" font-size="10.2" fill="#86efac">Prevent them: lifecycle rule AbortIncompleteMultipartUpload &rarr; DaysAfterInitiation: 7</text>
+      </svg>
+      </div>
+      <div class="swipe">&#8596; swipe to see the whole diagram</div>
+    </div>
+
+    <div class="dia">
+      <div class="dia-h">3 &middot; Anatomy of a presigned URL<span>everything is in the query string &mdash; and it is a bearer token</span></div>
+      <div class="scroller">
+<svg viewBox="0 0 700 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A presigned URL broken into its signed query parameters">
+        <defs>
+          <marker id="d3-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/>
+          </marker>
+        </defs>
+
+        <rect x="24" y="34" width="652" height="30" rx="5" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.3"/>
+        <text x="36" y="54" font-family="JetBrains Mono, monospace" font-size="10.6" fill="#5b21b6">https://my-bucket.s3.ap-south-1.amazonaws.com/docs/report.pdf</text>
+        <text x="24" y="24" font-family="JetBrains Mono, monospace" font-size="9.6" fill="#94a3b8">host encodes bucket + region &mdash; virtual-hosted addressing</text>
+
+        <line x1="60" y1="70" x2="60" y2="94" stroke="#7c3aed" stroke-width="1.4" marker-end="url(#d3-ar)"/>
+        <text x="76" y="90" font-family="JetBrains Mono, monospace" font-size="9.6" fill="#94a3b8">?  then six signed parameters:</text>
+
+        <rect x="24" y="102" width="316" height="34" rx="5" fill="#faf5ff" stroke="#c4b5fd" stroke-width="1.1"/>
+        <text x="36" y="116" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#6d28d9">X-Amz-Algorithm</text>
+        <text x="36" y="130" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#7c3aed">AWS4-HMAC-SHA256 &mdash; SigV4</text>
+
+        <rect x="360" y="102" width="316" height="34" rx="5" fill="#faf5ff" stroke="#c4b5fd" stroke-width="1.1"/>
+        <text x="372" y="116" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#6d28d9">X-Amz-Credential</text>
+        <text x="372" y="130" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#7c3aed">AKIA.../20260721/ap-south-1/s3/aws4_request</text>
+
+        <rect x="24" y="144" width="316" height="34" rx="5" fill="#faf5ff" stroke="#c4b5fd" stroke-width="1.1"/>
+        <text x="36" y="158" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#6d28d9">X-Amz-Date</text>
+        <text x="36" y="172" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#7c3aed">20260721T073000Z &mdash; clock skew kills it</text>
+
+        <rect x="360" y="144" width="316" height="34" rx="5" fill="#fffbeb" stroke="#d97706" stroke-width="1.2"/>
+        <text x="372" y="158" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#92400e">X-Amz-Expires</text>
+        <text x="372" y="172" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#b45309">3600 &mdash; seconds, max 604800 (7 days)</text>
+
+        <rect x="24" y="186" width="316" height="34" rx="5" fill="#faf5ff" stroke="#c4b5fd" stroke-width="1.1"/>
+        <text x="36" y="200" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#6d28d9">X-Amz-SignedHeaders</text>
+        <text x="36" y="214" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#7c3aed">host &mdash; each one becomes REQUIRED on use</text>
+
+        <rect x="360" y="186" width="316" height="34" rx="5" fill="#faf5ff" stroke="#c4b5fd" stroke-width="1.1"/>
+        <text x="372" y="200" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#6d28d9">X-Amz-Signature</text>
+        <text x="372" y="214" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#7c3aed">HMAC over all of the above</text>
+
+        <rect x="24" y="238" width="652" height="60" rx="7" fill="#fef2f2" stroke="#dc2626" stroke-width="1.3"/>
+        <text x="40" y="260" font-family="JetBrains Mono, monospace" font-size="10.4" font-weight="700" fill="#b91c1c">The URL expires at whichever comes FIRST:</text>
+        <text x="40" y="278" font-family="JetBrains Mono, monospace" font-size="10" fill="#dc2626">X-Amz-Expires &nbsp;OR&nbsp; the moment the signing credentials expire.</text>
+        <text x="40" y="292" font-family="JetBrains Mono, monospace" font-size="9.6" fill="#ef4444">A Lambda role signing a 7-day URL produces one valid for minutes.</text>
+
+        <rect x="24" y="310" width="316" height="64" rx="7" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+        <text x="40" y="330" font-family="JetBrains Mono, monospace" font-size="10.2" font-weight="700" fill="#334155">presigned URL (GET or PUT)</text>
+        <text x="40" y="348" font-family="JetBrains Mono, monospace" font-size="9.6" fill="#64748b">one call, one method, no size limit</text>
+        <text x="40" y="364" font-family="JetBrains Mono, monospace" font-size="9.6" fill="#64748b">cannot constrain what is uploaded</text>
+
+        <rect x="360" y="310" width="316" height="64" rx="7" fill="#ecfdf5" stroke="#059669" stroke-width="1.3"/>
+        <text x="376" y="330" font-family="JetBrains Mono, monospace" font-size="10.2" font-weight="700" fill="#065f46">presigned POST (form)</text>
+        <text x="376" y="348" font-family="JetBrains Mono, monospace" font-size="9.6" fill="#047857">url + fields dict, browser-native</text>
+        <text x="376" y="364" font-family="JetBrains Mono, monospace" font-size="9.6" fill="#047857">CAN cap size &amp; type via Conditions</text>
+      </svg>
+      </div>
+      <div class="swipe">&#8596; swipe to see the whole diagram</div>
+    </div>
+
+    <div class="dia">
+      <div class="dia-h">4 &middot; Which method moves the bytes<span>source and size pick the call, every time</span></div>
+      <div class="scroller">
+<svg viewBox="0 0 700 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Decision guide mapping data source and size to the right boto3 method">
+        <defs>
+          <marker id="d4-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="#64748b"/>
+          </marker>
+        </defs>
+
+        <text x="24" y="26" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#64748b">WHERE ARE THE BYTES?</text>
+
+        <rect x="24" y="40" width="150" height="46" rx="7" fill="#f8fafc" stroke="#64748b" stroke-width="1.3"/>
+        <text x="99" y="60" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.4" font-weight="700" fill="#334155">in memory</text>
+        <text x="99" y="77" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#94a3b8">bytes / str / dict</text>
+        <line x1="180" y1="63" x2="222" y2="63" stroke="#64748b" stroke-width="1.6" marker-end="url(#d4-ar)"/>
+        <rect x="226" y="40" width="200" height="46" rx="7" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+        <text x="326" y="60" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.6" font-weight="700" fill="#065f46">put_object(Body=...)</text>
+        <text x="326" y="77" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#059669">one request &middot; 5 GB ceiling</text>
+
+        <rect x="24" y="98" width="150" height="46" rx="7" fill="#f8fafc" stroke="#64748b" stroke-width="1.3"/>
+        <text x="99" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.4" font-weight="700" fill="#334155">a file on disk</text>
+        <text x="99" y="135" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#94a3b8">any size</text>
+        <line x1="180" y1="121" x2="222" y2="121" stroke="#64748b" stroke-width="1.6" marker-end="url(#d4-ar)"/>
+        <rect x="226" y="98" width="200" height="46" rx="7" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+        <text x="326" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.6" font-weight="700" fill="#92400e">upload_file / download_file</text>
+        <text x="326" y="135" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#b45309">auto-multipart &middot; no ceiling</text>
+        <text x="440" y="125" font-family="JetBrains Mono, monospace" font-size="12" fill="#d4a017">&#9733;</text>
+
+        <rect x="24" y="156" width="150" height="46" rx="7" fill="#f8fafc" stroke="#64748b" stroke-width="1.3"/>
+        <text x="99" y="176" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.4" font-weight="700" fill="#334155">a stream</text>
+        <text x="99" y="193" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#94a3b8">BytesIO, socket, pipe</text>
+        <line x1="180" y1="179" x2="222" y2="179" stroke="#64748b" stroke-width="1.6" marker-end="url(#d4-ar)"/>
+        <rect x="226" y="156" width="200" height="46" rx="7" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+        <text x="326" y="176" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.6" font-weight="700" fill="#92400e">upload_fileobj</text>
+        <text x="326" y="193" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#b45309">binary mode only</text>
+
+        <rect x="24" y="214" width="150" height="46" rx="7" fill="#f8fafc" stroke="#64748b" stroke-width="1.3"/>
+        <text x="99" y="234" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.4" font-weight="700" fill="#334155">already in S3</text>
+        <text x="99" y="251" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#94a3b8">copy or move</text>
+        <line x1="180" y1="237" x2="222" y2="237" stroke="#64748b" stroke-width="1.6" marker-end="url(#d4-ar)"/>
+        <rect x="226" y="214" width="200" height="46" rx="7" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+        <text x="326" y="234" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.6" font-weight="700" fill="#065f46">copy( ) &mdash; managed</text>
+        <text x="326" y="251" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#059669">copy_object caps at 5 GB</text>
+
+        <rect x="24" y="272" width="150" height="46" rx="7" fill="#f8fafc" stroke="#64748b" stroke-width="1.3"/>
+        <text x="99" y="292" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.4" font-weight="700" fill="#334155">a dataframe</text>
+        <text x="99" y="309" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#94a3b8">parquet / csv</text>
+        <line x1="180" y1="295" x2="222" y2="295" stroke="#64748b" stroke-width="1.6" marker-end="url(#d4-ar)"/>
+        <rect x="226" y="272" width="200" height="46" rx="7" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+        <text x="326" y="292" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.6" font-weight="700" fill="#115e59">df.to_parquet('s3://...')</text>
+        <text x="326" y="309" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.4" fill="#0d9488">via s3fs &mdash; skip boto3</text>
+
+        <rect x="446" y="40" width="230" height="278" rx="7" fill="#111827"/>
+        <text x="464" y="64" font-family="JetBrains Mono, monospace" font-size="10.4" font-weight="700" fill="#fcd34d">ceilings to remember</text>
+        <text x="464" y="90" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#e5e7eb">single PUT &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5 GB</text>
+        <text x="464" y="110" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#e5e7eb">one object &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5 TB</text>
+        <text x="464" y="130" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#e5e7eb">copy_object &nbsp;&nbsp;&nbsp;5 GB</text>
+        <text x="464" y="150" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#e5e7eb">parts per upload 10 000</text>
+        <text x="464" y="170" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#e5e7eb">min part size &nbsp;&nbsp;5 MB</text>
+        <text x="464" y="190" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#e5e7eb">keys per LIST &nbsp;&nbsp;1 000</text>
+        <text x="464" y="210" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#e5e7eb">keys per DELETE 1 000</text>
+        <text x="464" y="230" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#e5e7eb">user metadata &nbsp;&nbsp;2 KB</text>
+        <text x="464" y="250" font-family="JetBrains Mono, monospace" font-size="9.8" fill="#e5e7eb">presign lifetime 7 days</text>
+        <text x="464" y="276" font-family="JetBrains Mono, monospace" font-size="9.6" fill="#86efac">8 MB default parts &times; 10 000</text>
+        <text x="464" y="292" font-family="JetBrains Mono, monospace" font-size="9.6" fill="#86efac">&asymp; 80 GB &mdash; past that, raise</text>
+        <text x="464" y="308" font-family="JetBrains Mono, monospace" font-size="9.6" fill="#86efac">multipart_chunksize.</text>
+
+        <text x="24" y="345" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">Every managed method also takes ExtraArgs=, Callback= and Config=.</text>
+        <text x="24" y="365" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">put_object / get_object take none of the three.</text>
+      </svg>
+      </div>
+      <div class="swipe">&#8596; swipe to see the whole diagram</div>
+    </div>
+  </div>
+</section>
+
+<section class="memo">
+  <div class="memo-h">Worth memorising &mdash; the fourteen that cost people a day</div>
+  <div class="memo-b">
+    <div class="memo-row">
+      <div class="memo-k">list_objects_v2 &rarr; 1000 keys</div>
+      <div class="memo-v">A raw call silently truncates and sets <b>IsTruncated</b>. Always <code>get_paginator('list_objects_v2')</code>. This bug passes every dev test and loses data in production.</div>
+    </div>
+    <div class="memo-row">
+      <div class="memo-k">resp.get('Contents', [])</div>
+      <div class="memo-v">When nothing matches, the key is <b>absent</b>, not empty. <code>resp['Contents']</code> raises <b>KeyError</b>. Same for <code>CommonPrefixes</code> and <code>Errors</code>.</div>
+    </div>
+    <div class="memo-row">
+      <div class="memo-k">prefix &ne; folder</div>
+      <div class="memo-v">Keys are flat strings. There is no recursive delete, no rename, no mkdir. Deleting a "folder" means listing and deleting every key beneath it.</div>
+    </div>
+    <div class="memo-row">
+      <div class="memo-k">Body is a one-shot stream</div>
+      <div class="memo-v"><b>StreamingBody</b> can be read once and must be closed, or you leak a pooled connection. Use it as a context manager.</div>
+    </div>
+    <div class="memo-row">
+      <div class="memo-k">head 404 vs get NoSuchKey</div>
+      <div class="memo-v"><code>get_object</code> raises the named exception; <code>head_object</code> can only raise <code>ClientError</code> with code <b>'404'</b> &mdash; HEAD has no body to carry the real code. And a <b>403</b> may mean "exists, denied".</div>
+    </div>
+    <div class="memo-row">
+      <div class="memo-k">delete_objects 200 &ne; success</div>
+      <div class="memo-v">Max 1000 keys per call, and per-key failures come back in <b>Errors</b>. Check it, or you will report deletions that never happened.</div>
+    </div>
+    <div class="memo-row">
+      <div class="memo-k">boto3 &ge; 1.36 sends CRC32</div>
+      <div class="memo-v">Default integrity protections replaced Content-MD5 on some calls. Breaks MinIO / GCS / older emulators &rarr; set <code>request_checksum_calculation</code> and <code>response_checksum_validation</code> to <b>when_required</b>.</div>
+    </div>
+    <div class="memo-row">
+      <div class="memo-k">clients yes, resources no</div>
+      <div class="memo-v">Client objects are <b>thread-safe and meant to be shared</b>. Sessions and resources are not &mdash; build one per thread.</div>
+    </div>
+    <div class="memo-row">
+      <div class="memo-k">us-east-1 is the odd one</div>
+      <div class="memo-v">Creating a bucket there must <b>omit</b> CreateBucketConfiguration; every other region must include it. And <code>get_bucket_location</code> returns <b>None</b> for it.</div>
+    </div>
+    <div class="memo-row">
+      <div class="memo-k">ETag is not a checksum</div>
+      <div class="memo-v">It equals the MD5 only for single-part uploads. Anything multipart ends in <b>-N</b>. Use <code>get_object_attributes(ObjectAttributes=['Checksum'])</code> instead.</div>
+    </div>
+    <div class="memo-row">
+      <div class="memo-k">presign: first expiry wins</div>
+      <div class="memo-v">SigV4 caps at <b>7 days</b>, but the URL also dies with the signing credentials. Signing with the wrong region produces a URL that 400s on use.</div>
+    </div>
+    <div class="memo-row">
+      <div class="memo-k">MetadataDirective='REPLACE'</div>
+      <div class="memo-v">Without it, <code>copy_object</code> inherits the source metadata and <b>silently ignores</b> yours. Copy-onto-itself is the only way to edit metadata in place.</div>
+    </div>
+    <div class="memo-row">
+      <div class="memo-k">aborted parts bill forever</div>
+      <div class="memo-v">Incomplete multipart uploads are invisible to listing and never expire on their own. Put <b>AbortIncompleteMultipartUpload: 7 days</b> on every bucket you own.</div>
+    </div>
+    <div class="memo-row">
+      <div class="memo-k">the resource API is frozen</div>
+      <div class="memo-v">AWS has said it will get <b>no new features</b>; it stays working for boto3's lifetime. Write client code, and keep resources for <code>bucket.objects.filter(...).delete()</code>.</div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <b>Sources</b> &mdash; boto3 1.43.52 Developer Guide (S3 examples: uploading, downloading, file transfer configuration, presigned URLs) &middot;
+  boto3 S3 customization reference (<span style="color:#334155">TransferConfig.DEFAULTS</span>, <span style="color:#334155">S3Transfer.ALLOWED_UPLOAD_ARGS / ALLOWED_DOWNLOAD_ARGS / ALLOWED_COPY_ARGS</span>) &middot;
+  Amazon S3 User Guide (directory buckets, data integrity, object lock, lifecycle) &middot;
+  AWS SDKs and Tools Reference &mdash; Data Integrity Protections for Amazon S3 &middot;
+  boto/boto3 issue <b>#4392</b> (S3 default integrity change, v1.36.0) &middot;
+  boto/boto3 discussions <b>#3563</b> (resources interface) and <b>#4789</b> (2026 retry defaults) &middot;
+  PyPI boto3 release notes (Python 3.9 end of support, 29 Apr 2026).<br>
+  <b>Built</b> 21 July 2026 &middot; standalone HTML, no runtime dependencies beyond two webfonts &middot;
+  every API signature and default in this sheet was read off current official documentation rather than reproduced from other cheat sheets.
+</footer>
+
+</div>
+</body>
+</html>

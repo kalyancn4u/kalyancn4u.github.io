@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BigQuery Python Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Google BigQuery Python client &middot; query · load · to_dataframe &middot; cost control &middot; verified against google-cloud-bigquery 3.x (2026)</div>
+  <h1><span class="mono">BigQuery</span> Python cheat sheet</h1>
+  <p class="lede"><b>google-cloud-bigquery</b> is the official client for Google's serverless data warehouse. Make a <code>Client</code>, run SQL with <code>client.query()</code>, and pull results into a pandas <b>DataFrame</b> with <code>.to_dataframe()</code>. Load DataFrames &amp; files back with <code>load_table_from_dataframe()</code> / <code>load_table_from_uri()</code>. Because BigQuery bills by <b>bytes scanned</b>, this sheet leans hard on <b>parameterized queries</b>, <b>dry runs</b>, and cost controls. Targets <b>google-cloud-bigquery 3.x</b>, Python 3.10+.</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>connect &amp; query</span>
+    <span><i class="dot c2"></i>dataframes</span>
+    <span><i class="dot c3"></i>datasets &amp; tables</span>
+    <span><i class="dot c4"></i>jobs &amp; cost</span>
+    <span><i class="dot c5"></i>performance &amp; ecosystem</span>
+    <span><i class="dot danger"></i>gotcha / cost</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-08-31 against the Google Cloud docs (google-cloud-bigquery 3.44.0, released 2026-08-24; Python 3.10&ndash;3.14). Table refs are <code>project.dataset.table</code>. Auth uses Application Default Credentials (<code>gcloud auth application-default login</code> or a service-account key).</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub">Client, then <code>query()</code>. Pull results to DataFrames, load data back, manage datasets/tables, and &mdash; always &mdash; control what you scan.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Connect &amp; query</h3>
+      <ol class="toc-list">
+        <li><span class="rk">1</span><a href="#connect">Install &amp; Client</a></li>
+        <li><span class="rk">2</span><a href="#query">Run a query</a></li>
+        <li><span class="rk">3</span><a href="#params">Query parameters</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">DataFrames</h3>
+      <ol class="toc-list">
+        <li><span class="rk">4</span><a href="#todf">Query &rarr; DataFrame</a></li>
+        <li><span class="rk">5</span><a href="#loaddf">Load DataFrame &rarr; table</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Datasets &amp; tables</h3>
+      <ol class="toc-list">
+        <li><span class="rk">6</span><a href="#datasets">Datasets &amp; tables</a></li>
+        <li><span class="rk">7</span><a href="#load">Load from files / GCS</a></li>
+        <li><span class="rk">8</span><a href="#schema">Schema</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Jobs, cost &amp; ecosystem</h3>
+      <ol class="toc-list">
+        <li><span class="rk">9</span><a href="#cost">Dry run &amp; cost control</a></li>
+        <li><span class="rk">10</span><a href="#write">Streaming &amp; write API</a></li>
+        <li><span class="rk">11</span><a href="#ecosystem">Performance &amp; ecosystem</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-conn"><h2 style="color:var(--c1)">Connect &amp; Query</h2><p class="sub">Authenticate once, then run SQL and read results &mdash; safely, with parameters.</p></div>
+<main>
+  <article class="card" id="connect">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Install &amp; Client</span><span class="card-sub">auth</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">pip install <span class="str">"google-cloud-bigquery[pandas]"</span></code><span class="star">&#9733;</span><div class="desc">The <code>[pandas]</code> extra adds DataFrame support; add <code>bigquery-storage</code> for fast reads (card 11). Python 3.10+.</div></li>
+      <li class="c1"><code class="cmd">gcloud auth application-default login   <span class="cm"># local dev auth</span></code><span class="star">&#9733;</span><div class="desc">Sets up <b>Application Default Credentials</b>. On GCP (Cloud Run/GCE/GKE) the attached service account is used automatically.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">from</span> google.cloud <span class="kw">import</span> bigquery
+client = bigquery.Client(project=<span class="str">"my-project"</span>)</code><span class="star">&#9733;</span><div class="desc">The client. <code>project</code> is the <b>billing</b> project. <code>Client.from_service_account_json("key.json")</code> for an explicit key.</div></li>
+      <li class="c1"><code class="cmd">client = bigquery.Client(project=<span class="str">"p"</span>, location=<span class="str">"US"</span>)</code><div class="desc">Set the dataset <b>location</b> (region) to avoid "dataset not found" errors on non-US data.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="query">
+    <div class="card-head"><span class="card-num n1">2</span><span class="card-title">Run a query</span><span class="card-sub">.query()</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">job = client.query(<span class="str">"SELECT name, count FROM `p.ds.t` LIMIT 10"</span>)
+rows = job.result()   <span class="cm"># waits for completion</span></code><span class="star">&#9733;</span><div class="desc"><code>query()</code> starts an async <b>QueryJob</b> immediately; <code>.result()</code> blocks until done and returns a <code>RowIterator</code>. Backtick-quote <code>`project.dataset.table`</code>.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">for</span> row <span class="kw">in</span> rows:
+    print(row.name, row.count, row[<span class="str">"count"</span>])</code><span class="star">&#9733;</span><div class="desc">Rows support attribute <b>and</b> key access. <code>dict(row)</code> to convert.</div></li>
+      <li class="c1"><code class="cmd">df = client.query_and_wait(sql).to_dataframe()</code><span class="star">&#9733;</span><span class="badge-new">3.x</span><div class="desc"><code>query_and_wait()</code> is the newer one-call helper (run + wait) &mdash; returns the RowIterator directly.</div></li>
+      <li class="c1"><code class="cmd">job.total_bytes_processed  &middot;  job.job_id  &middot;  job.state</code><div class="desc">Inspect the job: bytes billed, id (to fetch later with <code>client.get_job</code>), and state.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="params">
+    <div class="card-head"><span class="card-num n1">3</span><span class="card-title">Query parameters</span><span class="card-sub">safe SQL</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd"><span class="kw">from</span> google.cloud <span class="kw">import</span> bigquery
+cfg = bigquery.QueryJobConfig(query_parameters=[
+    bigquery.ScalarQueryParameter(<span class="str">"min"</span>, <span class="str">"INT64"</span>, 100)])
+client.query(<span class="str">"SELECT * FROM t WHERE n &gt; @min"</span>, job_config=cfg)</code><span class="star">&#9733;</span><div class="desc"><b>Always parameterize</b> user input with <code>@name</code> placeholders &mdash; safe against injection. Never f-string values into SQL.</div></li>
+      <li class="c1"><code class="cmd">bigquery.ArrayQueryParameter(<span class="str">"ids"</span>, <span class="str">"INT64"</span>, [1,2,3])</code><div class="desc">Array &amp; struct parameters too. Use <code>@ids</code> with <code>UNNEST(@ids)</code> or <code>n IN UNNEST(@ids)</code>.</div></li>
+      <li class="c1"><code class="cmd">cfg = bigquery.QueryJobConfig(
+    default_dataset=<span class="str">"p.ds"</span>, use_query_cache=<span class="kw">True</span>)</code><div class="desc"><code>QueryJobConfig</code> carries all query options: default dataset (skip qualifying tables), cache, priority, labels, destination.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-df"><h2 style="color:var(--c2)">DataFrames</h2><p class="sub">The pandas bridge in both directions &mdash; the most common analytics workflow.</p></div>
+<main>
+  <article class="card" id="todf">
+    <div class="card-head"><span class="card-num n2">4</span><span class="card-title">Query &rarr; DataFrame</span><span class="card-sub">read</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">df = client.query(sql).to_dataframe()</code><span class="star">&#9733;</span><div class="desc">The everyday pattern: SQL in, DataFrame out. Needs the <code>[pandas]</code> extra.</div></li>
+      <li class="c2"><code class="cmd">df = client.query(sql).to_dataframe(create_bqstorage_client=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Use the <b>Storage Read API</b> for a much faster, parallel download of large results (needs <code>google-cloud-bigquery-storage</code>).</div></li>
+      <li class="c2"><code class="cmd">df = client.list_rows(<span class="str">"p.ds.t"</span>, max_results=1000).to_dataframe()</code><div class="desc">Read a table directly (no query, no scan cost) &mdash; <code>list_rows</code> pages through table data.</div></li>
+      <li class="c2"><code class="cmd">it = client.query(sql).result(page_size=10000)
+<span class="kw">for</span> page <span class="kw">in</span> it.to_dataframe_iterable(): ...</code><div class="desc">Stream results as DataFrame pages for results too big for memory.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="loaddf">
+    <div class="card-head"><span class="card-num n2">5</span><span class="card-title">Load DataFrame &rarr; table</span><span class="card-sub">write</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">job = client.load_table_from_dataframe(df, <span class="str">"p.ds.t"</span>)
+job.result()   <span class="cm"># wait for the load</span></code><span class="star">&#9733;</span><div class="desc">Load a DataFrame into a table (via Parquet under the hood). Always <code>.result()</code> to surface errors.</div></li>
+      <li class="c2"><code class="cmd">cfg = bigquery.LoadJobConfig(
+    write_disposition=<span class="str">"WRITE_TRUNCATE"</span>,
+    schema=[bigquery.SchemaField(<span class="str">"id"</span>,<span class="str">"INT64"</span>)])
+client.load_table_from_dataframe(df, <span class="str">"p.ds.t"</span>, job_config=cfg)</code><span class="star">&#9733;</span><div class="desc"><code>write_disposition</code>: <code>WRITE_APPEND</code> (default), <code>WRITE_TRUNCATE</code> (replace), <code>WRITE_EMPTY</code> (fail if data). Give an explicit schema for tricky dtypes.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># pandas object/NaN columns can infer the wrong BQ type</span></code><span class="badge-warn">gotcha</span><div class="desc">Let BigQuery infer, but pass an explicit <code>schema=</code> for dates, nullable ints, and JSON to avoid surprises.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-tables"><h2 style="color:var(--c3)">Datasets &amp; Tables</h2><p class="sub">Create and manage datasets/tables; load from files and GCS.</p></div>
+<main>
+  <article class="card" id="datasets">
+    <div class="card-head"><span class="card-num n3">6</span><span class="card-title">Datasets &amp; tables</span><span class="card-sub">DDL via API</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">ds = bigquery.Dataset(<span class="str">"p.my_ds"</span>); ds.location = <span class="str">"US"</span>
+client.create_dataset(ds, exists_ok=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Create a dataset (the container for tables). <code>exists_ok=True</code> makes it idempotent.</div></li>
+      <li class="c3"><code class="cmd">t = client.get_table(<span class="str">"p.ds.t"</span>)
+t.num_rows  &middot;  t.schema  &middot;  t.modified</code><span class="star">&#9733;</span><div class="desc">Fetch table metadata: row count, schema, size, partitioning, timestamps.</div></li>
+      <li class="c3"><code class="cmd">client.delete_table(<span class="str">"p.ds.t"</span>, not_found_ok=<span class="kw">True</span>)
+client.list_tables(<span class="str">"p.ds"</span>)  &middot;  client.list_datasets()</code><div class="desc">Delete &amp; list. You can also just run <code>CREATE TABLE</code>/<code>CREATE OR REPLACE</code> DDL via <code>client.query()</code>.</div></li>
+      <li class="c3"><code class="cmd">table = bigquery.Table(<span class="str">"p.ds.t"</span>, schema=schema)
+table.time_partitioning = bigquery.TimePartitioning(field=<span class="str">"ts"</span>)
+client.create_table(table)</code><div class="desc">Create partitioned/clustered tables &mdash; essential for cost &amp; performance at scale.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="load">
+    <div class="card-head"><span class="card-num n3">7</span><span class="card-title">Load from files / GCS</span><span class="card-sub">ingest</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">cfg = bigquery.LoadJobConfig(source_format=<span class="str">"CSV"</span>,
+    skip_leading_rows=1, autodetect=<span class="kw">True</span>)
+client.load_table_from_uri(<span class="str">"gs://bucket/*.csv"</span>, <span class="str">"p.ds.t"</span>, job_config=cfg)</code><span class="star">&#9733;</span><div class="desc">Load from Cloud Storage (wildcards allowed). Formats: <code>CSV</code>, <code>NEWLINE_DELIMITED_JSON</code>, <code>PARQUET</code>, <code>AVRO</code>, <code>ORC</code>.</div></li>
+      <li class="c3"><code class="cmd"><span class="kw">with</span> open(<span class="str">"data.parquet"</span>, <span class="str">"rb"</span>) <span class="kw">as</span> f:
+    client.load_table_from_file(f, <span class="str">"p.ds.t"</span>, job_config=cfg).result()</code><div class="desc">Load from a local file object &mdash; good for small/one-off uploads.</div></li>
+      <li class="c3"><code class="cmd">source_format=<span class="str">"PARQUET"</span>  <span class="cm"># self-describing — no schema needed</span></code><div class="desc">Parquet/Avro carry their own schema, so you can skip <code>schema=</code>/<code>autodetect</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="schema">
+    <div class="card-head"><span class="card-num n3">8</span><span class="card-title">Schema</span><span class="card-sub">field types</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">schema = [
+    bigquery.SchemaField(<span class="str">"id"</span>, <span class="str">"INT64"</span>, mode=<span class="str">"REQUIRED"</span>),
+    bigquery.SchemaField(<span class="str">"tags"</span>, <span class="str">"STRING"</span>, mode=<span class="str">"REPEATED"</span>)]</code><span class="star">&#9733;</span><div class="desc"><code>mode</code>: <code>NULLABLE</code> (default), <code>REQUIRED</code>, <code>REPEATED</code> (an array). Types: <code>INT64</code>, <code>FLOAT64</code>, <code>STRING</code>, <code>BOOL</code>, <code>TIMESTAMP</code>, <code>DATE</code>, <code>NUMERIC</code>, <code>JSON</code>, <code>GEOGRAPHY</code>.</div></li>
+      <li class="c3"><code class="cmd">bigquery.SchemaField(<span class="str">"addr"</span>, <span class="str">"RECORD"</span>, fields=[
+    bigquery.SchemaField(<span class="str">"city"</span>, <span class="str">"STRING"</span>)])</code><div class="desc"><code>RECORD</code>/<code>STRUCT</code> with nested <code>fields=</code> &mdash; BigQuery's nested/repeated model.</div></li>
+      <li class="c3"><code class="cmd">t.schema = t.schema + [bigquery.SchemaField(<span class="str">"new"</span>,<span class="str">"STRING"</span>)]
+client.update_table(t, [<span class="str">"schema"</span>])</code><div class="desc">Additive schema changes via <code>update_table</code> with a field mask.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-cost"><h2 style="color:var(--c4)">Jobs &amp; Cost</h2><p class="sub">BigQuery bills by bytes scanned &mdash; measure before you run, and cap spend.</p></div>
+<main>
+  <article class="card" id="cost">
+    <div class="card-head"><span class="card-num n4">9</span><span class="card-title">Dry run &amp; cost control</span><span class="card-sub">bytes = money</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">cfg = bigquery.QueryJobConfig(dry_run=<span class="kw">True</span>, use_query_cache=<span class="kw">False</span>)
+job = client.query(sql, job_config=cfg)
+print(job.total_bytes_processed)   <span class="cm"># estimate, $0 to run</span></code><span class="star">&#9733;</span><div class="desc"><b>Dry run</b> validates the SQL &amp; estimates bytes scanned <b>without running or billing</b>. Do this before expensive queries.</div></li>
+      <li class="c4"><code class="cmd">bigquery.QueryJobConfig(maximum_bytes_billed=10**9)  <span class="cm"># 1 GB cap</span></code><span class="star">&#9733;</span><div class="desc">Hard cap: the query <b>fails</b> instead of scanning more than N bytes &mdash; a guardrail against a runaway <code>SELECT *</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># SELECT * on a big table scans EVERY column you don't need</span></code><span class="badge-danger">cost</span><div class="desc">BigQuery is columnar &amp; bills by columns scanned. Select only needed columns, filter on the <b>partition column</b>, and prefer clustered fields.</div></li>
+      <li class="c4"><code class="cmd">bigquery.QueryJobConfig(priority=<span class="str">"BATCH"</span>)  <span class="cm"># vs INTERACTIVE</span></code><div class="desc"><code>BATCH</code> priority queues the query (no concurrency-slot pressure) &mdash; cheaper on flat-rate, fine for non-urgent jobs.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="write">
+    <div class="card-head"><span class="card-num n4">10</span><span class="card-title">Streaming &amp; write API</span><span class="card-sub">real-time in</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">errors = client.insert_rows_json(<span class="str">"p.ds.t"</span>, [{<span class="str">"id"</span>:1}, {<span class="str">"id"</span>:2}])
+<span class="kw">if</span> errors: print(errors)</code><span class="star">&#9733;</span><div class="desc">Legacy <b>streaming inserts</b>: rows appear almost immediately. Returns a list of per-row errors (empty = success).</div></li>
+      <li class="c4"><code class="cmd"><span class="cm"># prefer: Storage Write API (google-cloud-bigquery-storage)</span></code><div class="desc">The <b>Storage Write API</b> is the modern, cheaper, higher-throughput path for streaming ingestion &mdash; use it over <code>insert_rows_json</code> for new work.</div></li>
+      <li class="c4"><code class="cmd">job = client.query(<span class="str">"CREATE TABLE ... AS SELECT ..."</span>); job.result()</code><div class="desc">For big transforms, run DDL/DML (<code>CREATE TABLE AS</code>, <code>MERGE</code>, <code>INSERT</code>) server-side rather than round-tripping data.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-eco"><h2 style="color:var(--c5)">Performance &amp; Ecosystem</h2><p class="sub">Faster reads and the higher-level tools around the client.</p></div>
+<main>
+  <article class="card" id="ecosystem">
+    <div class="card-head"><span class="card-num n5">11</span><span class="card-title">Performance &amp; ecosystem</span><span class="card-sub">the wider stack</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd">pip install google-cloud-bigquery-storage</code><span class="star">&#9733;</span><div class="desc">The <b>Storage Read API</b> parallelizes result downloads (Arrow/Avro) &mdash; dramatically faster <code>to_dataframe()</code> for big results. The client uses it automatically when installed.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># pandas: pd.read_gbq() / df.to_gbq()  (pandas-gbq)</span></code><div class="desc"><b>pandas-gbq</b> wraps this client for one-liner <code>read_gbq</code>/<code>to_gbq</code>. For bigger-than-memory pandas-on-BigQuery, see <b>BigQuery DataFrames (bigframes)</b>.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># notebooks: %%bigquery magic (google-cloud-bigquery[ipython])</span></code><div class="desc">The <code>%%bigquery df</code> Jupyter magic runs SQL straight into a DataFrame.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># SQLAlchemy: sqlalchemy-bigquery dialect · dbt-bigquery · Looker</span></code><div class="desc">BigQuery plugs into SQLAlchemy, dbt, and BI tools. ML in SQL via <b>BigQuery ML</b> (<code>CREATE MODEL</code>).</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">bigquery.Client(project=)</span><span class="v">project = billing; set location=</span></div>
+    <div><span class="k">client.query(sql).result()</span><span class="v">QueryJob -> RowIterator</span></div>
+    <div><span class="k">query_and_wait(sql)</span><span class="v">newer run+wait one-liner</span></div>
+    <div><span class="k">.to_dataframe()</span><span class="v">+ create_bqstorage_client=True for speed</span></div>
+    <div><span class="k">@param + QueryJobConfig</span><span class="v">parameterize — never f-string SQL</span></div>
+    <div><span class="k">load_table_from_dataframe</span><span class="v">write_disposition WRITE_TRUNCATE/APPEND</span></div>
+    <div><span class="k">load_table_from_uri</span><span class="v">gs:// CSV/JSON/PARQUET/AVRO</span></div>
+    <div><span class="k">SchemaField(name, type, mode)</span><span class="v">REPEATED = array, RECORD = struct</span></div>
+    <div><span class="k">dry_run=True</span><span class="v">estimate bytes, $0 to run</span></div>
+    <div><span class="k">maximum_bytes_billed</span><span class="v">hard cost cap</span></div>
+    <div><span class="k">avoid SELECT *</span><span class="v">bills by columns scanned; filter partitions</span></div>
+    <div><span class="k">bigquery-storage</span><span class="v">fast parallel reads</span></div>
+  </div>
+</section>
+
+<footer>
+  <b>BigQuery Python cheat sheet</b> &middot; v0 &middot; content verified 2026-08-31 against cloud.google.com/bigquery docs (google-cloud-bigquery 3.44.0, released 2026-08-24, Python 3.10&ndash;3.14).<br>
+  The official client: <code>Client()</code> &rarr; <code>query()</code>/<code>query_and_wait()</code> &rarr; <code>.to_dataframe()</code>; load back with <code>load_table_from_dataframe</code>/<code>_uri</code>/<code>_file</code>. Parameterize with <code>@name</code>, manage datasets/tables/schemas via the API, and stream with the Storage Write API. <b>Cost matters:</b> dry-run to estimate bytes, cap with <code>maximum_bytes_billed</code>, avoid <code>SELECT *</code>, and filter partitions. Install <code>bigquery-storage</code> for fast reads.<br>
+  Star (&#9733;) marks the most common operations. Confirm exact signatures &amp; pricing behavior against the current Google Cloud docs before shipping.
+</footer>
+</body>
+</html>

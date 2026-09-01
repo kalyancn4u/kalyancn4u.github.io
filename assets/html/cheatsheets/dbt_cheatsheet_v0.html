@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dbt Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --brand:#ff694b;                        /* dbt orange              */
+    --cli:#64748b;    --cli-bg:#f1f3f6;      /* setup / project / CLI   */
+    --model:#16a34a;  --model-bg:#ecf7ef;    /* models & SQL — the core */
+    --cmd:#4f46e5;    --cmd-bg:#eef0fd;      /* commands & selection    */
+    --yml:#d97706;    --yml-bg:#fdf6ec;      /* YAML config             */
+    --jinja:#7c3aed;  --jinja-bg:#f3effc;    /* Jinja & macros          */
+    --test:#0d9488;   --test-bg:#e9f6f4;     /* tests · docs · freshness*/
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .dbt{font-family:var(--mono); color:var(--brand)}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink); font-weight:600}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.cli{background:var(--cli)}     .dot.model{background:var(--model)}
+  .dot.cmd{background:var(--cmd)}     .dot.yml{background:var(--yml)}
+  .dot.jinja{background:var(--jinja)} .dot.test{background:var(--test)}
+  .dot.danger{background:var(--danger)}
+  .legend .star{color:var(--star)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- quickstart ---------- */
+  .quick-wrap{max-width:1500px; margin:0 auto; padding:.5rem clamp(1rem,4vw,3rem) 1rem}
+  .quick{
+    background:var(--ink); border-radius:12px; overflow:hidden;
+    box-shadow:0 2px 8px rgba(20,20,30,.10); max-width:1120px; margin:0 auto;
+  }
+  .quick-bar{
+    display:flex; align-items:center; gap:.5rem;
+    padding:.6rem .9rem; border-bottom:1px solid #2c313c;
+  }
+  .quick-bar i{width:11px; height:11px; border-radius:50%; display:inline-block}
+  .quick-bar .r{background:#ff5f57} .quick-bar .y{background:#febc2e} .quick-bar .g{background:#28c840}
+  .quick-bar span{
+    font-family:var(--mono); font-size:.72rem; color:#9aa2b1; margin-left:.4rem;
+  }
+  pre.quick-inner{
+    margin:0; padding:1rem 1.15rem; white-space:pre; tab-size:2;
+    font-family:var(--mono); font-size:.79rem; line-height:1.6; color:#e8e6e1;
+    overflow-x:auto;
+  }
+  .quick-inner .cm{color:#6b7280}
+  .quick-inner .kw{color:#c792ea}
+  .quick-inner .fn{color:#82d9c9}
+  .quick-inner .str{color:#c3e88d}
+  .quick-inner .num{color:#f78c6c}
+  .quick-inner .jb{color:#ff9d7a; font-weight:700}
+  .quick-inner .yk{color:#82aaff}
+  .quick-inner .cmd{color:#ffd479}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.cli{border-left-color:var(--cli)}
+  ul.cmds li.model{border-left-color:var(--model)}
+  ul.cmds li.cmd{border-left-color:var(--cmd)}
+  ul.cmds li.yml{border-left-color:var(--yml)}
+  ul.cmds li.jinja{border-left-color:var(--jinja)}
+  ul.cmds li.test{border-left-color:var(--test)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.5;
+  }
+  code.cmd .fn{color:var(--model); font-weight:600}
+  code.cmd .arg{color:var(--jinja); font-weight:400}
+  code.cmd .str{color:var(--model)}
+  code.cmd .num{color:var(--yml)}
+  code.cmd .kw{color:#a626a4}
+  code.cmd .jb{color:var(--brand); font-weight:700}
+  code.cmd .yk{color:var(--cmd)}
+  code.cmd .op{color:var(--muted)}
+  code.cmd .fl{color:var(--star)}
+  li.danger code.cmd{color:var(--danger)}
+  li.danger code.cmd .arg,li.danger code.cmd .fn,li.danger code.cmd .fl{color:var(--danger)}
+  .desc{font-size:.77rem; color:#525761; margin-top:.2rem}
+  .desc code{font-family:var(--mono); font-size:.9em; background:#f3f0ea; padding:.02em .3em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-new{
+    color:var(--jinja); font-size:.63rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:var(--mono)}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.8rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#e8e6e1; background:#2c313c; padding:.02em .3em; border-radius:3px}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{background:#f3f0ea; padding:.02em .3em; border-radius:3px}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · analytics engineering · the T in ELT</div>
+  <h1><span class="dbt">dbt</span> cheat sheet</h1>
+  <p class="lede">dbt turns <b>SELECT statements into a data pipeline</b>. You write one model per <code>.sql</code> file; <code>ref()</code> and <code>source()</code> wire them into a <b>DAG</b>; dbt <b>compiles</b> your Jinja+SQL to plain SQL, <b>wraps</b> each query in the right <code>CREATE&nbsp;TABLE/VIEW/MERGE</code>, and runs them <b>in dependency order</b> against your warehouse — then tests and documents the result. Learn the map once and the commands stop being a list to memorise.</p>
+  <div class="legend">
+    <span><i class="dot cli"></i>setup / project</span>
+    <span><i class="dot model"></i>models &amp; SQL</span>
+    <span><i class="dot cmd"></i>commands &amp; selection</span>
+    <span><i class="dot yml"></i>YAML config</span>
+    <span><i class="dot jinja"></i>Jinja &amp; macros</span>
+    <span><i class="dot test"></i>tests · docs · freshness</span>
+    <span><i class="dot danger"></i>destructive / gotcha</span>
+    <span><span class="star">&starf;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>docs.getdbt.com</b> (About · Build · Reference) · verified by running <b>dbt-core 1.12.0</b> against DuckDB · <b>y42.com</b> · <b>datagym.io</b> · <b>thedataschool.co.uk</b> · <b>hevodata.com</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">What dbt actually does — compile, wrap, run the DAG</div>
+  <svg class="flow-svg" viewBox="0 0 1120 452" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="dbt compiles a SQL model with Jinja into plain SQL, wraps it in DDL, and runs models in DAG order from sources through staging and intermediate to marts.">
+    <defs>
+      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <!-- band A label -->
+    <text x="20" y="30" font-size="10.5" letter-spacing="2.5" fill="#94a3b8">ONE MODEL — you write a SELECT, dbt writes the DDL</text>
+
+    <!-- boxes -->
+    <g>
+      <rect x="18"  y="48" width="230" height="120" rx="12" fill="#ecf7ef" stroke="#16a34a" stroke-width="2"/>
+      <text x="133" y="74" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">model.sql</text>
+      <text x="133" y="96" text-anchor="middle" font-size="10" fill="#16a34a">{{ config(materialized=…) }}</text>
+      <text x="133" y="114" text-anchor="middle" font-size="10" fill="#16a34a">select … from</text>
+      <text x="133" y="130" text-anchor="middle" font-size="10" fill="#16a34a">{{ ref('stg_orders') }}</text>
+      <text x="133" y="152" text-anchor="middle" font-size="9.5" fill="#64748b">just a SELECT + Jinja</text>
+    </g>
+    <g>
+      <rect x="300" y="48" width="210" height="120" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="405" y="74" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">compiled SQL</text>
+      <text x="405" y="98" text-anchor="middle" font-size="10" fill="#64748b">Jinja resolved to</text>
+      <text x="405" y="116" text-anchor="middle" font-size="10" fill="#64748b">plain warehouse SQL</text>
+      <text x="405" y="140" text-anchor="middle" font-size="9.5" fill="#64748b">ref → db.schema.table</text>
+    </g>
+    <g>
+      <rect x="562" y="48" width="210" height="120" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="667" y="74" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">wrapped in DDL</text>
+      <text x="667" y="98" text-anchor="middle" font-size="10" fill="#4f46e5">create table / view /</text>
+      <text x="667" y="116" text-anchor="middle" font-size="10" fill="#4f46e5">merge — per materializ.</text>
+      <text x="667" y="140" text-anchor="middle" font-size="9.5" fill="#4f46e5">dbt writes this for you</text>
+    </g>
+    <g>
+      <rect x="824" y="48" width="278" height="120" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="963" y="74" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">your warehouse</text>
+      <text x="963" y="98" text-anchor="middle" font-size="10" fill="#b45309">Snowflake · BigQuery · Databricks</text>
+      <text x="963" y="114" text-anchor="middle" font-size="10" fill="#b45309">Redshift · Postgres · DuckDB</text>
+      <text x="963" y="140" text-anchor="middle" font-size="9.5" fill="#0d9488">✓ dbt test &nbsp;·&nbsp; 📖 dbt docs</text>
+    </g>
+
+    <!-- arrows -->
+    <line x1="248" y1="108" x2="298" y2="108" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <text x="273" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#64748b">compile</text>
+    <line x1="510" y1="108" x2="560" y2="108" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <text x="535" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#4f46e5">run</text>
+    <line x1="772" y1="108" x2="822" y2="108" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <text x="797" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#d97706">execute</text>
+
+    <!-- band B: the DAG -->
+    <text x="20" y="212" font-size="10.5" letter-spacing="2.5" fill="#94a3b8">MANY MODELS — ref() &amp; source() build the DAG; dbt runs it in dependency order</text>
+
+    <!-- lineage nodes -->
+    <g font-size="10.5">
+      <!-- sources -->
+      <rect x="18"  y="238" width="150" height="150" rx="10" fill="#fff" stroke="#64748b" stroke-width="1.4" stroke-dasharray="4 3"/>
+      <text x="93" y="230" text-anchor="middle" font-size="9.5" letter-spacing="1.5" fill="#94a3b8">SOURCES (raw)</text>
+      <rect x="34" y="258" width="118" height="30" rx="6" fill="#f1f3f6" stroke="#64748b"/><text x="93" y="277" text-anchor="middle" fill="#1a1d24">raw.orders</text>
+      <rect x="34" y="300" width="118" height="30" rx="6" fill="#f1f3f6" stroke="#64748b"/><text x="93" y="319" text-anchor="middle" fill="#1a1d24">raw.customers</text>
+      <rect x="34" y="342" width="118" height="30" rx="6" fill="#f1f3f6" stroke="#64748b"/><text x="93" y="361" text-anchor="middle" fill="#1a1d24">seed: countries</text>
+
+      <!-- staging -->
+      <rect x="260" y="238" width="150" height="150" rx="10" fill="#fff" stroke="#16a34a" stroke-width="1.4"/>
+      <text x="335" y="230" text-anchor="middle" font-size="9.5" letter-spacing="1.5" fill="#16a34a">STAGING (views)</text>
+      <rect x="276" y="272" width="118" height="30" rx="6" fill="#ecf7ef" stroke="#16a34a"/><text x="335" y="291" text-anchor="middle" fill="#1a1d24">stg_orders</text>
+      <rect x="276" y="322" width="118" height="30" rx="6" fill="#ecf7ef" stroke="#16a34a"/><text x="335" y="341" text-anchor="middle" fill="#1a1d24">stg_customers</text>
+
+      <!-- intermediate -->
+      <rect x="502" y="238" width="150" height="150" rx="10" fill="#fff" stroke="#7c3aed" stroke-width="1.4"/>
+      <text x="577" y="230" text-anchor="middle" font-size="9.5" letter-spacing="1.5" fill="#7c3aed">INTERMEDIATE</text>
+      <rect x="518" y="298" width="118" height="30" rx="6" fill="#f3effc" stroke="#7c3aed"/><text x="577" y="317" text-anchor="middle" fill="#1a1d24">int_orders_joined</text>
+
+      <!-- marts -->
+      <rect x="744" y="238" width="358" height="150" rx="10" fill="#fff" stroke="#d97706" stroke-width="1.4"/>
+      <text x="923" y="230" text-anchor="middle" font-size="9.5" letter-spacing="1.5" fill="#d97706">MARTS (tables — what BI reads)</text>
+      <rect x="760" y="272" width="150" height="30" rx="6" fill="#fdf6ec" stroke="#d97706"/><text x="835" y="291" text-anchor="middle" fill="#1a1d24">fct_orders</text>
+      <rect x="936" y="272" width="150" height="30" rx="6" fill="#fdf6ec" stroke="#d97706"/><text x="1011" y="291" text-anchor="middle" fill="#1a1d24">dim_customers</text>
+      <rect x="848" y="322" width="150" height="30" rx="6" fill="#fdf6ec" stroke="#d97706"/><text x="923" y="341" text-anchor="middle" fill="#1a1d24">mart_revenue</text>
+    </g>
+    <!-- lineage arrows -->
+    <g stroke-width="1.5" fill="none">
+      <line x1="152" y1="273" x2="274" y2="285" stroke="#16a34a" marker-end="url(#ar)"/>
+      <line x1="152" y1="315" x2="274" y2="333" stroke="#16a34a" marker-end="url(#ar)"/>
+      <line x1="152" y1="357" x2="758" y2="330" stroke="#94a3b8" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+      <line x1="394" y1="287" x2="516" y2="311" stroke="#7c3aed" marker-end="url(#ar)"/>
+      <line x1="394" y1="337" x2="516" y2="315" stroke="#7c3aed" marker-end="url(#ar)"/>
+      <line x1="636" y1="313" x2="758" y2="290" stroke="#d97706" marker-end="url(#ar)"/>
+      <line x1="636" y1="313" x2="846" y2="337" stroke="#d97706" marker-end="url(#ar)"/>
+    </g>
+    <text x="20" y="410" font-size="10.5" fill="#6b7280"><tspan font-family="JetBrains Mono, monospace" fill="#4f46e5">dbt build</tspan> runs seeds → models → snapshots → tests in this topological order · <tspan font-family="JetBrains Mono, monospace" fill="#16a34a">ref('x')</tspan> is the edge that creates the arrow.</text>
+    <text x="20" y="430" font-size="10.5" fill="#6b7280">Naming layers <tspan font-family="JetBrains Mono, monospace">stg_ / int_ / fct_ / dim_</tspan> is convention, not enforced — but it keeps the DAG readable and is what every dbt project does.</text>
+  </svg>
+</section>
+
+<!-- ============ QUICKSTART ============ -->
+<section class="quick-wrap">
+  <div class="quick">
+    <div class="quick-bar"><i class="r"></i><i class="y"></i><i class="g"></i><span>anatomy of a dbt project — a model, its tests, and the build</span></div>
+<pre class="quick-inner"><span class="cm">-- models/marts/fct_orders.sql  ·  one model = one SELECT</span>
+<span class="jb">{{</span> <span class="fn">config</span>(materialized=<span class="str">'incremental'</span>, unique_key=<span class="str">'order_id'</span>) <span class="jb">}}</span>
+<span class="kw">select</span> o.order_id, o.customer_id, c.country, o.amount
+<span class="kw">from</span> <span class="jb">{{</span> <span class="fn">ref</span>(<span class="str">'stg_orders'</span>) <span class="jb">}}</span> o                <span class="cm"># ref() → builds the DAG edge</span>
+<span class="kw">join</span> <span class="jb">{{</span> <span class="fn">ref</span>(<span class="str">'stg_customers'</span>) <span class="jb">}}</span> c <span class="kw">using</span> (customer_id)
+<span class="jb">{%</span> <span class="kw">if</span> <span class="fn">is_incremental</span>() <span class="jb">%}</span> <span class="kw">where</span> o.updated_at > (<span class="kw">select</span> max(updated_at) <span class="kw">from</span> <span class="jb">{{</span> <span class="fn">this</span> <span class="jb">}}</span>) <span class="jb">{%</span> <span class="kw">endif</span> <span class="jb">%}</span>
+
+<span class="cm"># models/marts/_models.yml  ·  properties + tests live in YAML</span>
+<span class="yk">models:</span>
+  - <span class="yk">name:</span> fct_orders
+    <span class="yk">columns:</span>
+      - <span class="yk">name:</span> order_id
+        <span class="yk">data_tests:</span> [unique, not_null]      <span class="cm"># generic tests</span>
+
+<span class="cmd">$ dbt deps</span>                 <span class="cm"># install packages.yml</span>
+<span class="cmd">$ dbt build -s +fct_orders</span>  <span class="cm"># fct_orders and everything upstream, run + tested in DAG order</span></pre>
+  </div>
+</section>
+
+<!-- ============ COMMAND CARDS ============ -->
+<main>
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Project</span><span class="card-sub">once per project</span></div>
+    <ul class="cmds">
+      <li class="cli"><code class="cmd">pip install dbt-core dbt-<span class="arg">&lt;adapter&gt;</span></code><div class="desc">Core + one warehouse adapter (<code>-snowflake</code>, <code>-bigquery</code>, <code>-postgres</code>, <code>-duckdb</code>&hellip;).</div></li>
+      <li class="cli"><code class="cmd">dbt init <span class="arg">&lt;project&gt;</span></code><span class="star">&starf;</span><div class="desc">Scaffold a new project + set up your profile.</div></li>
+      <li class="cli"><code class="cmd">dbt debug</code><span class="star">&starf;</span><div class="desc">Check the warehouse connection &amp; config are valid.</div></li>
+      <li class="cli"><code class="cmd">dbt deps</code><div class="desc">Install packages from <code>packages.yml</code>. Re-run after edits.</div></li>
+      <li class="cli"><code class="cmd">~/.dbt/profiles.yml</code><div class="desc">Connection secrets (host, schema, credentials) — kept out of the repo.</div></li>
+      <li class="cli"><code class="cmd">dbt_project.yml</code><div class="desc">The project's config file (name, paths, model defaults).</div></li>
+      <li class="cli"><code class="cmd">models/ · seeds/ · snapshots/ · tests/ · macros/</code><div class="desc">The standard folder layout dbt expects.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 THE MODEL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">The dbt Model</span><span class="card-sub">a .sql file = one SELECT</span></div>
+    <ul class="cmds">
+      <li class="model"><code class="cmd"><span class="kw">select</span> ... <span class="kw">from</span> ...</code><span class="star">&starf;</span><div class="desc">Every model is a single <code>SELECT</code> — no DDL, dbt adds it.</div></li>
+      <li class="model"><code class="cmd"><span class="jb">{{</span> <span class="fn">ref</span>(<span class="str">'other_model'</span>) <span class="jb">}}</span></code><span class="star">&starf;</span><div class="desc">Reference another model — <b>this builds the DAG</b>. Never hardcode names.</div></li>
+      <li class="model"><code class="cmd"><span class="jb">{{</span> <span class="fn">source</span>(<span class="str">'raw'</span>, <span class="str">'orders'</span>) <span class="jb">}}</span></code><span class="star">&starf;</span><div class="desc">Reference a declared raw table — the DAG's entry point.</div></li>
+      <li class="model"><code class="cmd"><span class="jb">{{</span> <span class="fn">config</span>(materialized=<span class="str">'table'</span>) <span class="jb">}}</span></code><span class="star">&starf;</span><div class="desc">Per-model settings at the top of the file.</div></li>
+      <li class="model"><code class="cmd"><span class="jb">{{</span> <span class="fn">this</span> <span class="jb">}}</span></code><div class="desc">The current model's own relation (for incremental logic).</div></li>
+      <li class="model"><code class="cmd">dbt compile <span class="fl">-s</span> <span class="arg">my_model</span></code><div class="desc">See the raw SQL dbt generates — great for debugging Jinja.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 MATERIALIZATIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Materializations</span><span class="card-sub">how the SELECT persists</span></div>
+    <ul class="cmds">
+      <li class="model"><code class="cmd">materialized=<span class="str">'view'</span></code><span class="star">&starf;</span><div class="desc">Default. <code>CREATE VIEW</code> — no storage, always fresh, recomputed on read.</div></li>
+      <li class="model"><code class="cmd">materialized=<span class="str">'table'</span></code><span class="star">&starf;</span><div class="desc"><code>CREATE TABLE AS</code> — fully rebuilt each run; fast to query.</div></li>
+      <li class="model"><code class="cmd">materialized=<span class="str">'incremental'</span></code><span class="star">&starf;</span><div class="desc">Insert/merge only new rows into an existing table (see card 04).</div></li>
+      <li class="model"><code class="cmd">materialized=<span class="str">'ephemeral'</span></code><div class="desc">No object — inlined as a CTE into downstream models.</div></li>
+      <li class="model"><code class="cmd">materialized=<span class="str">'materialized_view'</span></code><div class="desc">Warehouse-managed MV (Snowflake/BigQuery/Databricks).</div></li>
+      <li class="model"><code class="cmd">+materialized: <span class="str">table</span></code><div class="desc">Set defaults per folder in <code>dbt_project.yml</code> instead of per file.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 INCREMENTAL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Incremental Models</span><span class="card-sub">only process new rows</span></div>
+    <ul class="cmds">
+      <li class="model"><code class="cmd"><span class="jb">{%</span> <span class="kw">if</span> <span class="fn">is_incremental</span>() <span class="jb">%}</span> ... <span class="jb">{%</span> <span class="kw">endif</span> <span class="jb">%}</span></code><span class="star">&starf;</span><div class="desc">Filter block — only applied on runs after the first.</div></li>
+      <li class="model"><code class="cmd"><span class="kw">where</span> updated_at > (<span class="kw">select</span> max(updated_at) <span class="kw">from</span> <span class="jb">{{</span> <span class="fn">this</span> <span class="jb">}}</span>)</code><div class="desc">The classic "only rows newer than what's loaded" pattern.</div></li>
+      <li class="model"><code class="cmd">unique_key=<span class="str">'id'</span></code><span class="star">&starf;</span><div class="desc">Enables updates (merge) instead of duplicate inserts.</div></li>
+      <li class="model"><code class="cmd">incremental_strategy=<span class="str">'merge'</span></code><div class="desc"><code>merge</code> · <code>append</code> · <code>delete+insert</code> · <code>insert_overwrite</code> · <code>microbatch</code>.</div></li>
+      <li class="model"><code class="cmd">incremental_strategy=<span class="str">'microbatch'</span></code><span class="badge-new">1.9+</span><div class="desc">Time-sliced batches via <code>event_time</code>/<code>batch_size</code>/<code>lookback</code>.</div></li>
+      <li class="model"><code class="cmd">on_schema_change=<span class="str">'append_new_columns'</span></code><div class="desc">How to react when the model's columns change.</div></li>
+      <li class="danger"><code class="cmd">dbt run <span class="fl">--full-refresh</span></code><span class="badge-danger">rebuilds</span><div class="desc">Drop &amp; rebuild from scratch — ignores the incremental filter.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 CORE COMMANDS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Core Commands</span><span class="card-sub">the daily verbs</span></div>
+    <ul class="cmds">
+      <li class="cmd"><code class="cmd">dbt run</code><span class="star">&starf;</span><div class="desc">Build models only, in DAG order.</div></li>
+      <li class="cmd"><code class="cmd">dbt build</code><span class="star">&starf;</span><div class="desc">Seeds + models + snapshots + tests together (see card 06).</div></li>
+      <li class="cmd"><code class="cmd">dbt test</code><span class="star">&starf;</span><div class="desc">Run data tests on models/sources/snapshots/seeds.</div></li>
+      <li class="cmd"><code class="cmd">dbt seed</code><div class="desc">Load <code>seeds/*.csv</code> into the warehouse as tables.</div></li>
+      <li class="cmd"><code class="cmd">dbt snapshot</code><div class="desc">Capture SCD-2 history of a source (card 12).</div></li>
+      <li class="cmd"><code class="cmd">dbt docs generate &amp;&amp; dbt docs serve</code><div class="desc">Build &amp; browse the docs + lineage site.</div></li>
+      <li class="cmd"><code class="cmd">dbt retry</code><span class="star">&starf;</span><div class="desc">Re-run only the nodes that failed last time.</div></li>
+      <li class="cmd"><code class="cmd">dbt ls · dbt clean · dbt parse</code><div class="desc">List resources · wipe target/dbt_packages · parse-time profiling.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 BUILD VS RUN -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">build vs run</span><span class="card-sub">the key distinction</span></div>
+    <ul class="cmds">
+      <li class="cmd"><code class="cmd">dbt run</code><div class="desc">Models only. Tests are a separate step you must remember.</div></li>
+      <li class="cmd"><code class="cmd">dbt build</code><span class="star">&starf;</span><div class="desc">Runs each resource <b>then its tests</b> before moving downstream.</div></li>
+      <li class="cmd"><code class="cmd"># build order</code><div class="desc">seed &rarr; test seed &rarr; model &rarr; test model &rarr; next model&hellip;</div></li>
+      <li class="cmd"><code class="cmd">dbt build <span class="fl">--fail-fast</span></code><div class="desc">Stop at the first failure instead of continuing.</div></li>
+      <li class="test"><code class="cmd">why it matters</code><div class="desc"><code>build</code> stops bad data from flowing downstream; prefer it in production.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 NODE SELECTION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Node Selection</span><span class="card-sub">graph operators</span></div>
+    <ul class="cmds">
+      <li class="cmd"><code class="cmd"><span class="fl">-s</span> <span class="arg">my_model</span></code><span class="star">&starf;</span><div class="desc"><code>--select</code> — run just this node.</div></li>
+      <li class="cmd"><code class="cmd"><span class="fl">-s</span> <span class="arg">+my_model</span></code><span class="star">&starf;</span><div class="desc">Model <b>and everything upstream</b> (its parents).</div></li>
+      <li class="cmd"><code class="cmd"><span class="fl">-s</span> <span class="arg">my_model+</span></code><span class="star">&starf;</span><div class="desc">Model <b>and everything downstream</b> (its children).</div></li>
+      <li class="cmd"><code class="cmd"><span class="fl">-s</span> <span class="arg">+my_model+</span></code><div class="desc">The full lineage in both directions.</div></li>
+      <li class="cmd"><code class="cmd"><span class="fl">-s</span> <span class="arg">2+my_model</span></code><div class="desc">Only 2 degrees of ancestors (<code>my_model+3</code> = 3 down).</div></li>
+      <li class="cmd"><code class="cmd"><span class="fl">-s</span> <span class="arg">@my_model</span></code><div class="desc">Model, its children, <b>and all their parents</b> too.</div></li>
+      <li class="cmd"><code class="cmd"><span class="fl">-s</span> <span class="arg">stg_a stg_b</span></code><div class="desc">Space = union. <code>a,b</code> (comma) = intersection.</div></li>
+      <li class="cmd"><code class="cmd"><span class="fl">--exclude</span> <span class="arg">tag:slow</span></code><div class="desc">Subtract nodes from the selection.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 SELECTION METHODS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Selection Methods &amp; State</span><span class="card-sub">select smarter</span></div>
+    <ul class="cmds">
+      <li class="cmd"><code class="cmd"><span class="fl">-s</span> tag:<span class="arg">daily</span></code><span class="star">&starf;</span><div class="desc">By tag set in <code>config(tags=[...])</code>.</div></li>
+      <li class="cmd"><code class="cmd"><span class="fl">-s</span> path:<span class="arg">models/staging</span></code><div class="desc">By folder path.</div></li>
+      <li class="cmd"><code class="cmd"><span class="fl">-s</span> source:<span class="arg">raw_shopify</span>+</code><div class="desc">Everything built from a source.</div></li>
+      <li class="cmd"><code class="cmd"><span class="fl">-s</span> config.materialized:<span class="arg">incremental</span></code><div class="desc">By any config value.</div></li>
+      <li class="cmd"><code class="cmd"><span class="fl">-s</span> state:modified+ <span class="fl">--state</span> <span class="arg">./prod</span></code><span class="star">&starf;</span><div class="desc">Only what changed since a saved manifest + downstream — CI's workhorse.</div></li>
+      <li class="cmd"><code class="cmd"><span class="fl">-s</span> result:error+ <span class="fl">--state</span> <span class="arg">./target</span></code><div class="desc">Re-run last run's failures and their children.</div></li>
+      <li class="cmd"><code class="cmd">dbt run <span class="fl">--defer --state</span> <span class="arg">./prod</span></code><div class="desc">Borrow prod's upstream tables so dev doesn't rebuild the world.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 SOURCES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Sources &amp; Freshness</span><span class="card-sub">the raw layer</span></div>
+    <ul class="cmds">
+      <li class="yml"><code class="cmd"><span class="yk">sources:</span> <span class="op">-</span> <span class="yk">name:</span> raw</code><span class="star">&starf;</span><div class="desc">Declare raw schemas/tables in a <code>.yml</code> under <code>models/</code>.</div></li>
+      <li class="yml"><code class="cmd">&nbsp;&nbsp;<span class="yk">tables:</span> <span class="op">-</span> <span class="yk">name:</span> orders</code><div class="desc">Each raw table you'll reference.</div></li>
+      <li class="model"><code class="cmd"><span class="jb">{{</span> <span class="fn">source</span>(<span class="str">'raw'</span>, <span class="str">'orders'</span>) <span class="jb">}}</span></code><span class="star">&starf;</span><div class="desc">Reference it in models — compiles to the real relation.</div></li>
+      <li class="test"><code class="cmd"><span class="yk">freshness:</span> <span class="yk">warn_after:</span> {count: 12, period: hour}</code><div class="desc">Flag stale data past a threshold.</div></li>
+      <li class="test"><code class="cmd"><span class="yk">loaded_at_field:</span> _loaded_at</code><div class="desc">Column freshness is measured against.</div></li>
+      <li class="test"><code class="cmd">dbt source freshness</code><span class="star">&starf;</span><div class="desc">Check whether upstream data is up to date.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 PROPERTIES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Properties · schema.yml</span><span class="card-sub">describe &amp; configure</span></div>
+    <ul class="cmds">
+      <li class="yml"><code class="cmd"><span class="yk">models:</span> <span class="op">-</span> <span class="yk">name:</span> fct_orders</code><span class="star">&starf;</span><div class="desc">A YAML entry per model (any <code>.yml</code> under <code>models/</code>).</div></li>
+      <li class="yml"><code class="cmd">&nbsp;&nbsp;<span class="yk">description:</span> <span class="str">"One row per order"</span></code><div class="desc">Shows up in the docs site.</div></li>
+      <li class="yml"><code class="cmd">&nbsp;&nbsp;<span class="yk">columns:</span> <span class="op">-</span> <span class="yk">name:</span> order_id</code><div class="desc">Document + attach tests per column.</div></li>
+      <li class="yml"><code class="cmd">&nbsp;&nbsp;<span class="yk">config:</span> {materialized: table, tags: [<span class="str">finance</span>]}</code><div class="desc">Configure the model from YAML instead of in-file.</div></li>
+      <li class="yml"><code class="cmd">&nbsp;&nbsp;<span class="yk">meta:</span> {owner: <span class="str">data_team</span>}</code><div class="desc">Arbitrary metadata surfaced in docs.</div></li>
+      <li class="yml"><code class="cmd"><span class="yk">versions:</span></code><div class="desc">Model versioning for safe, staged contract changes.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 PROJECT CONFIG -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Project Config</span><span class="card-sub">dbt_project.yml</span></div>
+    <ul class="cmds">
+      <li class="yml"><code class="cmd"><span class="yk">name:</span> jaffle_shop · <span class="yk">profile:</span> default</code><div class="desc">Project name + which profile to connect with.</div></li>
+      <li class="yml"><code class="cmd"><span class="yk">models:</span></code><span class="star">&starf;</span><div class="desc">Configure whole folders with <code>+</code>-prefixed keys.</div></li>
+      <li class="yml"><code class="cmd">&nbsp;&nbsp;staging:<br>&nbsp;&nbsp;&nbsp;&nbsp;+materialized: <span class="str">view</span></code><div class="desc">Every model under <code>staging/</code> becomes a view.</div></li>
+      <li class="yml"><code class="cmd">&nbsp;&nbsp;&nbsp;&nbsp;+schema: <span class="str">staging</span> · +tags: [<span class="str">stg</span>]</code><div class="desc">Target schema &amp; tags per folder.</div></li>
+      <li class="yml"><code class="cmd"><span class="yk">vars:</span> {start_date: <span class="str">'2024-01-01'</span>}</code><div class="desc">Project-wide variables, read with <code>var()</code>.</div></li>
+      <li class="yml"><code class="cmd"><span class="yk">on-run-end:</span> [<span class="str">"grant usage ..."</span>]</code><div class="desc">Project hooks (also <code>on-run-start</code>).</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 SEEDS & SNAPSHOTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Seeds &amp; Snapshots</span><span class="card-sub">static data · history</span></div>
+    <ul class="cmds">
+      <li class="model"><code class="cmd">seeds/countries.csv</code><span class="star">&starf;</span><div class="desc">Small CSV lookup tables — version-controlled with the code.</div></li>
+      <li class="cmd"><code class="cmd">dbt seed</code><div class="desc">Load them; then <code><span class="jb">{{</span> <span class="fn">ref</span>(<span class="str">'countries'</span>) <span class="jb">}}</span></code> like any model.</div></li>
+      <li class="model"><code class="cmd"><span class="jb">{%</span> <span class="kw">snapshot</span> snap_orders <span class="jb">%}</span> ... <span class="jb">{%</span> <span class="kw">endsnapshot</span> <span class="jb">%}</span></code><span class="star">&starf;</span><div class="desc">Capture how source rows change over time (SCD-2).</div></li>
+      <li class="model"><code class="cmd">strategy=<span class="str">'timestamp'</span>, updated_at=<span class="str">'updated_at'</span></code><div class="desc">Detect change by a timestamp column.</div></li>
+      <li class="model"><code class="cmd">strategy=<span class="str">'check'</span>, check_cols=<span class="str">'all'</span></code><div class="desc">Detect change by hashing columns — no timestamp needed.</div></li>
+      <li class="test"><code class="cmd">dbt_valid_from · dbt_valid_to</code><div class="desc">Auto-added columns bounding each version's lifespan.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 GENERIC TESTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Tests · Generic</span><span class="card-sub">data quality in YAML</span></div>
+    <ul class="cmds">
+      <li class="test"><code class="cmd"><span class="yk">data_tests:</span> [unique, not_null]</code><span class="star">&starf;</span><div class="desc">The two you'll use most — attach under a column.</div></li>
+      <li class="test"><code class="cmd"><span class="yk">- accepted_values:</span> {values: [<span class="str">a</span>, <span class="str">b</span>]}</code><div class="desc">Column may only contain these values.</div></li>
+      <li class="test"><code class="cmd"><span class="yk">- relationships:</span> {to: <span class="fn">ref</span>(<span class="str">'dim'</span>), field: id}</code><span class="star">&starf;</span><div class="desc">Every value exists in a parent table (referential integrity).</div></li>
+      <li class="test"><code class="cmd"><span class="yk">config:</span> {severity: <span class="str">warn</span>}</code><div class="desc">Warn instead of error; also <code>where</code>, <code>limit</code>.</div></li>
+      <li class="jinja"><code class="cmd">dbt_utils · dbt_expectations</code><div class="desc">Package tests: <code>unique_combination_of_columns</code>, <code>expect_*</code>&hellip;</div></li>
+      <li class="test"><code class="cmd">dbt test <span class="fl">--store-failures</span></code><div class="desc">Persist failing rows to a table to inspect them.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 SINGULAR & UNIT TESTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Tests · Singular &amp; Unit</span><span class="card-sub">custom &amp; logic tests</span></div>
+    <ul class="cmds">
+      <li class="test"><code class="cmd">tests/assert_positive.sql</code><span class="star">&starf;</span><div class="desc">A <code>SELECT</code> that returns bad rows — passes when it returns none.</div></li>
+      <li class="test"><code class="cmd"><span class="kw">select</span> * <span class="kw">from</span> <span class="jb">{{</span> <span class="fn">ref</span>(<span class="str">'fct'</span>) <span class="jb">}}</span> <span class="kw">where</span> amount &lt; 0</code><div class="desc">Any row here = a failure. That's the whole contract.</div></li>
+      <li class="test"><code class="cmd"><span class="yk">unit_tests:</span> <span class="op">-</span> <span class="yk">name:</span> test_logic</code><span class="badge-new">1.8+</span><div class="desc">Test transformation logic with mock inputs.</div></li>
+      <li class="test"><code class="cmd">&nbsp;&nbsp;<span class="yk">given:</span> ... <span class="yk">expect:</span> ...</code><span class="star">&starf;</span><div class="desc">Feed fixed rows, assert exact output — no warehouse data needed.</div></li>
+      <li class="test"><code class="cmd">dbt test <span class="fl">-s</span> <span class="arg">test_type:unit</span></code><div class="desc">Run only unit tests (or <code>test_type:data</code>).</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 JINJA -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Jinja Essentials</span><span class="card-sub">templated SQL</span></div>
+    <ul class="cmds">
+      <li class="jinja"><code class="cmd"><span class="jb">{{</span> ... <span class="jb">}}</span> <span class="op">vs</span> <span class="jb">{%</span> ... <span class="jb">%}</span></code><span class="star">&starf;</span><div class="desc"><code>{{ }}</code> outputs a value; <code>{% %}</code> is logic (if/for/set).</div></li>
+      <li class="jinja"><code class="cmd"><span class="jb">{{</span> <span class="fn">var</span>(<span class="str">'start'</span>, <span class="str">'2024-01-01'</span>) <span class="jb">}}</span></code><span class="star">&starf;</span><div class="desc">Read a project/CLI var with a default.</div></li>
+      <li class="jinja"><code class="cmd"><span class="jb">{{</span> <span class="fn">env_var</span>(<span class="str">'DBT_SCHEMA'</span>) <span class="jb">}}</span></code><div class="desc">Pull a value from the environment.</div></li>
+      <li class="jinja"><code class="cmd"><span class="jb">{{</span> <span class="fn">target</span>.name <span class="jb">}}</span></code><div class="desc">Current environment (<code>dev</code>/<code>prod</code>) — branch on it.</div></li>
+      <li class="jinja"><code class="cmd"><span class="jb">{%</span> <span class="kw">for</span> col <span class="kw">in</span> [...] <span class="jb">%}</span> ... <span class="jb">{%</span> <span class="kw">endfor</span> <span class="jb">%}</span></code><div class="desc">Loop to generate repetitive SQL.</div></li>
+      <li class="jinja"><code class="cmd"><span class="jb">{%</span> <span class="kw">set</span> x = ... <span class="jb">%}</span> · <span class="jb">{{</span> <span class="fn">log</span>(x, info=<span class="kw">True</span>) <span class="jb">}}</span></code><div class="desc">Assign a variable · print during compile.</div></li>
+      <li class="jinja"><code class="cmd"><span class="jb">{%</span> <span class="kw">set</span> r = <span class="fn">run_query</span>(sql) <span class="jb">%}</span></code><div class="desc">Query the warehouse <b>at compile time</b> (needs 2 parse passes).</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 MACROS & PACKAGES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Macros &amp; Packages</span><span class="card-sub">reusable SQL</span></div>
+    <ul class="cmds">
+      <li class="jinja"><code class="cmd"><span class="jb">{%</span> <span class="kw">macro</span> <span class="fn">cents_to_dollars</span>(col) <span class="jb">%}</span></code><span class="star">&starf;</span><div class="desc">Define a function in <code>macros/</code>; call it as <code>{{ cents_to_dollars('x') }}</code>.</div></li>
+      <li class="jinja"><code class="cmd"><span class="jb">{%</span> <span class="kw">endmacro</span> <span class="jb">%}</span></code><div class="desc">Close the block; args can have defaults.</div></li>
+      <li class="cmd"><code class="cmd">dbt run-operation <span class="arg">grant_select</span> --args <span class="str">'{role: rep}'</span></code><div class="desc">Invoke a macro directly, outside any model.</div></li>
+      <li class="jinja"><code class="cmd">packages.yml</code><span class="star">&starf;</span><div class="desc">List packages; <code>dbt deps</code> installs into <code>dbt_packages/</code>.</div></li>
+      <li class="jinja"><code class="cmd">dbt_utils · codegen · dbt_expectations · audit_helper</code><div class="desc">The staples — helper macros, generators, extra tests.</div></li>
+      <li class="jinja"><code class="cmd"><span class="jb">{{</span> <span class="fn">dbt_utils.star</span>(<span class="fn">from</span>=<span class="fn">ref</span>(<span class="str">'x'</span>)) <span class="jb">}}</span></code><div class="desc">e.g. select all columns except a few — no hand-typing.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 DOCS & HOOKS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Docs, Lineage &amp; Hooks</span><span class="card-sub">describe &amp; automate</span></div>
+    <ul class="cmds">
+      <li class="test"><code class="cmd">dbt docs generate &amp;&amp; dbt docs serve</code><span class="star">&starf;</span><div class="desc">Generate the catalog + browse the interactive DAG.</div></li>
+      <li class="test"><code class="cmd"><span class="jb">{%</span> <span class="kw">docs</span> my_block <span class="jb">%}</span> markdown <span class="jb">{%</span> <span class="kw">enddocs</span> <span class="jb">%}</span></code><div class="desc">Reusable doc block; reference with <code>{{ doc('my_block') }}</code>.</div></li>
+      <li class="test"><code class="cmd"><span class="yk">exposures:</span></code><div class="desc">Declare downstream dashboards/apps so they appear in lineage.</div></li>
+      <li class="jinja"><code class="cmd">pre_hook / post_hook</code><span class="star">&starf;</span><div class="desc">Run SQL before/after a model (grants, indexes, vacuum).</div></li>
+      <li class="jinja"><code class="cmd"><span class="jb">{{</span> <span class="fn">config</span>(post_hook=<span class="str">"grant select on {{ this }} ..."</span>) <span class="jb">}}</span></code><div class="desc">Common use: grant on the freshly built relation.</div></li>
+      <li class="yml"><code class="cmd">persist_docs: {relation: <span class="kw">true</span>, columns: <span class="kw">true</span>}</code><div class="desc">Push descriptions into the warehouse's own metadata.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 ENGINES & ECOSYSTEM -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Engines &amp; Ecosystem</span><span class="card-sub">the 2026 landscape</span></div>
+    <ul class="cmds">
+      <li class="cli"><code class="cmd">dbt Core</code><div class="desc">The open-source Python engine (this sheet's <code>dbt-core 1.12</code>).</div></li>
+      <li class="cli"><code class="cmd">dbt Fusion</code><span class="badge-new">2026</span><div class="desc">New engine in <b>Rust</b> — faster &amp; stricter, now the default install. Same project language &amp; DAG.</div></li>
+      <li class="cli"><code class="cmd">v2 era</code><div class="desc">Fusion requires all deprecation warnings resolved; DAG semantics carry over unchanged.</div></li>
+      <li class="cli"><code class="cmd">dbt platform / Cloud</code><div class="desc">Hosted IDE, orchestration, Semantic Layer, docs &amp; catalog.</div></li>
+      <li class="cli"><code class="cmd">dbt --version · require-dbt-version</code><div class="desc">Check yours; pin a project's compatible range.</div></li>
+      <li class="cli"><code class="cmd">Semantic Layer · MetricFlow</code><div class="desc">Define metrics once in YAML; query them consistently everywhere.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four ideas worth a picture</h2>
+  <p class="sub">The mental models behind the commands — compilation, materializations, graph selection, and slowly-changing snapshots.</p>
+  <div class="merge-grid">
+
+    <!-- D1 compile then wrap -->
+    <div class="merge-card">
+      <h3>ref() → compile → wrap in DDL</h3>
+      <p>Your SELECT with Jinja becomes plain SQL, then dbt wraps it in the DDL for its materialization.</p>
+      <svg viewBox="0 0 400 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A model's SELECT with a ref call compiles to plain SQL against a fully qualified table, then dbt wraps it in a create table statement.">
+        <defs><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+        <!-- you write -->
+        <text x="12" y="22" font-size="9.5" letter-spacing="1.5" fill="#16a34a">YOU WRITE</text>
+        <rect x="12" y="30" width="376" height="42" rx="6" fill="#ecf7ef" stroke="#16a34a"/>
+        <text x="24" y="49" font-size="10.5" fill="#1a1d24">select * from <tspan fill="#ff694b" font-weight="700">{{ ref(</tspan><tspan fill="#16a34a">'stg_orders'</tspan><tspan fill="#ff694b" font-weight="700">) }}</tspan></text>
+        <text x="24" y="64" font-size="10.5" fill="#1a1d24" font-style="italic" fill-opacity="0.7">{{ config(materialized='table') }}</text>
+        <line x1="200" y1="72" x2="200" y2="92" stroke="#64748b" stroke-width="1.4" marker-end="url(#arB)"/>
+        <text x="214" y="87" font-size="9" fill="#64748b">dbt compile</text>
+        <!-- compiled -->
+        <text x="12" y="106" font-size="9.5" letter-spacing="1.5" fill="#64748b">dbt COMPILES</text>
+        <rect x="12" y="114" width="376" height="26" rx="6" fill="#f1f3f6" stroke="#64748b"/>
+        <text x="24" y="131" font-size="10.5" fill="#1a1d24">select * from <tspan fill="#4f46e5">analytics.staging.stg_orders</tspan></text>
+        <line x1="200" y1="140" x2="200" y2="160" stroke="#64748b" stroke-width="1.4" marker-end="url(#arB)"/>
+        <text x="214" y="155" font-size="9" fill="#64748b">dbt run</text>
+        <!-- wrapped -->
+        <text x="12" y="174" font-size="9.5" letter-spacing="1.5" fill="#4f46e5">dbt RUNS</text>
+        <rect x="12" y="182" width="376" height="26" rx="6" fill="#eef0fd" stroke="#4f46e5"/>
+        <text x="24" y="199" font-size="10.5" fill="#1a1d24"><tspan fill="#4f46e5" font-weight="700">create table</tspan> analytics.marts.orders <tspan fill="#4f46e5" font-weight="700">as</tspan> ( ... )</text>
+      </svg>
+    </div>
+
+    <!-- D2 materializations -->
+    <div class="merge-card">
+      <h3>Materializations — same SELECT, different DDL</h3>
+      <p>The one config that most changes cost &amp; freshness. Pick per model.</p>
+      <svg viewBox="0 0 400 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Four materializations compared: view creates a view, table rebuilds fully, incremental merges new rows, ephemeral inlines as a CTE.">
+        <g font-size="10">
+          <!-- view -->
+          <rect x="10" y="14" width="185" height="86" rx="8" fill="#ecf7ef" stroke="#16a34a"/>
+          <text x="22" y="34" font-size="11.5" font-weight="700" fill="#16a34a">view</text>
+          <text x="22" y="52" fill="#1a1d24">create view as (…)</text>
+          <text x="22" y="70" fill="#525761">no storage · always fresh</text>
+          <text x="22" y="86" fill="#525761">recomputes on every read</text>
+          <!-- table -->
+          <rect x="205" y="14" width="185" height="86" rx="8" fill="#eef0fd" stroke="#4f46e5"/>
+          <text x="217" y="34" font-size="11.5" font-weight="700" fill="#4f46e5">table</text>
+          <text x="217" y="52" fill="#1a1d24">create table as (…)</text>
+          <text x="217" y="70" fill="#525761">full rebuild each run</text>
+          <text x="217" y="86" fill="#525761">fast reads · can be stale</text>
+          <!-- incremental -->
+          <rect x="10" y="110" width="185" height="90" rx="8" fill="#fdf6ec" stroke="#d97706"/>
+          <text x="22" y="130" font-size="11.5" font-weight="700" fill="#d97706">incremental</text>
+          <text x="22" y="148" fill="#1a1d24">merge new rows only</text>
+          <text x="22" y="166" fill="#525761">cheapest on big data</text>
+          <text x="22" y="182" fill="#525761">is_incremental() gate</text>
+          <text x="22" y="196" fill="#dc2626">most likely to bite you</text>
+          <!-- ephemeral -->
+          <rect x="205" y="110" width="185" height="90" rx="8" fill="#f3effc" stroke="#7c3aed"/>
+          <text x="217" y="130" font-size="11.5" font-weight="700" fill="#7c3aed">ephemeral</text>
+          <text x="217" y="148" fill="#1a1d24">no object created</text>
+          <text x="217" y="166" fill="#525761">inlined as a CTE</text>
+          <text x="217" y="182" fill="#525761">into its children</text>
+          <text x="217" y="196" fill="#525761">not queryable in BI</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D3 node selection -->
+    <div class="merge-card">
+      <h3>Graph selection — the + operator</h3>
+      <p>Where you put <code>+</code> decides which slice of the lineage runs.</p>
+      <svg viewBox="0 0 400 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A five-node DAG showing that plus before a model selects ancestors, plus after selects descendants.">
+        <defs><marker id="arC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#cbd5e1"/></marker></defs>
+        <!-- edges -->
+        <g stroke="#cbd5e1" stroke-width="1.6" fill="none">
+          <line x1="66" y1="60" x2="150" y2="105" marker-end="url(#arC)"/>
+          <line x1="66" y1="150" x2="150" y2="115" marker-end="url(#arC)"/>
+          <line x1="184" y1="110" x2="268" y2="70" marker-end="url(#arC)"/>
+          <line x1="184" y1="110" x2="268" y2="150" marker-end="url(#arC)"/>
+        </g>
+        <!-- nodes -->
+        <g font-size="10" text-anchor="middle">
+          <circle cx="50"  cy="55"  r="20" fill="#ecf7ef" stroke="#16a34a"/><text x="50" y="59" fill="#16a34a">stg_a</text>
+          <circle cx="50"  cy="155" r="20" fill="#ecf7ef" stroke="#16a34a"/><text x="50" y="159" fill="#16a34a">stg_b</text>
+          <circle cx="167" cy="110" r="24" fill="#4f46e5" stroke="#4f46e5"/><text x="167" y="107" fill="#fff" font-weight="700">int_x</text><text x="167" y="120" fill="#fff" font-size="8">selected</text>
+          <circle cx="284" cy="60"  r="20" fill="#fdf6ec" stroke="#d97706"/><text x="284" y="64" fill="#d97706">fct_p</text>
+          <circle cx="284" cy="155" r="20" fill="#fdf6ec" stroke="#d97706"/><text x="284" y="159" fill="#d97706">fct_q</text>
+        </g>
+        <!-- labels -->
+        <g font-size="10">
+          <rect x="8" y="188" width="120" height="18" rx="4" fill="#ecf7ef"/><text x="14" y="201" fill="#16a34a" font-weight="700">+int_x</text><text x="60" y="201" fill="#525761">= green + int_x</text>
+          <rect x="140" y="188" width="120" height="18" rx="4" fill="#fdf6ec"/><text x="146" y="201" fill="#d97706" font-weight="700">int_x+</text><text x="188" y="201" fill="#525761">= int_x + amber</text>
+          <rect x="272" y="188" width="120" height="18" rx="4" fill="#eef0fd"/><text x="278" y="201" fill="#4f46e5" font-weight="700">+int_x+</text><text x="322" y="201" fill="#525761">= all five</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D4 snapshot SCD2 -->
+    <div class="merge-card">
+      <h3>Snapshots — SCD-2 history</h3>
+      <p>When a source row changes, dbt closes the old version and inserts a new one.</p>
+      <svg viewBox="0 0 400 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A snapshot table: when a customer's tier changes, the old row gets a dbt_valid_to date and a new row is inserted with a null valid_to.">
+        <text x="12" y="22" font-size="10" fill="#525761">source row <tspan font-family="JetBrains Mono, monospace">id=7</tspan> changes tier: <tspan fill="#16a34a">free</tspan> → <tspan fill="#d97706">pro</tspan></text>
+        <!-- table header -->
+        <g font-size="9.5">
+          <rect x="12" y="34" width="376" height="22" fill="#1a1d24"/>
+          <text x="24" y="49" fill="#fff">id</text>
+          <text x="70" y="49" fill="#fff">tier</text>
+          <text x="150" y="49" fill="#fbbf24">dbt_valid_from</text>
+          <text x="270" y="49" fill="#fbbf24">dbt_valid_to</text>
+        </g>
+        <!-- row 1 (closed) -->
+        <g font-size="9.5">
+          <rect x="12" y="56" width="376" height="30" fill="#f1f3f6" stroke="#e7e3db"/>
+          <text x="24" y="75" fill="#1a1d24">7</text>
+          <text x="70" y="75" fill="#16a34a">free</text>
+          <text x="150" y="75" fill="#525761">2026-01-01</text>
+          <text x="270" y="75" fill="#dc2626" font-weight="700">2026-06-01</text>
+          <text x="345" y="75" fill="#94a3b8" font-size="8">closed</text>
+        </g>
+        <!-- row 2 (open) -->
+        <g font-size="9.5">
+          <rect x="12" y="86" width="376" height="30" fill="#fdf6ec" stroke="#d97706"/>
+          <text x="24" y="105" fill="#1a1d24">7</text>
+          <text x="70" y="105" fill="#d97706" font-weight="700">pro</text>
+          <text x="150" y="105" fill="#525761">2026-06-01</text>
+          <text x="270" y="105" fill="#16a34a" font-weight="700">NULL</text>
+          <text x="330" y="105" fill="#16a34a" font-size="8">current row</text>
+        </g>
+        <!-- explanation -->
+        <text x="12" y="140" font-size="10" fill="#525761">• <tspan font-weight="700">timestamp</tspan> strategy: compares an <tspan font-family="JetBrains Mono, monospace">updated_at</tspan> column</text>
+        <text x="12" y="158" font-size="10" fill="#525761">• <tspan font-weight="700">check</tspan> strategy: hashes <tspan font-family="JetBrains Mono, monospace">check_cols</tspan> — no timestamp needed</text>
+        <text x="12" y="176" font-size="10" fill="#525761">• query "as of" any date by filtering valid_from / valid_to</text>
+        <text x="12" y="196" font-size="10" fill="#dc2626">snapshots are append-only history — you can't rebuild lost versions</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WORTH MEMORIZING ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">ref() &gt; hardcoding</span><span class="v">always <code>ref()</code>/<code>source()</code> — that's what builds the DAG &amp; lineage</span></div>
+    <div><span class="k">build ≠ run</span><span class="v"><code>build</code> also runs seeds/snapshots/tests in DAG order; <code>run</code> = models only</span></div>
+    <div><span class="k">+ direction</span><span class="v"><code>+model</code> = parents (upstream) · <code>model+</code> = children (downstream)</span></div>
+    <div><span class="k">incremental bites</span><span class="v"><code>is_incremental()</code> is true only on the 2nd+ run of an existing table</span></div>
+    <div><span class="k">--full-refresh</span><span class="v">drops &amp; rebuilds an incremental — use after logic or schema changes</span></div>
+    <div><span class="k">view vs table</span><span class="v">view = always fresh, slow reads · table = fast reads, stale till rebuilt</span></div>
+    <div><span class="k">ephemeral</span><span class="v">no warehouse object — inlined as a CTE; BI &amp; ad-hoc can't query it</span></div>
+    <div><span class="k">config precedence</span><span class="v">in-file <code>config()</code> &gt; folder <code>+config</code> &gt; project defaults</span></div>
+    <div><span class="k">generic vs singular</span><span class="v">generic tests live in YAML; singular = a <code>.sql</code> returning bad rows</span></div>
+    <div><span class="k">snapshot strategy</span><span class="v"><code>timestamp</code> misses changes if <code>updated_at</code> isn't bumped; <code>check</code> hashes cols</span></div>
+    <div><span class="k">dbt deps</span><span class="v">run after every <code>packages.yml</code> change; <code>dbt_packages/</code> is git-ignored</span></div>
+    <div><span class="k">state:modified+</span><span class="v">the CI trick — build only what changed since prod, plus downstream</span></div>
+    <div><span class="k">run order = the DAG</span><span class="v">topological, not file order or alphabetical</span></div>
+    <div><span class="k">Jinja runs first</span><span class="v">it compiles <b>before</b> SQL executes — use <code>run_query</code> for warehouse values</span></div>
+  </div>
+</section>
+
+<footer>
+  dbt cheat sheet · syntax &amp; commands verified by running <code>dbt-core 1.12.0</code> (+ dbt-duckdb) end-to-end, and cross-checked with the official docs at <code>docs.getdbt.com</code> (About · Build · Reference) plus the y42, DataGym, The Data School &amp; Hevo cheat sheets.<br>
+  The project language shown is <b>engine-agnostic</b> — the same models, <code>ref()</code>/<code>source()</code>, materializations, tests &amp; selectors run on both dbt Core (Python) and the newer Rust-based <b>Fusion</b> engine (v2 era, 2026). Warehouse SQL dialect still varies by adapter.
+</footer>
+
+</body>
+</html>

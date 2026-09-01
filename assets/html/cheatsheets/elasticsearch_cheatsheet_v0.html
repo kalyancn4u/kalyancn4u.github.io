@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elasticsearch Python Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Official Elasticsearch Python client &middot; index · search · aggregate · bulk &middot; verified against elasticsearch-py 9.x (2026)</div>
+  <h1><span class="mono">Elasticsearch</span> Python cheat sheet</h1>
+  <p class="lede">The official <code>elasticsearch</code> client is a thin, typed wrapper over the Elasticsearch REST API. Create an <code>Elasticsearch</code> client, index JSON <b>documents</b>, and run <b>Query DSL</b> searches &amp; <b>aggregations</b> &mdash; every REST endpoint is a method. Bulk-load with <code>helpers.bulk</code>, scroll huge result sets with <code>helpers.scan</code>, and write fluent queries with the integrated <code>elasticsearch.dsl</code>. <b>Big v9 change:</b> the old <code>body=</code> argument is gone &mdash; pass explicit keyword args (<code>query=</code>, <code>mappings=</code>&hellip;). Targets <b>elasticsearch-py 9.x</b>, Python 3.10+.</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>connect &amp; index</span>
+    <span><i class="dot c2"></i>search</span>
+    <span><i class="dot c3"></i>mappings &amp; index admin</span>
+    <span><i class="dot c4"></i>DSL &amp; async</span>
+    <span><i class="dot c5"></i>ops &amp; ecosystem</span>
+    <span><i class="dot danger"></i>gotcha / migration</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-08-31 against <b>elasticsearch-py.readthedocs.io</b> &amp; elastic.co docs (elasticsearch 9.5.0, released 2026-08-04; Python 3.10&ndash;3.14). Match the client's major to your cluster's major (9.x client &rarr; 9.x cluster). API responses are dict-like <code>ObjectApiResponse</code> objects &mdash; index into them like JSON.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub">Connect, index documents, then search with the Query DSL. Bulk helpers for volume; <code>elasticsearch.dsl</code> for fluent queries; the async client for concurrency.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Connect &amp; index</h3>
+      <ol class="toc-list">
+        <li><span class="rk">1</span><a href="#connect">Install &amp; connect</a></li>
+        <li><span class="rk">2</span><a href="#crud">Index &amp; CRUD docs</a></li>
+        <li><span class="rk">3</span><a href="#bulk">Bulk &amp; helpers</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">Search</h3>
+      <ol class="toc-list">
+        <li><span class="rk">4</span><a href="#search">Search basics</a></li>
+        <li><span class="rk">5</span><a href="#queries">Query types</a></li>
+        <li><span class="rk">6</span><a href="#aggs">Aggregations</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Mappings &amp; admin</h3>
+      <ol class="toc-list">
+        <li><span class="rk">7</span><a href="#mappings">Mappings &amp; settings</a></li>
+        <li><span class="rk">8</span><a href="#analyzers">text vs keyword</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">DSL &amp; async</h3>
+      <ol class="toc-list">
+        <li><span class="rk">9</span><a href="#dsl">elasticsearch.dsl</a></li>
+        <li><span class="rk">10</span><a href="#async">Async client</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Ops &amp; ecosystem</h3>
+      <ol class="toc-list">
+        <li><span class="rk">11</span><a href="#scan">Scroll, paging &amp; vectors</a></li>
+        <li><span class="rk">12</span><a href="#ecosystem">Migration &amp; ecosystem</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-conn"><h2 style="color:var(--c1)">Connect &amp; Index</h2><p class="sub">Authenticate to a cluster, then create, read, update, and bulk-load documents.</p></div>
+<main>
+  <article class="card" id="connect">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Install &amp; connect</span><span class="card-sub">the client</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">pip install <span class="arg">elasticsearch</span></code><span class="star">&#9733;</span><div class="desc">The official client. Add extras: <code>elasticsearch[async]</code> for the async client. Python 3.10+.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">from</span> elasticsearch <span class="kw">import</span> Elasticsearch
+es = Elasticsearch(<span class="str">"https://localhost:9200"</span>, api_key=<span class="str">"..."</span>)</code><span class="star">&#9733;</span><div class="desc"><b>API key</b> auth is preferred. Also <code>basic_auth=("user","pass")</code>, or <code>cloud_id=</code> for Elastic Cloud.</div></li>
+      <li class="c1"><code class="cmd">es = Elasticsearch(<span class="str">"https://localhost:9200"</span>,
+    api_key=<span class="str">"..."</span>, ca_certs=<span class="str">"http_ca.crt"</span>)</code><div class="desc">TLS on by default for local clusters &mdash; point at the CA cert (or <code>verify_certs=False</code> for dev only).</div></li>
+      <li class="c1"><code class="cmd">es.info()  &middot;  es.ping()</code><span class="star">&#9733;</span><div class="desc">Sanity check the connection &amp; cluster version.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="crud">
+    <div class="card-head"><span class="card-num n1">2</span><span class="card-title">Index &amp; CRUD docs</span><span class="card-sub">documents</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">es.index(index=<span class="str">"books"</span>, id=1, document={<span class="str">"title"</span>:<span class="str">"Dune"</span>, <span class="str">"year"</span>:1965})</code><span class="star">&#9733;</span><div class="desc">Create/replace a doc. Pass the JSON as <code>document=</code>. Omit <code>id</code> to auto-generate one.</div></li>
+      <li class="c1"><code class="cmd">es.get(index=<span class="str">"books"</span>, id=1)[<span class="str">"_source"</span>]</code><span class="star">&#9733;</span><div class="desc">Fetch by id; the doc body is under <code>_source</code>. <code>es.exists(index=, id=)</code> for a boolean.</div></li>
+      <li class="c1"><code class="cmd">es.update(index=<span class="str">"books"</span>, id=1, doc={<span class="str">"year"</span>:1966})</code><span class="star">&#9733;</span><div class="desc">Partial update via <code>doc=</code> (or a script). <code>es.delete(index=, id=)</code> to remove.</div></li>
+      <li class="c1"><code class="cmd">es.indices.refresh(index=<span class="str">"books"</span>)</code><span class="badge-warn">note</span><div class="desc">Indexing is near-real-time (~1s). <code>refresh=True</code> on the write, or refresh the index, to make a doc searchable immediately (tests/demos).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="bulk">
+    <div class="card-head"><span class="card-num n1">3</span><span class="card-title">Bulk &amp; helpers</span><span class="card-sub">load at volume</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd"><span class="kw">from</span> elasticsearch <span class="kw">import</span> helpers
+actions = [{<span class="str">"_index"</span>:<span class="str">"books"</span>, <span class="str">"_id"</span>:d[<span class="str">"id"</span>], <span class="str">"_source"</span>:d} <span class="kw">for</span> d <span class="kw">in</span> docs]
+helpers.bulk(es, actions)</code><span class="star">&#9733;</span><div class="desc">The right way to load many docs &mdash; one request per batch, not one per doc. Each action names <code>_index</code>/<code>_id</code>/<code>_source</code>.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">for</span> ok, item <span class="kw">in</span> helpers.streaming_bulk(es, gen(), chunk_size=1000):
+    <span class="kw">if</span> <span class="kw">not</span> ok: log(item)</code><span class="star">&#9733;</span><div class="desc"><code>streaming_bulk</code> yields per-doc results from a generator &mdash; constant memory for huge loads. <code>parallel_bulk</code> for threads.</div></li>
+      <li class="c1"><code class="cmd">actions = [{<span class="str">"_op_type"</span>:<span class="str">"update"</span>, <span class="str">"_id"</span>:1, <span class="str">"doc"</span>:{...}}, ...]</code><div class="desc"><code>_op_type</code> can be <code>index</code>/<code>create</code>/<code>update</code>/<code>delete</code> per action.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># bulk returns (success_count, errors) — check errors!</span></code><span class="badge-warn">gotcha</span><div class="desc">A partial-failure bulk still "succeeds" at the HTTP level. Inspect the errors list (or pass <code>raise_on_error=True</code>).</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-search"><h2 style="color:var(--c2)">Search</h2><p class="sub">The Query DSL as Python kwargs: match, term, bool, range &mdash; plus aggregations.</p></div>
+<main>
+  <article class="card" id="search">
+    <div class="card-head"><span class="card-num n2">4</span><span class="card-title">Search basics</span><span class="card-sub">query=</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">r = es.search(index=<span class="str">"books"</span>, query={<span class="str">"match"</span>:{<span class="str">"title"</span>:<span class="str">"dune"</span>}})</code><span class="star">&#9733;</span><span class="badge-new">v9</span><div class="desc">Pass the query under <code>query=</code> (NOT <code>body=</code>). Add <code>size=</code>, <code>from_=</code>, <code>sort=</code>, <code>source=</code> as kwargs.</div></li>
+      <li class="c2"><code class="cmd">r[<span class="str">"hits"</span>][<span class="str">"total"</span>][<span class="str">"value"</span>]  <span class="cm"># match count</span>
+[h[<span class="str">"_source"</span>] <span class="kw">for</span> h <span class="kw">in</span> r[<span class="str">"hits"</span>][<span class="str">"hits"</span>]]</code><span class="star">&#9733;</span><div class="desc">Results are under <code>hits.hits</code>; each has <code>_source</code>, <code>_id</code>, and <code>_score</code>.</div></li>
+      <li class="c2"><code class="cmd">es.search(index=<span class="str">"books"</span>, query={...}, size=20, from_=40,
+    sort=[{<span class="str">"year"</span>:<span class="str">"desc"</span>}], source=[<span class="str">"title"</span>])</code><div class="desc">Page with <code>size</code>+<code>from_</code> (note the trailing underscore &mdash; <code>from</code> is a Python keyword). <code>source=</code> selects fields.</div></li>
+      <li class="c2"><code class="cmd">es.count(index=<span class="str">"books"</span>, query={...})</code><div class="desc">Just the count, no documents.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="queries">
+    <div class="card-head"><span class="card-num n2">5</span><span class="card-title">Query types</span><span class="card-sub">the DSL</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">{<span class="str">"match"</span>:{<span class="str">"title"</span>:<span class="str">"dune messiah"</span>}}   <span class="cm"># analyzed full-text</span></code><span class="star">&#9733;</span><div class="desc"><b>match</b> = full-text (tokenized/analyzed). <b>term</b> = exact, un-analyzed (use on <code>keyword</code> fields, not <code>text</code>).</div></li>
+      <li class="c2"><code class="cmd">{<span class="str">"bool"</span>:{
+  <span class="str">"must"</span>:[{<span class="str">"match"</span>:{<span class="str">"title"</span>:<span class="str">"dune"</span>}}],
+  <span class="str">"filter"</span>:[{<span class="str">"range"</span>:{<span class="str">"year"</span>:{<span class="str">"gte"</span>:1960}}}],
+  <span class="str">"must_not"</span>:[...], <span class="str">"should"</span>:[...]}}</code><span class="star">&#9733;</span><div class="desc"><b>bool</b> composes queries: <code>must</code> (scored AND), <code>filter</code> (unscored AND, cacheable), <code>should</code> (OR/boost), <code>must_not</code> (NOT). Put exact filters in <code>filter</code> for speed.</div></li>
+      <li class="c2"><code class="cmd">{<span class="str">"multi_match"</span>:{<span class="str">"query"</span>:<span class="str">"dune"</span>, <span class="str">"fields"</span>:[<span class="str">"title"</span>,<span class="str">"body"</span>]}}</code><div class="desc">Search several fields at once. Also <code>match_phrase</code>, <code>wildcard</code>, <code>prefix</code>, <code>terms</code> (list), <code>exists</code>, <code>match_all</code>.</div></li>
+      <li class="c2"><code class="cmd">es.search(index=<span class="str">"books"</span>, knn={<span class="str">"field"</span>:<span class="str">"vec"</span>, <span class="str">"query_vector"</span>:v, <span class="str">"k"</span>:10})</code><div class="desc"><b>kNN</b> vector search is a top-level <code>knn=</code> kwarg &mdash; the basis of semantic/hybrid search.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="aggs">
+    <div class="card-head"><span class="card-num n2">6</span><span class="card-title">Aggregations</span><span class="card-sub">analytics</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">r = es.search(index=<span class="str">"books"</span>, size=0, aggs={
+    <span class="str">"by_year"</span>:{<span class="str">"terms"</span>:{<span class="str">"field"</span>:<span class="str">"year"</span>, <span class="str">"size"</span>:10}}})</code><span class="star">&#9733;</span><div class="desc">Set <code>size=0</code> to get only aggregations (no hits). Read them from <code>r["aggregations"]</code>.</div></li>
+      <li class="c2"><code class="cmd">r[<span class="str">"aggregations"</span>][<span class="str">"by_year"</span>][<span class="str">"buckets"</span>]</code><span class="star">&#9733;</span><div class="desc">Bucket aggs (<code>terms</code>, <code>date_histogram</code>, <code>range</code>) return <code>buckets</code> with <code>key</code> + <code>doc_count</code>.</div></li>
+      <li class="c2"><code class="cmd">aggs={<span class="str">"avg_year"</span>:{<span class="str">"avg"</span>:{<span class="str">"field"</span>:<span class="str">"year"</span>}}}</code><div class="desc">Metric aggs: <code>avg</code>, <code>sum</code>, <code>min</code>, <code>max</code>, <code>stats</code>, <code>cardinality</code> (unique count), <code>percentiles</code>.</div></li>
+      <li class="c2"><code class="cmd"><span class="cm"># nest aggs: put an "aggs" inside a bucket agg for sub-aggregations</span></code><div class="desc">Aggregations nest arbitrarily &mdash; e.g. average price <i>per</i> category.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-map"><h2 style="color:var(--c3)">Mappings &amp; Index Admin</h2><p class="sub">Define field types up front; understand text vs keyword.</p></div>
+<main>
+  <article class="card" id="mappings">
+    <div class="card-head"><span class="card-num n3">7</span><span class="card-title">Mappings &amp; settings</span><span class="card-sub">index schema</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">es.indices.create(index=<span class="str">"books"</span>,
+    mappings={<span class="str">"properties"</span>:{
+        <span class="str">"title"</span>:{<span class="str">"type"</span>:<span class="str">"text"</span>},
+        <span class="str">"year"</span>:{<span class="str">"type"</span>:<span class="str">"integer"</span>},
+        <span class="str">"tags"</span>:{<span class="str">"type"</span>:<span class="str">"keyword"</span>}}},
+    settings={<span class="str">"number_of_shards"</span>:1})</code><span class="star">&#9733;</span><span class="badge-new">v9</span><div class="desc">Pass <code>mappings=</code> &amp; <code>settings=</code> as kwargs (not <code>body=</code>). Define types explicitly for control over search behavior.</div></li>
+      <li class="c3"><code class="cmd">es.indices.put_mapping(index=<span class="str">"books"</span>,
+    properties={<span class="str">"isbn"</span>:{<span class="str">"type"</span>:<span class="str">"keyword"</span>}})</code><div class="desc">Add fields later (you can't change an existing field's type &mdash; reindex for that).</div></li>
+      <li class="c3"><code class="cmd">es.indices.exists(index=<span class="str">"books"</span>)  &middot;  es.indices.delete(index=<span class="str">"books"</span>)</code><div class="desc">Index lifecycle. <code>es.indices.get_mapping</code>, <code>put_settings</code>, <code>refresh</code>, <code>forcemerge</code>.</div></li>
+      <li class="c3"><code class="cmd">es.indices.put_alias(index=<span class="str">"books_v2"</span>, name=<span class="str">"books"</span>)</code><div class="desc"><b>Aliases</b> point a stable name at a physical index &mdash; enables zero-downtime reindexing.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="analyzers">
+    <div class="card-head"><span class="card-num n3">8</span><span class="card-title">text vs keyword</span><span class="card-sub">the #1 mapping choice</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="cm"># text  -> analyzed (tokenized) -> full-text match</span>
+<span class="cm"># keyword -> exact string -> term / sort / aggregate</span></code><span class="star">&#9733;</span><div class="desc">The core distinction. Use <b>text</b> for searchable prose, <b>keyword</b> for IDs/tags/enums you filter, sort, or aggregate on.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># term query on a `text` field returns nothing / wrong results</span></code><span class="badge-warn">gotcha</span><div class="desc">A <code>text</code> field is lowercased &amp; tokenized, so an exact <code>term</code> rarely matches. Use <code>match</code> on text, <code>term</code> on keyword.</div></li>
+      <li class="c3"><code class="cmd">{<span class="str">"type"</span>:<span class="str">"text"</span>, <span class="str">"fields"</span>:{<span class="str">"raw"</span>:{<span class="str">"type"</span>:<span class="str">"keyword"</span>}}}</code><span class="star">&#9733;</span><div class="desc">A <b>multi-field</b>: index the same value as both <code>text</code> (search via <code>title</code>) and <code>keyword</code> (sort/aggregate via <code>title.raw</code>). Very common.</div></li>
+      <li class="c3"><code class="cmd">es.indices.analyze(index=<span class="str">"books"</span>, text=<span class="str">"Dune Messiah"</span>, analyzer=<span class="str">"standard"</span>)</code><div class="desc">Debug tokenization &mdash; see exactly how an analyzer breaks text into terms.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-dsl"><h2 style="color:var(--c4)">DSL &amp; Async</h2><p class="sub">Write queries fluently in Python; go concurrent with the async client.</p></div>
+<main>
+  <article class="card" id="dsl">
+    <div class="card-head"><span class="card-num n4">9</span><span class="card-title">elasticsearch.dsl</span><span class="card-sub">fluent queries</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="kw">from</span> elasticsearch.dsl <span class="kw">import</span> Search, Q</code><span class="star">&#9733;</span><span class="badge-new">integrated</span><div class="desc">The former standalone <code>elasticsearch-dsl</code> is now built into the client as <code>elasticsearch.dsl</code> &mdash; a Pythonic query builder.</div></li>
+      <li class="c4"><code class="cmd">s = (Search(using=es, index=<span class="str">"books"</span>)
+     .query(<span class="str">"match"</span>, title=<span class="str">"dune"</span>)
+     .filter(<span class="str">"range"</span>, year={<span class="str">"gte"</span>:1960})
+     .sort(<span class="str">"-year"</span>)[:20])
+<span class="kw">for</span> hit <span class="kw">in</span> s.execute(): print(hit.title)</code><span class="star">&#9733;</span><div class="desc">Chainable &amp; lazy &mdash; nothing runs until <code>.execute()</code> or iteration. Hits are attribute-access objects.</div></li>
+      <li class="c4"><code class="cmd">Q(<span class="str">"match"</span>, title=<span class="str">"dune"</span>) & Q(<span class="str">"match"</span>, author=<span class="str">"herbert"</span>)</code><div class="desc"><code>Q</code> objects combine with <code>&amp;</code> / <code>|</code> / <code>~</code> into bool queries &mdash; readable boolean logic.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">class</span> Book(Document):
+    title = Text(); year = Integer()
+    <span class="kw">class</span> Index: name = <span class="str">"books"</span></code><div class="desc"><code>Document</code> gives an ODM: model classes with typed fields, <code>.save()</code>, and <code>.search()</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="async">
+    <div class="card-head"><span class="card-num n4">10</span><span class="card-title">Async client</span><span class="card-sub">concurrency</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="kw">from</span> elasticsearch <span class="kw">import</span> AsyncElasticsearch
+es = AsyncElasticsearch(<span class="str">"https://localhost:9200"</span>, api_key=<span class="str">"..."</span>)
+r = <span class="kw">await</span> es.search(index=<span class="str">"books"</span>, query={...})</code><span class="star">&#9733;</span><div class="desc">Same API, awaitable. Great inside FastAPI/asyncio. <code>await es.close()</code> when done.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">from</span> elasticsearch.helpers <span class="kw">import</span> async_bulk, async_scan</code><div class="desc">Async twins of the bulk/scan helpers.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">from</span> elasticsearch.dsl <span class="kw">import</span> AsyncSearch, AsyncDocument</code><div class="desc">The DSL has async variants too.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-ops"><h2 style="color:var(--c5)">Ops &amp; Ecosystem</h2><p class="sub">Read everything without exploding memory; know what changed and what's around.</p></div>
+<main>
+  <article class="card" id="scan">
+    <div class="card-head"><span class="card-num n5">11</span><span class="card-title">Scroll, paging &amp; vectors</span><span class="card-sub">large result sets</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="kw">for</span> doc <span class="kw">in</span> helpers.scan(es, index=<span class="str">"books"</span>, query={<span class="str">"query"</span>:{<span class="str">"match_all"</span>:{}}}):
+    process(doc[<span class="str">"_source"</span>])</code><span class="star">&#9733;</span><div class="desc"><code>helpers.scan</code> streams <b>every</b> matching doc (uses point-in-time/scroll under the hood) &mdash; the way to export a whole index.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># from_ + size can't page past index.max_result_window (10000)</span></code><span class="badge-warn">gotcha</span><div class="desc">Deep pagination fails past 10k. Use <code>search_after</code> (with a sort + PIT) or <code>helpers.scan</code> for large exports.</div></li>
+      <li class="c5"><code class="cmd">es.open_point_in_time(index=<span class="str">"books"</span>, keep_alive=<span class="str">"1m"</span>)</code><div class="desc"><b>Point-in-time</b> + <code>search_after</code> is the modern, consistent deep-pagination pattern.</div></li>
+      <li class="c5"><code class="cmd">es.reindex(source={<span class="str">"index"</span>:<span class="str">"books"</span>}, dest={<span class="str">"index"</span>:<span class="str">"books_v2"</span>})</code><div class="desc">Server-side reindex to change mappings/analyzers &mdash; then flip the alias.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="ecosystem">
+    <div class="card-head"><span class="card-num n5">12</span><span class="card-title">Migration &amp; ecosystem</span><span class="card-sub">what changed</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="cm"># es.search(body={"query":...})  ->  es.search(query=...)</span></code><span class="badge-danger">removed</span><div class="desc"><b>The big migration:</b> the catch-all <code>body=</code> parameter was deprecated in 8.x and <b>removed in 9.x</b>. Lift each top-level key (<code>query</code>, <code>aggs</code>, <code>mappings</code>, <code>settings</code>, <code>size</code>&hellip;) into its own kwarg.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># version-match the client to the cluster (9.x client -> 9.x server)</span></code><span class="star">&#9733;</span><div class="desc">Elastic ships one client major per stack major (<code>elasticsearch7/8/9</code> pin-packages exist). Mismatched majors can break.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># related: Kibana (UI), Logstash/Beats (ingest), OpenSearch (fork)</span></code><div class="desc">The wider stack. <b>OpenSearch</b> is the AWS fork with its own <code>opensearch-py</code> client (similar API).</div></li>
+      <li class="c5"><code class="cmd">es.sql.query(query=<span class="str">"SELECT title FROM books WHERE year &gt; 1960"</span>)</code><div class="desc">Elasticsearch SQL for those who prefer SQL over the DSL. ES|QL is the newer piped query language.</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">Elasticsearch(url, api_key=)</span><span class="v">the client; version-match the cluster</span></div>
+    <div><span class="k">es.index(index=, document=)</span><span class="v">create/replace a doc</span></div>
+    <div><span class="k">helpers.bulk / streaming_bulk</span><span class="v">load many — check the errors</span></div>
+    <div><span class="k">es.search(index=, query=)</span><span class="v">query= NOT body= (v9)</span></div>
+    <div><span class="k">hits.hits[]._source</span><span class="v">where the results live</span></div>
+    <div><span class="k">bool: must/filter/should/must_not</span><span class="v">filters are unscored + cached</span></div>
+    <div><span class="k">match vs term</span><span class="v">full-text vs exact (text vs keyword)</span></div>
+    <div><span class="k">size=0 + aggs=</span><span class="v">aggregations only, no hits</span></div>
+    <div><span class="k">text.raw multi-field</span><span class="v">search text + sort/aggregate keyword</span></div>
+    <div><span class="k">elasticsearch.dsl</span><span class="v">Search().query().filter() fluent builder</span></div>
+    <div><span class="k">helpers.scan</span><span class="v">stream a whole index (past 10k)</span></div>
+    <div><span class="k">body= REMOVED in 9.x</span><span class="v">lift keys into kwargs</span></div>
+  </div>
+</section>
+
+<footer>
+  <b>Elasticsearch Python cheat sheet</b> &middot; v0 &middot; content verified 2026-08-31 against elasticsearch-py.readthedocs.io &amp; elastic.co (elasticsearch 9.5.0, released 2026-08-04, Python 3.10&ndash;3.14).<br>
+  The official client mirrors the REST API 1:1 as methods with keyword args. <b>v9 breaking change:</b> the <code>body=</code> parameter is gone &mdash; pass <code>query=</code>/<code>aggs=</code>/<code>mappings=</code>/<code>settings=</code> directly. Bulk-load with <code>helpers.bulk</code>, export with <code>helpers.scan</code>, build queries with the integrated <code>elasticsearch.dsl</code>, and use <code>AsyncElasticsearch</code> for concurrency. Version-match the client major to the cluster.<br>
+  Star (&#9733;) marks the most common operations. APIs track the Elastic stack version &mdash; confirm against the docs for your cluster.
+</footer>
+</body>
+</html>

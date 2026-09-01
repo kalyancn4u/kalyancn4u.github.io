@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dash Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b;  --setup-bg:#f1f3f6;
+    --plot:#d97706;   --plot-bg:#fdf6ec;
+    --axes:#059669;   --axes-bg:#ecf7f2;
+    --style:#4f46e5;  --style-bg:#eef0fd;
+    --layout:#7c3aed; --layout-bg:#f5f0fe;
+    --output:#0d9488; --output-bg:#e7f6f4;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .dash{font-family:var(--mono); color:#119dff}
+  .lede{max-width:68ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)}  .dot.plot{background:var(--plot)}
+  .dot.axes{background:var(--axes)}    .dot.style{background:var(--style)}
+  .dot.layout{background:var(--layout)}.dot.output{background:var(--output)}
+  .dot.danger{background:var(--danger)}
+  .legend .st{color:var(--star); font-weight:700}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.plot{border-left-color:var(--plot)}
+  ul.cmds li.axes{border-left-color:var(--axes)}
+  ul.cmds li.style{border-left-color:var(--style)}
+  ul.cmds li.layout{border-left-color:var(--layout)}
+  ul.cmds li.output{border-left-color:var(--output)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.81rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .obj{color:var(--layout); font-weight:600}
+  code.cmd .arg{color:var(--style); font-weight:400}
+  code.cmd .kw{color:var(--star)}
+  code.cmd .cm{color:var(--muted); font-weight:400}
+  code.cmd .str{color:var(--axes)}
+  li.danger code.cmd{color:var(--danger)}
+  li.danger code.cmd .obj,li.danger code.cmd .arg,li.danger code.cmd .kw,li.danger code.cmd .str{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f1ea; padding:.03em .28em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-in{
+    color:var(--plot); font-size:.63rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.04em; margin-left:.35rem;
+  }
+  .badge-out{
+    color:var(--axes); font-size:.63rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.04em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem; max-width:70ch}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#f5f0e8; background:#2c313c; padding:.02em .3em; border-radius:3px}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:var(--ink)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · reactive web apps in pure Python</div>
+  <h1><span class="dash">dash</span> cheat sheet</h1>
+  <p class="lede">Dash turns Python into interactive web apps &mdash; <b>no JavaScript required</b>. Two ideas carry the whole framework: <b>layout</b> (<code>app.layout</code>, a tree of components that describes <i>what the app looks like</i>) and <b>callbacks</b> (<code>@callback</code> functions that describe <i>how it reacts</i>). Wire them with three dependency objects &mdash; an <b>Input</b> triggers a callback, an <b>Output</b> receives its return value, a <b>State</b> is read without triggering &mdash; and Dash keeps the browser and your Python in sync automatically.</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>setup / app</span>
+    <span><i class="dot plot"></i>layout · html</span>
+    <span><i class="dot axes"></i>components · dcc</span>
+    <span><i class="dot style"></i>callbacks</span>
+    <span><i class="dot layout"></i>advanced callbacks</span>
+    <span><i class="dot output"></i>state · pages · deploy</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="st">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked across: <b>dash.plotly.com</b> &middot; <b>Fundamentals (layout · callbacks · graphing)</b> &middot; <b>dcc &amp; html reference</b> &middot; <b>pattern-matching</b> &middot; <b>background callbacks</b> &middot; <b>Dash 3.0 / 4.x migration</b> &middot; <b>Dash in 20 Minutes</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM : THE REACTIVE LOOP ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The reactive loop &mdash; layout describes it, callbacks react to it</div>
+  <svg class="flow-svg" viewBox="0 0 1120 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A Dash app has a layout, which is a tree of components living in the browser: an html.Div containing a dcc.Dropdown (an input control), a dcc.Graph (an output target) and a dcc.Store (holding state). On the server, an @callback declares Output out figure, Input ctrl value and State store data, and its function returns a figure. When the dropdown value changes it triggers the callback via its Input; the State store is read without triggering; the returned figure updates the Graph's Output property and the browser re-renders. The three wirings: Output sets a property, Input triggers and passes its value, State is passed but does not trigger.">
+    <defs>
+      <marker id="lead" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/>
+      </marker>
+    </defs>
+
+    <!-- client / server labels + divider -->
+    <text x="204" y="58" text-anchor="middle" font-size="10.5" font-weight="700" fill="#64748b" letter-spacing="0.08em">CLIENT · the browser</text>
+    <text x="640" y="58" text-anchor="middle" font-size="10.5" font-weight="700" fill="#7c3aed" letter-spacing="0.08em">SERVER · your Python</text>
+    <line x1="410" y1="74" x2="410" y2="366" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="5 4"/>
+
+    <!-- ===== LEFT : app.layout tree ===== -->
+    <rect x="24" y="86" width="360" height="262" rx="10" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+    <text x="40" y="108" font-size="11" font-weight="700" fill="#1a1d24">app.layout</text>
+    <text x="368" y="108" text-anchor="end" font-size="8.5" fill="#64748b">a tree of components</text>
+
+    <!-- root -->
+    <rect x="44" y="118" width="210" height="26" rx="5" fill="#fff" stroke="#94a3b8" stroke-width="1.2"/>
+    <text x="54" y="135" font-size="10" fill="#1a1d24">html.Div([ … ])</text>
+    <!-- spine -->
+    <line x1="70" y1="144" x2="70" y2="300" stroke="#94a3b8" stroke-width="1.2"/>
+    <line x1="70" y1="180" x2="98" y2="180" stroke="#94a3b8" stroke-width="1.2"/>
+    <line x1="70" y1="234" x2="98" y2="234" stroke="#94a3b8" stroke-width="1.2"/>
+    <line x1="70" y1="288" x2="98" y2="288" stroke="#94a3b8" stroke-width="1.2"/>
+
+    <!-- dropdown (input control) -->
+    <rect x="98" y="162" width="262" height="38" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+    <text x="110" y="180" font-size="10.5" font-weight="700" fill="#1a1d24">dcc.Dropdown(id="ctrl")</text>
+    <text x="110" y="193" font-size="8" fill="#d97706">an input control &mdash; its value changes</text>
+
+    <!-- graph (output target) -->
+    <rect x="98" y="216" width="262" height="38" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+    <text x="110" y="234" font-size="10.5" font-weight="700" fill="#1a1d24">dcc.Graph(id="out")</text>
+    <text x="110" y="247" font-size="8" fill="#059669">an output target &mdash; its figure updates</text>
+
+    <!-- store (state) -->
+    <rect x="98" y="272" width="262" height="34" rx="6" fill="#fff" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4 3"/>
+    <text x="110" y="288" font-size="10.5" font-weight="700" fill="#1a1d24">dcc.Store(id="store")</text>
+    <text x="110" y="300" font-size="8" fill="#64748b">holds data read as State</text>
+
+    <!-- ===== CENTER : @callback ===== -->
+    <rect x="468" y="110" width="342" height="214" rx="10" fill="#fdfcff" stroke="#7c3aed" stroke-width="2.2"/>
+    <text x="484" y="132" font-size="11" font-weight="700" fill="#7c3aed">@callback</text>
+    <text x="484" y="152" font-size="10.5" fill="#1a1d24">@callback(</text>
+    <text x="496" y="170" font-size="10.5" fill="#059669" font-weight="700">  Output("out", "figure"),</text>
+    <text x="496" y="188" font-size="10.5" fill="#d97706" font-weight="700">  Input("ctrl", "value"),</text>
+    <text x="496" y="206" font-size="10.5" fill="#64748b" font-weight="700">  State("store", "data"),</text>
+    <text x="484" y="224" font-size="10.5" fill="#1a1d24">)</text>
+    <text x="484" y="246" font-size="10.5" fill="#1a1d24">def update(value, data):</text>
+    <text x="484" y="264" font-size="10.5" fill="#1a1d24">    return figure</text>
+    <text x="484" y="292" font-size="8.5" fill="#7c3aed">pure Python &mdash; runs on the server</text>
+    <text x="484" y="307" font-size="8" fill="#94a3b8">re-runs whenever an Input changes</text>
+
+    <!-- Input trigger arrow -->
+    <line x1="360" y1="178" x2="466" y2="184" stroke="#d97706" stroke-width="1.8" marker-end="url(#lead)"/>
+    <text x="412" y="172" text-anchor="middle" font-size="8" font-style="italic" fill="#d97706">triggers</text>
+
+    <!-- State read arrow -->
+    <line x1="360" y1="289" x2="466" y2="204" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#lead)"/>
+    <text x="430" y="258" text-anchor="middle" font-size="8" font-style="italic" fill="#64748b">read-only</text>
+
+    <!-- Output update arrow (server -> client) -->
+    <path d="M500,324 C450,362 320,300 258,256" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#lead)"/>
+    <text x="372" y="352" text-anchor="middle" font-size="8" font-style="italic" fill="#059669">returns &rarr; updates the Output property</text>
+
+    <!-- ===== RIGHT : the three wirings ===== -->
+    <line x1="810" y1="150" x2="836" y2="150" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#lead)"/>
+    <rect x="836" y="110" width="260" height="214" rx="10" fill="#fff" stroke="#e7e3db" stroke-width="1.4"/>
+    <text x="852" y="132" font-size="10.5" font-weight="700" fill="#1a1d24">the three wirings</text>
+
+    <rect x="852" y="142" width="66" height="20" rx="4" fill="#ecf7f2" stroke="#059669" stroke-width="1.2"/>
+    <text x="885" y="156" text-anchor="middle" font-size="9" font-weight="700" fill="#059669">Output</text>
+    <text x="926" y="156" font-size="8.5" fill="#525761">sets a property</text>
+
+    <rect x="852" y="172" width="66" height="20" rx="4" fill="#fdf6ec" stroke="#d97706" stroke-width="1.2"/>
+    <text x="885" y="186" text-anchor="middle" font-size="9" font-weight="700" fill="#d97706">Input</text>
+    <text x="926" y="186" font-size="8.5" fill="#525761">triggers + passes value</text>
+
+    <rect x="852" y="202" width="66" height="20" rx="4" fill="#f1f3f6" stroke="#64748b" stroke-width="1.2"/>
+    <text x="885" y="216" text-anchor="middle" font-size="9" font-weight="700" fill="#64748b">State</text>
+    <text x="926" y="216" font-size="8.5" fill="#525761">passed, doesn't trigger</text>
+
+    <line x1="852" y1="236" x2="1080" y2="236" stroke="#e7e3db" stroke-width="1"/>
+    <text x="852" y="256" font-size="9" fill="#1a1d24">every component property</text>
+    <text x="852" y="269" font-size="9" fill="#1a1d24">is reactive (Input or Output)</text>
+    <text x="852" y="292" font-size="9" font-weight="700" fill="#7c3aed">ctx.triggered_id</text>
+    <text x="852" y="305" font-size="8" fill="#6b7280">&rarr; which input fired</text>
+
+    <!-- ===== BOTTOM band ===== -->
+    <rect x="24" y="384" width="1072" height="60" rx="10" fill="#1a1d24"/>
+    <text x="560" y="410" text-anchor="middle" font-size="11.5" font-weight="700" fill="#f5f0e8">app.layout = what it looks like   ·   @callback = how it reacts</text>
+    <text x="560" y="430" text-anchor="middle" font-size="10" fill="#9ca3af">Dash keeps component properties in sync between the browser and your Python &mdash; reactively, with no JavaScript required</text>
+  </svg>
+</section>
+
+<!-- ============ CARD GRID ============ -->
+<main>
+
+  <!-- 01 SETUP & APP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; App</span><span class="card-sub">the boilerplate</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="cm">from</span> dash <span class="cm">import</span> Dash, dcc, html, Input, Output, State, callback</code><span class="star">&#9733;</span><div class="desc">The imports nearly every app needs.</div></li>
+      <li class="setup"><code class="cmd">app = <span class="obj">Dash</span>(__name__)</code><span class="star">&#9733;</span><div class="desc">Create the app; pass <code>external_stylesheets=</code> if needed.</div></li>
+      <li class="setup"><code class="cmd">app.layout = html.<span class="obj">Div</span>(<span class="arg">[ … ]</span>)</code><span class="star">&#9733;</span><div class="desc">Assign the component tree (a list works too).</div></li>
+      <li class="setup"><code class="cmd"><span class="cm">if</span> __name__ == <span class="str">"__main__"</span>: app.<span class="obj">run</span>(<span class="kw">debug</span>=<span class="arg">True</span>)</code><span class="star">&#9733;</span><div class="desc"><code>debug=True</code> gives hot-reload + error overlay.</div></li>
+      <li class="setup"><code class="cmd">server = app.server</code><div class="desc">The underlying WSGI/ASGI app &mdash; for <code>gunicorn app:server</code>.</div></li>
+      <li class="setup"><code class="cmd"><span class="obj">Dash</span>(__name__, <span class="kw">backend</span>=<span class="str">"fastapi"</span>)</code><div class="desc">Dash 4.2+: run on Flask (default), FastAPI, or Quart.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 LAYOUT HTML -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Layout &middot; HTML</span><span class="card-sub">dash.html · the tags</span></div>
+    <ul class="cmds">
+      <li class="plot"><code class="cmd">html.<span class="obj">Div</span>(<span class="kw">children</span>=<span class="arg">[ … ]</span>)</code><span class="star">&#9733;</span><div class="desc">The generic container; <code>children</code> is the first positional arg.</div></li>
+      <li class="plot"><code class="cmd">html.<span class="obj">H1</span>(<span class="str">"Title"</span>), html.<span class="obj">P</span>(<span class="str">"text"</span>)</code><span class="star">&#9733;</span><div class="desc">One class per HTML tag (<code>H1</code>…<code>H6</code>, <code>Span</code>, <code>Label</code>, <code>A</code>, <code>Img</code>).</div></li>
+      <li class="plot"><code class="cmd">html.<span class="obj">Button</span>(<span class="str">"Click"</span>, <span class="kw">id</span>=<span class="str">"btn"</span>)</code><span class="star">&#9733;</span><div class="desc">Its <code>n_clicks</code> property is the classic callback Input.</div></li>
+      <li class="plot"><code class="cmd">html.<span class="obj">A</span>(<span class="str">"link"</span>, <span class="kw">href</span>=<span class="str">"/page"</span>)</code><div class="desc">Anchor; use <code>dcc.Link</code> for in-app navigation.</div></li>
+      <li class="plot"><code class="cmd"><span class="kw">id</span>=<span class="str">"my-id"</span></code><span class="star">&#9733;</span><div class="desc">The handle callbacks use &mdash; must be unique.</div></li>
+      <li class="plot"><code class="cmd"><span class="kw">className</span>=<span class="str">"row"</span>, <span class="kw">style</span>=<span class="arg">{ … }</span></code><div class="desc"><code>className</code> for CSS classes; <code>style</code> for inline (card 3).</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 LAYOUT STRUCTURE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Layout &middot; style</span><span class="card-sub">nesting &amp; CSS</span></div>
+    <ul class="cmds">
+      <li class="plot"><code class="cmd"><span class="kw">style</span>=<span class="arg">{"backgroundColor": "navy", "padding": 10}</span></code><span class="star">&#9733;</span><div class="desc">Inline CSS as a dict &mdash; keys are <b>camelCase</b>.</div></li>
+      <li class="plot"><code class="cmd">html.<span class="obj">Div</span>(<span class="arg">[html.H1(…), dcc.Graph(…)]</span>)</code><div class="desc">Nest components to build the tree.</div></li>
+      <li class="plot"><code class="cmd"><span class="obj">Dash</span>(__name__, <span class="kw">external_stylesheets</span>=<span class="arg">[…]</span>)</code><div class="desc">Load CSS / themes (e.g. a Bootstrap URL).</div></li>
+      <li class="plot"><code class="cmd"><span class="cm">import</span> dash_bootstrap_components <span class="cm">as</span> dbc</code><div class="desc"><code>dbc.Row</code>/<code>dbc.Col</code>/<code>dbc.Card</code> for responsive grids.</div></li>
+      <li class="plot"><code class="cmd"><span class="cm">import</span> dash_mantine_components <span class="cm">as</span> dmc</code><div class="desc">Modern component kit &mdash; a popular alternative to dbc.</div></li>
+      <li class="plot"><code class="cmd"><span class="cm"># assets/ folder auto-loads .css &amp; .js</span></code><div class="desc">Drop files in <code>assets/</code> and Dash serves them.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 CORE COMPONENTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Core Components</span><span class="card-sub">dash.dcc · controls</span></div>
+    <ul class="cmds">
+      <li class="axes"><code class="cmd">dcc.<span class="obj">Graph</span>(<span class="kw">id</span>=<span class="str">"g"</span>, <span class="kw">figure</span>=<span class="arg">fig</span>)</code><span class="star">&#9733;</span><div class="desc">Renders a Plotly figure; the heart of most apps.</div></li>
+      <li class="axes"><code class="cmd">dcc.<span class="obj">Dropdown</span>(<span class="kw">options</span>=<span class="arg">[…]</span>, <span class="kw">value</span>=<span class="str">"a"</span>)</code><span class="star">&#9733;</span><div class="desc">Callback reads its <code>value</code>; <code>multi=True</code> for many.</div></li>
+      <li class="axes"><code class="cmd">dcc.<span class="obj">Slider</span>(<span class="kw">min</span>=<span class="arg">0</span>, <span class="kw">max</span>=<span class="arg">10</span>, <span class="kw">value</span>=<span class="arg">5</span>)</code><span class="star">&#9733;</span><div class="desc"><code>RangeSlider</code> for a low&ndash;high pair.</div></li>
+      <li class="axes"><code class="cmd">dcc.<span class="obj">Input</span>(<span class="kw">type</span>=<span class="str">"number"</span>, <span class="kw">debounce</span>=<span class="arg">True</span>)</code><div class="desc"><code>debounce</code> waits for Enter/blur before firing.</div></li>
+      <li class="axes"><code class="cmd">dcc.<span class="obj">Checklist</span>(…) · dcc.<span class="obj">RadioItems</span>(…)</code><div class="desc">Multi-select vs single-select.</div></li>
+      <li class="axes"><code class="cmd">dcc.<span class="obj">DatePickerRange</span>(…) · dcc.<span class="obj">Tabs</span>(…)</code><div class="desc">Dates and tabbed sections.</div></li>
+      <li class="axes"><code class="cmd">dcc.<span class="obj">Markdown</span>(<span class="str">"# hi"</span>)</code><div class="desc">Render Markdown (with optional <code>mathjax=True</code>).</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 DCC DATA & UTILITY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">dcc &middot; data &amp; utility</span><span class="card-sub">the invisible helpers</span></div>
+    <ul class="cmds">
+      <li class="axes"><code class="cmd">dcc.<span class="obj">Store</span>(<span class="kw">id</span>=<span class="str">"s"</span>, <span class="kw">storage_type</span>=<span class="str">"session"</span>)</code><span class="star">&#9733;</span><div class="desc">Keep data client-side: <code>memory</code>·<code>session</code>·<code>local</code>.</div></li>
+      <li class="axes"><code class="cmd">dcc.<span class="obj">Interval</span>(<span class="kw">interval</span>=<span class="arg">1000</span>, <span class="kw">n_intervals</span>=<span class="arg">0</span>)</code><div class="desc">Tick every N ms &mdash; drives live/streaming updates.</div></li>
+      <li class="axes"><code class="cmd">dcc.<span class="obj">Location</span>(<span class="kw">id</span>=<span class="str">"url"</span>)</code><div class="desc">Read/route the browser URL (multi-page nav).</div></li>
+      <li class="axes"><code class="cmd">dcc.<span class="obj">Upload</span>(…) · dcc.<span class="obj">Download</span>(…)</code><div class="desc">File in / file out (pair with <code>dcc.send_data_frame</code>).</div></li>
+      <li class="axes"><code class="cmd">dcc.<span class="obj">Loading</span>(<span class="kw">children</span>=<span class="arg">dcc.Graph(…)</span>)</code><div class="desc">Auto spinner while a wrapped output updates.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 THE CALLBACK -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">The @callback</span><span class="card-sub">what makes it react &#9733;</span></div>
+    <ul class="cmds">
+      <li class="style"><code class="cmd"><span class="obj">@callback</span>(</code><span class="star">&#9733;</span><div class="desc">Decorator, <b>directly above</b> the function (no blank line).</div></li>
+      <li class="style"><code class="cmd">  <span class="obj">Output</span>(<span class="str">"out"</span>, <span class="str">"figure"</span>),</code><span class="badge-out">updates</span><div class="desc">(component <code>id</code>, property) that receives the return.</div></li>
+      <li class="style"><code class="cmd">  <span class="obj">Input</span>(<span class="str">"ctrl"</span>, <span class="str">"value"</span>))</code><span class="badge-in">triggers</span><div class="desc">Any change here re-runs the callback.</div></li>
+      <li class="style"><code class="cmd"><span class="cm">def</span> update(value): <span class="cm">return</span> fig</code><span class="star">&#9733;</span><div class="desc">Args match Inputs by position; the return goes to Output.</div></li>
+      <li class="style"><code class="cmd"><span class="cm"># ids must exist in app.layout</span></code><div class="desc">Every referenced <code>id</code>/property must be in the layout.</div></li>
+      <li class="style"><code class="cmd"><span class="cm"># every property is reactive</span></code><div class="desc">Any component property can be an Input or Output.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 MULTIPLE I/O -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Multiple I/O &amp; State</span><span class="card-sub">wiring it up</span></div>
+    <ul class="cmds">
+      <li class="style"><code class="cmd"><span class="obj">Input</span>(<span class="str">"a"</span>,<span class="str">"value"</span>), <span class="obj">Input</span>(<span class="str">"b"</span>,<span class="str">"value"</span>)</code><span class="star">&#9733;</span><div class="desc">Many Inputs &rarr; many function args, in order.</div></li>
+      <li class="style"><code class="cmd"><span class="obj">Output</span>(<span class="str">"x"</span>,<span class="str">"children"</span>), <span class="obj">Output</span>(<span class="str">"y"</span>,<span class="str">"figure"</span>)</code><div class="desc">Many Outputs &rarr; <code>return a, b</code> (a tuple).</div></li>
+      <li class="style"><code class="cmd"><span class="obj">State</span>(<span class="str">"in"</span>, <span class="str">"value"</span>)</code><span class="badge-in">read-only</span><div class="desc">Read a value without triggering &mdash; pair with a Button Input.</div></li>
+      <li class="style"><code class="cmd"><span class="kw">prevent_initial_call</span>=<span class="arg">True</span></code><span class="star">&#9733;</span><div class="desc">Skip the automatic call when the app first loads.</div></li>
+      <li class="style"><code class="cmd"><span class="cm"># chaining: one Output is another's Input</span></code><div class="desc">Callbacks fire in dependency order automatically.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 CALLBACK CONTEXT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Context &amp; control</span><span class="card-sub">ctx · skip · duplicate</span></div>
+    <ul class="cmds">
+      <li class="style"><code class="cmd"><span class="cm">from</span> dash <span class="cm">import</span> ctx</code><span class="star">&#9733;</span><div class="desc">The callback context (alias of <code>callback_context</code>).</div></li>
+      <li class="style"><code class="cmd">ctx.<span class="obj">triggered_id</span></code><span class="star">&#9733;</span><div class="desc">Which component <code>id</code> actually fired the callback.</div></li>
+      <li class="style"><code class="cmd"><span class="cm">return</span> dash.no_update</code><span class="star">&#9733;</span><div class="desc">Leave an Output unchanged (per-output with a tuple).</div></li>
+      <li class="style"><code class="cmd"><span class="cm">raise</span> PreventUpdate</code><div class="desc">Abort the whole callback &mdash; update nothing.</div></li>
+      <li class="style"><code class="cmd"><span class="obj">Output</span>(<span class="str">"o"</span>,<span class="str">"children"</span>, <span class="kw">allow_duplicate</span>=<span class="arg">True</span>)</code><div class="desc">Let a second callback also target that Output.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 INTERACTIVE GRAPHING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Interactive graphing</span><span class="card-sub">dcc.Graph as an Input</span></div>
+    <ul class="cmds">
+      <li class="axes"><code class="cmd"><span class="obj">Input</span>(<span class="str">"g"</span>, <span class="str">"hoverData"</span>)</code><span class="star">&#9733;</span><div class="desc">React to the point under the cursor.</div></li>
+      <li class="axes"><code class="cmd"><span class="obj">Input</span>(<span class="str">"g"</span>, <span class="str">"clickData"</span>)</code><div class="desc">React to a clicked point.</div></li>
+      <li class="axes"><code class="cmd"><span class="obj">Input</span>(<span class="str">"g"</span>, <span class="str">"selectedData"</span>)</code><div class="desc">Box/lasso selection &rarr; crossfilter other charts.</div></li>
+      <li class="axes"><code class="cmd"><span class="obj">Input</span>(<span class="str">"g"</span>, <span class="str">"relayoutData"</span>)</code><div class="desc">Zoom/pan ranges &mdash; sync views together.</div></li>
+      <li class="axes"><code class="cmd">fig.<span class="obj">update_layout</span>(<span class="kw">clickmode</span>=<span class="str">"event+select"</span>)</code><div class="desc">Enable click-to-select on the figure.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 PATTERN-MATCHING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Pattern-matching</span><span class="card-sub">dynamic components</span></div>
+    <ul class="cmds">
+      <li class="layout"><code class="cmd"><span class="cm">from</span> dash <span class="cm">import</span> MATCH, ALL, ALLSMALLER</code><span class="star">&#9733;</span><div class="desc">Wildcards for components created at runtime.</div></li>
+      <li class="layout"><code class="cmd"><span class="kw">id</span>=<span class="arg">{"type": "filter", "index": i}</span></code><span class="star">&#9733;</span><div class="desc">Give dynamic components a <b>dict</b> id.</div></li>
+      <li class="layout"><code class="cmd"><span class="obj">Input</span>(<span class="arg">{"type": "filter", "index": MATCH}</span>, <span class="str">"value"</span>)</code><span class="star">&#9733;</span><div class="desc"><code>MATCH</code> &mdash; fires once, for the one that changed.</div></li>
+      <li class="layout"><code class="cmd"><span class="obj">Input</span>(<span class="arg">{"type": "filter", "index": ALL}</span>, <span class="str">"value"</span>)</code><div class="desc"><code>ALL</code> &mdash; collects every match into a list.</div></li>
+      <li class="layout"><code class="cmd">ctx.<span class="obj">triggered_id</span>[<span class="str">"index"</span>]</code><div class="desc">Read which dict-id instance fired.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 PATCH & CLIENTSIDE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Patch &amp; clientside</span><span class="card-sub">fast partial updates</span></div>
+    <ul class="cmds">
+      <li class="layout"><code class="cmd"><span class="cm">from</span> dash <span class="cm">import</span> Patch</code><span class="star">&#9733;</span><div class="desc">Update part of a prop without resending the whole thing.</div></li>
+      <li class="layout"><code class="cmd">p = <span class="obj">Patch</span>(); p[<span class="str">"data"</span>][<span class="arg">0</span>][<span class="str">"x"</span>] = xs; <span class="cm">return</span> p</code><div class="desc">Great for appending to figures / editing lists in place.</div></li>
+      <li class="layout"><code class="cmd">dash.<span class="obj">clientside_callback</span>(<span class="str">"function(x){…}"</span>, …)</code><span class="star">&#9733;</span><div class="desc">Run JS in the browser &mdash; zero server round-trip.</div></li>
+      <li class="layout"><code class="cmd"><span class="obj">ClientsideFunction</span>(<span class="kw">namespace</span>=, <span class="kw">function_name</span>=)</code><div class="desc">Reference JS from your <code>assets/</code> folder.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 BACKGROUND CALLBACKS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Background callbacks</span><span class="card-sub">long-running work</span></div>
+    <ul class="cmds">
+      <li class="layout"><code class="cmd"><span class="obj">@callback</span>(<span class="cm">…</span>, <span class="kw">background</span>=<span class="arg">True</span>)</code><span class="star">&#9733;</span><div class="desc">Run off the request thread so the UI stays responsive.</div></li>
+      <li class="layout"><code class="cmd">manager = <span class="obj">DiskcacheManager</span>(…)</code><div class="desc">Dev; use <code>CeleryManager</code> for production.</div></li>
+      <li class="layout"><code class="cmd"><span class="kw">running</span>=<span class="arg">[(Output("btn","disabled"), True, False)]</span></code><div class="desc">Toggle props while it runs (disable a button, show a spinner).</div></li>
+      <li class="layout"><code class="cmd"><span class="kw">progress</span>=<span class="arg">[Output("bar","value")]</span></code><div class="desc">Stream progress to a component as it works.</div></li>
+      <li class="layout"><code class="cmd"><span class="kw">cancel</span>=<span class="arg">[Input("cancel","n_clicks")]</span></code><div class="desc">Let the user abort a running job.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 MULTI-PAGE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Multi-page apps</span><span class="card-sub">use_pages</span></div>
+    <ul class="cmds">
+      <li class="output"><code class="cmd"><span class="obj">Dash</span>(__name__, <span class="kw">use_pages</span>=<span class="arg">True</span>)</code><span class="star">&#9733;</span><div class="desc">Turn on the built-in pages system.</div></li>
+      <li class="output"><code class="cmd">dash.<span class="obj">register_page</span>(__name__, <span class="kw">path</span>=<span class="str">"/"</span>)</code><span class="star">&#9733;</span><div class="desc">Call it at the top of each file in <code>pages/</code>.</div></li>
+      <li class="output"><code class="cmd">dash.<span class="obj">page_container</span></code><span class="star">&#9733;</span><div class="desc">Put this in <code>app.layout</code> where pages should render.</div></li>
+      <li class="output"><code class="cmd">dash.<span class="obj">page_registry</span></code><div class="desc">Iterate registered pages to build a nav bar.</div></li>
+      <li class="output"><code class="cmd">dcc.<span class="obj">Link</span>(<span class="str">"Home"</span>, <span class="kw">href</span>=<span class="str">"/"</span>)</code><div class="desc">Client-side navigation &mdash; no full reload.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 SHARING DATA & DEPLOY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Share data &amp; deploy</span><span class="card-sub">state · production</span></div>
+    <ul class="cmds">
+      <li class="output"><code class="cmd">dcc.<span class="obj">Store</span> <span class="cm">as an Output, then an Input</span></code><span class="star">&#9733;</span><div class="desc">The right way to pass data between callbacks.</div></li>
+      <li class="output"><code class="cmd"><span class="cm"># data must be JSON-serializable</span></code><div class="desc">Stores hold JSON &mdash; convert DataFrames with <code>.to_dict()</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># don't mutate module globals</span></code><div class="desc">Callbacks must be stateless &mdash; workers don't share memory.</div></li>
+      <li class="output"><code class="cmd">gunicorn app:server</code><span class="star">&#9733;</span><div class="desc">Production server; <code>server = app.server</code> first.</div></li>
+      <li class="output"><code class="cmd">app.<span class="obj">run</span>(<span class="kw">host</span>=<span class="str">"0.0.0.0"</span>, <span class="kw">port</span>=<span class="arg">8050</span>)</code><div class="desc">Expose it; default is <code>127.0.0.1:8050</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 THE REACTIVE MODEL (KEY) -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">The reactive model</span><span class="card-sub">the one big idea &#9733;</span></div>
+    <ul class="cmds">
+      <li class="plot"><code class="cmd">app.layout <span class="cm">= a tree of components</span></code><span class="star">&#9733;</span><div class="desc"><i>What</i> the app looks like &mdash; declarative, in the browser.</div></li>
+      <li class="style"><code class="cmd">@callback <span class="cm">= Python that reacts</span></code><span class="star">&#9733;</span><div class="desc"><i>How</i> it behaves &mdash; runs on the server.</div></li>
+      <li class="plot"><code class="cmd"><span class="obj">Input</span> <span class="cm">triggers</span></code><span class="badge-in">triggers</span><div class="desc">A change to this property re-runs the callback.</div></li>
+      <li class="axes"><code class="cmd"><span class="obj">Output</span> <span class="cm">updates</span></code><span class="badge-out">updates</span><div class="desc">The return value is written to this property.</div></li>
+      <li class="setup"><code class="cmd"><span class="obj">State</span> <span class="cm">reads without triggering</span></code><div class="desc">Grab a value only when something else fires.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm">every property is reactive; Dash syncs the rest</span></code><span class="star">&#9733;</span><div class="desc">You wire dependencies; Dash handles the round-trips.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 GOTCHAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Gotchas</span><span class="card-sub">the usual traps</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="cm">blank line under </span>@callback</code><span class="badge-danger">breaks</span><div class="desc">The decorator must sit <b>directly</b> above the function.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm">id not in layout</span></code><div class="desc">Every callback <code>id</code>/prop must exist in <code>app.layout</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm">two callbacks → one Output</span></code><div class="desc">Needs <code>allow_duplicate=True</code> on the Output.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">style</span>=<span class="arg">{"background-color": …}</span></code><div class="desc">Wrong &mdash; style keys are <b>camelCase</b> (<code>backgroundColor</code>).</div></li>
+      <li class="danger"><code class="cmd">app.<span class="obj">run_server</span>(…)</code><span class="badge-danger">renamed</span><div class="desc">Dash 3.0+: use <code>app.run()</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm">import</span> dash_core_components</code><span class="badge-danger">removed</span><div class="desc">Dash 3.0+: <code>from dash import dcc, html</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm">mutating a global in a callback</span></code><div class="desc">Non-deterministic across workers &mdash; use <code>dcc.Store</code>.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four ideas worth a picture</h2>
+  <p class="sub">The loop up top shows the whole cycle. These four zoom in on the pieces that trip people up: how the layout maps to the page, how a callback's parts line up, why Input and State differ, and how pattern-matching scales to dynamic UIs.</p>
+
+  <div class="merge-grid">
+
+    <!-- D1 : LAYOUT IS A TREE -->
+    <div class="merge-card">
+      <h3>the layout is a tree</h3>
+      <p>Components nest like HTML. Dash renders the tree to the DOM; each <code>id</code> becomes a handle callbacks can target.</p>
+      <svg viewBox="0 0 420 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="app.layout is an html.Div containing an html.H1 titled Dashboard, a dcc.Dropdown with id ctrl, and a dcc.Graph with id out. This component tree renders to the browser DOM.">
+        <text x="16" y="20" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700" fill="#64748b">app.layout</text>
+        <!-- root -->
+        <rect x="16" y="28" width="150" height="26" rx="5" fill="#f1f3f6" stroke="#64748b" stroke-width="1.3"/>
+        <text x="91" y="45" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#1a1d24">html.Div</text>
+        <!-- spine -->
+        <line x1="40" y1="54" x2="40" y2="164" stroke="#94a3b8" stroke-width="1.2"/>
+        <line x1="40" y1="74" x2="60" y2="74" stroke="#94a3b8" stroke-width="1.2"/>
+        <line x1="40" y1="114" x2="60" y2="114" stroke="#94a3b8" stroke-width="1.2"/>
+        <line x1="40" y1="154" x2="60" y2="154" stroke="#94a3b8" stroke-width="1.2"/>
+        <rect x="60" y="62" width="140" height="24" rx="4" fill="#fdf6ec" stroke="#d97706" stroke-width="1.2"/>
+        <text x="130" y="78" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">html.H1("Dashboard")</text>
+        <rect x="60" y="102" width="160" height="24" rx="4" fill="#ecf7f2" stroke="#059669" stroke-width="1.2"/>
+        <text x="140" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">dcc.Dropdown(id="ctrl")</text>
+        <rect x="60" y="142" width="150" height="24" rx="4" fill="#ecf7f2" stroke="#059669" stroke-width="1.2"/>
+        <text x="135" y="158" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">dcc.Graph(id="out")</text>
+
+        <!-- arrow to DOM -->
+        <line x1="228" y1="100" x2="270" y2="100" stroke="#6b7280" stroke-width="1.3" marker-end="url(#lead)"/>
+        <text x="249" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#6b7280">renders</text>
+        <!-- browser -->
+        <rect x="276" y="40" width="130" height="128" rx="6" fill="#fff" stroke="#4f46e5" stroke-width="1.4"/>
+        <rect x="276" y="40" width="130" height="18" rx="6" fill="#eef0fd"/>
+        <circle cx="286" cy="49" r="2.5" fill="#94a3b8"/><circle cx="294" cy="49" r="2.5" fill="#94a3b8"/>
+        <text x="341" y="76" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#1a1d24">Dashboard</text>
+        <rect x="290" y="86" width="102" height="16" rx="3" fill="#fdf6ec" stroke="#d97706" stroke-width="1"/>
+        <text x="341" y="98" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#6b7280">▾ dropdown</text>
+        <rect x="290" y="108" width="102" height="52" rx="3" fill="#ecf7f2" stroke="#059669" stroke-width="1"/>
+        <polyline points="298,150 316,132 332,142 352,120 384,126" fill="none" stroke="#059669" stroke-width="1.6"/>
+        <text x="341" y="182" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#94a3b8">the browser DOM</text>
+      </svg>
+    </div>
+
+    <!-- D2 : CALLBACK SIGNATURE MAPPING -->
+    <div class="merge-card">
+      <h3>how a callback lines up</h3>
+      <p>Decorator order is the contract: Inputs then States become the function's args, in order; the return feeds the Output(s).</p>
+      <svg viewBox="0 0 420 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="In the decorator, Input ctrl value and State store data map by position to the function arguments value and data. The function's return value maps to the Output out figure.">
+        <text x="16" y="20" font-family="JetBrains Mono, monospace" font-size="9" fill="#7c3aed">@callback(</text>
+        <rect x="26" y="28" width="180" height="20" rx="4" fill="#ecf7f2" stroke="#059669" stroke-width="1.2"/>
+        <text x="34" y="42" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#047857">Output("out","figure")</text>
+        <rect x="26" y="52" width="180" height="20" rx="4" fill="#fdf6ec" stroke="#d97706" stroke-width="1.2"/>
+        <text x="34" y="66" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#b45309">Input("ctrl","value")</text>
+        <rect x="26" y="76" width="180" height="20" rx="4" fill="#f1f3f6" stroke="#64748b" stroke-width="1.2"/>
+        <text x="34" y="90" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#475569">State("store","data")</text>
+        <text x="16" y="112" font-family="JetBrains Mono, monospace" font-size="9" fill="#7c3aed">)</text>
+
+        <text x="16" y="140" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">def update(</text>
+        <rect x="92" y="128" width="52" height="18" rx="4" fill="#fdf6ec" stroke="#d97706" stroke-width="1.1"/>
+        <text x="118" y="141" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#b45309">value</text>
+        <rect x="150" y="128" width="46" height="18" rx="4" fill="#f1f3f6" stroke="#64748b" stroke-width="1.1"/>
+        <text x="173" y="141" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#475569">data</text>
+        <text x="200" y="140" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">):</text>
+        <text x="30" y="164" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">return</text>
+        <rect x="78" y="152" width="60" height="18" rx="4" fill="#ecf7f2" stroke="#059669" stroke-width="1.1"/>
+        <text x="108" y="165" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#047857">figure</text>
+
+        <!-- mapping arrows -->
+        <path d="M120,62 C240,62 250,128 138,132" fill="none" stroke="#d97706" stroke-width="1.2" stroke-dasharray="3 2" marker-end="url(#lead)"/>
+        <path d="M120,86 C220,96 250,132 178,132" fill="none" stroke="#64748b" stroke-width="1.2" stroke-dasharray="3 2" marker-end="url(#lead)"/>
+        <path d="M108,152 C108,128 150,54 148,44 L150,40" fill="none" stroke="#059669" stroke-width="1.2" stroke-dasharray="3 2" marker-end="url(#lead)"/>
+        <text x="300" y="150" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#d97706">inputs → args</text>
+        <text x="300" y="164" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#059669">return → output</text>
+        <text x="300" y="188" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#94a3b8">order matters: inputs, then states</text>
+      </svg>
+    </div>
+
+    <!-- D3 : INPUT vs STATE -->
+    <div class="merge-card">
+      <h3>Input triggers, State just reads</h3>
+      <p>Both values reach your function &mdash; but only an <b>Input</b> change starts the callback. Use State for "read this when the button fires".</p>
+      <svg viewBox="0 0 420 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Changing an Input component fires the callback. Changing a State component does not fire the callback, though its value is still read when the callback runs. A button click as Input with a text box as State is the classic pattern.">
+        <!-- input row -->
+        <rect x="16" y="24" width="120" height="34" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/>
+        <text x="76" y="40" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="#d97706">Input</text>
+        <text x="76" y="52" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#6b7280">changes →</text>
+        <line x1="136" y1="41" x2="240" y2="41" stroke="#059669" stroke-width="1.6" marker-end="url(#lead)"/>
+        <text x="188" y="34" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#059669" font-weight="700">FIRES ✓</text>
+        <rect x="244" y="24" width="120" height="34" rx="6" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.5"/>
+        <text x="304" y="45" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="#7c3aed">callback runs</text>
+
+        <!-- state row -->
+        <rect x="16" y="86" width="120" height="34" rx="6" fill="#f1f3f6" stroke="#64748b" stroke-width="1.5"/>
+        <text x="76" y="102" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="#64748b">State</text>
+        <text x="76" y="114" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#6b7280">changes →</text>
+        <line x1="136" y1="103" x2="240" y2="103" stroke="#dc2626" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#lead)"/>
+        <text x="188" y="96" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#dc2626" font-weight="700">nothing ✗</text>
+        <text x="304" y="106" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#94a3b8">(idle)</text>
+
+        <!-- but read -->
+        <line x1="76" y1="120" x2="76" y2="150" stroke="#64748b" stroke-width="1.2" stroke-dasharray="3 2"/>
+        <line x1="76" y1="150" x2="240" y2="150" stroke="#64748b" stroke-width="1.2" stroke-dasharray="3 2" marker-end="url(#lead)"/>
+        <text x="150" y="144" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#64748b">its value is still read when the callback runs</text>
+
+        <!-- classic pattern -->
+        <rect x="16" y="170" width="388" height="30" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.3"/>
+        <text x="210" y="189" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="700" fill="#4f46e5">Button.n_clicks = Input   ·   Textbox.value = State</text>
+      </svg>
+    </div>
+
+    <!-- D4 : PATTERN MATCHING -->
+    <div class="merge-card">
+      <h3>MATCH vs ALL for dynamic UIs</h3>
+      <p>Dict ids let one callback serve components created at runtime. <code>MATCH</code> handles them one at a time; <code>ALL</code> gathers them together.</p>
+      <svg viewBox="0 0 420 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three dynamic dropdowns share the id type filter with index 0, 1 and 2. With MATCH, changing one fires the callback once for that index. With ALL, the callback receives a list of all three values.">
+        <text x="16" y="18" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b7280">id = {"type":"filter", "index": i}</text>
+        <!-- three components -->
+        <rect x="16"  y="28" width="76" height="26" rx="4" fill="#fdf6ec" stroke="#d97706" stroke-width="1.2"/>
+        <text x="54"  y="45" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#1a1d24">index 0</text>
+        <rect x="102" y="28" width="76" height="26" rx="4" fill="#fdf6ec" stroke="#d97706" stroke-width="1.8"/>
+        <text x="140" y="45" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#1a1d24">index 1</text>
+        <rect x="188" y="28" width="76" height="26" rx="4" fill="#fdf6ec" stroke="#d97706" stroke-width="1.2"/>
+        <text x="226" y="45" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#1a1d24">index 2</text>
+
+        <!-- MATCH -->
+        <text x="16" y="86" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="#7c3aed">MATCH</text>
+        <line x1="140" y1="54" x2="140" y2="96" stroke="#7c3aed" stroke-width="1.6" marker-end="url(#lead)"/>
+        <rect x="96" y="98" width="90" height="24" rx="4" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.3"/>
+        <text x="141" y="114" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#7c3aed">fires for index 1</text>
+        <text x="210" y="113" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#94a3b8">one at a time</text>
+
+        <!-- ALL -->
+        <text x="16" y="150" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="#0d9488">ALL</text>
+        <line x1="54"  y1="54" x2="150" y2="160" stroke="#0d9488" stroke-width="1.3" marker-end="url(#lead)"/>
+        <line x1="140" y1="54" x2="168" y2="160" stroke="#0d9488" stroke-width="1.3" marker-end="url(#lead)"/>
+        <line x1="226" y1="54" x2="186" y2="160" stroke="#0d9488" stroke-width="1.3" marker-end="url(#lead)"/>
+        <rect x="120" y="162" width="150" height="24" rx="4" fill="#e7f6f4" stroke="#0d9488" stroke-width="1.3"/>
+        <text x="195" y="178" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#0d9488">[v0, v1, v2] as a list</text>
+        <text x="290" y="177" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#94a3b8">all together</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">layout + callbacks</span><span class="v">a component tree + reactive Python functions</span></div>
+    <div><span class="k">Input · Output · State</span><span class="v">triggers · receives return · read-only</span></div>
+    <div><span class="k">every property is reactive</span><span class="v">any prop can be an Input or an Output</span></div>
+    <div><span class="k">match the ids</span><span class="v">callback ids must exist in <code>app.layout</code></span></div>
+    <div><span class="k">@callback placement</span><span class="v">directly above the def &mdash; no blank line</span></div>
+    <div><span class="k">no_update / PreventUpdate</span><span class="v">skip one output · abort the callback</span></div>
+    <div><span class="k">ctx.triggered_id</span><span class="v">which input fired (esp. with dict ids)</span></div>
+    <div><span class="k">MATCH · ALL</span><span class="v">dict-id wildcards for dynamic components</span></div>
+    <div><span class="k">dcc.Store</span><span class="v">share data between callbacks &mdash; never globals</span></div>
+    <div><span class="k">app.run · app.server</span><span class="v"><code>debug=True</code> to dev · <code>gunicorn app:server</code> to ship</span></div>
+  </div>
+</section>
+
+<footer>
+  Dash cheat sheet &middot; synthesized from the official documentation at dash.plotly.com (Fundamentals: layout, basic &amp; advanced callbacks, interactive graphing; Dash Core Components; pattern-matching &amp; background callbacks; Dash 3.0 / 4.x migration) with a cross-check against "Dash in 20 Minutes".<br>
+  API shown for Dash &#8776; 4.3 (2026), Python 3.8+ &middot; Dash 3.0 unified the imports (<code>from dash import dcc, html</code>) and renamed <code>run_server</code>&rarr;<code>run</code>; the 4.2 "Freedom Update" added FastAPI/Quart backends and websocket callbacks &middot; built on Plotly.js &mdash; no JavaScript required for the Python API.
+</footer>
+
+</body>
+</html>

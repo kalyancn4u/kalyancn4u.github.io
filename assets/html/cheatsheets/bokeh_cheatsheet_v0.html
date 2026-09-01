@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bokeh Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --imp:#64748b;    --imp-bg:#f1f3f6;    /* import / setup   */
+    --fig:#d97706;    --fig-bg:#fdf6ec;    /* figure / styling */
+    --gly:#059669;    --gly-bg:#ecf7f2;    /* glyphs (core)    */
+    --dat:#4f46e5;    --dat-bg:#eef0fd;    /* data / transform */
+    --int:#7c3aed;    --int-bg:#f4effe;    /* interaction      */
+    --out:#0d9488;    --out-bg:#e9f6f4;    /* output / embed   */
+    --danger:#dc2626; --danger-bg:#fdf0ef; /* deprecated / gotcha */
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .wm{font-family:var(--mono); letter-spacing:-.03em}
+  h1 .wm .b{color:#ee6352} h1 .wm .o{color:#f5a623} h1 .wm .k{color:#3fa34d}
+  h1 .wm .e{color:#0d9488} h1 .wm .h{color:#4f6ae0}
+  .lede{max-width:62ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.imp{background:var(--imp)} .dot.fig{background:var(--fig)}
+  .dot.gly{background:var(--gly)} .dot.dat{background:var(--dat)}
+  .dot.int{background:var(--int)} .dot.out{background:var(--out)}
+  .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- quickstart panel ---------- */
+  .qs{max-width:1500px; margin:0 auto; padding:1.4rem clamp(1rem,4vw,3rem) .5rem}
+  .qs-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.9rem;
+  }
+  .code-block{
+    background:var(--ink); border-radius:10px; padding:1.1rem 1.3rem;
+    overflow-x:auto; font-family:var(--mono); font-size:.82rem; line-height:1.75;
+    color:#e8e6e1;
+  }
+  .code-block .l{display:block; white-space:pre}
+  .code-block .step{
+    color:#fbbf24; font-weight:700; margin-left:1.2rem;
+  }
+  .kw{color:#c792ea} .fn{color:#82aaff} .mod{color:#5ccf9e}
+  .arg{color:#f78c6c} .str{color:#c3e88d} .num{color:#f5a623}
+  .cm{color:#7684a0; font-style:italic}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.imp{border-left-color:var(--imp)}
+  ul.cmds li.fig{border-left-color:var(--fig)}
+  ul.cmds li.gly{border-left-color:var(--gly)}
+  ul.cmds li.dat{border-left-color:var(--dat)}
+  ul.cmds li.int{border-left-color:var(--int)}
+  ul.cmds li.out{border-left-color:var(--out)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.5;
+  }
+  code.cmd .a{color:var(--dat); font-weight:400}   /* argument   */
+  code.cmd .s{color:var(--gly)}                    /* string     */
+  code.cmd .m{color:var(--out)}                    /* module/fn  */
+  code.cmd .n{color:var(--fig)}                    /* number     */
+  code.cmd .p{color:var(--muted)}                  /* punctuation/comment */
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.77rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f1eee8; padding:0 .25em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  li.plain{border-left-color:#cbd0d8}
+  .keyrow{font-family:var(--mono); font-size:.72rem; color:var(--muted); padding:.5rem 1rem 0}
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem; max-width:70ch}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#82aaff; font-size:.95em}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:var(--ink)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · interactive visualization for the browser</div>
+  <h1><span class="wm"><span class="b">b</span><span class="o">o</span><span class="k">k</span><span class="e">e</span><span class="h">h</span></span> cheat sheet</h1>
+  <p class="lede">Every Bokeh plot is built the same way: attach <b>glyphs</b> (circles, lines, bars) to <b>data</b> on a <b>figure</b>, then output it. Python assembles the objects; <b>BokehJS</b> renders them — and the interactivity — live in the browser. Learn the five steps once and the API stops being a list to memorize.</p>
+  <div class="legend">
+    <span><i class="dot imp"></i>import / setup</span>
+    <span><i class="dot fig"></i>figure &amp; styling</span>
+    <span><i class="dot gly"></i>glyphs (the core)</span>
+    <span><i class="dot dat"></i>data &amp; transforms</span>
+    <span><i class="dot int"></i>interaction</span>
+    <span><i class="dot out"></i>output &amp; embed</span>
+    <span><i class="dot danger"></i>deprecated / gotcha</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against Bokeh <b>3.9</b>: <b>docs.bokeh.org</b> (User Guide + First Steps) · <b>bokeh.org</b> · <b>DataCamp</b> Bokeh cheat sheet · <b>KDnuggets</b> · <b>Real Python</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The five steps — and how Python hands your plot to the browser</div>
+  <svg class="flow-svg" viewBox="0 0 1120 390" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram: the five steps to a Bokeh plot (prepare data, create a figure, add glyph renderers, choose output, show or save), then how the Python library serializes models to JSON that BokehJS renders in the browser.">
+    <defs>
+      <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <text x="20" y="34" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">THE bokeh.plotting WORKFLOW</text>
+
+    <!-- five step boxes -->
+    <g>
+      <rect x="20"  y="48" width="188" height="96" rx="11" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="114" y="76" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">1 · Prepare data</text>
+      <text x="114" y="98" text-anchor="middle" font-size="10" fill="#64748b">lists · arrays</text>
+      <text x="114" y="114" text-anchor="middle" font-size="10" fill="#64748b">DataFrame</text>
+      <text x="114" y="132" text-anchor="middle" font-size="10" fill="#4f46e5">ColumnDataSource</text>
+    </g>
+    <g>
+      <rect x="240" y="48" width="188" height="96" rx="11" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="334" y="76" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">2 · Create figure</text>
+      <text x="334" y="99" text-anchor="middle" font-size="10.5" fill="#b45309">p = figure(...)</text>
+      <text x="334" y="122" text-anchor="middle" font-size="10" fill="#b45309">title · axes · tools</text>
+    </g>
+    <g>
+      <rect x="460" y="48" width="188" height="96" rx="11" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="554" y="76" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">3 · Add glyphs</text>
+      <text x="554" y="99" text-anchor="middle" font-size="10.5" fill="#059669">p.scatter() · p.line()</text>
+      <text x="554" y="122" text-anchor="middle" font-size="10" fill="#059669">p.vbar() · p.patch()</text>
+    </g>
+    <g>
+      <rect x="680" y="48" width="188" height="96" rx="11" fill="#e9f6f4" stroke="#0d9488" stroke-width="2"/>
+      <text x="774" y="76" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">4 · Choose output</text>
+      <text x="774" y="99" text-anchor="middle" font-size="10.5" fill="#0d9488">output_file()</text>
+      <text x="774" y="122" text-anchor="middle" font-size="10" fill="#0d9488">output_notebook()</text>
+    </g>
+    <g>
+      <rect x="900" y="48" width="196" height="96" rx="11" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="998" y="76" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">5 · Show / save</text>
+      <text x="998" y="99" text-anchor="middle" font-size="10.5" fill="#4f46e5">show(p)</text>
+      <text x="998" y="122" text-anchor="middle" font-size="10" fill="#4f46e5">save(p)</text>
+    </g>
+
+    <!-- arrows between boxes -->
+    <line x1="208" y1="96" x2="238" y2="96" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+    <line x1="428" y1="96" x2="458" y2="96" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+    <line x1="648" y1="96" x2="678" y2="96" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+    <line x1="868" y1="96" x2="898" y2="96" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+
+    <!-- architecture band -->
+    <text x="20" y="212" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">WHAT ACTUALLY RENDERS IT</text>
+    <g>
+      <rect x="20" y="228" width="300" height="120" rx="11" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+      <text x="170" y="256" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1d24">Bokeh · Python library</text>
+      <text x="170" y="280" text-anchor="middle" font-size="10.5" fill="#4f46e5">bokeh.plotting  (primary)</text>
+      <text x="170" y="298" text-anchor="middle" font-size="10.5" fill="#4f46e5">bokeh.models   (low-level)</text>
+      <text x="170" y="322" text-anchor="middle" font-size="10" fill="#6b7280">builds a Document of models,</text>
+      <text x="170" y="337" text-anchor="middle" font-size="10" fill="#6b7280">validates &amp; serializes it</text>
+    </g>
+    <g>
+      <rect x="410" y="256" width="150" height="64" rx="9" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="485" y="286" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">JSON</text>
+      <text x="485" y="304" text-anchor="middle" font-size="9.5" fill="#64748b">declarative models</text>
+    </g>
+    <g>
+      <rect x="650" y="228" width="446" height="120" rx="11" fill="#e9f6f4" stroke="#0d9488" stroke-width="2"/>
+      <text x="873" y="256" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1d24">BokehJS · in the browser</text>
+      <text x="873" y="280" text-anchor="middle" font-size="10.5" fill="#0d9488">renders the visuals to canvas / WebGL</text>
+      <text x="873" y="298" text-anchor="middle" font-size="10.5" fill="#0d9488">handles pan, zoom, hover, selection, legends</text>
+      <text x="873" y="324" text-anchor="middle" font-size="10" fill="#6b7280">“We write the JavaScript, so you don't have to.”</text>
+    </g>
+    <line x1="320" y1="288" x2="408" y2="288" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+    <line x1="560" y1="288" x2="648" y2="288" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+    <text x="365" y="278" text-anchor="middle" font-size="9.5" fill="#6b7280">serialize</text>
+    <text x="604" y="278" text-anchor="middle" font-size="9.5" fill="#6b7280">embed</text>
+  </svg>
+</section>
+
+<!-- ============ QUICKSTART ============ -->
+<section class="qs">
+  <div class="qs-title">The whole workflow in ten lines</div>
+  <div class="code-block"><code><span class="l"><span class="kw">from</span> bokeh.plotting <span class="kw">import</span> figure, show          <span class="step">← 1 · import</span></span><span class="l"><span class="kw">from</span> bokeh.io <span class="kw">import</span> output_file</span><span class="l"></span><span class="l">x = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>]                                <span class="step">← 1 · prepare data</span></span><span class="l">y = [<span class="num">6</span>, <span class="num">7</span>, <span class="num">2</span>, <span class="num">4</span>, <span class="num">5</span>]</span><span class="l"></span><span class="l">p = <span class="fn">figure</span>(title=<span class="str">"Line example"</span>,               <span class="step">← 2 · create a figure</span></span><span class="l">           x_axis_label=<span class="str">"x"</span>, y_axis_label=<span class="str">"y"</span>)</span><span class="l"></span><span class="l">p.<span class="fn">line</span>(x, y, legend_label=<span class="str">"Temp."</span>, line_width=<span class="num">2</span>)   <span class="step">← 3 · add a glyph renderer</span></span><span class="l"></span><span class="l"><span class="fn">output_file</span>(<span class="str">"lines.html"</span>)                        <span class="step">← 4 · choose output</span></span><span class="l"><span class="fn">show</span>(p)                                        <span class="step">← 5 · show or save</span></span></code></div>
+</section>
+
+<!-- ============ COMMAND CARDS ============ -->
+<main>
+
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Import</span><span class="card-sub">once per project</span></div>
+    <ul class="cmds">
+      <li class="imp"><code class="cmd"><span class="p">$</span> pip install bokeh</code><div class="desc">Install (v3.9+). Needs only a browser to view.</div></li>
+      <li class="imp"><code class="cmd">from bokeh.plotting import figure, show</code><span class="star">★</span><div class="desc">The primary interface — nearly every script starts here.</div></li>
+      <li class="imp"><code class="cmd">from bokeh.io import output_file, save</code><div class="desc">Send results to a standalone HTML file.</div></li>
+      <li class="imp"><code class="cmd">from bokeh.models import ColumnDataSource</code><div class="desc">Low-level objects for data, tools, annotations.</div></li>
+      <li class="imp"><code class="cmd">output_notebook<span class="p">()</span></code><div class="desc">Render inline in a Jupyter notebook.</div></li>
+      <li class="imp"><code class="cmd">from bokeh.sampledata import <span class="a">...</span></code><div class="desc">Bundled demo datasets for practice.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 FIGURE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Create a Figure</span><span class="card-sub">the canvas</span></div>
+    <ul class="cmds">
+      <li class="fig"><code class="cmd">p = figure<span class="p">()</span></code><span class="star">★</span><div class="desc">New plot with axes, grid &amp; default toolbar.</div></li>
+      <li class="fig"><code class="cmd">figure<span class="p">(</span>width=<span class="n">600</span>, height=<span class="n">400</span><span class="p">)</span></code><div class="desc">Size in pixels. <b>Not</b> <code>plot_width</code> — see gotchas.</div></li>
+      <li class="fig"><code class="cmd">figure<span class="p">(</span>title=<span class="s">"T"</span>, x_axis_label=<span class="s">"x"</span><span class="p">)</span></code><span class="star">★</span><div class="desc">Title and axis labels up front.</div></li>
+      <li class="fig"><code class="cmd">figure<span class="p">(</span>x_range=<span class="p">(</span><span class="n">0</span>, <span class="n">10</span><span class="p">)</span><span class="p">)</span></code><div class="desc">Fix an axis range (tuple = numeric bounds).</div></li>
+      <li class="fig"><code class="cmd">figure<span class="p">(</span>x_range=<span class="p">[</span><span class="s">"a"</span>,<span class="s">"b"</span>,<span class="s">"c"</span><span class="p">]</span><span class="p">)</span></code><div class="desc">A list makes a <b>categorical</b> axis.</div></li>
+      <li class="fig"><code class="cmd">figure<span class="p">(</span>x_axis_type=<span class="s">"datetime"</span><span class="p">)</span></code><span class="star">★</span><div class="desc">Time axis; also <code>"log"</code>, <code>"mercator"</code>.</div></li>
+      <li class="fig"><code class="cmd">figure<span class="p">(</span>tools=<span class="s">"pan,wheel_zoom,reset"</span><span class="p">)</span></code><div class="desc">Choose the toolbar (see Tools card).</div></li>
+      <li class="fig"><code class="cmd">figure<span class="p">(</span>sizing_mode=<span class="s">"stretch_width"</span><span class="p">)</span></code><div class="desc">Responsive width; also <code>scale_both</code>.</div></li>
+      <li class="danger"><code class="cmd">figure<span class="p">(</span>plot_width=<span class="n">600</span><span class="p">)</span></code><span class="badge-danger">removed</span><div class="desc">Pre-3.0 name — use <code>width</code>/<code>height</code> now.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 SCATTER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Scatter &amp; Markers</span><span class="card-sub">points</span></div>
+    <ul class="cmds">
+      <li class="gly"><code class="cmd">p.scatter<span class="p">(</span>x, y, size=<span class="n">10</span><span class="p">)</span></code><span class="star">★</span><div class="desc">The recommended marker method (default = circle).</div></li>
+      <li class="gly"><code class="cmd">p.scatter<span class="p">(</span>x, y, marker=<span class="s">"square"</span><span class="p">)</span></code><div class="desc">Pick any marker by name.</div></li>
+      <li class="gly"><code class="cmd">p.scatter<span class="p">(</span>x, y, size=<span class="n">12</span>, color=<span class="s">"navy"</span>, alpha=<span class="n">.5</span><span class="p">)</span></code><span class="star">★</span><div class="desc">Size in screen px; colour + transparency.</div></li>
+      <li class="gly"><code class="cmd">p.scatter<span class="p">(</span><span class="s">"mpg"</span>, <span class="s">"hp"</span>, source=<span class="a">src</span><span class="p">)</span></code><div class="desc">Reference columns by name from a data source.</div></li>
+      <li class="gly"><code class="cmd">p.circle<span class="p">(</span>x, y, radius=<span class="n">0.5</span><span class="p">)</span></code><div class="desc"><code>radius</code> is in <b>data units</b> — scales on zoom.</div></li>
+      <li class="plain"><code class="cmd"><span class="p">markers:</span> circle square triangle diamond hex</code><div class="desc">…star plus x asterisk dot cross inverted_triangle</div></li>
+      <li class="plain"><code class="cmd">marker=<span class="s">"circle_x"</span></code><div class="desc">Combo markers: <code>*_cross</code>, <code>*_dot</code>, <code>*_x</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 LINES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Lines &amp; Curves</span><span class="card-sub">connect points</span></div>
+    <ul class="cmds">
+      <li class="gly"><code class="cmd">p.line<span class="p">(</span>x, y, line_width=<span class="n">2</span><span class="p">)</span></code><span class="star">★</span><div class="desc">A single connected line.</div></li>
+      <li class="gly"><code class="cmd">p.line<span class="p">(</span>x, y, line_dash=<span class="s">"dashed"</span>, color=<span class="s">"red"</span><span class="p">)</span></code><div class="desc">Dashed / dotted styled line.</div></li>
+      <li class="gly"><code class="cmd">p.step<span class="p">(</span>x, y, mode=<span class="s">"center"</span><span class="p">)</span></code><div class="desc">Step chart; <code>before</code> / <code>after</code> / <code>center</code>.</div></li>
+      <li class="gly"><code class="cmd">p.multi_line<span class="p">(</span>xs, ys<span class="p">)</span></code><div class="desc">Many independent lines in one call.</div></li>
+      <li class="gly"><code class="cmd">p.vline_stack<span class="p">(</span><span class="p">[</span><span class="s">"a"</span>,<span class="s">"b"</span><span class="p">]</span>, x=<span class="s">"i"</span>, source=<span class="a">src</span><span class="p">)</span></code><div class="desc">Stack columns into cumulative lines.</div></li>
+      <li class="gly"><code class="cmd">p.line<span class="p">(</span><span class="s">"x"</span>, <span class="s">"y"</span>, source=<span class="a">src</span><span class="p">)</span></code><div class="desc">Drive a line from a ColumnDataSource.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 BARS/AREAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Bars, Areas &amp; Wedges</span><span class="card-sub">filled shapes</span></div>
+    <ul class="cmds">
+      <li class="gly"><code class="cmd">p.vbar<span class="p">(</span>x=<span class="a">cats</span>, top=<span class="a">vals</span>, width=<span class="n">0.8</span><span class="p">)</span></code><span class="star">★</span><div class="desc">Vertical bars — the usual bar chart.</div></li>
+      <li class="gly"><code class="cmd">p.hbar<span class="p">(</span>y=<span class="a">cats</span>, right=<span class="a">vals</span>, height=<span class="n">0.8</span><span class="p">)</span></code><div class="desc">Horizontal bars.</div></li>
+      <li class="gly"><code class="cmd">p.vbar_stack<span class="p">(</span>stacks, x=<span class="s">"cat"</span>, source=<span class="a">src</span><span class="p">)</span></code><div class="desc">Stacked bars from several columns.</div></li>
+      <li class="gly"><code class="cmd">p.quad<span class="p">(</span>left, right, top, bottom<span class="p">)</span></code><div class="desc">Axis-aligned rectangles — histogram bins.</div></li>
+      <li class="gly"><code class="cmd">p.varea<span class="p">(</span>x, y1, y2<span class="p">)</span></code><div class="desc">Filled band between two curves (<code>harea</code> too).</div></li>
+      <li class="gly"><code class="cmd">p.patch<span class="p">(</span>x, y<span class="p">)</span> · p.patches<span class="p">(</span>xs, ys<span class="p">)</span></code><div class="desc">One / many filled polygons.</div></li>
+      <li class="gly"><code class="cmd">p.wedge<span class="p">(</span>x, y, radius, start_angle, end_angle<span class="p">)</span></code><div class="desc">Pie / donut slices (pair with <code>cumsum</code>).</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 DATA -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Data Sources</span><span class="card-sub">ColumnDataSource</span></div>
+    <ul class="cmds">
+      <li class="dat"><code class="cmd">src = ColumnDataSource<span class="p">(</span>data=dict<span class="p">(</span>x=<span class="p">[..]</span>, y=<span class="p">[..]</span><span class="p">))</span></code><span class="star">★</span><div class="desc">The shared table behind glyphs, hover &amp; selection.</div></li>
+      <li class="dat"><code class="cmd">ColumnDataSource<span class="p">(</span>df<span class="p">)</span></code><span class="star">★</span><div class="desc">Straight from a pandas DataFrame.</div></li>
+      <li class="dat"><code class="cmd">p.scatter<span class="p">(</span><span class="s">"x"</span>, <span class="s">"y"</span>, source=<span class="a">src</span><span class="p">)</span></code><span class="star">★</span><div class="desc">Refer to columns by name — one source, many glyphs.</div></li>
+      <li class="dat"><code class="cmd">src.data = <span class="a">new_dict</span></code><div class="desc">Replace all data (columns must stay same length).</div></li>
+      <li class="dat"><code class="cmd">src.stream<span class="p">(</span>new, rollover=<span class="n">200</span><span class="p">)</span></code><div class="desc">Append rows for live / streaming data.</div></li>
+      <li class="dat"><code class="cmd">view = CDSView<span class="p">(</span>filter=GroupFilter<span class="p">(</span><span class="a">..</span><span class="p">))</span></code><div class="desc">A filtered slice of one source.</div></li>
+      <li class="dat"><code class="cmd">p.scatter<span class="p">(</span>..., source=<span class="a">src</span>, view=<span class="a">view</span><span class="p">)</span></code><div class="desc">Render only the rows the view keeps.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 TRANSFORMS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Colour Mapping &amp; Transforms</span><span class="card-sub">bokeh.transform</span></div>
+    <ul class="cmds">
+      <li class="dat"><code class="cmd">from bokeh.transform import factor_cmap, linear_cmap</code><span class="star">★</span><div class="desc">Map a column to colour, computed in the browser.</div></li>
+      <li class="dat"><code class="cmd">factor_cmap<span class="p">(</span><span class="s">"cat"</span>, Category10<span class="p">[</span><span class="n">3</span><span class="p">]</span>, factors<span class="p">)</span></code><span class="star">★</span><div class="desc">Categorical → discrete palette.</div></li>
+      <li class="dat"><code class="cmd">linear_cmap<span class="p">(</span><span class="s">"v"</span>, <span class="s">"Viridis256"</span>, low, high<span class="p">)</span></code><div class="desc">Continuous → colour gradient (<code>log_cmap</code> too).</div></li>
+      <li class="dat"><code class="cmd">from bokeh.palettes import Spectral6, Viridis256</code><div class="desc">Named palettes; <code>Category10</code>, <code>Turbo256</code>, …</div></li>
+      <li class="dat"><code class="cmd">from bokeh.transform import cumsum</code><div class="desc">Running sum — turns counts into pie angles.</div></li>
+      <li class="dat"><code class="cmd">from bokeh.transform import jitter, dodge</code><div class="desc">Spread / offset points within categories.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 STYLING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Styling &amp; Appearance</span><span class="card-sub">make it yours</span></div>
+    <ul class="cmds">
+      <li class="fig"><code class="cmd">p.line<span class="p">(</span>..., line_color=<span class="s">"red"</span>, line_alpha=<span class="n">.6</span><span class="p">)</span></code><div class="desc">Line visual properties.</div></li>
+      <li class="fig"><code class="cmd">p.scatter<span class="p">(</span>..., fill_color=<span class="s">"navy"</span>, fill_alpha=<span class="n">.3</span><span class="p">)</span></code><div class="desc">Fill properties (glyphs have fill + line + text).</div></li>
+      <li class="fig"><code class="cmd">p.xaxis.axis_label = <span class="s">"speed"</span></code><span class="star">★</span><div class="desc">Plural selectors hit every matching element.</div></li>
+      <li class="fig"><code class="cmd">p.xgrid.grid_line_color = None</code><div class="desc">Hide the vertical gridlines.</div></li>
+      <li class="fig"><code class="cmd">p.background_fill_color = <span class="s">"#fafafa"</span></code><div class="desc">Plot background; also <code>border_fill_color</code>.</div></li>
+      <li class="fig"><code class="cmd">p.title.text_color = <span class="s">"olive"</span></code><div class="desc">Style the title text.</div></li>
+      <li class="fig"><code class="cmd">curdoc<span class="p">()</span>.theme = <span class="s">"dark_minimal"</span></code><div class="desc">Global theme: <code>caliber</code>, <code>night_sky</code>, <code>contrast</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 ANNOTATIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Annotations</span><span class="card-sub">visual aids</span></div>
+    <ul class="cmds">
+      <li class="fig"><code class="cmd">from bokeh.models import Span, BoxAnnotation, Label</code><div class="desc">Reference lines, shaded regions, text.</div></li>
+      <li class="fig"><code class="cmd">p.add_layout<span class="p">(</span>Span<span class="p">(</span>location=<span class="n">5</span>, dimension=<span class="s">"height"</span><span class="p">))</span></code><div class="desc">A vertical/horizontal reference line.</div></li>
+      <li class="fig"><code class="cmd">BoxAnnotation<span class="p">(</span>bottom=<span class="n">2</span>, top=<span class="n">6</span>, fill_alpha=<span class="n">.1</span><span class="p">)</span></code><div class="desc">Shade a band of interest.</div></li>
+      <li class="fig"><code class="cmd">Label<span class="p">(</span>x=<span class="n">2</span>, y=<span class="n">5</span>, text=<span class="s">"peak"</span><span class="p">)</span></code><div class="desc">Anchored text; <code>LabelSet</code> for many.</div></li>
+      <li class="fig"><code class="cmd">p.add_layout<span class="p">(</span>ColorBar<span class="p">(</span>color_mapper=<span class="a">m</span><span class="p">)</span>, <span class="s">"right"</span><span class="p">)</span></code><span class="star">★</span><div class="desc">Colour bar for a mapped column.</div></li>
+      <li class="fig"><code class="cmd">Arrow<span class="p">(</span>x_start, y_start, x_end, y_end<span class="p">)</span></code><div class="desc">Annotate with a directional arrow.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 LEGENDS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Legends</span><span class="card-sub">label your series</span></div>
+    <ul class="cmds">
+      <li class="fig"><code class="cmd">p.line<span class="p">(</span>..., legend_label=<span class="s">"Temp."</span><span class="p">)</span></code><span class="star">★</span><div class="desc">One fixed label for this renderer.</div></li>
+      <li class="fig"><code class="cmd">p.scatter<span class="p">(</span>..., legend_field=<span class="s">"origin"</span><span class="p">)</span></code><div class="desc">One entry per factor, resolved in the browser.</div></li>
+      <li class="fig"><code class="cmd">p.scatter<span class="p">(</span>..., legend_group=<span class="s">"origin"</span><span class="p">)</span></code><div class="desc">Same, but grouped in Python at render time.</div></li>
+      <li class="fig"><code class="cmd">p.legend.location = <span class="s">"top_left"</span></code><span class="star">★</span><div class="desc">Position inside the frame.</div></li>
+      <li class="fig"><code class="cmd">p.legend.orientation = <span class="s">"horizontal"</span></code><div class="desc">Lay entries in a row.</div></li>
+      <li class="int"><code class="cmd">p.legend.click_policy = <span class="s">"hide"</span></code><span class="star">★</span><div class="desc">Click entries to <code>hide</code> or <code>mute</code> series.</div></li>
+      <li class="fig"><code class="cmd">p.add_layout<span class="p">(</span>p.legend<span class="p">[</span><span class="n">0</span><span class="p">]</span>, <span class="s">"right"</span><span class="p">)</span></code><div class="desc">Move the legend outside the plot frame.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 TOOLS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Tools &amp; Toolbar</span><span class="card-sub">the interactivity</span></div>
+    <ul class="cmds">
+      <li class="int"><code class="cmd">figure<span class="p">(</span>tools=<span class="s">"pan,box_zoom,wheel_zoom,reset,save"</span><span class="p">)</span></code><span class="star">★</span><div class="desc">Comma-string of tool names on creation.</div></li>
+      <li class="int"><code class="cmd">p.add_tools<span class="p">(</span>HoverTool<span class="p">()</span>, BoxSelectTool<span class="p">())</span></code><div class="desc">Add configured tool objects later.</div></li>
+      <li class="int"><code class="cmd">figure<span class="p">(</span>toolbar_location=<span class="s">"above"</span><span class="p">)</span></code><div class="desc"><code>above</code>/<code>below</code>/<code>left</code>/<code>right</code>/<code>None</code>.</div></li>
+      <li class="int"><code class="cmd">figure<span class="p">(</span>active_scroll=<span class="s">"wheel_zoom"</span><span class="p">)</span></code><div class="desc">Make a tool active by default.</div></li>
+      <li class="plain"><code class="cmd"><span class="p">navigate:</span> pan box_zoom wheel_zoom reset save</code><div class="desc">The everyday toolbar.</div></li>
+      <li class="plain"><code class="cmd"><span class="p">select:</span> box_select lasso_select poly_select tap</code><div class="desc">Selection tools feed <code>source.selected</code>.</div></li>
+      <li class="plain"><code class="cmd"><span class="p">inspect:</span> hover crosshair</code><div class="desc">Passive — no click needed.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 HOVER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Hover &amp; Tooltips</span><span class="card-sub">read values</span></div>
+    <ul class="cmds">
+      <li class="int"><code class="cmd">HoverTool<span class="p">(</span>tooltips=<span class="p">[(</span><span class="s">"label"</span>, <span class="s">"@field"</span><span class="p">)])</span></code><span class="star">★</span><div class="desc"><code>@field</code> = a column value at the point.</div></li>
+      <li class="int"><code class="cmd"><span class="p">(</span><span class="s">"(x,y)"</span>, <span class="s">"($x, $y)"</span><span class="p">)</span></code><div class="desc"><code>$x $y</code> = cursor position in data space.</div></li>
+      <li class="int"><code class="cmd"><span class="p">(</span><span class="s">"value"</span>, <span class="s">"@y{0.00}"</span><span class="p">)</span></code><div class="desc">Number formatting inside braces.</div></li>
+      <li class="int"><code class="cmd">formatters={<span class="s">"@d"</span>: <span class="s">"datetime"</span>}</code><div class="desc">Format a date column: <code>"@d{%F}"</code>.</div></li>
+      <li class="int"><code class="cmd">HoverTool<span class="p">(</span>mode=<span class="s">"vline"</span><span class="p">)</span></code><div class="desc">Trigger along a whole vertical line.</div></li>
+      <li class="int"><code class="cmd">tooltips=<span class="s">"@x has value @y"</span></code><div class="desc">Plain-string form for quick tooltips.</div></li>
+      <li class="plain"><code class="cmd"><span class="p">special:</span> $x $y  $sx $sy  $name  $index</code><div class="desc">Cursor · screen px · renderer · row index.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 LINKING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Linking Plots</span><span class="card-sub">move together</span></div>
+    <ul class="cmds">
+      <li class="int"><code class="cmd">p2.x_range = p1.x_range</code><span class="star">★</span><div class="desc">Share a range → linked pan &amp; zoom.</div></li>
+      <li class="int"><code class="cmd">p2.y_range = p1.y_range</code><div class="desc">Link the other axis too.</div></li>
+      <li class="int"><code class="cmd">p1, p2 <span class="p">share one</span> source</code><span class="star">★</span><div class="desc">Selecting in one highlights in both (brushing).</div></li>
+      <li class="int"><code class="cmd">CrosshairTool<span class="p">(</span>...<span class="p">)</span> <span class="p">shared</span></code><div class="desc">A crosshair that tracks across linked plots.</div></li>
+      <li class="int"><code class="cmd">gridplot<span class="p">([[</span>p1, p2<span class="p">]])</span></code><div class="desc">Grid layouts keep one merged toolbar.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 LAYOUTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Layouts</span><span class="card-sub">arrange plots</span></div>
+    <ul class="cmds">
+      <li class="out"><code class="cmd">from bokeh.layouts import row, column, gridplot</code><div class="desc">Compose plots &amp; widgets.</div></li>
+      <li class="out"><code class="cmd">row<span class="p">(</span>p1, p2, p3<span class="p">)</span></code><span class="star">★</span><div class="desc">Side by side.</div></li>
+      <li class="out"><code class="cmd">column<span class="p">(</span>p1, p2<span class="p">)</span></code><span class="star">★</span><div class="desc">Stacked vertically.</div></li>
+      <li class="out"><code class="cmd">gridplot<span class="p">([[</span>p1, p2<span class="p">]</span>, <span class="p">[</span>p3, None<span class="p">]])</span></code><span class="star">★</span><div class="desc">Grid with a shared toolbar; <code>None</code> = gap.</div></li>
+      <li class="out"><code class="cmd">from bokeh.models import TabPanel, Tabs</code><div class="desc"><b>Renamed:</b> it was <code>Panel</code> before 3.0.</div></li>
+      <li class="out"><code class="cmd">Tabs<span class="p">(</span>tabs=<span class="p">[</span>TabPanel<span class="p">(</span>child=p1, title=<span class="s">"t1"</span><span class="p">)])</span></code><span class="star">★</span><div class="desc">Tabbed layout.</div></li>
+      <li class="danger"><code class="cmd">from bokeh.models.widgets import Panel</code><span class="badge-danger">removed</span><div class="desc">Gone since 3.0 — import <code>TabPanel</code> instead.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 WIDGETS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Widgets</span><span class="card-sub">controls</span></div>
+    <ul class="cmds">
+      <li class="int"><code class="cmd">from bokeh.models import Slider, Select, Button</code><div class="desc">UI elements outside the plot.</div></li>
+      <li class="int"><code class="cmd">Slider<span class="p">(</span>start=<span class="n">0</span>, end=<span class="n">10</span>, value=<span class="n">1</span>, step=<span class="n">.1</span><span class="p">)</span></code><span class="star">★</span><div class="desc">A numeric slider with a title.</div></li>
+      <li class="int"><code class="cmd">Select<span class="p">(</span>options=<span class="p">[</span><span class="s">"a"</span>,<span class="s">"b"</span><span class="p">]</span>, value=<span class="s">"a"</span><span class="p">)</span></code><div class="desc">Dropdown menu.</div></li>
+      <li class="int"><code class="cmd">Button<span class="p">(</span>label=<span class="s">"Go"</span>, button_type=<span class="s">"success"</span><span class="p">)</span></code><div class="desc">Clickable button.</div></li>
+      <li class="int"><code class="cmd">CheckboxGroup · RadioGroup · TextInput</code><div class="desc">Multi-select, single-select, free text.</div></li>
+      <li class="int"><code class="cmd">DateRangeSlider · Spinner · MultiChoice</code><div class="desc">…and many more input widgets.</div></li>
+      <li class="int"><code class="cmd">column<span class="p">(</span>slider, p<span class="p">)</span></code><div class="desc">Drop widgets into any layout beside plots.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 CALLBACKS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Callbacks</span><span class="card-sub">make it react</span></div>
+    <ul class="cmds">
+      <li class="int"><code class="cmd">from bokeh.models import CustomJS</code><span class="star">★</span><div class="desc">Runs in the browser — <b>no server needed</b>.</div></li>
+      <li class="int"><code class="cmd">slider.js_on_change<span class="p">(</span><span class="s">"value"</span>, CustomJS<span class="p">(</span><span class="a">..</span><span class="p">))</span></code><span class="star">★</span><div class="desc">React to a widget value in JS.</div></li>
+      <li class="int"><code class="cmd">CustomJS<span class="p">(</span>args=dict<span class="p">(</span>src=<span class="a">src</span><span class="p">)</span>, code=<span class="s">"..."</span><span class="p">)</span></code><div class="desc"><code>args</code> exposes Python objects to the JS <code>code</code>.</div></li>
+      <li class="int"><code class="cmd">btn.js_on_event<span class="p">(</span><span class="s">"button_click"</span>, cb<span class="p">)</span></code><div class="desc">React to UI events, not just properties.</div></li>
+      <li class="int"><code class="cmd">src.selected.js_on_change<span class="p">(</span><span class="s">"indices"</span>, cb<span class="p">)</span></code><div class="desc">Respond to a selection.</div></li>
+      <li class="out"><code class="cmd">slider.on_change<span class="p">(</span><span class="s">"value"</span>, callback<span class="p">)</span></code><div class="desc">Python callback — <b>needs the Bokeh server</b>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 OUTPUT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Output &amp; Save</span><span class="card-sub">to a file</span></div>
+    <ul class="cmds">
+      <li class="out"><code class="cmd">output_file<span class="p">(</span><span class="s">"plot.html"</span>, title=<span class="s">"My plot"</span><span class="p">)</span></code><span class="star">★</span><div class="desc">Set an HTML file as the target.</div></li>
+      <li class="out"><code class="cmd">show<span class="p">(</span>p<span class="p">)</span></code><span class="star">★</span><div class="desc">Write the file <b>and</b> open it in a browser.</div></li>
+      <li class="out"><code class="cmd">save<span class="p">(</span>p<span class="p">)</span></code><div class="desc">Write the file without opening it.</div></li>
+      <li class="out"><code class="cmd">output_file<span class="p">(</span><span class="s">"p.html"</span>, mode=<span class="s">"inline"</span><span class="p">)</span></code><div class="desc">Embed BokehJS so the file works <b>offline</b>.</div></li>
+      <li class="out"><code class="cmd">output_notebook<span class="p">()</span> ; show<span class="p">(</span>p<span class="p">)</span></code><div class="desc">Render inline in Jupyter.</div></li>
+      <li class="out"><code class="cmd">reset_output<span class="p">()</span></code><div class="desc">Clear output state between plots.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 EMBED -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Embedding &amp; Export</span><span class="card-sub">into your app</span></div>
+    <ul class="cmds">
+      <li class="out"><code class="cmd">from bokeh.embed import file_html, components</code><div class="desc">Turn a plot into HTML you control.</div></li>
+      <li class="out"><code class="cmd">file_html<span class="p">(</span>p, CDN, <span class="s">"title"</span><span class="p">)</span></code><span class="star">★</span><div class="desc">A complete standalone HTML string.</div></li>
+      <li class="out"><code class="cmd">script, div = components<span class="p">(</span>p<span class="p">)</span></code><span class="star">★</span><div class="desc">Snippets to drop into your own template.</div></li>
+      <li class="out"><code class="cmd">json_item<span class="p">(</span>p, <span class="s">"myplot"</span><span class="p">)</span></code><div class="desc">JSON for <code>Bokeh.embed.embed_item</code> in JS.</div></li>
+      <li class="out"><code class="cmd">from bokeh.io import export_png, export_svg</code><div class="desc">Static image export.</div></li>
+      <li class="out"><code class="cmd">export_png<span class="p">(</span>p, filename=<span class="s">"p.png"</span><span class="p">)</span></code><div class="desc">Needs Selenium + a headless browser driver.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 SERVER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Bokeh Server</span><span class="card-sub">Python stays live</span></div>
+    <ul class="cmds">
+      <li class="out"><code class="cmd">from bokeh.io import curdoc</code><div class="desc">The current session's document.</div></li>
+      <li class="out"><code class="cmd">curdoc<span class="p">()</span>.add_root<span class="p">(</span>layout<span class="p">)</span></code><div class="desc">Publish your layout to the app.</div></li>
+      <li class="out"><code class="cmd">slider.on_change<span class="p">(</span><span class="s">"value"</span>, update<span class="p">)</span></code><div class="desc">Python callbacks run on the server.</div></li>
+      <li class="out"><code class="cmd"><span class="p">$</span> bokeh serve --show app.py</code><span class="star">★</span><div class="desc">Run the app &amp; open it.</div></li>
+      <li class="out"><code class="cmd">curdoc<span class="p">()</span>.add_periodic_callback<span class="p">(</span>fn, <span class="n">1000</span><span class="p">)</span></code><div class="desc">Push updates every second (live data).</div></li>
+      <li class="plain"><code class="cmd"><span class="p">use it for:</span> Python logic · streaming · big data</code><div class="desc">Otherwise prefer <code>CustomJS</code> standalone files.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four ideas that make the rest click</h2>
+  <p class="sub">The vocabulary Bokeh keeps returning to — the core equation, the marker family, where sizes live, and how a tooltip reads your data. Based on the Bokeh user-guide reference figures.</p>
+  <div class="merge-grid">
+
+    <!-- 1: data + glyphs = plot -->
+    <div class="merge-card">
+      <h3>data + glyphs = plot</h3>
+      <p>A glyph is a shape mapped onto columns of data. Add glyphs to a figure and you have a plot.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A small data table plus circle glyphs equals a scatter plot on axes.">
+        <!-- data table -->
+        <g font-family="JetBrains Mono, monospace" font-size="10">
+          <rect x="8" y="30" width="86" height="90" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.5"/>
+          <text x="20" y="47" fill="#4f46e5" font-weight="700">x</text>
+          <text x="60" y="47" fill="#4f46e5" font-weight="700">y</text>
+          <line x1="14" y1="54" x2="88" y2="54" stroke="#c7ccf5"/>
+          <text x="20" y="70" fill="#3f444f">1</text><text x="60" y="70" fill="#3f444f">6</text>
+          <text x="20" y="87" fill="#3f444f">2</text><text x="60" y="87" fill="#3f444f">7</text>
+          <text x="20" y="104" fill="#3f444f">3</text><text x="60" y="104" fill="#3f444f">2</text>
+          <text x="16" y="18" fill="#6b7280">data</text>
+        </g>
+        <text x="108" y="82" font-size="20" fill="#1a1d24" font-family="JetBrains Mono, monospace">+</text>
+        <!-- glyphs -->
+        <g>
+          <text x="128" y="18" font-size="10" fill="#6b7280" font-family="JetBrains Mono, monospace">glyphs</text>
+          <circle cx="140" cy="50" r="8" fill="#059669" fill-opacity="0.6" stroke="#059669"/>
+          <circle cx="165" cy="80" r="8" fill="#059669" fill-opacity="0.6" stroke="#059669"/>
+          <circle cx="150" cy="105" r="8" fill="#059669" fill-opacity="0.6" stroke="#059669"/>
+        </g>
+        <text x="188" y="82" font-size="20" fill="#1a1d24" font-family="JetBrains Mono, monospace">=</text>
+        <!-- plot -->
+        <g>
+          <text x="214" y="18" font-size="10" fill="#6b7280" font-family="JetBrains Mono, monospace">plot</text>
+          <line x1="214" y1="120" x2="392" y2="120" stroke="#1a1d24" stroke-width="1.5"/>
+          <line x1="214" y1="30" x2="214" y2="120" stroke="#1a1d24" stroke-width="1.5"/>
+          <circle cx="238" cy="52" r="7" fill="#059669" fill-opacity="0.6" stroke="#059669"/>
+          <circle cx="292" cy="40" r="7" fill="#059669" fill-opacity="0.6" stroke="#059669"/>
+          <circle cx="330" cy="98" r="7" fill="#059669" fill-opacity="0.6" stroke="#059669"/>
+          <circle cx="368" cy="70" r="7" fill="#059669" fill-opacity="0.6" stroke="#059669"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- 2: marker family -->
+    <div class="merge-card">
+      <h3>the marker family</h3>
+      <p>One <code>scatter()</code> method, many shapes via <code>marker=</code>. A sample of the built-in set.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A grid of Bokeh scatter markers: circle, square, triangle, diamond, hex, inverted triangle, plus, cross, x, asterisk, star, dot.">
+        <g stroke="#059669" stroke-width="1.6" fill="#059669" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">
+          <!-- row 1 -->
+          <circle cx="40" cy="26" r="8" fill-opacity="0.55"/>
+          <text x="40" y="48" fill="#6b7280" stroke="none">circle</text>
+          <rect x="107" y="18" width="16" height="16" fill-opacity="0.55"/>
+          <text x="115" y="48" fill="#6b7280" stroke="none">square</text>
+          <polygon points="190,18 199,34 181,34" fill-opacity="0.55"/>
+          <text x="190" y="48" fill="#6b7280" stroke="none">triangle</text>
+          <polygon points="265,17 274,26 265,35 256,26" fill-opacity="0.55"/>
+          <text x="265" y="48" fill="#6b7280" stroke="none">diamond</text>
+          <polygon points="340,18 348,22 348,30 340,34 332,30 332,22" fill-opacity="0.55"/>
+          <text x="340" y="48" fill="#6b7280" stroke="none">hex</text>
+          <!-- row 2 -->
+          <polygon points="40,84 49,68 31,68" fill-opacity="0.55"/>
+          <text x="40" y="100" fill="#6b7280" stroke="none">inv_tri</text>
+          <line x1="115" y1="66" x2="115" y2="86"/><line x1="105" y1="76" x2="125" y2="76"/>
+          <text x="115" y="100" fill="#6b7280" stroke="none">plus</text>
+          <line x1="182" y1="68" x2="198" y2="84"/><line x1="198" y1="68" x2="182" y2="84"/>
+          <text x="190" y="100" fill="#6b7280" stroke="none">x</text>
+          <line x1="265" y1="66" x2="265" y2="86"/><line x1="255" y1="76" x2="275" y2="76"/><line x1="258" y1="69" x2="272" y2="83"/><line x1="272" y1="69" x2="258" y2="83"/>
+          <text x="265" y="100" fill="#6b7280" stroke="none">asterisk</text>
+          <circle cx="340" cy="76" r="3.5" fill-opacity="0.9" stroke="none"/>
+          <text x="340" y="100" fill="#6b7280" stroke="none">dot</text>
+          <!-- row 3 -->
+          <polygon points="40,118 43,127 52,127 45,132 47,141 40,136 33,141 35,132 28,127 37,127" fill-opacity="0.55"/>
+          <text x="40" y="150" fill="#6b7280" stroke="none">star</text>
+          <line x1="107" y1="126" x2="123" y2="134"/><line x1="123" y1="126" x2="107" y2="134"/><circle cx="115" cy="130" r="2.5" stroke="none"/>
+          <text x="115" y="150" fill="#6b7280" stroke="none">x_dot</text>
+          <rect x="182" y="122" width="16" height="16" fill="none"/><line x1="190" y1="120" x2="190" y2="140"/><line x1="180" y1="130" x2="200" y2="130"/>
+          <text x="190" y="150" fill="#6b7280" stroke="none">sq_cross</text>
+          <line x1="257" y1="130" x2="273" y2="130"/>
+          <text x="265" y="150" fill="#6b7280" stroke="none">dash</text>
+          <line x1="332" y1="130" x2="348" y2="130"/><line x1="340" y1="122" x2="340" y2="138"/>
+          <text x="340" y="150" fill="#6b7280" stroke="none">cross</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- 3: screen units vs data units -->
+    <div class="merge-card">
+      <h3>size vs radius — where the number lives</h3>
+      <p><code>size</code> is screen pixels: constant on zoom. <code>circle(radius=)</code> is data units: it grows as you zoom in.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two panels: size in screen pixels stays constant across zoom levels, while radius in data units grows when zoomed in.">
+        <g font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">
+          <!-- size -->
+          <text x="100" y="16" fill="#059669" font-weight="700">size=20  (screen px)</text>
+          <rect x="24" y="26" width="70" height="70" rx="5" fill="#f7fbfa" stroke="#cbd0d8"/>
+          <circle cx="59" cy="61" r="11" fill="#059669" fill-opacity="0.5" stroke="#059669"/>
+          <text x="59" y="110" fill="#6b7280">1×</text>
+          <rect x="118" y="26" width="70" height="70" rx="5" fill="#f7fbfa" stroke="#cbd0d8"/>
+          <circle cx="153" cy="61" r="11" fill="#059669" fill-opacity="0.5" stroke="#059669"/>
+          <text x="153" y="110" fill="#6b7280">2× zoom</text>
+          <text x="106" y="128" fill="#334155">same pixel size ✓</text>
+        </g>
+        <line x1="205" y1="26" x2="205" y2="130" stroke="#e7e3db"/>
+        <g font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">
+          <!-- radius -->
+          <text x="305" y="16" fill="#4f46e5" font-weight="700">radius=0.5  (data)</text>
+          <rect x="224" y="26" width="70" height="70" rx="5" fill="#f8f8fe" stroke="#cbd0d8"/>
+          <circle cx="259" cy="61" r="9" fill="#4f46e5" fill-opacity="0.45" stroke="#4f46e5"/>
+          <text x="259" y="110" fill="#6b7280">1×</text>
+          <rect x="318" y="26" width="70" height="70" rx="5" fill="#f8f8fe" stroke="#cbd0d8"/>
+          <circle cx="353" cy="61" r="18" fill="#4f46e5" fill-opacity="0.45" stroke="#4f46e5"/>
+          <text x="353" y="110" fill="#6b7280">2× zoom</text>
+          <text x="306" y="128" fill="#334155">grows with data ✓</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- 4: tooltip syntax -->
+    <div class="merge-card">
+      <h3>tooltip field syntax</h3>
+      <p><code>@</code> reads a <b>column</b>; <code>$</code> reads a <b>cursor / special</b> value. Braces format the number.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="An annotated hover tooltip box showing at-field reads a data column and dollar-x reads the cursor position, with a formatting example.">
+        <!-- tooltip box -->
+        <g font-family="JetBrains Mono, monospace" font-size="10">
+          <rect x="118" y="24" width="164" height="66" rx="7" fill="#1a1d24"/>
+          <polygon points="150,90 162,90 156,100" fill="#1a1d24"/>
+          <text x="132" y="45" fill="#82aaff">country: <tspan fill="#c3e88d">@name</tspan></text>
+          <text x="132" y="63" fill="#82aaff">sales:   <tspan fill="#f5a623">@rev{$0.0a}</tspan></text>
+          <text x="132" y="81" fill="#82aaff">at:      <tspan fill="#c792ea">($x, $y)</tspan></text>
+          <circle cx="156" cy="112" r="5" fill="#059669" fill-opacity="0.7" stroke="#059669"/>
+        </g>
+        <!-- annotations -->
+        <g font-family="JetBrains Mono, monospace" font-size="8.5" fill="#525761">
+          <text x="8" y="46">reads column</text>
+          <text x="8" y="58" fill="#059669">"name"</text>
+          <path d="M60,50 C90,50 100,48 128,42" stroke="#059669" stroke-width="1.2" fill="none" marker-end="url(#tp)"/>
+          <text x="300" y="70">cursor pos</text>
+          <text x="300" y="82" fill="#7c3aed">(data space)</text>
+          <path d="M298,78 C288,80 280,80 258,80" stroke="#7c3aed" stroke-width="1.2" fill="none" marker-end="url(#tp)"/>
+          <text x="300" y="112">{ } formats</text>
+          <text x="300" y="124" fill="#d97706">the value</text>
+          <path d="M298,116 C280,110 250,80 236,66" stroke="#d97706" stroke-width="1.2" fill="none" marker-end="url(#tp)"/>
+        </g>
+        <defs>
+          <marker id="tp" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#525761"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">width, not plot_width</span><span class="v"><code>plot_width</code>/<code>plot_height</code> were renamed in Bokeh 3.0</span></div>
+    <div><span class="k">TabPanel, not Panel</span><span class="v">now <code>from bokeh.models import TabPanel, Tabs</code></span></div>
+    <div><span class="k">legend_label ≠ legend</span><span class="v">also <code>legend_field</code> (browser) &amp; <code>legend_group</code> (Python)</span></div>
+    <div><span class="k">scatter() is the way</span><span class="v">unified marker method; per-shape methods still work</span></div>
+    <div><span class="k">size vs radius</span><span class="v"><code>size</code> = screen px · <code>radius</code> = data units (zooms)</span></div>
+    <div><span class="k">@col vs $x</span><span class="v"><code>@</code> reads a column · <code>$</code> is the cursor / a special value</span></div>
+    <div><span class="k">bokeh.charts is gone</span><span class="v">no Bar/BoxPlot/Scatter classes — use hvPlot / HoloViews</span></div>
+    <div><span class="k">CustomJS vs on_change</span><span class="v"><code>CustomJS</code> = standalone file · <code>on_change</code> = needs a server</span></div>
+    <div><span class="k">CDSView(filter=…)</span><span class="v">3.0 dropped <code>source=</code> &amp; the <code>filters=[]</code> list</span></div>
+    <div><span class="k">mode="inline"</span><span class="v">embeds BokehJS so the HTML opens with no internet</span></div>
+    <div><span class="k">one source, many glyphs</span><span class="v">shared <code>ColumnDataSource</code> → linked hover &amp; brushing</span></div>
+    <div><span class="k">show ≠ save</span><span class="v"><code>show</code> writes + opens · <code>save</code> only writes the file</span></div>
+  </div>
+</section>
+
+<footer>
+  Bokeh cheat sheet · synthesized from the official Bokeh 3.9 documentation (docs.bokeh.org — User Guide &amp; First Steps), bokeh.org, the DataCamp Bokeh cheat sheet, KDnuggets, and Real Python.<br>
+  API shown for Bokeh ≈ 3.x · prefer the unified <code>scatter()</code> marker method and <code>bokeh.transform</code> colour mappers · high-level <code>bokeh.charts</code> was removed long ago — reach for hvPlot / HoloViews when you want one-liners.
+</footer>
+
+</body>
+</html>

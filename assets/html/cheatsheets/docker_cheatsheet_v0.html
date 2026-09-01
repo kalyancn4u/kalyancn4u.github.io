@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docker CLI Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --build:#64748b;   --build-bg:#f1f3f6;     /* Dockerfile / build-time */
+    --image:#0891b2;   --image-bg:#ecf8fa;     /* local images */
+    --container:#d97706; --container-bg:#fdf6ec; /* running containers */
+    --registry:#4f46e5; --registry-bg:#eef0fd; /* Docker Hub / remote */
+    --infra:#059669;   --infra-bg:#ecf7f2;     /* volumes / networks / compose */
+    --danger:#dc2626;  --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .docker{font-family:var(--mono); color:var(--registry)}
+  .lede{max-width:62ch; color:#3f444f; font-size:1.02rem}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.build{background:var(--build)} .dot.image{background:var(--image)}
+  .dot.container{background:var(--container)} .dot.registry{background:var(--registry)}
+  .dot.infra{background:var(--infra)} .dot.danger{background:var(--danger)} .dot.star{background:var(--star)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1150px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.build{border-left-color:var(--build)}
+  ul.cmds li.image{border-left-color:var(--image)}
+  ul.cmds li.container{border-left-color:var(--container)}
+  ul.cmds li.registry{border-left-color:var(--registry)}
+  ul.cmds li.infra{border-left-color:var(--infra)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .arg{color:var(--registry); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- dockerfile strip ---------- */
+  .dfile{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .dfile h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:.3rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .dfile .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.2rem}
+  .dfile-grid{
+    background:var(--ink); border-radius:10px; padding:1.2rem 1.4rem;
+    display:grid; gap:.5rem; grid-template-columns:1fr;
+    font-family:var(--mono); font-size:.82rem;
+  }
+  @media(min-width:780px){ .dfile-grid{grid-template-columns:1fr 1fr} }
+  .dfile-grid div{display:flex; gap:.7rem; align-items:baseline}
+  .dfile-grid .k{color:#67e8f9; font-weight:700; white-space:nowrap}
+  .dfile-grid .v{color:#cbd5e1}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · containers &amp; images</div>
+  <h1><span class="docker">docker</span> cli cheat sheet</h1>
+  <p class="lede">Every command moves software through five places: a <b>Dockerfile</b>, a built <b>image</b>, a running <b>container</b>, a <b>registry</b> (Docker Hub), and shared <b>infrastructure</b> (volumes, networks, Compose). Learn the map once and the commands stop being a list to memorize.</p>
+  <div class="legend">
+    <span><i class="dot build"></i>Dockerfile / build</span>
+    <span><i class="dot image"></i>image</span>
+    <span><i class="dot container"></i>container</span>
+    <span><i class="dot registry"></i>registry</span>
+    <span><i class="dot infra"></i>volumes / network / compose</span>
+    <span><i class="dot danger"></i>destructive</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked across: <b>docs.docker.com</b> · <b>docker.com/resources/cli-cheat-sheet</b> · <b>buddy.works</b> · <b>devopscycle.com</b> · <b>github.com/wsargent/docker-cheat-sheet</b> · <b>dockerlabs.collabnix.com</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The five areas &amp; the commands that move work between them</div>
+  <svg class="flow-svg" viewBox="0 0 1140 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of how docker commands move software between Dockerfile, image, container, and registry.">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <!-- boxes -->
+    <g>
+      <rect x="15"  y="120" width="195" height="120" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="112" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Dockerfile</text>
+      <text x="112" y="172" text-anchor="middle" font-size="11" fill="#64748b">recipe — you write this</text>
+      <text x="112" y="210" text-anchor="middle" font-size="11" fill="#64748b">FROM / RUN / COPY</text>
+      <text x="112" y="226" text-anchor="middle" font-size="11" fill="#64748b">CMD / EXPOSE</text>
+    </g>
+    <g>
+      <rect x="298" y="120" width="190" height="120" rx="12" fill="#ecf8fa" stroke="#0891b2" stroke-width="2"/>
+      <text x="393" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Image</text>
+      <text x="393" y="172" text-anchor="middle" font-size="11" fill="#0e7490">read-only template, layered</text>
+      <text x="393" y="210" text-anchor="middle" font-size="11" fill="#0e7490">docker images</text>
+    </g>
+    <g>
+      <rect x="578" y="120" width="195" height="120" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="675" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Container</text>
+      <text x="675" y="172" text-anchor="middle" font-size="11" fill="#b45309">a running instance of an image</text>
+      <text x="675" y="210" text-anchor="middle" font-size="11" fill="#b45309">docker ps</text>
+    </g>
+    <g>
+      <rect x="863" y="120" width="200" height="120" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="963" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Registry</text>
+      <text x="963" y="172" text-anchor="middle" font-size="11" fill="#4f46e5">Docker Hub or private registry</text>
+      <text x="963" y="210" text-anchor="middle" font-size="11" fill="#4f46e5">docker search</text>
+    </g>
+
+    <!-- forward arrows (top) -->
+    <line x1="210" y1="150" x2="296" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="253" y="142" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0891b2">docker build</text>
+
+    <line x1="488" y1="150" x2="576" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="532" y="142" text-anchor="middle" font-size="11.5" font-weight="700" fill="#d97706">docker run</text>
+
+    <line x1="773" y1="150" x2="861" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="817" y="142" text-anchor="middle" font-size="11.5" font-weight="700" fill="#4f46e5">docker push</text>
+
+    <!-- backward arrows (bottom) -->
+    <line x1="576" y1="262" x2="488" y2="262" stroke="#64748b" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+    <text x="532" y="280" text-anchor="middle" font-size="10.5" fill="#64748b">stop / rm</text>
+
+    <line x1="861" y1="262" x2="20" y2="262" stroke="#4f46e5" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+    <text x="630" y="280" text-anchor="middle" font-size="11" font-weight="600" fill="#4f46e5">docker pull   (downloads an image from a registry)</text>
+
+    <!-- area-group labels -->
+    <text x="112" y="100" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">YOUR REPO</text>
+    <text x="675" y="100" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#b45309">YOUR HOST</text>
+    <text x="963" y="100" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#4f46e5">THE CLOUD</text>
+  </svg>
+</section>
+
+<main>
+
+  <!-- 01 BUILD IMAGES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Build &amp; Manage Images</span><span class="card-sub">Dockerfile → image</span></div>
+    <ul class="cmds">
+      <li class="build"><code class="cmd">docker build <span class="flag">-t</span> <span class="arg">&lt;name&gt;:&lt;tag&gt;</span> .</code><span class="star">★</span><div class="desc">Build an image from a Dockerfile in this dir.</div></li>
+      <li class="build"><code class="cmd">docker build <span class="flag">--no-cache</span> <span class="flag">-t</span> <span class="arg">&lt;name&gt;</span> .</code><div class="desc">Force a clean rebuild, ignoring cached layers.</div></li>
+      <li class="image"><code class="cmd">docker images</code><span class="star">★</span><div class="desc">List all local images.</div></li>
+      <li class="image"><code class="cmd">docker tag <span class="arg">&lt;image&gt; user/repo:tag</span></code><div class="desc">Add a tag/alias to an existing image.</div></li>
+      <li class="image"><code class="cmd">docker history <span class="arg">&lt;image&gt;</span></code><div class="desc">Show the layers that built an image.</div></li>
+      <li class="danger"><code class="cmd">docker rmi <span class="arg">&lt;image&gt;</span></code><span class="badge-danger">removes</span><div class="desc">Delete a local image.</div></li>
+      <li class="danger"><code class="cmd">docker image prune <span class="flag">-a</span></code><span class="badge-danger">removes</span><div class="desc">Delete all unused/dangling images.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 RUN CONTAINERS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Run Containers</span><span class="card-sub">image → container</span></div>
+    <ul class="cmds">
+      <li class="container"><code class="cmd">docker run <span class="arg">&lt;image&gt;</span></code><span class="star">★</span><div class="desc">Create + start a container from an image.</div></li>
+      <li class="container"><code class="cmd">docker run <span class="flag">-d</span> <span class="arg">&lt;image&gt;</span></code><span class="star">★</span><div class="desc">Run detached, in the background.</div></li>
+      <li class="container"><code class="cmd">docker run <span class="flag">-p</span> <span class="arg">8080:80</span> <span class="arg">&lt;image&gt;</span></code><span class="star">★</span><div class="desc">Map host port → container port.</div></li>
+      <li class="container"><code class="cmd">docker run <span class="flag">--name</span> <span class="arg">&lt;name&gt;</span> <span class="arg">&lt;image&gt;</span></code><div class="desc">Give the container a friendly name.</div></li>
+      <li class="container"><code class="cmd">docker run <span class="flag">-it</span> <span class="arg">&lt;image&gt;</span> sh</code><span class="star">★</span><div class="desc">Interactive shell inside a new container.</div></li>
+      <li class="container"><code class="cmd">docker run <span class="flag">--rm</span> <span class="arg">&lt;image&gt;</span></code><div class="desc">Auto-remove the container once it exits.</div></li>
+      <li class="container"><code class="cmd">docker run <span class="flag">-v</span> <span class="arg">&lt;host&gt;:&lt;container&gt;</span> <span class="arg">&lt;image&gt;</span></code><div class="desc">Mount a host path/volume into the container.</div></li>
+      <li class="container"><code class="cmd">docker run <span class="flag">-e</span> <span class="arg">NAME=val</span> <span class="arg">&lt;image&gt;</span></code><div class="desc">Pass an environment variable.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 INSPECT & MANAGE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Inspect &amp; Manage</span><span class="card-sub">the daily loop</span></div>
+    <ul class="cmds">
+      <li class="container"><code class="cmd">docker ps</code><span class="star">★</span><div class="desc">List running containers.</div></li>
+      <li class="container"><code class="cmd">docker ps <span class="flag">-a</span></code><span class="star">★</span><div class="desc">List all containers, running or stopped.</div></li>
+      <li class="container"><code class="cmd">docker logs <span class="flag">-f</span> <span class="arg">&lt;container&gt;</span></code><span class="star">★</span><div class="desc">Stream a container's logs.</div></li>
+      <li class="container"><code class="cmd">docker exec <span class="flag">-it</span> <span class="arg">&lt;container&gt;</span> sh</code><span class="star">★</span><div class="desc">Open a shell inside a running container.</div></li>
+      <li class="container"><code class="cmd">docker inspect <span class="arg">&lt;container&gt;</span></code><div class="desc">Full JSON config &amp; state of an object.</div></li>
+      <li class="container"><code class="cmd">docker stats</code><div class="desc">Live CPU/memory/network usage.</div></li>
+      <li class="container"><code class="cmd">docker top <span class="arg">&lt;container&gt;</span></code><div class="desc">Processes running inside a container.</div></li>
+      <li class="container"><code class="cmd">docker cp <span class="arg">&lt;container&gt;:&lt;path&gt; &lt;dest&gt;</span></code><div class="desc">Copy files between host &amp; container.</div></li>
+      <li class="container"><code class="cmd">docker rename <span class="arg">&lt;old&gt; &lt;new&gt;</span></code><div class="desc">Rename an existing container.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 STOP / REMOVE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Stop &amp; Remove</span><span class="card-sub">end the lifecycle</span></div>
+    <ul class="cmds">
+      <li class="container"><code class="cmd">docker stop <span class="arg">&lt;container&gt;</span></code><span class="star">★</span><div class="desc">Gracefully stop (SIGTERM, then SIGKILL).</div></li>
+      <li class="container"><code class="cmd">docker start <span class="arg">&lt;container&gt;</span></code><span class="star">★</span><div class="desc">Restart a stopped container.</div></li>
+      <li class="container"><code class="cmd">docker restart <span class="arg">&lt;container&gt;</span></code><div class="desc">Stop, then start again.</div></li>
+      <li class="danger"><code class="cmd">docker kill <span class="arg">&lt;container&gt;</span></code><span class="badge-danger">force</span><div class="desc">Immediate SIGKILL, no graceful shutdown.</div></li>
+      <li class="danger"><code class="cmd">docker rm <span class="arg">&lt;container&gt;</span></code><span class="star">★</span><span class="badge-danger">removes</span><div class="desc">Delete a stopped container.</div></li>
+      <li class="danger"><code class="cmd">docker rm <span class="flag">-f</span> <span class="arg">&lt;container&gt;</span></code><span class="badge-danger">force</span><div class="desc">Stop + remove in one step.</div></li>
+      <li class="danger"><code class="cmd">docker rm <span class="arg">$(docker ps -aq)</span></code><span class="badge-danger">removes</span><div class="desc">Remove every stopped/running container.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 REGISTRY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Registry &amp; Docker Hub</span><span class="card-sub">share images</span></div>
+    <ul class="cmds">
+      <li class="registry"><code class="cmd">docker login</code><span class="star">★</span><div class="desc">Authenticate this CLI to Docker Hub.</div></li>
+      <li class="registry"><code class="cmd">docker pull <span class="arg">&lt;image&gt;</span></code><span class="star">★</span><div class="desc">Download an image from a registry.</div></li>
+      <li class="registry"><code class="cmd">docker push <span class="arg">user/repo:tag</span></code><span class="star">★</span><div class="desc">Upload a tagged image to a registry.</div></li>
+      <li class="registry"><code class="cmd">docker search <span class="arg">&lt;term&gt;</span></code><div class="desc">Search Docker Hub for images.</div></li>
+      <li class="registry"><code class="cmd">docker logout</code><div class="desc">End the authenticated CLI session.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 VOLUMES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Volumes</span><span class="card-sub">persist data</span></div>
+    <ul class="cmds">
+      <li class="infra"><code class="cmd">docker volume create <span class="arg">&lt;name&gt;</span></code><div class="desc">Create a named, managed volume.</div></li>
+      <li class="infra"><code class="cmd">docker volume ls</code><span class="star">★</span><div class="desc">List volumes on this host.</div></li>
+      <li class="infra"><code class="cmd">docker volume inspect <span class="arg">&lt;name&gt;</span></code><div class="desc">Show mountpoint &amp; metadata.</div></li>
+      <li class="danger"><code class="cmd">docker volume rm <span class="arg">&lt;name&gt;</span></code><span class="badge-danger">removes</span><div class="desc">Delete a volume (data is destroyed).</div></li>
+      <li class="danger"><code class="cmd">docker volume prune</code><span class="badge-danger">removes</span><div class="desc">Delete all unused volumes.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 NETWORKS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Networks</span><span class="card-sub">container ↔ container</span></div>
+    <ul class="cmds">
+      <li class="infra"><code class="cmd">docker network ls</code><span class="star">★</span><div class="desc">List networks (bridge, host, none, …).</div></li>
+      <li class="infra"><code class="cmd">docker network create <span class="arg">&lt;name&gt;</span></code><div class="desc">Create a user-defined bridge network.</div></li>
+      <li class="infra"><code class="cmd">docker network connect <span class="arg">&lt;net&gt; &lt;container&gt;</span></code><div class="desc">Attach a running container to a network.</div></li>
+      <li class="infra"><code class="cmd">docker network inspect <span class="arg">&lt;name&gt;</span></code><div class="desc">Show connected containers &amp; subnet.</div></li>
+      <li class="danger"><code class="cmd">docker network rm <span class="arg">&lt;name&gt;</span></code><span class="badge-danger">removes</span><div class="desc">Delete a network.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 COMPOSE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Docker Compose</span><span class="card-sub">multi-container apps</span></div>
+    <ul class="cmds">
+      <li class="infra"><code class="cmd">docker compose up</code><span class="star">★</span><div class="desc">Build (if needed) &amp; start every service.</div></li>
+      <li class="infra"><code class="cmd">docker compose up <span class="flag">-d</span></code><span class="star">★</span><div class="desc">Start the whole stack in the background.</div></li>
+      <li class="infra"><code class="cmd">docker compose ps</code><div class="desc">List this project's running services.</div></li>
+      <li class="infra"><code class="cmd">docker compose logs <span class="flag">-f</span></code><div class="desc">Stream logs from all services.</div></li>
+      <li class="infra"><code class="cmd">docker compose exec <span class="arg">&lt;svc&gt;</span> sh</code><div class="desc">Shell into one running service.</div></li>
+      <li class="danger"><code class="cmd">docker compose down</code><span class="star">★</span><span class="badge-danger">removes</span><div class="desc">Stop &amp; remove containers, networks.</div></li>
+      <li class="danger"><code class="cmd">docker compose down <span class="flag">-v</span></code><span class="badge-danger">removes</span><div class="desc">Same, plus delete named volumes.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 SYSTEM & CLEANUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">System &amp; Cleanup</span><span class="card-sub">reclaim disk space</span></div>
+    <ul class="cmds">
+      <li class="build"><code class="cmd">docker info</code><div class="desc">System-wide Docker daemon details.</div></li>
+      <li class="build"><code class="cmd">docker system df</code><div class="desc">Disk usage by images/containers/volumes.</div></li>
+      <li class="danger"><code class="cmd">docker system prune</code><span class="star">★</span><span class="badge-danger">removes</span><div class="desc">Clean stopped containers, dangling images, unused networks.</div></li>
+      <li class="danger"><code class="cmd">docker system prune <span class="flag">-a --volumes</span></code><span class="badge-danger">destroys</span><div class="desc">Aggressive clean — <b>also drops volumes.</b></div></li>
+      <li class="build"><code class="cmd">docker context ls</code><div class="desc">List configured Docker daemon contexts.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 DOCKERFILE QUICKREF (mini) -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Help &amp; Info</span><span class="card-sub">everywhere</span></div>
+    <ul class="cmds">
+      <li class="build"><code class="cmd">docker --help</code><span class="star">★</span><div class="desc">List top-level commands.</div></li>
+      <li class="build"><code class="cmd">docker <span class="arg">&lt;cmd&gt;</span> <span class="flag">--help</span></code><span class="star">★</span><div class="desc">Flags &amp; usage for any subcommand.</div></li>
+      <li class="build"><code class="cmd">docker version</code><div class="desc">Client + server (Engine) versions.</div></li>
+      <li class="build"><code class="cmd">docker events</code><div class="desc">Real-time stream of daemon events.</div></li>
+    </ul>
+  </article>
+
+  <!-- REFER TO A CONTAINER/IMAGE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">★</span><span class="card-title">Refer to an Object</span><span class="card-sub">anywhere you see &lt;container&gt;/&lt;image&gt;</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">webapp</code><div class="desc">a --name you assigned</div></li>
+      <li><code class="cmd">nginx:1.27</code><div class="desc">image repo + tag</div></li>
+      <li><code class="cmd">3e887ab21f9c</code><div class="desc">a container/image ID (short is fine)</div></li>
+      <li><code class="cmd">$(docker ps -aq)</code><div class="desc">every container ID, for batch ops</div></li>
+      <li><code class="cmd">latest</code><div class="desc">default tag if none is given</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ LIFECYCLE & CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Container lifecycle &amp; core concepts</h2>
+  <p class="sub">Four shapes worth holding in your head — based on the reference diagrams used across the official Docker docs and the community cheat sheets.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>Container state machine</h3>
+      <p>A container moves through a small set of states; most commands are just verbs that flip it from one box to the next.</p>
+      <svg viewBox="0 0 390 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Container lifecycle: created, running, paused, stopped, removed">
+        <defs>
+          <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+          </marker>
+        </defs>
+        <g font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">
+          <rect x="10" y="20" width="80" height="34" rx="7" fill="#f1f3f6" stroke="#64748b"/>
+          <text x="50" y="41" fill="#1a1d24">created</text>
+          <rect x="150" y="20" width="90" height="34" rx="7" fill="#fdf6ec" stroke="#d97706"/>
+          <text x="195" y="41" fill="#1a1d24">running</text>
+          <rect x="300" y="20" width="80" height="34" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-dasharray="3 3"/>
+          <text x="340" y="41" fill="#1a1d24">paused</text>
+          <rect x="150" y="100" width="90" height="34" rx="7" fill="#f1f3f6" stroke="#64748b"/>
+          <text x="195" y="121" fill="#1a1d24">stopped</text>
+          <rect x="10" y="100" width="90" height="34" rx="7" fill="#fdf0ef" stroke="#dc2626"/>
+          <text x="55" y="121" fill="#1a1d24">removed</text>
+
+          <line x1="90" y1="37" x2="148" y2="37" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#a2)"/>
+          <text x="119" y="29" font-size="9" fill="#d97706">start</text>
+          <line x1="240" y1="37" x2="298" y2="37" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#a2)"/>
+          <text x="269" y="29" font-size="9" fill="#d97706">pause</text>
+          <line x1="195" y1="54" x2="195" y2="98" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#a2)"/>
+          <text x="222" y="80" font-size="9" fill="#64748b">stop</text>
+          <line x1="148" y1="117" x2="102" y2="117" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#a2)"/>
+          <text x="125" y="109" font-size="9" fill="#dc2626">rm</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Image layers</h3>
+      <p>Each Dockerfile instruction adds a read-only layer. A running container adds one thin writable layer on top.</p>
+      <svg viewBox="0 0 390 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Stacked image layers with a writable container layer on top">
+        <g font-family="JetBrains Mono, monospace" font-size="10.5">
+          <rect x="60" y="118" width="270" height="24" fill="#ecf8fa" stroke="#0891b2"/>
+          <text x="195" y="134" text-anchor="middle" fill="#1a1d24">FROM ubuntu:24.04</text>
+          <rect x="60" y="94" width="270" height="24" fill="#ecf8fa" stroke="#0891b2"/>
+          <text x="195" y="110" text-anchor="middle" fill="#1a1d24">RUN apt-get install …</text>
+          <rect x="60" y="70" width="270" height="24" fill="#ecf8fa" stroke="#0891b2"/>
+          <text x="195" y="86" text-anchor="middle" fill="#1a1d24">COPY . /app</text>
+          <rect x="60" y="46" width="270" height="24" fill="#ecf8fa" stroke="#0891b2"/>
+          <text x="195" y="62" text-anchor="middle" fill="#1a1d24">CMD ["node","app.js"]</text>
+          <rect x="60" y="20" width="270" height="24" fill="#fdf6ec" stroke="#d97706" stroke-dasharray="3 3"/>
+          <text x="195" y="36" text-anchor="middle" fill="#1a1d24">writable container layer</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Volumes vs. bind mounts</h3>
+      <p>Both persist data outside the container's writable layer — but who manages the storage differs.</p>
+      <svg viewBox="0 0 390 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Volume managed by Docker versus bind mount to a host path">
+        <g font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">
+          <rect x="140" y="55" width="110" height="50" rx="8" fill="#fdf6ec" stroke="#d97706"/>
+          <text x="195" y="84" fill="#1a1d24">container</text>
+
+          <rect x="10" y="10" width="110" height="40" rx="8" fill="#ecf7f2" stroke="#059669"/>
+          <text x="65" y="34" fill="#1a1d24">named volume</text>
+          <text x="65" y="5" fill="#059669" font-size="8.5">docker managed</text>
+          <line x1="120" y1="30" x2="140" y2="68" stroke="#059669" stroke-width="1.6"/>
+
+          <rect x="270" y="10" width="110" height="40" rx="8" fill="#f1f3f6" stroke="#64748b"/>
+          <text x="325" y="34" fill="#1a1d24">host path</text>
+          <text x="325" y="5" fill="#64748b" font-size="8.5">you manage it</text>
+          <line x1="270" y1="30" x2="250" y2="68" stroke="#64748b" stroke-width="1.6"/>
+
+          <text x="195" y="130" fill="#1a1d24" font-size="9.5">-v myvol:/data</text>
+          <text x="195" y="146" fill="#1a1d24" font-size="9.5">-v /host/path:/data</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Default network drivers</h3>
+      <p>Most setups never leave <code>bridge</code> — but knowing the other two saves a debugging session someday.</p>
+      <svg viewBox="0 0 390 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="bridge, host, and none network drivers compared">
+        <g font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">
+          <rect x="10" y="20" width="110" height="110" rx="8" fill="#ecf7f2" stroke="#059669"/>
+          <text x="65" y="40" fill="#1a1d24" font-weight="700">bridge</text>
+          <text x="65" y="58" font-size="8.5" fill="#047857">default · isolated</text>
+          <circle cx="65" cy="85" r="11" fill="#059669"/><text x="65" y="89" fill="#fff" font-size="9">C</text>
+          <text x="65" y="115" font-size="8" fill="#047857">+ port mapping (-p)</text>
+
+          <rect x="140" y="20" width="110" height="110" rx="8" fill="#fdf6ec" stroke="#d97706"/>
+          <text x="195" y="40" fill="#1a1d24" font-weight="700">host</text>
+          <text x="195" y="58" font-size="8.5" fill="#b45309">shares host network</text>
+          <circle cx="195" cy="85" r="11" fill="#d97706"/><text x="195" y="89" fill="#fff" font-size="9">C</text>
+          <text x="195" y="115" font-size="8" fill="#b45309">no -p needed</text>
+
+          <rect x="270" y="20" width="110" height="110" rx="8" fill="#fdf0ef" stroke="#dc2626"/>
+          <text x="325" y="40" fill="#1a1d24" font-weight="700">none</text>
+          <text x="325" y="58" font-size="8.5" fill="#b91c1c">fully isolated</text>
+          <circle cx="325" cy="85" r="11" fill="#dc2626"/><text x="325" y="89" fill="#fff" font-size="9">C</text>
+          <text x="325" y="115" font-size="8" fill="#b91c1c">no networking</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ DOCKERFILE INSTRUCTIONS ============ -->
+<section class="dfile">
+  <h2>Dockerfile instructions</h2>
+  <p class="sub">The vocabulary the <code>docker build</code> command reads, top to bottom, to assemble an image.</p>
+  <div class="dfile-grid">
+    <div><span class="k">FROM</span><span class="v">base image to build on top of</span></div>
+    <div><span class="k">RUN</span><span class="v">execute a command, bakes a new layer</span></div>
+    <div><span class="k">COPY</span><span class="v">copy files from build context into the image</span></div>
+    <div><span class="k">ADD</span><span class="v">like COPY, plus URL/tar-extract support</span></div>
+    <div><span class="k">WORKDIR</span><span class="v">set the working directory for later instructions</span></div>
+    <div><span class="k">ENV</span><span class="v">set an environment variable at build &amp; run time</span></div>
+    <div><span class="k">ARG</span><span class="v">build-time-only variable</span></div>
+    <div><span class="k">EXPOSE</span><span class="v">document the port the app listens on</span></div>
+    <div><span class="k">VOLUME</span><span class="v">declare a mount point for persistent data</span></div>
+    <div><span class="k">CMD</span><span class="v">default command when container starts (overridable)</span></div>
+    <div><span class="k">ENTRYPOINT</span><span class="v">fixed executable; CMD becomes its arguments</span></div>
+    <div><span class="k">USER</span><span class="v">switch to a non-root user for later steps</span></div>
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">pull → run → ps → stop → rm</span><span class="v">the everyday workflow, start to finish</span></div>
+    <div><span class="k">CMD vs ENTRYPOINT</span><span class="v">CMD is overridable defaults; ENTRYPOINT is fixed</span></div>
+    <div><span class="k">-d vs -it</span><span class="v">detached background vs. attached interactive</span></div>
+    <div><span class="k">image ≠ container</span><span class="v">image is the template; container is a running copy</span></div>
+    <div><span class="k">stop vs kill</span><span class="v">stop is graceful (SIGTERM); kill is immediate (SIGKILL)</span></div>
+    <div><span class="k">volume vs bind mount</span><span class="v">Docker manages volumes; you manage bind-mount paths</span></div>
+    <div><span class="k">rm -f</span><span class="v">stops a running container before removing it — no confirm</span></div>
+    <div><span class="k">system prune -a --volumes</span><span class="v">nukes everything unused — read the prompt first</span></div>
+  </div>
+</section>
+
+<footer>
+  Docker CLI cheat sheet · synthesized from the official references of docs.docker.com, docker.com/resources/cli-cheat-sheet, buddy.works, devopscycle.com, github.com/wsargent/docker-cheat-sheet, and dockerlabs.collabnix.com.<br>
+  Commands shown for Docker Engine ≈ 24+ · modern <code>docker compose</code> (v2, no hyphen) preferred over the legacy <code>docker-compose</code> binary.
+</footer>
+
+</body>
+</html>

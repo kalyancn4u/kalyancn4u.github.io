@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aiohttp (Python) Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b; --setup-bg:#f1f3f6;
+    --req:#d97706;   --req-bg:#fdf6ec;
+    --resp:#059669;  --resp-bg:#ecf7f2;
+    --sess:#4f46e5;  --sess-bg:#eef0fd;
+    --adv:#7c3aed;   --adv-bg:#f4eefc;
+    --server:#0d9488;--server-bg:#e8f6f4;
+    --danger:#dc2626;--danger-bg:#fdf0ef;
+    --star:#b45309;
+    --t-mod:#0d9488; --t-fn:#4f46e5; --t-arg:#b45309; --t-str:#059669;
+    --t-kw:#7c3aed;  --t-num:#d97706; --t-cm:#94a3b8;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;}
+
+  /* header */
+  header{border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;}
+  h1 .aio{font-family:var(--mono); color:var(--sess)}
+  h1 .http{font-family:var(--mono); color:var(--server)}
+  h1 .tag{font-family:var(--mono); font-size:.9rem; color:var(--muted); font-weight:500; letter-spacing:.02em}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* legend */
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)} .dot.req{background:var(--req)}
+  .dot.resp{background:var(--resp)} .dot.sess{background:var(--sess)}
+  .dot.adv{background:var(--adv)} .dot.server{background:var(--server)}
+  .dot.danger{background:var(--danger)}
+
+  /* hero */
+  .flow-wrap{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;}
+  .flow-title{font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;}
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* quickstart code panel */
+  .quick{max-width:1120px; margin:1.4rem auto 0; background:var(--ink); border-radius:10px;
+    overflow:hidden; box-shadow:0 2px 8px rgba(20,20,30,.08)}
+  .quick-bar{display:flex; align-items:center; gap:.5rem; padding:.55rem .9rem;
+    border-bottom:1px solid #2b2f3a}
+  .quick-bar .d{width:11px;height:11px;border-radius:50%}
+  .quick-bar .t{font-family:var(--mono); font-size:.72rem; color:#8b93a7; margin-left:.4rem}
+  .quick-cols{display:grid; grid-template-columns:1fr; gap:0}
+  @media(min-width:820px){ .quick-cols{grid-template-columns:1.35fr 1fr} }
+  pre.quick-inner{margin:0; padding:1rem 1.15rem; white-space:pre; overflow-x:auto;
+    font-family:var(--mono); font-size:.79rem; line-height:1.6; color:#e8e6e1; tab-size:2}
+  pre.quick-inner+pre.quick-inner{border-top:1px solid #2b2f3a}
+  @media(min-width:820px){ pre.quick-inner+pre.quick-inner{border-top:none; border-left:1px solid #2b2f3a} }
+  .quick-inner .cm{color:var(--t-cm)} .quick-inner .kw{color:#c084fc}
+  .quick-inner .mod{color:#2dd4bf} .quick-inner .fn{color:#818cf8}
+  .quick-inner .str{color:#6ee7b7} .quick-inner .arg{color:#fbbf24}
+  .quick-inner .num{color:#fbbf24} .quick-inner .srv{color:#5eead4}
+
+  /* main grid */
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 2rem;
+    column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  @media(min-width:1640px){ main{column-count:4} }
+
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.req{border-left-color:var(--req)}
+  ul.cmds li.resp{border-left-color:var(--resp)}
+  ul.cmds li.sess{border-left-color:var(--sess)}
+  ul.cmds li.adv{border-left-color:var(--adv)}
+  ul.cmds li.server{border-left-color:var(--server)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.5}
+  code.cmd .mod{color:var(--t-mod)} code.cmd .fn{color:var(--t-fn); font-weight:600}
+  code.cmd .arg{color:var(--t-arg)} code.cmd .str{color:var(--t-str)}
+  code.cmd .kw{color:var(--t-kw)} code.cmd .num{color:var(--t-num)}
+  code.cmd .cm{color:var(--t-cm)} code.cmd .p{color:#94a3b8}
+  li.danger code.cmd{color:#b42318}
+  .desc{font-size:.77rem; color:#525761; margin-top:.2rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee;
+    padding:.02rem .25rem; border-radius:3px; color:#3f444f}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.64rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-async{color:var(--adv); font-size:.64rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+
+  /* diagrams */
+  .diagrams{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;}
+  .diagrams h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:var(--mono)}
+
+  /* refs strip */
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.8rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner .v code{color:#fcd9a8; font-size:.95em}
+
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;}
+  footer code{color:#3f444f}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · async HTTP client + server · Python / asyncio</div>
+  <h1><span class="aio">aio</span><span class="http">http</span> <span class="tag">cheat sheet</span></h1>
+  <p class="lede"><b>Async all the way down.</b> Open <b>one</b> <code>ClientSession</code>, <code>async with session.get(url) as resp:</code> to borrow a pooled connection, then <b><code>await resp.json()</code></b> &mdash; the body is a coroutine, and <code>resp</code> is only alive inside the <code>async with</code>. The very same library is also a <b>web server</b> (<code>aiohttp.web</code>). No sync API: everything runs on the asyncio event loop.</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>setup / async shape</span>
+    <span><i class="dot req"></i>the request</span>
+    <span><i class="dot resp"></i>the response</span>
+    <span><i class="dot sess"></i>session · connectors · auth</span>
+    <span><i class="dot adv"></i>async: ws · streaming</span>
+    <span><i class="dot server"></i>aiohttp.web server</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Introspected from <b>aiohttp 3.14</b> &amp; cross-checked across: <b>docs.aiohttp.org</b> (official) &middot; <b>Real Python</b> &middot; <b>BetterStack</b> &middot; <b>Superfast Python</b> &middot; <b>Proxieshub / ScrapeOps</b> &middot; <b>yarl / multidict docs</b> &middot; <b>re-verified 2026-08-30: aiohttp 3.14.3 (23 Jul 2026) current</b></p>
+</header>
+
+<!-- ============ SIGNATURE HERO DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The async round trip &mdash; and aiohttp&rsquo;s two faces on one event loop</div>
+  <svg class="flow-svg" viewBox="0 0 1120 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Band A: open one ClientSession, async-with session.get returns a response whose status is ready immediately but whose body must be awaited. Band B: aiohttp is both a client and a server sharing one asyncio event loop.">
+    <defs>
+      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <!-- BAND A -->
+    <text x="24" y="26" font-size="10.5" letter-spacing="2.5" fill="#94a3b8">BAND A &middot; ONE REQUEST, AWAITED</text>
+
+    <rect x="20" y="42" width="212" height="150" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+    <text x="126" y="68" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">Open ONE Session</text>
+    <text x="126" y="90" text-anchor="middle" font-size="10" fill="#4f46e5">async with</text>
+    <text x="126" y="106" text-anchor="middle" font-size="10" fill="#4f46e5">aiohttp.ClientSession()</text>
+    <text x="126" y="122" text-anchor="middle" font-size="10" fill="#4f46e5">as session:</text>
+    <text x="126" y="148" text-anchor="middle" font-size="9.5" fill="#6366f1">reuse it for every call &mdash;</text>
+    <text x="126" y="163" text-anchor="middle" font-size="9.5" fill="#6366f1">holds the connection pool,</text>
+    <text x="126" y="178" text-anchor="middle" font-size="9.5" fill="#6366f1">cookies, headers, auth</text>
+
+    <rect x="272" y="42" width="228" height="150" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+    <text x="386" y="68" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">Send a request</text>
+    <text x="386" y="92" text-anchor="middle" font-size="9.5" fill="#b45309">async with session.get(</text>
+    <text x="386" y="107" text-anchor="middle" font-size="9.5" fill="#b45309">&nbsp;&nbsp;url, params=, json=,</text>
+    <text x="386" y="122" text-anchor="middle" font-size="9.5" fill="#b45309">&nbsp;&nbsp;headers=, auth=,</text>
+    <text x="386" y="137" text-anchor="middle" font-size="9.5" fill="#b45309">&nbsp;&nbsp;timeout=) as resp:</text>
+    <text x="386" y="164" text-anchor="middle" font-size="9" fill="#8a6d3b">borrows a live connection</text>
+    <text x="386" y="178" text-anchor="middle" font-size="9" fill="#8a6d3b">from the pool for this block</text>
+
+    <rect x="540" y="66" width="128" height="104" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+    <text x="604" y="112" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">Server</text>
+    <text x="604" y="132" text-anchor="middle" font-size="9.5" fill="#64748b">handles the verb</text>
+
+    <rect x="708" y="42" width="392" height="150" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <text x="904" y="66" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">One Response (resp)</text>
+    <text x="904" y="88" text-anchor="middle" font-size="10" fill="#047857">ready NOW (sync attrs): resp.status &middot; resp.ok &middot; resp.headers</text>
+    <line x1="730" y1="100" x2="1078" y2="100" stroke="#a7d9c6" stroke-width="1" stroke-dasharray="3 3"/>
+    <text x="904" y="120" text-anchor="middle" font-size="10.5" font-weight="700" fill="#d97706">but the BODY is a coroutine &mdash; you must await it:</text>
+    <text x="760" y="142" font-size="10.5" fill="#047857">await resp.json()</text>
+    <text x="900" y="142" font-size="10.5" fill="#047857">await resp.text()</text>
+    <text x="1040" y="142" font-size="10.5" fill="#047857" text-anchor="middle">.read()</text>
+    <text x="904" y="166" text-anchor="middle" font-size="9" fill="#0f766e">valid ONLY inside the async with &mdash; then the connection returns to the pool</text>
+    <text x="904" y="182" text-anchor="middle" font-size="9" fill="#0f766e">resp.raise_for_status() &middot; resp.content is a streaming StreamReader</text>
+
+    <line x1="232" y1="117" x2="268" y2="117" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#ar)"/>
+    <line x1="500" y1="117" x2="536" y2="117" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#ar)"/>
+    <text x="518" y="110" text-anchor="middle" font-size="8.5" fill="#94a3b8">send</text>
+    <line x1="668" y1="117" x2="704" y2="117" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#ar)"/>
+
+    <!-- divider -->
+    <line x1="20" y1="222" x2="1100" y2="222" stroke="#e7e3db" stroke-width="1.5"/>
+
+    <!-- BAND B -->
+    <text x="24" y="252" font-size="10.5" letter-spacing="2.5" fill="#94a3b8">BAND B &middot; ONE LIBRARY, TWO DIRECTIONS &mdash; CLIENT &amp; SERVER SHARE THE LOOP</text>
+
+    <!-- client side -->
+    <rect x="20" y="272" width="300" height="196" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+    <text x="170" y="296" text-anchor="middle" font-size="12.5" font-weight="700" fill="#4338ca">CLIENT &mdash; outbound</text>
+    <rect x="44" y="312" width="252" height="34" rx="8" fill="#fff" stroke="#4f46e5" stroke-width="1.4"/>
+    <text x="170" y="333" text-anchor="middle" font-size="10" fill="#4f46e5">ClientSession</text>
+    <rect x="44" y="356" width="252" height="34" rx="8" fill="#fff" stroke="#4f46e5" stroke-width="1.4"/>
+    <text x="170" y="377" text-anchor="middle" font-size="10" fill="#4f46e5">TCPConnector &middot; pool (limit=100)</text>
+    <rect x="44" y="400" width="252" height="46" rx="8" fill="#fff" stroke="#4f46e5" stroke-width="1.4"/>
+    <text x="170" y="420" text-anchor="middle" font-size="9.5" fill="#4f46e5">session.get / post / ws_connect</text>
+    <text x="170" y="435" text-anchor="middle" font-size="8.5" fill="#6366f1">requests you make to other servers</text>
+
+    <!-- event loop center -->
+    <ellipse cx="560" cy="370" rx="108" ry="80" fill="#f4eefc" stroke="#7c3aed" stroke-width="2.2"/>
+    <text x="560" y="352" text-anchor="middle" font-size="12.5" font-weight="700" fill="#6d28d9">asyncio</text>
+    <text x="560" y="370" text-anchor="middle" font-size="12.5" font-weight="700" fill="#6d28d9">event loop</text>
+    <text x="560" y="392" text-anchor="middle" font-size="9" fill="#7c3aed">one thread, many</text>
+    <text x="560" y="405" text-anchor="middle" font-size="9" fill="#7c3aed">awaited tasks</text>
+
+    <!-- server side -->
+    <rect x="800" y="272" width="300" height="196" rx="12" fill="#e8f6f4" stroke="#0d9488" stroke-width="2"/>
+    <text x="950" y="296" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f766e">SERVER &mdash; inbound</text>
+    <rect x="824" y="312" width="252" height="34" rx="8" fill="#fff" stroke="#0d9488" stroke-width="1.4"/>
+    <text x="950" y="333" text-anchor="middle" font-size="10" fill="#0d9488">aiohttp.web.Application</text>
+    <rect x="824" y="356" width="252" height="34" rx="8" fill="#fff" stroke="#0d9488" stroke-width="1.4"/>
+    <text x="950" y="377" text-anchor="middle" font-size="10" fill="#0d9488">router &middot; add_routes([web.get&hellip;])</text>
+    <rect x="824" y="400" width="252" height="46" rx="8" fill="#fff" stroke="#0d9488" stroke-width="1.4"/>
+    <text x="950" y="420" text-anchor="middle" font-size="9.5" fill="#0d9488">async handler &#8594; web.json_response</text>
+    <text x="950" y="435" text-anchor="middle" font-size="8.5" fill="#0f766e">requests other clients make to you</text>
+
+    <line x1="320" y1="370" x2="448" y2="370" stroke="#7c3aed" stroke-width="1.8" marker-end="url(#ar)"/>
+    <line x1="800" y1="370" x2="672" y2="370" stroke="#7c3aed" stroke-width="1.8" marker-end="url(#ar)"/>
+  </svg>
+
+  <!-- quickstart panel -->
+  <div class="quick">
+    <div class="quick-bar"><span class="d" style="background:#ff5f56"></span><span class="d" style="background:#ffbd2e"></span><span class="d" style="background:#27c93f"></span><span class="t">quickstart.py &mdash; the client (left) &amp; the server (right)</span></div>
+    <div class="quick-cols">
+<pre class="quick-inner"><span class="kw">import</span> <span class="mod">aiohttp</span>, <span class="mod">asyncio</span>
+
+<span class="kw">async def</span> <span class="fn">main</span>():
+    <span class="cm"># ONE session, reused for every call</span>
+    <span class="kw">async with</span> <span class="mod">aiohttp</span>.<span class="fn">ClientSession</span>() <span class="kw">as</span> session:
+        <span class="kw">async with</span> session.<span class="fn">get</span>(
+                <span class="str">"https://api.example.com/data"</span>,
+                <span class="arg">params</span>={<span class="str">"q"</span>: <span class="str">"cats"</span>},
+                <span class="arg">timeout</span>=<span class="mod">aiohttp</span>.<span class="fn">ClientTimeout</span>(<span class="arg">total</span>=<span class="num">10</span>),
+        ) <span class="kw">as</span> resp:
+            resp.<span class="fn">raise_for_status</span>()
+            data = <span class="kw">await</span> resp.<span class="fn">json</span>()   <span class="cm"># await!</span>
+            <span class="kw">print</span>(resp.status, data)
+
+<span class="mod">asyncio</span>.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
+<pre class="quick-inner"><span class="cm"># same lib = a web server</span>
+<span class="kw">from</span> <span class="mod">aiohttp</span> <span class="kw">import</span> <span class="srv">web</span>
+
+<span class="kw">async def</span> <span class="fn">hello</span>(request):
+    name = request.<span class="fn">query</span>.<span class="fn">get</span>(
+        <span class="str">"name"</span>, <span class="str">"world"</span>)
+    <span class="kw">return</span> <span class="srv">web</span>.<span class="fn">json_response</span>(
+        {<span class="str">"hello"</span>: name})
+
+app = <span class="srv">web</span>.<span class="fn">Application</span>()
+app.<span class="fn">add_routes</span>([
+    <span class="srv">web</span>.<span class="fn">get</span>(<span class="str">"/"</span>, hello)])
+
+<span class="srv">web</span>.<span class="fn">run_app</span>(app)  <span class="cm"># :8080</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REFERENCE CARDS ============ -->
+<main>
+
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Import</span><span class="card-sub">install once</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="cm">$</span> pip install aiohttp</code><div class="desc">Pure-Python core; pulls in <code>yarl</code>, <code>multidict</code>, <code>frozenlist</code>.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm">$</span> pip install aiohttp[speedups]</code><div class="desc">Adds C accelerators: <code>aiodns</code> (fast DNS), <code>Brotli</code>, faster parsing.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">import</span> <span class="mod">aiohttp</span>, <span class="mod">asyncio</span></code><span class="star">&#9733;</span><div class="desc">You always need <code>asyncio</code> too &mdash; aiohttp is async-only.</div></li>
+      <li class="server"><code class="cmd"><span class="kw">from</span> <span class="mod">aiohttp</span> <span class="kw">import</span> web</code><div class="desc">The server half. Import it only when you're building a server.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">aiohttp</span>.__version__</code><div class="desc">Check the installed version, e.g. <code>'3.14.3'</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 ASYNC SHAPE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">The Async Shape</span><span class="card-sub">no sync API</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd"><span class="kw">async def</span> <span class="fn">main</span>(): &hellip;</code><span class="star">&#9733;</span><div class="desc">All aiohttp calls live inside a coroutine.</div></li>
+      <li class="adv"><code class="cmd"><span class="mod">asyncio</span>.<span class="fn">run</span>(<span class="fn">main</span>())</code><span class="star">&#9733;</span><div class="desc">The one sync entry point &mdash; starts the event loop, runs to completion.</div></li>
+      <li class="adv"><code class="cmd">r = <span class="kw">await</span> &hellip;</code><span class="star">&#9733;</span><div class="desc"><code>await</code> anything that does I/O: the body readers, <code>ws.receive()</code>, etc.</div></li>
+      <li class="adv"><code class="cmd"><span class="kw">await</span> <span class="mod">asyncio</span>.<span class="fn">gather</span>(*tasks)</code><div class="desc">Fire many requests concurrently &mdash; the whole point of async.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># there is no requests.get() equivalent</span></code><span class="badge-danger">note</span><div class="desc">Every call must be awaited; you can't use aiohttp from plain sync code.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 HTTP VERBS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">HTTP Verbs</span><span class="card-sub">on the session</span></div>
+    <ul class="cmds">
+      <li class="req"><code class="cmd"><span class="kw">async with</span> session.<span class="fn">get</span>(url) <span class="kw">as</span> resp:</code><span class="star">&#9733;</span><div class="desc">The idiomatic call &mdash; <code>async with</code> frees the connection when done.</div></li>
+      <li class="req"><code class="cmd"><span class="kw">async with</span> session.<span class="fn">post</span>(url, <span class="arg">json</span>=&hellip;) <span class="kw">as</span> r:</code><span class="star">&#9733;</span><div class="desc">Create / submit. Body goes in <code>json=</code> / <code>data=</code>.</div></li>
+      <li class="req"><code class="cmd">session.<span class="fn">put</span> &middot; .<span class="fn">patch</span> &middot; .<span class="fn">delete</span></code><div class="desc">Same shape for every verb.</div></li>
+      <li class="req"><code class="cmd">session.<span class="fn">head</span> &middot; .<span class="fn">options</span></code><div class="desc">Headers-only / capability probes.</div></li>
+      <li class="req"><code class="cmd">session.<span class="fn">request</span>(<span class="str">"GET"</span>, url)</code><div class="desc">Generic form &mdash; verb as a string.</div></li>
+      <li class="danger"><code class="cmd"><span class="mod">aiohttp</span>.<span class="fn">request</span>(<span class="str">"GET"</span>, url)</code><span class="badge-danger">avoid</span><div class="desc">One-off without a session &mdash; discouraged; you lose pooling.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 QUERY PARAMS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Query Parameters</span><span class="card-sub">the ?key=value</span></div>
+    <ul class="cmds">
+      <li class="req"><code class="cmd">session.<span class="fn">get</span>(url, <span class="arg">params</span>={<span class="str">"q"</span>: <span class="str">"x"</span>, <span class="str">"n"</span>: <span class="num">2</span>})</code><span class="star">&#9733;</span><div class="desc">Dict &#8594; <code>?q=x&amp;n=2</code>, encoded for you.</div></li>
+      <li class="req"><code class="cmd"><span class="arg">params</span>=[(<span class="str">"k"</span>, <span class="str">"a"</span>), (<span class="str">"k"</span>, <span class="str">"b"</span>)]</code><div class="desc">List of tuples for repeated keys &#8594; <code>?k=a&amp;k=b</code>.</div></li>
+      <li class="req"><code class="cmd"><span class="arg">params</span>=<span class="mod">MultiDict</span>(&hellip;)</code><div class="desc">aiohttp uses <code>multidict</code> &mdash; multiple values per key are first-class.</div></li>
+      <li class="resp"><code class="cmd">resp.url</code><div class="desc">The final <code>yarl.URL</code> object with params applied &mdash; great for debugging.</div></li>
+      <li class="danger"><code class="cmd">resp.url <span class="kw">is</span> a yarl.URL, <span class="kw">not</span> str</code><span class="badge-danger">gotcha</span><div class="desc">Wrap in <code>str(resp.url)</code> when you need a plain string.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 SENDING A BODY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Sending a Body</span><span class="card-sub">json vs data</span></div>
+    <ul class="cmds">
+      <li class="req"><code class="cmd"><span class="fn">post</span>(url, <span class="arg">json</span>={<span class="str">"a"</span>: <span class="num">1</span>})</code><span class="star">&#9733;</span><div class="desc">Serializes to JSON &amp; sets <code>Content-Type: application/json</code>.</div></li>
+      <li class="req"><code class="cmd"><span class="fn">post</span>(url, <span class="arg">data</span>={<span class="str">"a"</span>: <span class="num">1</span>})</code><span class="star">&#9733;</span><div class="desc">Dict &#8594; form-encoded (<code>application/x-www-form-urlencoded</code>).</div></li>
+      <li class="req"><code class="cmd"><span class="fn">post</span>(url, <span class="arg">data</span>=<span class="str">b"raw bytes"</span>)</code><div class="desc">bytes / str body sent as-is; no Content-Type added.</div></li>
+      <li class="req"><code class="cmd"><span class="fn">post</span>(url, <span class="arg">data</span>=file_obj)</code><div class="desc">A file-like or async iterable streams the body out.</div></li>
+      <li class="req"><code class="cmd"><span class="arg">data</span>=<span class="mod">aiohttp</span>.<span class="fn">FormData</span>(&hellip;)</code><div class="desc">Multipart forms &amp; file uploads &mdash; see card 16.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># custom serializer at session level</span></code><span class="badge-danger">tip</span><div class="desc"><code>ClientSession(json_serialize=orjson.dumps)</code> to speed up big payloads.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 HEADERS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Custom Headers</span><span class="card-sub">per call or session</span></div>
+    <ul class="cmds">
+      <li class="sess"><code class="cmd"><span class="fn">get</span>(url, <span class="arg">headers</span>={<span class="str">"User-Agent"</span>: <span class="str">"app/1.0"</span>})</code><span class="star">&#9733;</span><div class="desc">Per-request headers as a plain dict.</div></li>
+      <li class="sess"><code class="cmd"><span class="arg">headers</span>={<span class="str">"Authorization"</span>: <span class="str">"Bearer &lt;tok&gt;"</span>}</code><span class="star">&#9733;</span><div class="desc">API tokens go in a header (see card 14).</div></li>
+      <li class="sess"><code class="cmd"><span class="fn">ClientSession</span>(<span class="arg">headers</span>={&hellip;})</code><div class="desc">Default headers merged into every request from this session.</div></li>
+      <li class="sess"><code class="cmd"><span class="fn">ClientSession</span>(<span class="arg">skip_auto_headers</span>=[<span class="str">"User-Agent"</span>])</code><div class="desc">Stop aiohttp adding its default header for those names.</div></li>
+      <li class="resp"><code class="cmd">resp.headers[<span class="str">"Content-Type"</span>]</code><div class="desc">Response headers are a case-insensitive <code>CIMultiDict</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 RESPONSE OBJECT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">The Response Object</span><span class="card-sub">sync attrs</span></div>
+    <ul class="cmds">
+      <li class="resp"><code class="cmd">resp.status</code><span class="star">&#9733;</span><div class="desc"><b>int attribute, no parens</b> &mdash; <code>200</code>, <code>404</code>&hellip;</div></li>
+      <li class="resp"><code class="cmd">resp.ok</code><div class="desc"><code>True</code> for &lt; 400. (Yes, aiohttp has <code>.ok</code>.)</div></li>
+      <li class="resp"><code class="cmd">resp.headers &middot; resp.cookies</code><div class="desc">Available immediately, before you read the body.</div></li>
+      <li class="resp"><code class="cmd">resp.content_type &middot; resp.charset</code><div class="desc">Parsed from the Content-Type header.</div></li>
+      <li class="resp"><code class="cmd">resp.url &middot; resp.real_url</code><div class="desc"><code>yarl.URL</code>; <code>real_url</code> keeps the un-normalized form.</div></li>
+      <li class="resp"><code class="cmd">resp.history</code><div class="desc">Tuple of responses from any redirects followed.</div></li>
+      <li class="resp"><code class="cmd">resp.content_length &middot; resp.version</code><div class="desc">Length header &amp; HTTP version (aiohttp client is HTTP/1.1).</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 READING THE BODY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Reading the Body &mdash; await it</span><span class="card-sub">coroutines!</span></div>
+    <ul class="cmds">
+      <li class="resp"><code class="cmd">data = <span class="kw">await</span> resp.<span class="fn">json</span>()</code><span class="star">&#9733;</span><div class="desc">Parse JSON &#8594; dict / list. <b>Must be awaited.</b></div></li>
+      <li class="resp"><code class="cmd">txt = <span class="kw">await</span> resp.<span class="fn">text</span>()</code><span class="star">&#9733;</span><div class="desc">Decoded <code>str</code> (charset auto-detected).</div></li>
+      <li class="resp"><code class="cmd">raw = <span class="kw">await</span> resp.<span class="fn">read</span>()</code><div class="desc">Full body as <code>bytes</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">await</span> resp.<span class="fn">json</span>() &#8594; ContentTypeError</code><span class="badge-danger">gotcha</span><div class="desc">Raised if Content-Type isn't JSON. Skip with <code>resp.json(content_type=<span class="kw">None</span>)</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># read the body INSIDE the async with</span></code><span class="badge-danger">key</span><div class="desc">After the block exits the connection is released &#8594; reading fails.</div></li>
+      <li class="adv"><code class="cmd">resp.content</code><div class="desc">A <code>StreamReader</code> for chunked reads &mdash; card 15.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 STATUS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Status &amp; raise_for_status</span><span class="card-sub">errors don't raise</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="cm"># a 4xx/5xx is still a valid resp</span></code><span class="badge-danger">key</span><div class="desc">You must check the status yourself, or opt into raising.</div></li>
+      <li class="resp"><code class="cmd">resp.<span class="fn">raise_for_status</span>()</code><span class="star">&#9733;</span><div class="desc">Raises <code>ClientResponseError</code> on 4xx/5xx; no-op otherwise.</div></li>
+      <li class="resp"><code class="cmd"><span class="kw">if</span> resp.ok: &hellip;</code><div class="desc">Quick success test (status &lt; 400).</div></li>
+      <li class="sess"><code class="cmd"><span class="fn">ClientSession</span>(<span class="arg">raise_for_status</span>=<span class="kw">True</span>)</code><div class="desc">Auto-raise on <b>every</b> request from this session.</div></li>
+      <li class="req"><code class="cmd">session.<span class="fn">get</span>(url, <span class="arg">raise_for_status</span>=<span class="kw">True</span>)</code><div class="desc">Or opt in per request &mdash; unique to aiohttp.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 CLIENTSESSION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">The ClientSession</span><span class="card-sub">one per app</span></div>
+    <ul class="cmds">
+      <li class="sess"><code class="cmd"><span class="kw">async with</span> <span class="mod">aiohttp</span>.<span class="fn">ClientSession</span>() <span class="kw">as</span> s:</code><span class="star">&#9733;</span><div class="desc">The right lifecycle &mdash; closes the pool cleanly on exit.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># create ONE, reuse everywhere</span></code><span class="badge-danger">key</span><div class="desc">A session per request destroys pooling &amp; leaks connectors.</div></li>
+      <li class="sess"><code class="cmd"><span class="fn">ClientSession</span>(<span class="arg">base_url</span>=<span class="str">"https://api.x.com"</span>)</code><span class="star">&#9733;</span><div class="desc">Then call relative paths: <code>s.get("/users")</code>.</div></li>
+      <li class="sess"><code class="cmd"><span class="fn">ClientSession</span>(<span class="arg">headers</span>=&hellip;, <span class="arg">auth</span>=&hellip;, <span class="arg">timeout</span>=&hellip;)</code><div class="desc">Defaults applied to every request.</div></li>
+      <li class="sess"><code class="cmd"><span class="kw">await</span> session.<span class="fn">close</span>()</code><div class="desc">If not using <code>async with</code>, close it manually.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># "Unclosed client session" warning</span></code><span class="badge-danger">gotcha</span><div class="desc">Means you forgot to close &mdash; always use the context manager.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 CONNECTORS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Connectors &amp; Pooling</span><span class="card-sub">tune the pool</span></div>
+    <ul class="cmds">
+      <li class="sess"><code class="cmd">conn = <span class="mod">aiohttp</span>.<span class="fn">TCPConnector</span>(<span class="arg">limit</span>=<span class="num">100</span>)</code><span class="star">&#9733;</span><div class="desc">Total simultaneous connections cap (default 100).</div></li>
+      <li class="sess"><code class="cmd"><span class="fn">TCPConnector</span>(<span class="arg">limit_per_host</span>=<span class="num">10</span>)</code><div class="desc">Per-host cap &mdash; default <code>0</code> (unlimited).</div></li>
+      <li class="sess"><code class="cmd"><span class="fn">TCPConnector</span>(<span class="arg">ttl_dns_cache</span>=<span class="num">300</span>)</code><div class="desc">Cache DNS results (default 10s); <code>use_dns_cache=True</code>.</div></li>
+      <li class="sess"><code class="cmd"><span class="fn">ClientSession</span>(<span class="arg">connector</span>=conn)</code><span class="star">&#9733;</span><div class="desc">Attach the connector to the session.</div></li>
+      <li class="sess"><code class="cmd"><span class="fn">TCPConnector</span>(<span class="arg">ssl</span>=ssl_ctx)</code><div class="desc">Custom TLS: an <code>ssl.SSLContext</code>, <code>False</code> to disable, or a <code>Fingerprint</code>.</div></li>
+      <li class="sess"><code class="cmd"><span class="mod">aiohttp</span>.<span class="fn">UnixConnector</span>(<span class="arg">path</span>=<span class="str">"/tmp/s.sock"</span>)</code><div class="desc">Talk to a service over a Unix domain socket.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 TIMEOUTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Timeouts</span><span class="card-sub">default = 5 min</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="cm"># default total timeout = 300s (5 min)</span></code><span class="badge-danger">key</span><div class="desc">Not infinite, but long &mdash; almost always set your own.</div></li>
+      <li class="adv"><code class="cmd">t = <span class="mod">aiohttp</span>.<span class="fn">ClientTimeout</span>(<span class="arg">total</span>=<span class="num">10</span>)</code><span class="star">&#9733;</span><div class="desc">Cap the whole operation (connect + send + read).</div></li>
+      <li class="adv"><code class="cmd"><span class="fn">ClientTimeout</span>(<span class="arg">sock_connect</span>=<span class="num">3</span>, <span class="arg">sock_read</span>=<span class="num">10</span>)</code><div class="desc">Fine-grained: TCP-connect vs between-reads limits.</div></li>
+      <li class="adv"><code class="cmd"><span class="fn">ClientSession</span>(<span class="arg">timeout</span>=t)</code><div class="desc">Session-wide default for every request.</div></li>
+      <li class="adv"><code class="cmd">session.<span class="fn">get</span>(url, <span class="arg">timeout</span>=t)</code><div class="desc">Override per request.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">except</span> <span class="mod">asyncio</span>.TimeoutError:</code><span class="badge-danger">gotcha</span><div class="desc">Total-timeout raises this &mdash; <b>not</b> a <code>ClientError</code>. Catch both.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 EXCEPTIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Errors &amp; Exceptions</span><span class="card-sub">ClientError root</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="kw">except</span> <span class="mod">aiohttp</span>.ClientError:</code><span class="star">&#9733;</span><div class="desc">Root of every aiohttp client failure &mdash; catch broad.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">except</span> <span class="mod">aiohttp</span>.ClientConnectorError:</code><div class="desc">Couldn't reach the host (DNS / refused / network).</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">except</span> <span class="mod">aiohttp</span>.ClientResponseError:</code><div class="desc">Raised by <code>raise_for_status()</code> on 4xx/5xx.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">except</span> <span class="mod">aiohttp</span>.ContentTypeError:</code><div class="desc"><code>json()</code> on a non-JSON body (subclass of ClientResponseError).</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">except</span> <span class="mod">aiohttp</span>.ServerTimeoutError:</code><div class="desc">Socket connect / read timed out (also a <code>TimeoutError</code>).</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">except</span> <span class="mod">asyncio</span>.TimeoutError:</code><span class="badge-danger">key</span><div class="desc">The <b>total</b> timeout &mdash; sits outside the ClientError tree.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 AUTH -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Authentication</span><span class="card-sub">basic &amp; bearer</span></div>
+    <ul class="cmds">
+      <li class="sess"><code class="cmd"><span class="arg">auth</span>=<span class="mod">aiohttp</span>.<span class="fn">BasicAuth</span>(<span class="str">"user"</span>, <span class="str">"pass"</span>)</code><span class="star">&#9733;</span><div class="desc">HTTP Basic auth, per request or on the session.</div></li>
+      <li class="sess"><code class="cmd"><span class="arg">headers</span>={<span class="str">"Authorization"</span>: <span class="str">"Bearer &lt;tok&gt;"</span>}</code><span class="star">&#9733;</span><div class="desc">Bearer / API tokens go in a header, not <code>auth=</code>.</div></li>
+      <li class="sess"><code class="cmd"><span class="fn">ClientSession</span>(<span class="arg">auth</span>=<span class="fn">BasicAuth</span>(&hellip;))</code><div class="desc">Send credentials on every request.</div></li>
+      <li class="sess"><code class="cmd"><span class="fn">BasicAuth</span>.<span class="fn">decode</span>(header_value)</code><div class="desc">Parse an incoming Authorization header (handy server-side).</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># auth is dropped on cross-host redirects</span></code><span class="badge-danger">note</span><div class="desc">Sensitive headers are stripped when a redirect changes host.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 STREAMING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Streaming &amp; Downloads</span><span class="card-sub">StreamReader</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd"><span class="kw">async for</span> chunk <span class="kw">in</span> resp.content.<span class="fn">iter_chunked</span>(<span class="num">8192</span>):</code><span class="star">&#9733;</span><div class="desc">Stream the body in fixed-size byte chunks &mdash; the download idiom.</div></li>
+      <li class="adv"><code class="cmd">chunk = <span class="kw">await</span> resp.content.<span class="fn">read</span>(<span class="num">1024</span>)</code><div class="desc">Read up to N bytes from the <code>StreamReader</code>.</div></li>
+      <li class="adv"><code class="cmd"><span class="kw">async for</span> line <span class="kw">in</span> resp.content:</code><div class="desc">Iterate a streaming body line by line.</div></li>
+      <li class="adv"><code class="cmd">resp.content.<span class="fn">iter_any</span>()</code><div class="desc">Yield whatever arrives, as it arrives (no fixed size).</div></li>
+      <li class="adv"><code class="cmd"><span class="kw">with</span> <span class="fn">open</span>(<span class="str">"f.bin"</span>,<span class="str">"wb"</span>) <span class="kw">as</span> f: f.<span class="fn">write</span>(chunk)</code><div class="desc">Write each chunk to disk &mdash; constant memory.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># don't call read() then json()</span></code><span class="badge-danger">gotcha</span><div class="desc">The stream is consumed once; pick one way to read the body.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 FORMDATA -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">File Uploads &amp; FormData</span><span class="card-sub">multipart</span></div>
+    <ul class="cmds">
+      <li class="req"><code class="cmd">fd = <span class="mod">aiohttp</span>.<span class="fn">FormData</span>()</code><span class="star">&#9733;</span><div class="desc">Build a multipart / form body.</div></li>
+      <li class="req"><code class="cmd">fd.<span class="fn">add_field</span>(<span class="str">"name"</span>, <span class="str">"Milo"</span>)</code><div class="desc">Add a plain text field.</div></li>
+      <li class="req"><code class="cmd">fd.<span class="fn">add_field</span>(<span class="str">"file"</span>, f, <span class="arg">filename</span>=<span class="str">"a.csv"</span>,</code><div class="desc">Attach a file object with a name &amp; content type&hellip;</div></li>
+      <li class="req"><code class="cmd">&nbsp;&nbsp;&nbsp;&nbsp;<span class="arg">content_type</span>=<span class="str">"text/csv"</span>)</code><div class="desc">&hellip;then <code>post(url, data=fd)</code>.</div></li>
+      <li class="req"><code class="cmd"><span class="fn">post</span>(url, <span class="arg">data</span>={<span class="str">"file"</span>: <span class="fn">open</span>(<span class="str">"a.png"</span>,<span class="str">"rb"</span>)})</code><div class="desc">Shortcut: a dict with a file object also uploads multipart.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 WEBSOCKETS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">WebSockets</span><span class="card-sub">built in</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd"><span class="kw">async with</span> session.<span class="fn">ws_connect</span>(url) <span class="kw">as</span> ws:</code><span class="star">&#9733;</span><div class="desc">Open a client WebSocket &mdash; no extra library.</div></li>
+      <li class="adv"><code class="cmd"><span class="kw">await</span> ws.<span class="fn">send_str</span>(<span class="str">"hi"</span>) &middot; ws.<span class="fn">send_json</span>(obj)</code><div class="desc">Also <code>send_bytes</code>. Many writer tasks are fine.</div></li>
+      <li class="adv"><code class="cmd"><span class="kw">async for</span> msg <span class="kw">in</span> ws:</code><span class="star">&#9733;</span><div class="desc">Read the incoming stream &mdash; use one reader task only.</div></li>
+      <li class="adv"><code class="cmd"><span class="kw">if</span> msg.type == <span class="mod">aiohttp</span>.WSMsgType.TEXT:</code><div class="desc">Dispatch on type; <code>msg.data</code> holds the payload.</div></li>
+      <li class="adv"><code class="cmd">msg = <span class="kw">await</span> ws.<span class="fn">receive</span>()</code><div class="desc">Or pull one message explicitly.</div></li>
+      <li class="adv"><code class="cmd"><span class="kw">await</span> ws.<span class="fn">close</span>()</code><div class="desc">Closes the handshake (automatic with <code>async with</code>).</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 COOKIES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Cookies</span><span class="card-sub">jar per session</span></div>
+    <ul class="cmds">
+      <li class="sess"><code class="cmd"><span class="cm"># a session persists cookies automatically</span></code><span class="star">&#9733;</span><div class="desc">Log in once, later requests carry the cookie.</div></li>
+      <li class="resp"><code class="cmd">resp.cookies[<span class="str">"session"</span>]</code><div class="desc">Read cookies the server just set.</div></li>
+      <li class="sess"><code class="cmd"><span class="fn">ClientSession</span>(<span class="arg">cookies</span>={<span class="str">"k"</span>: <span class="str">"v"</span>})</code><div class="desc">Seed the jar with starting cookies.</div></li>
+      <li class="sess"><code class="cmd">session.cookie_jar.<span class="fn">update_cookies</span>(&hellip;)</code><div class="desc">Add cookies to the live jar.</div></li>
+      <li class="sess"><code class="cmd"><span class="fn">ClientSession</span>(<span class="arg">cookie_jar</span>=<span class="mod">aiohttp</span>.<span class="fn">DummyCookieJar</span>())</code><div class="desc">Disable cookie storage entirely (e.g. for a crawler).</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 SERVER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">aiohttp.web Server</span><span class="card-sub">the other half</span></div>
+    <ul class="cmds">
+      <li class="server"><code class="cmd"><span class="kw">from</span> <span class="mod">aiohttp</span> <span class="kw">import</span> web</code><div class="desc">The server framework &mdash; unique among Python HTTP clients.</div></li>
+      <li class="server"><code class="cmd"><span class="kw">async def</span> <span class="fn">handler</span>(request): &hellip;</code><div class="desc">A handler is a coroutine taking a <code>Request</code>, returning a <code>Response</code>.</div></li>
+      <li class="server"><code class="cmd"><span class="kw">return</span> web.<span class="fn">json_response</span>({<span class="str">"ok"</span>: <span class="kw">True</span>})</code><span class="star">&#9733;</span><div class="desc">Or <code>web.Response(text=&hellip;)</code> / <code>web.Response(body=&hellip;)</code>.</div></li>
+      <li class="server"><code class="cmd">app = web.<span class="fn">Application</span>()</code><div class="desc">The app holds routes, middlewares &amp; shared state.</div></li>
+      <li class="server"><code class="cmd">app.<span class="fn">add_routes</span>([web.<span class="fn">get</span>(<span class="str">"/"</span>, handler)])</code><span class="star">&#9733;</span><div class="desc">Register routes; or use a <code>web.RouteTableDef()</code> decorator.</div></li>
+      <li class="server"><code class="cmd">request.<span class="fn">match_info</span>[<span class="str">"id"</span>] &middot; request.query</code><div class="desc">Path params &amp; query string; <code>await request.json()</code> for the body.</div></li>
+      <li class="server"><code class="cmd">web.<span class="fn">run_app</span>(app, <span class="arg">port</span>=<span class="num">8080</span>)</code><span class="star">&#9733;</span><div class="desc">Start serving &mdash; builds &amp; runs the event loop for you.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four pictures that make aiohttp click</h2>
+  <p class="sub">The temporal shape of one request, the exception tree, why one session matters, and the four ways a request can time out.</p>
+  <div class="merge-grid">
+
+    <!-- D1: await-the-body lifecycle -->
+    <div class="merge-card">
+      <h3>1 &middot; The life of one request</h3>
+      <p>Headers arrive first and are ready synchronously; the body is a separate awaited step &mdash; and <code>resp</code> only lives inside the <code>async with</code>.</p>
+      <svg viewBox="0 0 430 250" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Timeline: enter the async-with, acquire a pooled connection, headers arrive with status ready, then you await the body, then the block exits and the connection returns to the pool.">
+        <defs><marker id="d1a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker></defs>
+        <!-- timeline axis -->
+        <line x1="24" y1="210" x2="404" y2="210" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#d1a)"/>
+        <text x="404" y="230" text-anchor="end" font-size="9" fill="#94a3b8">time</text>
+        <!-- phase 1 -->
+        <line x1="40" y1="60" x2="40" y2="210" stroke="#4f46e5" stroke-width="1.2" stroke-dasharray="3 3"/>
+        <rect x="26" y="40" width="120" height="40" rx="7" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.4"/>
+        <text x="86" y="57" text-anchor="middle" font-size="9" font-weight="700" fill="#4338ca">async with</text>
+        <text x="86" y="70" text-anchor="middle" font-size="8" fill="#4f46e5">session.get() as resp</text>
+        <!-- phase 2 -->
+        <line x1="150" y1="90" x2="150" y2="210" stroke="#64748b" stroke-width="1.2" stroke-dasharray="3 3"/>
+        <text x="150" y="200" text-anchor="middle" font-size="8" fill="#64748b">connection</text>
+        <text x="150" y="192" text-anchor="middle" font-size="8" fill="#64748b">borrowed from pool</text>
+        <!-- phase 3: headers -->
+        <line x1="212" y1="96" x2="212" y2="210" stroke="#059669" stroke-width="1.2" stroke-dasharray="3 3"/>
+        <rect x="164" y="96" width="150" height="46" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/>
+        <text x="239" y="113" text-anchor="middle" font-size="9" font-weight="700" fill="#047857">headers arrive</text>
+        <text x="239" y="126" text-anchor="middle" font-size="8" fill="#0f766e">resp.status / .ok / .headers</text>
+        <text x="239" y="137" text-anchor="middle" font-size="8" fill="#0f766e">ready NOW (no await)</text>
+        <!-- phase 4: await body -->
+        <line x1="330" y1="60" x2="330" y2="210" stroke="#d97706" stroke-width="1.2" stroke-dasharray="3 3"/>
+        <rect x="286" y="40" width="120" height="46" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="1.4"/>
+        <text x="346" y="57" text-anchor="middle" font-size="9" font-weight="700" fill="#b45309">await the body</text>
+        <text x="346" y="70" text-anchor="middle" font-size="8" fill="#8a6d3b">await resp.json()</text>
+        <text x="346" y="81" text-anchor="middle" font-size="8" fill="#8a6d3b">/ .text() / .read()</text>
+        <!-- exit -->
+        <line x1="390" y1="150" x2="390" y2="210" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="3 3"/>
+        <text x="390" y="166" text-anchor="middle" font-size="8" font-weight="700" fill="#b42318">block exits</text>
+        <text x="390" y="177" text-anchor="middle" font-size="7.5" fill="#b42318">conn returned</text>
+        <!-- warning bar -->
+        <rect x="24" y="218" width="380" height="0" fill="none"/>
+        <text x="24" y="20" font-size="9.5" fill="#b42318">&#9888; read the body AFTER the block &#8594; ClientConnectionError</text>
+      </svg>
+    </div>
+
+    <!-- D2: exception tree -->
+    <div class="merge-card">
+      <h3>2 &middot; The exception hierarchy</h3>
+      <p>All descend from <code>ClientError</code> &mdash; except the total-timeout, which is a plain <code>asyncio.TimeoutError</code>.</p>
+      <svg viewBox="0 0 430 250" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ClientError root splits into ClientConnectionError (with ClientConnectorError to DNS and SSL, and ServerConnectionError to disconnected and ServerTimeoutError), ClientResponseError (from raise_for_status, with ContentTypeError and TooManyRedirects), ClientPayloadError and InvalidURL. asyncio.TimeoutError sits outside.">
+        <g font-size="9.5">
+          <rect x="150" y="10" width="130" height="26" rx="7" fill="#1a1d24"/>
+          <text x="215" y="27" text-anchor="middle" fill="#fff" font-weight="700" font-size="10.5">ClientError</text>
+          <!-- connectors to level 2 -->
+          <path d="M215,36 V48 H72 V60" fill="none" stroke="#cbd5e1" stroke-width="1.2"/>
+          <path d="M215,36 V48 H215 V60" fill="none" stroke="#cbd5e1" stroke-width="1.2"/>
+          <path d="M215,36 V48 H320 V60" fill="none" stroke="#cbd5e1" stroke-width="1.2"/>
+          <path d="M215,36 V48 H390 V60" fill="none" stroke="#cbd5e1" stroke-width="1.2"/>
+          <!-- level 2 -->
+          <rect x="10" y="60" width="124" height="26" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.3"/>
+          <text x="72" y="77" text-anchor="middle" fill="#b42318" font-weight="700" font-size="9">ConnectionError</text>
+          <rect x="152" y="60" width="126" height="26" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.3"/>
+          <text x="215" y="77" text-anchor="middle" fill="#b42318" font-weight="700" font-size="8.5">ClientResponseError</text>
+          <rect x="296" y="60" width="60" height="26" rx="6" fill="#fff" stroke="#dc2626" stroke-width="1.1"/>
+          <text x="326" y="77" text-anchor="middle" fill="#b42318" font-size="7.5">Payload</text>
+          <rect x="362" y="60" width="58" height="26" rx="6" fill="#fff" stroke="#dc2626" stroke-width="1.1"/>
+          <text x="391" y="77" text-anchor="middle" fill="#b42318" font-size="7.5">InvalidURL</text>
+          <!-- children of ConnectionError -->
+          <path d="M72,86 V98 H44 V110" fill="none" stroke="#e2b8b4" stroke-width="1.1"/>
+          <path d="M72,86 V98 H104 V110" fill="none" stroke="#e2b8b4" stroke-width="1.1"/>
+          <rect x="8" y="110" width="72" height="38" rx="6" fill="#fff" stroke="#dc2626" stroke-width="1"/>
+          <text x="44" y="125" text-anchor="middle" fill="#b42318" font-size="7.5">Connector</text>
+          <text x="44" y="136" text-anchor="middle" fill="#b42318" font-size="6.8">Error</text>
+          <text x="44" y="145" text-anchor="middle" fill="#94a3b8" font-size="6.3">DNS / SSL</text>
+          <rect x="84" y="110" width="86" height="38" rx="6" fill="#fff" stroke="#dc2626" stroke-width="1"/>
+          <text x="127" y="123" text-anchor="middle" fill="#b42318" font-size="7.3">ServerConn</text>
+          <text x="127" y="134" text-anchor="middle" fill="#b42318" font-size="6.6">Disconnected /</text>
+          <text x="127" y="144" text-anchor="middle" fill="#b42318" font-size="6.6">ServerTimeout</text>
+          <!-- children of ClientResponseError -->
+          <path d="M215,86 V98 H180 V110" fill="none" stroke="#e2b8b4" stroke-width="1.1"/>
+          <path d="M215,86 V98 H258 V110" fill="none" stroke="#e2b8b4" stroke-width="1.1"/>
+          <rect x="146" y="110" width="70" height="30" rx="6" fill="#fff" stroke="#dc2626" stroke-width="1"/>
+          <text x="181" y="124" text-anchor="middle" fill="#b42318" font-size="7.3">ContentType</text>
+          <text x="181" y="134" text-anchor="middle" fill="#b42318" font-size="6.8">Error</text>
+          <rect x="222" y="110" width="74" height="30" rx="6" fill="#fff" stroke="#dc2626" stroke-width="1"/>
+          <text x="259" y="124" text-anchor="middle" fill="#b42318" font-size="7.3">TooMany</text>
+          <text x="259" y="134" text-anchor="middle" fill="#b42318" font-size="6.8">Redirects</text>
+          <!-- outsider -->
+          <rect x="120" y="176" width="190" height="34" rx="7" fill="#f4eefc" stroke="#7c3aed" stroke-width="1.5"/>
+          <text x="215" y="192" text-anchor="middle" fill="#6d28d9" font-weight="700" font-size="9">asyncio.TimeoutError</text>
+          <text x="215" y="204" text-anchor="middle" fill="#7c3aed" font-size="7.5">the TOTAL timeout &mdash; NOT a ClientError</text>
+          <text x="215" y="230" text-anchor="middle" font-size="8.5" fill="#6b7280">catch <tspan font-weight="700" fill="#1a1d24">ClientError</tspan> and <tspan font-weight="700" fill="#6d28d9">asyncio.TimeoutError</tspan></text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D3: one session vs per request -->
+    <div class="merge-card">
+      <h3>3 &middot; One session, not one per request</h3>
+      <p>A fresh session per call rebuilds the pool every time &mdash; slow, and it leaks connectors.</p>
+      <svg viewBox="0 0 430 250" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three separate ClientSessions each open their own connector and connection, no reuse, versus one shared session reusing a single pooled connection for three requests.">
+        <defs><marker id="d3a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="d3g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker></defs>
+        <!-- anti-pattern -->
+        <text x="12" y="20" font-size="9.5" font-weight="700" fill="#b42318">&#10007; session per request</text>
+        <g font-size="8">
+          <rect x="12" y="30" width="92" height="24" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.1"/><text x="58" y="45" text-anchor="middle" fill="#b42318">ClientSession #1</text>
+          <rect x="12" y="60" width="92" height="24" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.1"/><text x="58" y="75" text-anchor="middle" fill="#b42318">ClientSession #2</text>
+          <rect x="12" y="90" width="92" height="24" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.1"/><text x="58" y="105" text-anchor="middle" fill="#b42318">ClientSession #3</text>
+          <line x1="104" y1="42" x2="150" y2="42" stroke="#dc2626" stroke-width="1.3" marker-end="url(#d3a)"/>
+          <line x1="104" y1="72" x2="150" y2="72" stroke="#dc2626" stroke-width="1.3" marker-end="url(#d3a)"/>
+          <line x1="104" y1="102" x2="150" y2="102" stroke="#dc2626" stroke-width="1.3" marker-end="url(#d3a)"/>
+          <rect x="152" y="34" width="60" height="16" rx="4" fill="#fff" stroke="#dc2626" stroke-width="1"/><text x="182" y="45" text-anchor="middle" fill="#b42318" font-size="7">new conn</text>
+          <rect x="152" y="64" width="60" height="16" rx="4" fill="#fff" stroke="#dc2626" stroke-width="1"/><text x="182" y="75" text-anchor="middle" fill="#b42318" font-size="7">new conn</text>
+          <rect x="152" y="94" width="60" height="16" rx="4" fill="#fff" stroke="#dc2626" stroke-width="1"/><text x="182" y="105" text-anchor="middle" fill="#b42318" font-size="7">new conn</text>
+        </g>
+        <text x="12" y="132" font-size="7.8" fill="#b42318">3 handshakes &middot; no reuse &middot; &ldquo;Unclosed client session&rdquo;</text>
+        <!-- divider -->
+        <line x1="12" y1="146" x2="418" y2="146" stroke="#e7e3db" stroke-width="1"/>
+        <!-- good pattern -->
+        <text x="12" y="168" font-size="9.5" font-weight="700" fill="#047857">&#10003; one shared session</text>
+        <g font-size="8">
+          <rect x="12" y="178" width="104" height="56" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/>
+          <text x="64" y="200" text-anchor="middle" fill="#047857" font-weight="700">ClientSession</text>
+          <text x="64" y="214" text-anchor="middle" fill="#0f766e" font-size="7.5">one connector</text>
+          <text x="64" y="225" text-anchor="middle" fill="#0f766e" font-size="7.5">one pool</text>
+          <line x1="116" y1="192" x2="180" y2="192" stroke="#059669" stroke-width="1.3" marker-end="url(#d3g)"/>
+          <line x1="116" y1="206" x2="180" y2="206" stroke="#059669" stroke-width="1.3" marker-end="url(#d3g)"/>
+          <line x1="116" y1="220" x2="180" y2="220" stroke="#059669" stroke-width="1.3" marker-end="url(#d3g)"/>
+          <rect x="182" y="184" width="150" height="48" rx="6" fill="#fff" stroke="#059669" stroke-width="1.2"/>
+          <text x="257" y="203" text-anchor="middle" fill="#047857" font-size="8">req 1 &middot; req 2 &middot; req 3</text>
+          <text x="257" y="218" text-anchor="middle" fill="#0f766e" font-size="7.5">reuse the kept-alive connection</text>
+        </g>
+        <text x="344" y="208" font-size="8" fill="#047857" font-weight="700">1&times;</text>
+        <text x="344" y="219" font-size="7" fill="#0f766e">handshake</text>
+      </svg>
+    </div>
+
+    <!-- D4: timeout fields -->
+    <div class="merge-card">
+      <h3>4 &middot; The four ClientTimeout fields</h3>
+      <p>Each guards a different span of one request. Only <code>total</code> is set by default &mdash; to 300s.</p>
+      <svg viewBox="0 0 430 250" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="On a request timeline: sock_connect covers the TCP connect, connect covers pool acquisition plus connect, sock_read covers gaps between reads, and total spans the entire operation with a default of 300 seconds.">
+        <g font-size="9">
+          <!-- timeline -->
+          <line x1="60" y1="60" x2="410" y2="60" stroke="#cbd5e1" stroke-width="1.4"/>
+          <circle cx="70" cy="60" r="4" fill="#4f46e5"/><text x="70" y="48" text-anchor="middle" font-size="7.5" fill="#4f46e5">start</text>
+          <circle cx="170" cy="60" r="4" fill="#64748b"/><text x="170" y="48" text-anchor="middle" font-size="7.5" fill="#64748b">connected</text>
+          <circle cx="260" cy="60" r="4" fill="#64748b"/><text x="260" y="48" text-anchor="middle" font-size="7.5" fill="#64748b">1st byte</text>
+          <circle cx="400" cy="60" r="4" fill="#059669"/><text x="400" y="48" text-anchor="middle" font-size="7.5" fill="#059669">done</text>
+          <!-- sock_connect -->
+          <rect x="70" y="82" width="100" height="24" rx="6" fill="#f4eefc" stroke="#7c3aed" stroke-width="1.3"/>
+          <text x="120" y="98" text-anchor="middle" fill="#6d28d9" font-size="8.5" font-weight="700">sock_connect</text>
+          <!-- connect -->
+          <rect x="70" y="112" width="100" height="22" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.2"/>
+          <text x="120" y="127" text-anchor="middle" fill="#4338ca" font-size="8">connect</text>
+          <text x="176" y="127" font-size="7" fill="#94a3b8">pool+TCP</text>
+          <!-- sock_read -->
+          <rect x="260" y="82" width="140" height="24" rx="6" fill="#f4eefc" stroke="#7c3aed" stroke-width="1.3"/>
+          <text x="330" y="98" text-anchor="middle" fill="#6d28d9" font-size="8.5" font-weight="700">sock_read</text>
+          <text x="330" y="118" text-anchor="middle" font-size="7" fill="#94a3b8">max gap between reads</text>
+          <!-- total -->
+          <rect x="70" y="150" width="330" height="26" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+          <text x="235" y="167" text-anchor="middle" fill="#047857" font-size="9" font-weight="700">total &mdash; the whole operation</text>
+          <!-- default note -->
+          <rect x="70" y="196" width="330" height="40" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/>
+          <text x="235" y="214" text-anchor="middle" fill="#b45309" font-size="8.5" font-weight="700">default = ClientTimeout(total=300, sock_connect=30)</text>
+          <text x="235" y="228" text-anchor="middle" fill="#8a6d3b" font-size="8">override per session or per request; total=None disables</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WORTH MEMORIZING ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">async-only</span><span class="v">no sync API &mdash; <code>async def</code> + <code>await</code>, driven by <code>asyncio.run()</code></span></div>
+    <div><span class="k">await the body</span><span class="v"><code>resp.text()/.json()/.read()</code> are coroutines &mdash; await them</span></div>
+    <div><span class="k">status has no ()</span><span class="v"><code>resp.status</code> is an int attr; only body readers take <code>()</code></span></div>
+    <div><span class="k">read inside async with</span><span class="v">after the block the conn is released &#8594; body read fails</span></div>
+    <div><span class="k">one session/app</span><span class="v">not one per request &mdash; that kills pooling &amp; leaks connectors</span></div>
+    <div><span class="k">always close</span><span class="v"><code>async with ClientSession()</code> or <code>await s.close()</code>; else &ldquo;Unclosed&rdquo;</span></div>
+    <div><span class="k">default timeout</span><span class="v"><code>total=300s</code> (5 min) + <code>sock_connect=30s</code> &mdash; usually set your own</span></div>
+    <div><span class="k">json() is strict</span><span class="v">raises <code>ContentTypeError</code> unless JSON; <code>content_type=None</code> skips</span></div>
+    <div><span class="k">total timeout</span><span class="v">raises <code>asyncio.TimeoutError</code>, NOT a <code>ClientError</code> &mdash; catch both</span></div>
+    <div><span class="k">resp.url = yarl.URL</span><span class="v">not a str &mdash; wrap in <code>str(resp.url)</code> when needed</span></div>
+    <div><span class="k">4xx/5xx don't raise</span><span class="v">use <code>raise_for_status()</code> or <code>raise_for_status=True</code></span></div>
+    <div><span class="k">it's a server too</span><span class="v"><code>aiohttp.web</code>: Application, routes, <code>web.run_app</code></span></div>
+    <div><span class="k">WebSockets built in</span><span class="v"><code>session.ws_connect()</code>; one reader task, many writers</span></div>
+    <div><span class="k">HTTP/1.1 only</span><span class="v">no HTTP/2 client &mdash; need it? use <code>httpx</code></span></div>
+    <div><span class="k">TCPConnector(limit=100)</span><span class="v">total cap; <code>limit_per_host=0</code> = unlimited by default</span></div>
+    <div><span class="k">FormData</span><span class="v">multipart &amp; file uploads; <code>json=</code>/<code>data=</code>/<code>params=</code> mirror requests</span></div>
+  </div>
+</section>
+
+<footer>
+  aiohttp cheat sheet &middot; introspected from <code>aiohttp 3.14.3</code> (Python 3, asyncio; re-verified 2026-08-30 as current) &amp; synthesized from the official docs (docs.aiohttp.org client + server + advanced usage), Real Python, BetterStack, Superfast Python and the yarl / multidict references.<br>
+  Client is HTTP/1.1, async-only &middot; the exception tree &amp; the 300s default timeout were verified by live introspection &middot; for a sync API or HTTP/2 consider <code>requests</code> or <code>httpx</code>.
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hugging Face Datasets Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">HuggingFace &middot; Arrow-backed datasets &middot; load / stream / process ML data &middot; verified against datasets 4.x (2026)</div>
+  <h1><span class="mono">datasets</span> cheat sheet</h1>
+  <p class="lede">Hugging Face <b>Datasets</b> loads, processes and shares ML datasets of any size, backed by <b>Apache Arrow</b> for zero-copy, memory-mapped access &mdash; so a dataset bigger than RAM still reads fast. It powers the &#127760; Transformers training stack. This sheet targets <b>datasets&nbsp;4.x</b>, whose headline change is that <b>dataset loading scripts are gone</b>: repos must be Parquet/CSV/JSON/etc., and <code>trust_remote_code</code> is no longer accepted.</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>load</span>
+    <span><i class="dot c2"></i>inspect / index</span>
+    <span><i class="dot c3"></i>transform (map)</span>
+    <span><i class="dot c4"></i>format / training</span>
+    <span><i class="dot c5"></i>stream &amp; share</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-08-24 against the official docs at <b>huggingface.co/docs/datasets</b> (v4.x) and the <b>huggingface/datasets</b> repo (4.0 release notes). Arrow/Parquet under the hood; integrates with pandas, NumPy, PyTorch and Polars.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub">Load &rarr; inspect &rarr; transform &rarr; feed a model. Big data? See streaming. Coming from v3? Read the <a href="#gotchas">script-removal gotcha</a> first.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Get data in</h3>
+      <ol class="toc-list">
+        <li><a href="#load">1 &middot; load_dataset &amp; splits</a></li>
+        <li><a href="#from">2 &middot; From memory / files</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">Explore</h3>
+      <ol class="toc-list">
+        <li><a href="#inspect">3 &middot; Inspect, slice, index</a></li>
+        <li><a href="#select">4 &middot; select / filter / shuffle / split</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Process</h3>
+      <ol class="toc-list">
+        <li><a href="#map">5 &middot; map() — transform</a></li>
+        <li><a href="#features">6 &middot; Features, columns, Audio/Image</a></li>
+        <li><a href="#format">7 &middot; Formats &amp; training loop</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Scale &amp; share</h3>
+      <ol class="toc-list">
+        <li><a href="#stream">8 &middot; Streaming (IterableDataset)</a></li>
+        <li><a href="#save">9 &middot; Save, load, push to Hub</a></li>
+        <li><a href="#gotchas">10 &middot; Gotchas</a></li>
+        <li><a href="#worth">Worth memorizing</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-load"><h2 style="color:var(--c1)">Get Data In</h2><p class="sub">From the Hub, or straight from Python objects and local files.</p></div>
+<main>
+  <article class="card" id="load">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">load_dataset &amp; splits</span><span class="card-sub">from the Hub</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">pip install datasets
+<span class="kw">from</span> datasets <span class="kw">import</span> load_dataset</code><span class="star">&#9733;</span><div class="desc">Add extras as needed: <code>datasets[audio]</code>, <code>datasets[vision]</code>.</div></li>
+      <li class="c1"><code class="cmd">ds = load_dataset(<span class="str">"stanfordnlp/imdb"</span>)</code><span class="star">&#9733;</span><div class="desc">Returns a <code>DatasetDict</code> keyed by split (<code>train</code>/<code>test</code>/...). Downloads + caches Parquet under <code>HF_HOME</code>.</div></li>
+      <li class="c1"><code class="cmd">train = load_dataset(<span class="str">"imdb"</span>, split=<span class="str">"train"</span>)</code><span class="star">&#9733;</span><div class="desc">One split &rarr; a <code>Dataset</code>. Slice at load: <code>split="train[:1000]"</code> or <code>"train[:80%]"</code>.</div></li>
+      <li class="c1"><code class="cmd">load_dataset(<span class="str">"user/repo"</span>, name=<span class="str">"config"</span>, revision=<span class="str">"main"</span>, token=...)</code><div class="desc"><code>name=</code> picks a config/subset; <code>token=</code> for gated/private repos; <code>data_dir=</code> for a repo subfolder.</div></li>
+      <li class="danger"><code class="cmd">no more loading scripts</code><span class="badge-danger">v4</span><div class="desc">datasets 4.0 removed Python loading scripts &mdash; a repo with a <code>.py</code> loader now raises <code>RuntimeError</code>, and <code>trust_remote_code</code> is gone. Use Parquet-converted mirrors.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="from">
+    <div class="card-head"><span class="card-num n1">2</span><span class="card-title">From memory / local files</span><span class="card-sub">your own data</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd"><span class="kw">from</span> datasets <span class="kw">import</span> Dataset
+ds = Dataset.from_dict({<span class="str">"text"</span>: [...], <span class="str">"label"</span>: [...]})</code><span class="star">&#9733;</span><div class="desc">Also <code>from_pandas(df)</code>, <code>from_list([{...}])</code>, <code>from_generator(fn)</code> (great for huge/lazy sources).</div></li>
+      <li class="c1"><code class="cmd">load_dataset(<span class="str">"csv"</span>, data_files=<span class="str">"data/*.csv"</span>)</code><span class="star">&#9733;</span><div class="desc">Built-in loaders: <code>csv</code>, <code>json</code>, <code>parquet</code>, <code>text</code>, <code>arrow</code>, <code>imagefolder</code>, <code>audiofolder</code>, <code>webdataset</code>.</div></li>
+      <li class="c1"><code class="cmd">load_dataset(<span class="str">"json"</span>, data_files={<span class="str">"train"</span>:<span class="str">"tr.jsonl"</span>, <span class="str">"test"</span>:<span class="str">"te.jsonl"</span>})</code><div class="desc">Map splits to files &rarr; a <code>DatasetDict</code>. JSON Lines just works.</div></li>
+      <li class="c1"><code class="cmd">ds.to_pandas() &middot; ds.to_polars() &middot; ds.to_dict()</code><div class="desc">Export back out when you need a DataFrame view.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-explore"><h2 style="color:var(--c2)">Explore</h2><p class="sub">Peek at the schema and rows, then subset.</p></div>
+<main>
+  <article class="card" id="inspect">
+    <div class="card-head"><span class="card-num n2">3</span><span class="card-title">Inspect, slice, index</span><span class="card-sub">look at rows</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">ds &middot; ds.features &middot; ds.column_names &middot; ds.num_rows &middot; len(ds)</code><span class="star">&#9733;</span><div class="desc"><code>features</code> is the typed schema; <code>ds.shape</code>, <code>ds.info</code> for metadata.</div></li>
+      <li class="c2"><code class="cmd">ds[0] <span class="cm"># one row as a dict</span></code><span class="star">&#9733;</span><div class="desc"><code>ds[:5]</code> = dict of column&rarr;list (a batch), <code>ds["text"]</code> = whole column. Arrow-backed, so this is cheap.</div></li>
+      <li class="c2"><code class="cmd">ds.take(5) &middot; ds.skip(10)</code><div class="desc">Head/offset without materializing; handy in notebooks and for streams.</div></li>
+      <li class="c2"><code class="cmd">ds.unique(<span class="str">"label"</span>) &middot; ds.features[<span class="str">"label"</span>].names</code><div class="desc">Distinct values; <code>ClassLabel</code> exposes <code>.int2str</code>/<code>.str2int</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="select">
+    <div class="card-head"><span class="card-num n2">4</span><span class="card-title">select / filter / shuffle / split</span><span class="card-sub">subset</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">ds.select(range(1000))</code><span class="star">&#9733;</span><div class="desc">Pick rows by index &mdash; returns a new (lazy) view, doesn't copy the data.</div></li>
+      <li class="c2"><code class="cmd">ds.filter(<span class="kw">lambda</span> x: x[<span class="str">"label"</span>] == 1)</code><span class="star">&#9733;</span><div class="desc">Row-wise predicate; <code>batched=True</code> + a mask list is much faster on big data.</div></li>
+      <li class="c2"><code class="cmd">ds.shuffle(seed=42) &middot; ds.sort(<span class="str">"len"</span>)</code><div class="desc">Reproducible shuffle; sorting helps length-bucketed batching.</div></li>
+      <li class="c2"><code class="cmd">ds.train_test_split(test_size=0.1, seed=42)</code><span class="star">&#9733;</span><div class="desc">Returns a <code>DatasetDict</code> with <code>train</code>/<code>test</code>; add <code>stratify_by_column=</code> for balanced splits.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-process"><h2 style="color:var(--c3)">Process</h2><p class="sub"><code>map()</code> is the engine &mdash; batched, multiprocessed, cached transforms.</p></div>
+<main>
+  <article class="card" id="map">
+    <div class="card-head"><span class="card-num n3">5</span><span class="card-title">map() &mdash; transform</span><span class="card-sub">the workhorse</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">ds = ds.map(<span class="kw">lambda</span> x: {<span class="str">"n"</span>: len(x[<span class="str">"text"</span>])})</code><span class="star">&#9733;</span><div class="desc">Add/replace columns row-by-row. The returned dict is merged into each example.</div></li>
+      <li class="c3"><code class="cmd">ds.map(tok_fn, batched=<span class="kw">True</span>, batch_size=1000)</code><span class="star">&#9733;</span><div class="desc"><b>Always batch</b> heavy ops (tokenization) &mdash; the fn gets dict-of-lists and returns dict-of-lists; far faster. Default batch size 1000.</div></li>
+      <li class="c3"><code class="cmd">ds.map(fn, num_proc=8, remove_columns=ds.column_names)</code><div class="desc"><code>num_proc</code> parallelizes across cores; <code>remove_columns</code> drops originals so tensors stay clean.</div></li>
+      <li class="c3"><code class="cmd">ds.map(fn, cache_file_name=..., load_from_cache_file=<span class="kw">True</span>)</code><div class="desc">Results are cached to Arrow on disk &mdash; re-runs are instant unless the fn/args change.</div></li>
+      <li class="danger"><code class="cmd">map caches on fn fingerprint</code><span class="badge-warn">gotcha</span><div class="desc">If you edit a mapped fn but the cache looks stale-but-valid, pass <code>load_from_cache_file=False</code> or bump <code>new_fingerprint</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="features">
+    <div class="card-head"><span class="card-num n3">6</span><span class="card-title">Features, columns, Audio/Image</span><span class="card-sub">typed schema</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="kw">from</span> datasets <span class="kw">import</span> Features, Value, ClassLabel, Image, Audio</code><span class="star">&#9733;</span><div class="desc">The type system. <code>Value("int32")</code>, <code>ClassLabel(names=[...])</code>, <code>Sequence(...)</code>, <code>Image()</code>, <code>Audio(sampling_rate=16000)</code>.</div></li>
+      <li class="c3"><code class="cmd">ds = ds.cast_column(<span class="str">"img"</span>, Image()) <span class="cm"># decode on access</span></code><span class="star">&#9733;</span><div class="desc"><code>Image</code>/<code>Audio</code> columns lazily decode to PIL / arrays only when a row is read &mdash; storage stays compact.</div></li>
+      <li class="c3"><code class="cmd">ds.rename_column(<span class="str">"old"</span>,<span class="str">"new"</span>) &middot; ds.remove_columns([...]) &middot; ds.cast(features)</code><div class="desc">Reshape the schema; <code>class_encode_column("label")</code> turns strings into <code>ClassLabel</code> ints.</div></li>
+      <li class="c3"><code class="cmd">ds = ds.cast_column(<span class="str">"audio"</span>, Audio(sampling_rate=16000))</code><div class="desc">Resample audio on the fly to match your model's expected rate.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="format">
+    <div class="card-head"><span class="card-num n4">7</span><span class="card-title">Formats &amp; the training loop</span><span class="card-sub">to tensors</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">ds = ds.with_format(<span class="str">"torch"</span>)</code><span class="star">&#9733;</span><div class="desc">Rows now come out as torch tensors. Also <code>"numpy"</code>, <code>"pandas"</code>, <code>"jax"</code>, <code>"polars"</code>. <code>set_format(...)</code> mutates in place.</div></li>
+      <li class="c4"><code class="cmd">ds.with_format(<span class="str">"torch"</span>, columns=[<span class="str">"input_ids"</span>,<span class="str">"label"</span>])</code><div class="desc">Restrict which columns are tensor-ized; the rest stay Python and are hidden from the loader.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">from</span> torch.utils.data <span class="kw">import</span> DataLoader
+DataLoader(ds, batch_size=32, shuffle=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">A formatted <code>Dataset</code> is a drop-in PyTorch dataset. Or hand it straight to the &#127760; Transformers <code>Trainer</code>.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">with</span> ds.formatted_as(<span class="str">"numpy"</span>): ...</code><div class="desc">Temporary format via context manager &mdash; useful for a one-off numpy computation.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-scale"><h2 style="color:var(--c5)">Scale &amp; Share</h2><p class="sub">Datasets bigger than disk (streaming), and saving/publishing.</p></div>
+<main>
+  <article class="card" id="stream">
+    <div class="card-head"><span class="card-num n5">8</span><span class="card-title">Streaming (IterableDataset)</span><span class="card-sub">no full download</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd">ds = load_dataset(<span class="str">"HuggingFaceFW/fineweb"</span>, split=<span class="str">"train"</span>, streaming=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Returns an <code>IterableDataset</code> &mdash; rows are fetched lazily as you iterate. Nothing is fully downloaded.</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">for</span> ex <span class="kw">in</span> ds.map(fn).filter(pred).take(1000): ...</code><span class="star">&#9733;</span><div class="desc">Build a lazy pipeline. <code>map(batched=True)</code>, <code>filter</code>, <code>take</code>/<code>skip</code> all work; <code>with_format("torch")</code> feeds a DataLoader.</div></li>
+      <li class="c5"><code class="cmd">ds.shuffle(buffer_size=10_000, seed=42)</code><div class="desc">Streaming shuffle uses a fixed-size buffer (approximate). <code>ds.batch(1000)</code> for chunked iteration.</div></li>
+      <li class="c5"><code class="cmd">IterableDataset.push_to_hub(<span class="str">"me/streamed"</span>, num_proc=4)</code><span class="badge-new">v4</span><div class="desc">v4 added pushing a streamed pipeline straight back to the Hub &mdash; end-to-end without landing it all on disk.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="save">
+    <div class="card-head"><span class="card-num n5">9</span><span class="card-title">Save, load, push to Hub</span><span class="card-sub">persist &amp; publish</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd">ds.save_to_disk(<span class="str">"my_ds/"</span>) &middot; load_from_disk(<span class="str">"my_ds/"</span>)</code><span class="star">&#9733;</span><div class="desc">Round-trip the Arrow files locally (keeps features &amp; splits).</div></li>
+      <li class="c5"><code class="cmd">ds.to_parquet(<span class="str">"data.parquet"</span>) &middot; ds.to_json(...) &middot; ds.to_csv(...)</code><div class="desc">Export to a portable format &mdash; Parquet is the Hub-preferred one.</div></li>
+      <li class="c5"><code class="cmd">ds.push_to_hub(<span class="str">"me/my-dataset"</span>, private=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Uploads Parquet shards + a dataset card. Needs <code>hf auth login</code> / <code>HF_TOKEN</code>; <code>num_proc=</code> speeds big pushes.</div></li>
+      <li class="c5"><code class="cmd">ds.cleanup_cache_files()</code><div class="desc">Reclaim disk from intermediate Arrow caches created by <code>map</code>/<code>filter</code>.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-ref"><h2 style="color:var(--danger)">Gotchas</h2><p class="sub">The things that bite when moving to v4 or scaling up.</p></div>
+<main>
+  <article class="card" id="gotchas">
+    <div class="card-head"><span class="card-num">!</span><span class="card-title">Common gotchas</span><span class="card-sub">read before shipping</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">"Dataset scripts are no longer supported"</code><span class="badge-danger">v4</span><div class="desc">Old script-based datasets fail on v4. Use a Parquet-converted copy, or pin <code>datasets&lt;4</code> only as a last resort.</div></li>
+      <li class="danger"><code class="cmd">map without batched=True is slow</code><div class="desc">Per-row Python calls dominate. Batch heavy transforms and set <code>num_proc</code> for a big speedup.</div></li>
+      <li class="danger"><code class="cmd">IterableDataset has no len()</code><div class="desc">Streams are lazy &amp; unsized &mdash; you can't index <code>ds[0]</code> or call <code>len()</code>; iterate, <code>take</code>, or set <code>max_steps</code> in training.</div></li>
+      <li class="danger"><code class="cmd">stale map cache</code><div class="desc">Editing a mapped fn may still hit the old cache; pass <code>load_from_cache_file=False</code> when in doubt.</div></li>
+      <li class="danger"><code class="cmd">columns must match the model</code><div class="desc">Remove text/extra columns before training &mdash; the collator/Trainer expects only tensorizable fields (<code>input_ids</code>, <code>labels</code>, ...).</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs" id="worth">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">Arrow-backed = bigger than RAM is fine</span><span class="v">memory-mapped, zero-copy; indexing rows is cheap</span></div>
+    <div><span class="k">load_dataset returns a DatasetDict</span><span class="v">pass split= to get a single Dataset</span></div>
+    <div><span class="k">v4 killed loading scripts</span><span class="v">Parquet/CSV/JSON only; trust_remote_code is gone</span></div>
+    <div><span class="k">map(batched=True, num_proc=)</span><span class="v">the way to make tokenization fast; results cache to disk</span></div>
+    <div><span class="k">cast_column(Image()/Audio())</span><span class="v">lazy decode &mdash; storage stays small until a row is read</span></div>
+    <div><span class="k">with_format("torch")</span><span class="v">turns a Dataset into a drop-in PyTorch dataset for DataLoader/Trainer</span></div>
+    <div><span class="k">streaming=True for huge corpora</span><span class="v">IterableDataset: lazy map/filter/take, no full download, no len()</span></div>
+    <div><span class="k">push_to_hub ships Parquet</span><span class="v">shards + a dataset card; num_proc for speed</span></div>
+  </div>
+</section>
+
+<footer>
+  datasets cheat sheet (datasets_cheatsheet v0).<br>
+  Verified 2026-08-24 against <b>huggingface.co/docs/datasets</b> (v4.x) and the huggingface/datasets 4.0 release notes. Apache Arrow / Parquet under the hood; integrates with pandas, NumPy, Polars, PyTorch and &#127760; Transformers. The v4 removal of loading scripts is the biggest migration item &mdash; verify a dataset is Parquet-format before relying on it.<br>
+  Design system = shared cheat-sheet tokens (Inter + JetBrains Mono, light theme). Content only.
+</footer>
+</body>
+</html>

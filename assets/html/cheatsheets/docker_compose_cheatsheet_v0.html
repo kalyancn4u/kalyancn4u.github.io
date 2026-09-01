@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docker Compose Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --cli:#0891b2;   --cli-bg:#e9f8fb;
+    --svc:#d97706;   --svc-bg:#fdf6ec;
+    --env:#7c3aed;   --env-bg:#f4eefd;
+    --vol:#059669;   --vol-bg:#ecf7f2;
+    --net:#2563eb;   --net-bg:#eff4ff;
+    --dep:#db2777;   --dep-bg:#fdeef5;
+    --cfg:#4f46e5;   --cfg-bg:#eef0fd;
+    --warn:#dc2626;  --warn-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans);color:var(--ink);background:var(--paper);line-height:1.5;-webkit-font-smoothing:antialiased;}
+
+  /* ---- header ---- */
+  header{border-bottom:2px solid var(--ink);padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;max-width:1500px;margin:0 auto;}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:700;letter-spacing:-.02em;line-height:1;margin-bottom:.7rem;}
+  h1 .dc{font-family:var(--mono);color:var(--cli)}
+  .lede{max-width:62ch;color:#3f444f;font-size:1.02rem}
+  .sources{font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-top:1rem;line-height:1.7;}
+  .sources b{color:var(--ink);font-weight:500}
+
+  /* ---- legend ---- */
+  .legend{display:flex;flex-wrap:wrap;gap:.5rem .9rem;margin-top:1.2rem;font-family:var(--mono);font-size:.74rem;}
+  .legend span{display:inline-flex;align-items:center;gap:.4rem}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .dot.cli{background:var(--cli)} .dot.svc{background:var(--svc)}
+  .dot.env{background:var(--env)} .dot.vol{background:var(--vol)}
+  .dot.net{background:var(--net)} .dot.dep{background:var(--dep)}
+  .dot.cfg{background:var(--cfg)} .dot.warn{background:var(--warn)}
+
+  /* ---- flow diagram ---- */
+  .flow-wrap{max-width:1500px;margin:0 auto;padding:2rem clamp(1rem,4vw,3rem) .5rem;}
+  .flow-title{font-family:var(--mono);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;}
+  .flow-svg{width:100%;height:auto;max-width:1140px;display:block;margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---- main grid ---- */
+  main{max-width:1500px;margin:0 auto;padding:1.5rem clamp(1rem,4vw,3rem) 4rem;column-gap:1.4rem;}
+  @media(min-width:760px){main{column-count:2}}
+  @media(min-width:1200px){main{column-count:3}}
+
+  .card{break-inside:avoid;background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:1.4rem;overflow:hidden;box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex;align-items:baseline;gap:.6rem;padding:.85rem 1rem .7rem;border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono);font-size:.78rem;font-weight:700;color:#fff;background:var(--ink);border-radius:5px;padding:.12rem .42rem;letter-spacing:.02em;}
+  .card-title{font-size:.96rem;font-weight:700;letter-spacing:-.01em}
+  .card-sub{font-size:.75rem;color:var(--muted);margin-left:auto;font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.52rem 1rem;border-bottom:1px solid #f1eee8;border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.cli{border-left-color:var(--cli)}
+  ul.cmds li.svc{border-left-color:var(--svc)}
+  ul.cmds li.env{border-left-color:var(--env)}
+  ul.cmds li.vol{border-left-color:var(--vol)}
+  ul.cmds li.net{border-left-color:var(--net)}
+  ul.cmds li.dep{border-left-color:var(--dep)}
+  ul.cmds li.cfg{border-left-color:var(--cfg)}
+  ul.cmds li.warn{border-left-color:var(--warn);background:var(--warn-bg)}
+
+  code.cmd{font-family:var(--mono);font-size:.8rem;font-weight:500;color:var(--ink);display:block;word-break:break-word;white-space:pre-wrap;}
+  code.cmd .k{color:var(--cfg);font-weight:700}      /* YAML key */
+  code.cmd .v{color:var(--vol);font-weight:400}       /* YAML value / string */
+  code.cmd .c{color:var(--muted);font-style:italic}   /* comment */
+  code.cmd .fl{color:var(--star)}                     /* flag / option */
+  code.cmd .arg{color:var(--net)}                     /* arg / placeholder */
+  li.warn code.cmd{color:var(--warn)}
+  .desc{font-size:.78rem;color:#525761;margin-top:.2rem}
+  .star{color:var(--star);font-size:.7rem;font-weight:700;font-family:var(--mono);margin-left:.35rem;letter-spacing:.03em;}
+  .badge-warn{color:var(--warn);font-size:.66rem;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;margin-left:.35rem;}
+  .badge-new{color:var(--cli);font-size:.66rem;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;margin-left:.35rem;}
+
+  /* ---- diagram section ---- */
+  .diagrams{max-width:1500px;margin:0 auto;padding:1rem clamp(1rem,4vw,3rem) 3rem;}
+  .diagrams h2{font-size:1.4rem;font-weight:700;letter-spacing:-.01em;margin-bottom:.3rem;padding-top:1.5rem;border-top:2px solid var(--ink);}
+  .diagrams .sub{color:var(--muted);font-size:.9rem;margin-bottom:1.5rem}
+  .dg{display:grid;gap:1.2rem;grid-template-columns:1fr}
+  @media(min-width:780px){.dg{grid-template-columns:1fr 1fr}}
+  .dg3{display:grid;gap:1.2rem;grid-template-columns:1fr}
+  @media(min-width:900px){.dg3{grid-template-columns:repeat(3,1fr)}}
+  .dcard{border:1px solid var(--line);border-radius:10px;background:#fff;padding:1rem 1.1rem}
+  .dcard h3{font-size:.95rem;font-family:var(--mono);margin-bottom:.15rem}
+  .dcard p{font-size:.78rem;color:var(--muted);margin-bottom:.7rem}
+  .dcard .bsvg{width:100%;height:auto;display:block}
+
+  /* ---- refs strip ---- */
+  .refs{max-width:1500px;margin:0 auto;padding:1rem clamp(1rem,4vw,3rem) 4rem;}
+  .refs h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;padding-top:1.5rem;border-top:2px solid var(--ink);}
+  .refs-inner{background:var(--ink);color:#e8e6e1;border-radius:10px;padding:1.2rem 1.4rem;font-family:var(--mono);font-size:.82rem;display:grid;gap:.55rem;grid-template-columns:1fr;}
+  @media(min-width:680px){.refs-inner{grid-template-columns:1fr 1fr}}
+  .refs-inner div{display:flex;gap:.7rem;align-items:baseline}
+  .refs-inner .k{color:#fbbf24;white-space:nowrap;font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{max-width:1500px;margin:0 auto;padding:2rem clamp(1rem,4vw,3rem) 3rem;border-top:1px solid var(--line);font-size:.76rem;color:var(--muted);font-family:var(--mono);line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · multi-container orchestration</div>
+  <h1><span class="dc">docker compose</span> cheat sheet</h1>
+  <p class="lede">One YAML file, one CLI. Docker Compose reads <b>compose.yaml</b>, builds/pulls images, creates isolated <b>networks</b>, mounts <b>volumes</b>, and starts every <b>service</b> in the right order — so you never manage containers one by one.</p>
+  <div class="legend">
+    <span><i class="dot cli"></i>CLI commands</span>
+    <span><i class="dot svc"></i>service / build</span>
+    <span><i class="dot env"></i>environment</span>
+    <span><i class="dot vol"></i>volumes</span>
+    <span><i class="dot net"></i>networks</span>
+    <span><i class="dot dep"></i>deps / health</span>
+    <span><i class="dot cfg"></i>config / file</span>
+    <span><i class="dot warn"></i>production note</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked across: <b>dockerlabs.collabnix.com</b> · <b>devhints.io/docker-compose</b> · <b>devopscycle.com</b> · <b>gist/jonlabelle</b> · <b>helgeklein.com</b> · <b>docs.docker.com/compose</b></p>
+</header>
+
+<!-- ===== ARCHITECTURE FLOW DIAGRAM ===== -->
+<section class="flow-wrap">
+  <div class="flow-title">How Docker Compose works — one file drives the whole stack</div>
+  <svg class="flow-svg" viewBox="0 0 1120 310" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="compose.yaml is read by Docker Compose CLI which tells the Docker Engine to create containers sharing a bridge network; volumes persist data outside containers; the host maps ports to the outside world.">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker>
+      <marker id="arr-net" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+      <marker id="arr-vol" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+    </defs>
+
+    <!-- compose.yaml file box -->
+    <rect x="12" y="90" width="155" height="130" rx="11" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+    <text x="89" y="120" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">compose.yaml</text>
+    <text x="89" y="140" text-anchor="middle" font-size="10" fill="#4f46e5">services:</text>
+    <text x="89" y="157" text-anchor="middle" font-size="10" fill="#4f46e5">volumes:</text>
+    <text x="89" y="174" text-anchor="middle" font-size="10" fill="#4f46e5">networks:</text>
+    <text x="89" y="191" text-anchor="middle" font-size="10" fill="#4f46e5">configs: / secrets:</text>
+
+    <!-- arrow: file → CLI -->
+    <line x1="167" y1="155" x2="218" y2="155" stroke="#1a1d24" stroke-width="2" marker-end="url(#arr)"/>
+    <text x="193" y="147" text-anchor="middle" font-size="9.5" fill="#6b7280">reads</text>
+
+    <!-- docker compose CLI box -->
+    <rect x="220" y="105" width="160" height="100" rx="11" fill="#e9f8fb" stroke="#0891b2" stroke-width="2"/>
+    <text x="300" y="133" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">docker compose</text>
+    <text x="300" y="152" text-anchor="middle" font-size="10.5" fill="#0891b2">CLI / V2 plugin</text>
+    <text x="300" y="170" text-anchor="middle" font-size="10" fill="#0891b2">up · down · logs · exec</text>
+    <text x="300" y="188" text-anchor="middle" font-size="10" fill="#0891b2">build · ps · restart</text>
+
+    <!-- arrow: CLI → engine -->
+    <line x1="380" y1="155" x2="432" y2="155" stroke="#1a1d24" stroke-width="2" marker-end="url(#arr)"/>
+    <text x="406" y="147" text-anchor="middle" font-size="9.5" fill="#6b7280">calls</text>
+
+    <!-- Docker Engine box -->
+    <rect x="434" y="105" width="145" height="100" rx="11" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+    <text x="506" y="133" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">Docker Engine</text>
+    <text x="506" y="153" text-anchor="middle" font-size="10" fill="#64748b">builds images</text>
+    <text x="506" y="170" text-anchor="middle" font-size="10" fill="#64748b">creates containers</text>
+    <text x="506" y="187" text-anchor="middle" font-size="10" fill="#64748b">manages net + vol</text>
+
+    <!-- arrow: engine → containers group -->
+    <line x1="579" y1="155" x2="631" y2="155" stroke="#1a1d24" stroke-width="2" marker-end="url(#arr)"/>
+
+    <!-- containers group background -->
+    <rect x="630" y="40" width="310" height="230" rx="12" fill="#f8fafc" stroke="#2563eb" stroke-width="1.8" stroke-dasharray="6 4"/>
+    <text x="785" y="64" text-anchor="middle" font-size="10" letter-spacing="2" fill="#2563eb">BRIDGE NETWORK  (default or custom)</text>
+
+    <!-- web container -->
+    <rect x="648" y="80" width="120" height="80" rx="9" fill="#fff" stroke="#d97706" stroke-width="2"/>
+    <text x="708" y="107" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1d24">web</text>
+    <text x="708" y="125" text-anchor="middle" font-size="9.5" fill="#d97706">port 80:80</text>
+    <text x="708" y="141" text-anchor="middle" font-size="9.5" fill="#d97706">build: ./</text>
+
+    <!-- api container -->
+    <rect x="793" y="80" width="120" height="80" rx="9" fill="#fff" stroke="#d97706" stroke-width="2"/>
+    <text x="853" y="107" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1d24">api</text>
+    <text x="853" y="125" text-anchor="middle" font-size="9.5" fill="#d97706">port 3000:3000</text>
+    <text x="853" y="141" text-anchor="middle" font-size="9.5" fill="#d97706">depends_on: db</text>
+
+    <!-- db container -->
+    <rect x="720" y="185" width="130" height="70" rx="9" fill="#fff" stroke="#059669" stroke-width="2"/>
+    <text x="785" y="210" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1d24">db</text>
+    <text x="785" y="228" text-anchor="middle" font-size="9.5" fill="#059669">image: postgres</text>
+    <text x="785" y="244" text-anchor="middle" font-size="9.5" fill="#059669">vol: pgdata:/var/lib/</text>
+
+    <!-- internal DNS arrows -->
+    <line x1="768" y1="120" x2="793" y2="120" stroke="#2563eb" stroke-width="1.6" marker-end="url(#arr-net)"/>
+    <line x1="760" y1="160" x2="760" y2="185" stroke="#2563eb" stroke-width="1.6" marker-end="url(#arr-net)"/>
+    <line x1="810" y1="160" x2="810" y2="185" stroke="#2563eb" stroke-width="1.6" marker-end="url(#arr-net)"/>
+
+    <!-- volume cylinder -->
+    <ellipse cx="1020" cy="200" rx="48" ry="16" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <rect x="972" y="200" width="96" height="55" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <ellipse cx="1020" cy="255" rx="48" ry="16" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <text x="1020" y="232" text-anchor="middle" font-size="11.5" font-weight="700" fill="#059669">pgdata</text>
+    <text x="1020" y="248" text-anchor="middle" font-size="9.5" fill="#059669">named volume</text>
+
+    <!-- db → volume arrow -->
+    <line x1="940" y1="225" x2="970" y2="225" stroke="#059669" stroke-width="1.8" marker-end="url(#arr-vol)" stroke-dasharray="4 3"/>
+
+    <!-- host port access -->
+    <rect x="1062" y="80" width="52" height="50" rx="8" fill="#f1f3f6" stroke="#64748b" stroke-width="1.8"/>
+    <text x="1088" y="102" text-anchor="middle" font-size="10" fill="#64748b">HOST</text>
+    <text x="1088" y="118" text-anchor="middle" font-size="9.5" fill="#64748b">:80 :3000</text>
+    <line x1="940" y1="105" x2="1060" y2="103" stroke="#d97706" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+    <text x="1000" y="95" text-anchor="middle" font-size="9" fill="#d97706">ports:</text>
+  </svg>
+</section>
+
+<!-- ===== COMMAND CARDS ===== -->
+<main>
+
+<!-- 01 DAILY CLI LOOP -->
+<article class="card">
+  <div class="card-head"><span class="card-num">01</span><span class="card-title">Core CLI Commands</span><span class="card-sub">the daily loop</span></div>
+  <ul class="cmds">
+    <li class="cli"><code class="cmd">docker compose <span class="fl">up</span></code><span class="star">★</span><div class="desc">Build, create, start &amp; attach to all services.</div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">up -d</span></code><span class="star">★</span><div class="desc">Same but detached (background). <span class="fl">--detach</span></div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">up --build</span></code><div class="desc">Force image rebuild before starting.</div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">down</span></code><span class="star">★</span><div class="desc">Stop &amp; remove containers, networks. Volumes survive.</div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">down -v</span></code><span class="badge-warn">drops data</span><div class="desc">Also remove named volumes declared in the file.</div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">stop</span></code><div class="desc">Stop without removing — containers are restartable.</div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">start</span></code><div class="desc">Start already-created (stopped) containers.</div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">restart</span> <span class="arg">[svc]</span></code><div class="desc">Restart one or all services.</div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">pause</span> / <span class="fl">unpause</span></code><div class="desc">Freeze/unfreeze container processes.</div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">rm</span></code><div class="desc">Remove stopped service containers.</div></li>
+  </ul>
+</article>
+
+<!-- 02 STATUS & INSPECT -->
+<article class="card">
+  <div class="card-head"><span class="card-num">02</span><span class="card-title">Status &amp; Inspect</span><span class="card-sub">observe &amp; debug</span></div>
+  <ul class="cmds">
+    <li class="cli"><code class="cmd">docker compose <span class="fl">ps</span></code><span class="star">★</span><div class="desc">List containers with state, ports, exit codes.</div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">logs</span></code><span class="star">★</span><div class="desc">Stream logs from all services.</div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">logs -f --tail 100</span> <span class="arg">svc</span></code><div class="desc">Follow live logs of one service, last 100 lines.</div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">logs --timestamps</span></code><div class="desc">Add ISO timestamps to each log line.</div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">top</span></code><div class="desc">Show running processes inside each container.</div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">config</span></code><div class="desc">Print the resolved, merged compose.yaml — great for debugging env-var substitution.</div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">events</span></code><div class="desc">Stream real-time events from containers.</div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">images</span></code><div class="desc">List images used by the stack.</div></li>
+  </ul>
+</article>
+
+<!-- 03 EXEC, SHELL, RUN -->
+<article class="card">
+  <div class="card-head"><span class="card-num">03</span><span class="card-title">Exec &amp; Run</span><span class="card-sub">get inside containers</span></div>
+  <ul class="cmds">
+    <li class="cli"><code class="cmd">docker compose <span class="fl">exec</span> <span class="arg">svc</span> <span class="fl">sh</span></code><span class="star">★</span><div class="desc">Interactive shell in a running container. Use <span class="fl">bash</span> if available.</div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">exec -it</span> <span class="arg">db</span> psql <span class="fl">-U</span> <span class="arg">user</span></code><div class="desc">Run any command interactively inside the service.</div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">run --rm</span> <span class="arg">svc</span> <span class="arg">cmd</span></code><div class="desc">Spin up a one-off container, run cmd, then delete it.</div></li>
+    <li class="cli"><code class="cmd">docker compose <span class="fl">cp</span> <span class="arg">svc:/path ./local</span></code><div class="desc">Copy files between container and host.</div></li>
+    <li class="cli"><code class="cmd">docker exec <span class="fl">-w</span> <span class="arg">/etc/caddy</span> <span class="arg">caddy</span> caddy reload</code><div class="desc">Direct <code>docker exec</code> also works with service name from compose.</div></li>
+  </ul>
+</article>
+
+<!-- 04 FILE ANATOMY -->
+<article class="card">
+  <div class="card-head"><span class="card-num">04</span><span class="card-title">File Anatomy</span><span class="card-sub">top-level keys</span></div>
+  <ul class="cmds">
+    <li class="cfg"><code class="cmd"><span class="k">services</span>:          <span class="c"># ← containers to run</span>
+  <span class="k">web</span>:
+    <span class="k">image</span>: <span class="v">nginx</span>
+  <span class="k">db</span>:
+    <span class="k">image</span>: <span class="v">postgres:16</span></code><span class="star">★</span><div class="desc">Each key under <code>services:</code> is one container definition.</div></li>
+    <li class="cfg"><code class="cmd"><span class="k">volumes</span>:           <span class="c"># ← named volumes</span>
+  <span class="k">pgdata</span>:            <span class="c"># managed by Docker</span></code><div class="desc">Top-level declaration makes the volume available to services.</div></li>
+    <li class="cfg"><code class="cmd"><span class="k">networks</span>:          <span class="c"># ← custom networks</span>
+  <span class="k">backend</span>:</code><div class="desc">Explicit networks let you isolate service groups.</div></li>
+    <li class="cfg"><code class="cmd"><span class="k">configs</span>:           <span class="c"># non-secret config data</span>
+<span class="k">secrets</span>:           <span class="c"># sensitive data (Swarm-ready)</span></code><div class="desc">Mounted read-only into containers at runtime.</div></li>
+    <li class="warn"><code class="cmd">version: <span class="v">'3.9'</span>    <span class="c"># ← DEPRECATED</span></code><span class="badge-warn">remove it</span><div class="desc">The <code>version:</code> key is obsolete in Compose V2 — omit it.</div></li>
+  </ul>
+</article>
+
+<!-- 05 BUILD -->
+<article class="card">
+  <div class="card-head"><span class="card-num">05</span><span class="card-title">Build &amp; Image</span><span class="card-sub">where the image comes from</span></div>
+  <ul class="cmds">
+    <li class="svc"><code class="cmd"><span class="k">build</span>: <span class="v">.</span>           <span class="c"># Dockerfile in current dir</span></code><span class="star">★</span><div class="desc">Shorthand: build context = current directory.</div></li>
+    <li class="svc"><code class="cmd"><span class="k">build</span>:
+  <span class="k">context</span>: <span class="v">./backend</span>
+  <span class="k">dockerfile</span>: <span class="v">Dockerfile.prod</span>
+  <span class="k">args</span>:
+    <span class="k">NODE_ENV</span>: <span class="v">production</span>
+  <span class="k">target</span>: <span class="v">production</span>   <span class="c"># multi-stage</span></code><div class="desc">Fine-grained build: custom file, build-args, multi-stage target.</div></li>
+    <li class="svc"><code class="cmd"><span class="k">image</span>: <span class="v">postgres:16.1</span>
+<span class="k">image</span>: <span class="v">registry.example.com/app:v2</span></code><span class="star">★</span><div class="desc">Pull a pre-built image (local first, then hub/registry).</div></li>
+    <li class="svc"><code class="cmd">docker compose <span class="fl">build --no-cache</span> <span class="arg">svc</span></code><div class="desc">Force clean rebuild of one service's image.</div></li>
+    <li class="svc"><code class="cmd">docker compose <span class="fl">push</span></code><div class="desc">Push built images to their configured registry.</div></li>
+  </ul>
+</article>
+
+<!-- 06 PORTS & EXPOSE -->
+<article class="card">
+  <div class="card-head"><span class="card-num">06</span><span class="card-title">Ports &amp; Expose</span><span class="card-sub">host ↔ container</span></div>
+  <ul class="cmds">
+    <li class="svc"><code class="cmd"><span class="k">ports</span>:
+  - <span class="v">"8080:80"</span>    <span class="c"># host:container</span>
+  - <span class="v">"443:443"</span>
+  - <span class="v">"3000"</span>       <span class="c"># random host port</span></code><span class="star">★</span><div class="desc"><code>ports</code> publishes to the host — reachable from outside the container.</div></li>
+    <li class="svc"><code class="cmd"><span class="k">expose</span>:
+  - <span class="v">"3000"</span>       <span class="c"># documentation only</span></code><div class="desc"><code>expose</code> is documentation; containers on the same network can already reach each other on any port.</div></li>
+    <li class="net"><code class="cmd"><span class="k">ports</span>:
+  - <span class="v">"127.0.0.1:8080:80"</span>  <span class="c"># loopback only</span></code><div class="desc">Bind to a specific host IP to restrict external access.</div></li>
+  </ul>
+</article>
+
+<!-- 07 ENV VARS -->
+<article class="card">
+  <div class="card-head"><span class="card-num">07</span><span class="card-title">Environment Variables</span><span class="card-sub">configure at runtime</span></div>
+  <ul class="cmds">
+    <li class="env"><code class="cmd"><span class="k">environment</span>:
+  <span class="k">POSTGRES_USER</span>: <span class="v">admin</span>
+  <span class="k">POSTGRES_PASSWORD</span>: <span class="v">${DB_PASS}</span>   <span class="c"># from .env</span>
+  <span class="k">DEBUG</span>: <span class="v">"true"</span></code><span class="star">★</span><div class="desc">Map form. Use <code>${VAR}</code> to interpolate from host env or <code>.env</code>.</div></li>
+    <li class="env"><code class="cmd"><span class="k">environment</span>:
+  - <span class="v">RACK_ENV=development</span>
+  - <span class="v">SESSION_SECRET</span>    <span class="c"># pass through from host</span></code><div class="desc">List form. A bare name passes the host variable through.</div></li>
+    <li class="env"><code class="cmd"><span class="k">env_file</span>:
+  - <span class="v">.env.local</span>
+  - <span class="v">.env.override</span>    <span class="c"># later file wins</span></code><span class="star">★</span><div class="desc">Load entire env files — great for secrets not committed to git.</div></li>
+    <li class="warn"><code class="cmd">.env  vs  env_file:</code><span class="badge-warn">common trap</span><div class="desc"><code>.env</code> = Compose substitution only (not in container). <code>env_file:</code> = injected into container. They are different.</div></li>
+  </ul>
+</article>
+
+<!-- 08 VOLUMES -->
+<article class="card">
+  <div class="card-head"><span class="card-num">08</span><span class="card-title">Volumes</span><span class="card-sub">persist data</span></div>
+  <ul class="cmds">
+    <li class="vol"><code class="cmd"><span class="k">volumes</span>:
+  - <span class="v">pgdata:/var/lib/postgresql/data</span>
+                    <span class="c"># named volume (Docker manages path)</span></code><span class="star">★</span><div class="desc">Named volumes survive <code>down</code>; Docker stores them under <code>/var/lib/docker/volumes/</code>.</div></li>
+    <li class="vol"><code class="cmd">  - <span class="v">./data:/data</span>           <span class="c"># bind mount</span>
+  - <span class="v">./config:/etc/cfg:ro</span>  <span class="c"># read-only</span></code><span class="star">★</span><div class="desc">Bind mounts: you control the host path. Prefix <code>ro</code> makes it read-only inside.</div></li>
+    <li class="vol"><code class="cmd">  - <span class="v">/etc/localtime:/etc/localtime:ro</span></code><div class="desc">Pass timezone into the container (no TZ env needed).</div></li>
+    <li class="vol"><code class="cmd"><span class="k">volumes</span>:              <span class="c"># top-level section</span>
+  <span class="k">pgdata</span>:              <span class="c"># empty = Docker defaults</span>
+  <span class="k">shared</span>:
+    <span class="k">driver</span>: <span class="v">local</span>
+  <span class="k">external_vol</span>:
+    <span class="k">external</span>: <span class="v">true</span>   <span class="c"># already exists</span></code><div class="desc">Declare volumes at the top level to share across services or reference pre-existing ones.</div></li>
+  </ul>
+</article>
+
+<!-- 09 NETWORKS -->
+<article class="card">
+  <div class="card-head"><span class="card-num">09</span><span class="card-title">Networks</span><span class="card-sub">inter-service communication</span></div>
+  <ul class="cmds">
+    <li class="net"><code class="cmd"><span class="c"># All services share a default bridge network.</span>
+<span class="c"># Reach any service by its service name as DNS.</span>
+<span class="c"># curl http://db:5432  inside the api container ✓</span></code><span class="star">★</span><div class="desc">Docker Compose auto-creates a default network — no config needed for basic stacks.</div></li>
+    <li class="net"><code class="cmd"><span class="k">networks</span>:              <span class="c"># custom network</span>
+  <span class="k">backend</span>:
+    <span class="k">driver</span>: <span class="v">bridge</span>
+
+<span class="c"># in each service:</span>
+<span class="k">networks</span>: [<span class="v">backend</span>]</code><div class="desc">Custom networks let you control which services can talk to each other.</div></li>
+    <li class="net"><code class="cmd"><span class="k">networks</span>:
+  <span class="k">default</span>:
+    <span class="k">external</span>:
+      <span class="k">name</span>: <span class="v">existing-net</span></code><div class="desc">Join a network created outside Compose (e.g., a shared proxy network).</div></li>
+    <li class="net"><code class="cmd"><span class="k">network_mode</span>: <span class="v">"host"</span>    <span class="c"># no isolation</span>
+<span class="k">network_mode</span>: <span class="v">"none"</span>    <span class="c"># fully isolated</span></code><div class="desc">Special modes: <code>host</code> shares the host's network stack; <code>none</code> disables networking.</div></li>
+  </ul>
+</article>
+
+<!-- 10 DEPENDS_ON -->
+<article class="card">
+  <div class="card-head"><span class="card-num">10</span><span class="card-title">Start Order &amp; deps_on</span><span class="card-sub">startup sequencing</span></div>
+  <ul class="cmds">
+    <li class="dep"><code class="cmd"><span class="k">depends_on</span>:
+  - <span class="v">db</span>               <span class="c"># waits for container start</span></code><div class="desc">Basic form: waits until the db container is <em>created</em> — not until the app inside is ready.</div></li>
+    <li class="dep"><code class="cmd"><span class="k">depends_on</span>:
+  <span class="k">db</span>:
+    <span class="k">condition</span>: <span class="v">service_healthy</span>
+  <span class="k">migrations</span>:
+    <span class="k">condition</span>: <span class="v">service_completed_successfully</span></code><span class="star">★</span><div class="desc">Condition-based wait: <code>service_healthy</code> checks healthcheck; <code>service_completed_successfully</code> waits for a one-off task to exit 0.</div></li>
+    <li class="dep"><code class="cmd"><span class="k">depends_on</span>:
+  <span class="k">db</span>:
+    <span class="k">condition</span>: <span class="v">service_healthy</span>
+    <span class="k">restart</span>: <span class="v">true</span>    <span class="c"># re-check if db restarts</span></code><div class="desc">Added in Compose v2.20+: restart the dependent service if the dependency restarts.</div></li>
+    <li class="warn"><code class="cmd">depends_on ≠ ready</code><span class="badge-warn">common trap</span><div class="desc">Without a healthcheck + condition, <code>depends_on</code> only waits for the container process to start — not for the DB to accept connections.</div></li>
+  </ul>
+</article>
+
+<!-- 11 HEALTH CHECKS -->
+<article class="card">
+  <div class="card-head"><span class="card-num">11</span><span class="card-title">Health Checks</span><span class="card-sub">service readiness</span></div>
+  <ul class="cmds">
+    <li class="dep"><code class="cmd"><span class="k">healthcheck</span>:
+  <span class="k">test</span>: [<span class="v">"CMD"</span>, <span class="v">"pg_isready"</span>, <span class="v">"-U"</span>, <span class="v">"user"</span>]
+  <span class="k">interval</span>: <span class="v">5s</span>         <span class="c"># how often to check</span>
+  <span class="k">timeout</span>: <span class="v">3s</span>          <span class="c"># fail if longer than this</span>
+  <span class="k">retries</span>: <span class="v">5</span>           <span class="c"># mark unhealthy after N fails</span>
+  <span class="k">start_period</span>: <span class="v">10s</span>   <span class="c"># grace period on startup</span></code><span class="star">★</span><div class="desc"><code>start_period</code> gives the app time to boot before failures count against <code>retries</code>.</div></li>
+    <li class="dep"><code class="cmd"><span class="k">test</span>: [<span class="v">"CMD"</span>, <span class="v">"curl"</span>, <span class="v">"-f"</span>, <span class="v">"http://localhost/health"</span>]
+<span class="k">test</span>: [<span class="v">"CMD-SHELL"</span>, <span class="v">"redis-cli ping | grep PONG"</span>]
+<span class="k">test</span>: [<span class="v">"NONE"</span>]         <span class="c"># disable inherited check</span></code><div class="desc">Three test forms: exec array, shell string, or disable. <code>CMD</code> preferred (no shell injection risk).</div></li>
+  </ul>
+</article>
+
+<!-- 12 RESTART -->
+<article class="card">
+  <div class="card-head"><span class="card-num">12</span><span class="card-title">Restart Policies</span><span class="card-sub">auto-recovery</span></div>
+  <ul class="cmds">
+    <li class="dep"><code class="cmd"><span class="k">restart</span>: <span class="v">no</span>             <span class="c"># default — never restart</span></code><div class="desc">Container stays stopped after it exits.</div></li>
+    <li class="dep"><code class="cmd"><span class="k">restart</span>: <span class="v">always</span>         <span class="c"># restart on any exit</span></code><div class="desc">Restarts on every exit — including <code>docker stop</code>. Starts on Docker daemon boot.</div></li>
+    <li class="dep"><code class="cmd"><span class="k">restart</span>: <span class="v">unless-stopped</span> <span class="c"># ← preferred</span></code><span class="star">★</span><div class="desc">Restarts on crash but NOT if you manually <code>docker compose stop</code> it. Best for production services.</div></li>
+    <li class="dep"><code class="cmd"><span class="k">restart</span>: <span class="v">on-failure</span>     <span class="c"># non-zero exit only</span>
+<span class="k">restart</span>: <span class="v">on-failure:3</span>  <span class="c"># max 3 retries</span></code><div class="desc">Good for one-off jobs/migrations that should retry on error but not run forever.</div></li>
+  </ul>
+</article>
+
+<!-- 13 COMMANDS & ENTRYPOINT -->
+<article class="card">
+  <div class="card-head"><span class="card-num">13</span><span class="card-title">Commands &amp; Entrypoint</span><span class="card-sub">override what runs</span></div>
+  <ul class="cmds">
+    <li class="svc"><code class="cmd"><span class="k">command</span>: <span class="v">bundle exec thin -p 3000</span></code><div class="desc">Override the CMD from the Dockerfile (string form).</div></li>
+    <li class="svc"><code class="cmd"><span class="k">command</span>: [<span class="v">"node"</span>, <span class="v">"server.js"</span>, <span class="v">"--port"</span>, <span class="v">"3000"</span>]</code><div class="desc">Array form (no shell wrapping — preferred).</div></li>
+    <li class="svc"><code class="cmd"><span class="k">entrypoint</span>: <span class="v">/app/start.sh</span>
+<span class="k">entrypoint</span>: [<span class="v">"php"</span>, <span class="v">"-d"</span>, <span class="v">"vendor/bin/phpunit"</span>]</code><div class="desc">Override the ENTRYPOINT. Also clears the Dockerfile CMD.</div></li>
+    <li class="svc"><code class="cmd"><span class="k">user</span>: <span class="v">"1000:1000"</span>        <span class="c"># uid:gid</span></code><div class="desc">Run the container process as a specific user — avoid root in production.</div></li>
+    <li class="svc"><code class="cmd"><span class="k">working_dir</span>: <span class="v">/app</span></code><div class="desc">Set the working directory inside the container.</div></li>
+  </ul>
+</article>
+
+<!-- 14 ADVANCED -->
+<article class="card">
+  <div class="card-head"><span class="card-num">14</span><span class="card-title">Advanced Options</span><span class="card-sub">per-service extras</span></div>
+  <ul class="cmds">
+    <li class="cfg"><code class="cmd"><span class="k">labels</span>:
+  <span class="k">com.example.role</span>: <span class="v">"frontend"</span>
+  <span class="k">traefik.enable</span>: <span class="v">"true"</span></code><div class="desc">Metadata used by Compose, monitoring tools, and reverse-proxy auto-discovery (Traefik, Caddy).</div></li>
+    <li class="net"><code class="cmd"><span class="k">extra_hosts</span>:
+  - <span class="v">"host.docker.internal:host-gateway"</span>
+  - <span class="v">"db.local:192.168.1.50"</span></code><div class="desc">Inject <code>/etc/hosts</code> entries — useful for accessing the host or legacy services.</div></li>
+    <li class="net"><code class="cmd"><span class="k">dns</span>: <span class="v">8.8.8.8</span>
+<span class="k">dns</span>: [<span class="v">1.1.1.1</span>, <span class="v">8.8.8.8</span>]</code><div class="desc">Override DNS resolvers for the container.</div></li>
+    <li class="cfg"><code class="cmd"><span class="k">devices</span>:
+  - <span class="v">"/dev/ttyUSB0:/dev/ttyUSB0"</span></code><div class="desc">Pass host device nodes into the container (IoT/serial use-cases).</div></li>
+    <li class="cfg"><code class="cmd"><span class="k">extends</span>:
+  <span class="k">file</span>: <span class="v">common.yml</span>
+  <span class="k">service</span>: <span class="v">base-web</span></code><div class="desc">Inherit another service definition — share config across compose files.</div></li>
+    <li class="cfg"><code class="cmd"><span class="k">logging</span>:
+  <span class="k">driver</span>: <span class="v">json-file</span>
+  <span class="k">options</span>:
+    <span class="k">max-size</span>: <span class="v">"10m"</span>
+    <span class="k">max-file</span>: <span class="v">"3"</span></code><div class="desc">Control the log driver and rotation. Default <code>json-file</code> can fill disks without limits.</div></li>
+  </ul>
+</article>
+
+<!-- ★ REFERENCE CARD -->
+<article class="card">
+  <div class="card-head"><span class="card-num">★</span><span class="card-title">One-Service Reference</span><span class="card-sub">everything in context</span></div>
+  <ul class="cmds">
+    <li class="cfg"><code class="cmd"><span class="k">services</span>:
+  <span class="k">api</span>:
+    <span class="k">build</span>:
+      <span class="k">context</span>: <span class="v">.</span>
+      <span class="k">target</span>: <span class="v">production</span>
+    <span class="k">image</span>: <span class="v">myapp:latest</span>
+    <span class="k">ports</span>: [<span class="v">"3000:3000"</span>]
+    <span class="k">env_file</span>: [<span class="v">.env</span>]
+    <span class="k">environment</span>:
+      <span class="k">NODE_ENV</span>: <span class="v">production</span>
+    <span class="k">volumes</span>: [<span class="v">./data:/data</span>]
+    <span class="k">networks</span>: [<span class="v">backend</span>]
+    <span class="k">depends_on</span>:
+      <span class="k">db</span>: {<span class="k">condition</span>: <span class="v">service_healthy</span>}
+    <span class="k">restart</span>: <span class="v">unless-stopped</span>
+    <span class="k">healthcheck</span>:
+      <span class="k">test</span>: [<span class="v">"CMD"</span>,<span class="v">"curl"</span>,<span class="v">"-f"</span>,<span class="v">"http://localhost/health"</span>]
+      <span class="k">interval</span>: <span class="v">10s</span></code><div class="desc">A fully annotated, production-style service definition combining the most common options.</div></li>
+  </ul>
+</article>
+
+</main>
+
+<!-- ===== DIAGRAMS: LIFECYCLE + NETWORK ===== -->
+<section class="diagrams">
+  <h2>Container lifecycle &amp; network topology</h2>
+  <p class="sub">Two mental models that unlock everything else in Compose.</p>
+  <div class="dg">
+
+    <!-- Lifecycle state machine -->
+    <div class="dcard">
+      <h3>Container lifecycle — states &amp; transitions</h3>
+      <p>Compose commands move containers between these states. <code>up</code> is the on-ramp; <code>down</code> is the off-ramp.</p>
+      <svg viewBox="0 0 520 310" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Container lifecycle: created → running (up) → paused → running (unpause); running → stopped (stop/down) → removed (rm); running → removed directly with down -v">
+        <defs>
+          <marker id="la" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker>
+        </defs>
+        <!-- nodes -->
+        <rect x="10" y="125" width="95" height="44" rx="9" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+        <text x="57" y="152" text-anchor="middle" font-size="12" font-weight="700" fill="#4f46e5" font-family="JetBrains Mono,monospace">created</text>
+
+        <rect x="200" y="50" width="100" height="44" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="2.5"/>
+        <text x="250" y="77" text-anchor="middle" font-size="13" font-weight="700" fill="#059669" font-family="JetBrains Mono,monospace">running</text>
+
+        <rect x="200" y="200" width="100" height="44" rx="9" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+        <text x="250" y="227" text-anchor="middle" font-size="12" font-weight="700" fill="#d97706" font-family="JetBrains Mono,monospace">paused</text>
+
+        <rect x="370" y="125" width="100" height="44" rx="9" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+        <text x="420" y="152" text-anchor="middle" font-size="12" font-weight="700" fill="#64748b" font-family="JetBrains Mono,monospace">stopped</text>
+
+        <rect x="370" y="260" width="100" height="38" rx="9" fill="#fdf0ef" stroke="#dc2626" stroke-width="2"/>
+        <text x="420" y="283" text-anchor="middle" font-size="12" font-weight="700" fill="#dc2626" font-family="JetBrains Mono,monospace">removed</text>
+
+        <!-- arrows -->
+        <!-- created → running -->
+        <line x1="105" y1="140" x2="198" y2="80" stroke="#059669" stroke-width="1.8" marker-end="url(#la)"/>
+        <text x="135" y="97" font-size="9.5" fill="#059669" font-family="JetBrains Mono,monospace">compose up</text>
+
+        <!-- running → paused -->
+        <line x1="240" y1="94" x2="240" y2="198" stroke="#d97706" stroke-width="1.8" marker-end="url(#la)"/>
+        <text x="174" y="153" font-size="9.5" fill="#d97706" font-family="JetBrains Mono,monospace">pause</text>
+
+        <!-- paused → running -->
+        <line x1="262" y1="198" x2="262" y2="94" stroke="#059669" stroke-width="1.8" marker-end="url(#la)"/>
+        <text x="265" y="153" font-size="9.5" fill="#059669" font-family="JetBrains Mono,monospace">unpause</text>
+
+        <!-- running → stopped -->
+        <line x1="300" y1="75" x2="368" y2="138" stroke="#64748b" stroke-width="1.8" marker-end="url(#la)"/>
+        <text x="348" y="93" font-size="9.5" fill="#64748b" font-family="JetBrains Mono,monospace" text-anchor="middle">stop</text>
+
+        <!-- stopped → running -->
+        <line x1="370" y1="145" x2="302" y2="82" stroke="#059669" stroke-width="1.8" stroke-dasharray="4 3" marker-end="url(#la)"/>
+        <text x="312" y="128" font-size="9.5" fill="#059669" font-family="JetBrains Mono,monospace" text-anchor="middle">start</text>
+
+        <!-- stopped → removed -->
+        <line x1="420" y1="169" x2="420" y2="258" stroke="#dc2626" stroke-width="1.8" marker-end="url(#la)"/>
+        <text x="428" y="218" font-size="9.5" fill="#dc2626" font-family="JetBrains Mono,monospace">rm</text>
+
+        <!-- running → removed (down) -->
+        <path d="M300,90 Q490,90 490,279" fill="none" stroke="#dc2626" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#la)"/>
+        <text x="470" y="170" font-size="9" fill="#dc2626" font-family="JetBrains Mono,monospace">down</text>
+      </svg>
+    </div>
+
+    <!-- Network topology -->
+    <div class="dcard">
+      <h3>Network topology — bridge, isolation &amp; DNS</h3>
+      <p>Services on the same network reach each other by <strong>service name</strong>. Services on different networks are isolated — even in the same Compose file.</p>
+      <svg viewBox="0 0 520 310" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="frontend network connects web and api services; backend network connects api and db services; web and db cannot directly communicate; host accesses web on port 80">
+        <defs>
+          <marker id="na" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+        </defs>
+        <!-- frontend network zone -->
+        <rect x="10" y="15" width="230" height="195" rx="12" fill="#eff4ff" stroke="#2563eb" stroke-width="1.8" stroke-dasharray="6 4"/>
+        <text x="125" y="37" text-anchor="middle" font-size="10" letter-spacing="1.5" fill="#2563eb" font-family="JetBrains Mono,monospace">frontend  network</text>
+
+        <!-- backend network zone -->
+        <rect x="290" y="15" width="220" height="195" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="1.8" stroke-dasharray="6 4"/>
+        <text x="400" y="37" text-anchor="middle" font-size="10" letter-spacing="1.5" fill="#059669" font-family="JetBrains Mono,monospace">backend  network</text>
+
+        <!-- web service -->
+        <rect x="25" y="85" width="95" height="60" rx="8" fill="#fff" stroke="#d97706" stroke-width="2"/>
+        <text x="72" y="111" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1d24" font-family="JetBrains Mono,monospace">web</text>
+        <text x="72" y="130" text-anchor="middle" font-size="9.5" fill="#d97706" font-family="JetBrains Mono,monospace">:80:80</text>
+
+        <!-- api service (on both networks) -->
+        <rect x="185" y="85" width="130" height="60" rx="8" fill="#fff" stroke="#0891b2" stroke-width="2.5"/>
+        <text x="250" y="111" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1d24" font-family="JetBrains Mono,monospace">api</text>
+        <text x="250" y="130" text-anchor="middle" font-size="9.5" fill="#0891b2" font-family="JetBrains Mono,monospace">:3000  (both nets)</text>
+
+        <!-- db service -->
+        <rect x="390" y="85" width="100" height="60" rx="8" fill="#fff" stroke="#059669" stroke-width="2"/>
+        <text x="440" y="111" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1d24" font-family="JetBrains Mono,monospace">db</text>
+        <text x="440" y="130" text-anchor="middle" font-size="9.5" fill="#059669" font-family="JetBrains Mono,monospace">postgres</text>
+
+        <!-- communication arrows -->
+        <line x1="120" y1="115" x2="183" y2="115" stroke="#2563eb" stroke-width="2" marker-end="url(#na)"/>
+        <text x="152" y="108" text-anchor="middle" font-size="8.5" fill="#2563eb" font-family="JetBrains Mono,monospace">http://api</text>
+
+        <line x1="315" y1="115" x2="388" y2="115" stroke="#059669" stroke-width="2" marker-end="url(#na)"/>
+        <text x="352" y="108" text-anchor="middle" font-size="8.5" fill="#059669" font-family="JetBrains Mono,monospace">db:5432</text>
+
+        <!-- blocked: web to db -->
+        <line x1="72" y1="145" x2="72" y2="228" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="3 3"/>
+        <line x1="440" y1="145" x2="440" y2="228" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="3 3"/>
+        <line x1="72" y1="228" x2="440" y2="228" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="3 3"/>
+        <text x="256" y="248" text-anchor="middle" font-size="9.5" fill="#dc2626" font-family="JetBrains Mono,monospace">web ✗ cannot reach db (different networks)</text>
+
+        <!-- host -->
+        <rect x="165" y="265" width="120" height="36" rx="8" fill="#f1f3f6" stroke="#64748b" stroke-width="1.6"/>
+        <text x="225" y="287" text-anchor="middle" font-size="11" fill="#64748b" font-family="JetBrains Mono,monospace">HOST  :80</text>
+        <line x1="72" y1="145" x2="185" y2="265" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#na)"/>
+        <text x="90" y="230" font-size="8.5" fill="#d97706" font-family="JetBrains Mono,monospace">ports:</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== COMPOSE FILE STRUCTURE DIAGRAM ===== -->
+<section class="diagrams" style="padding-top:0">
+  <h2 style="border-top:none;padding-top:0">compose.yaml — annotated skeleton</h2>
+  <p class="sub">The six top-level keys and how they wire together — everything else is a property inside one of these.</p>
+  <div class="dcard" style="overflow-x:auto">
+<pre style="font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.85;background:#1a1d24;color:#e8e6e1;border-radius:9px;padding:1.2rem 1.5rem;overflow-x:auto"><span style="color:#94a3b8"># compose.yaml  (replaces docker-compose.yml in Compose V2)</span>
+
+<span style="color:#93c5fd">services</span><span style="color:#e8e6e1">:</span>                          <span style="color:#94a3b8"># ← one key per container</span>
+  <span style="color:#fbbf24">web</span><span style="color:#e8e6e1">:</span>
+    <span style="color:#86efac">build</span><span style="color:#e8e6e1">: .</span>                    <span style="color:#94a3b8"># or  image: nginx:latest</span>
+    <span style="color:#86efac">ports</span><span style="color:#e8e6e1">:</span>  <span style="color:#c084fc">["80:80"]</span>
+    <span style="color:#86efac">environment</span><span style="color:#e8e6e1">:</span>
+      <span style="color:#86efac">NODE_ENV</span><span style="color:#e8e6e1">:</span> <span style="color:#c084fc">production</span>
+    <span style="color:#86efac">env_file</span><span style="color:#e8e6e1">: [</span><span style="color:#c084fc">.env</span><span style="color:#e8e6e1">]</span>
+    <span style="color:#86efac">volumes</span><span style="color:#e8e6e1">:</span>  <span style="color:#c084fc">["./src:/app:ro"]</span>
+    <span style="color:#86efac">networks</span><span style="color:#e8e6e1">: [</span><span style="color:#c084fc">frontend</span><span style="color:#e8e6e1">]</span>
+    <span style="color:#86efac">restart</span><span style="color:#e8e6e1">:</span>  <span style="color:#c084fc">unless-stopped</span>
+    <span style="color:#86efac">depends_on</span><span style="color:#e8e6e1">:</span>
+      <span style="color:#86efac">db</span><span style="color:#e8e6e1">: {</span><span style="color:#86efac">condition</span><span style="color:#e8e6e1">:</span> <span style="color:#c084fc">service_healthy</span><span style="color:#e8e6e1">}</span>
+    <span style="color:#86efac">healthcheck</span><span style="color:#e8e6e1">:</span>
+      <span style="color:#86efac">test</span><span style="color:#e8e6e1">: [</span><span style="color:#c084fc">"CMD","curl","-f","http://localhost"</span><span style="color:#e8e6e1">]</span>
+      <span style="color:#86efac">interval</span><span style="color:#e8e6e1">:</span> <span style="color:#c084fc">10s</span>  <span style="color:#86efac">timeout</span><span style="color:#e8e6e1">:</span> <span style="color:#c084fc">5s</span>  <span style="color:#86efac">retries</span><span style="color:#e8e6e1">:</span> <span style="color:#c084fc">3</span>
+
+  <span style="color:#fbbf24">db</span><span style="color:#e8e6e1">:</span>
+    <span style="color:#86efac">image</span><span style="color:#e8e6e1">:</span>  <span style="color:#c084fc">postgres:16</span>
+    <span style="color:#86efac">volumes</span><span style="color:#e8e6e1">: [</span><span style="color:#c084fc">pgdata:/var/lib/postgresql/data</span><span style="color:#e8e6e1">]</span>
+    <span style="color:#86efac">networks</span><span style="color:#e8e6e1">: [</span><span style="color:#c084fc">frontend</span><span style="color:#e8e6e1">]</span>
+    <span style="color:#86efac">restart</span><span style="color:#e8e6e1">:</span>  <span style="color:#c084fc">unless-stopped</span>
+    <span style="color:#86efac">healthcheck</span><span style="color:#e8e6e1">:</span>
+      <span style="color:#86efac">test</span><span style="color:#e8e6e1">: [</span><span style="color:#c084fc">"CMD","pg_isready","-U","admin"</span><span style="color:#e8e6e1">]</span>
+      <span style="color:#86efac">interval</span><span style="color:#e8e6e1">:</span> <span style="color:#c084fc">5s</span>  <span style="color:#86efac">start_period</span><span style="color:#e8e6e1">:</span> <span style="color:#c084fc">10s</span>
+
+<span style="color:#93c5fd">volumes</span><span style="color:#e8e6e1">:</span>                          <span style="color:#94a3b8"># ← top-level volume declarations</span>
+  <span style="color:#fbbf24">pgdata</span><span style="color:#e8e6e1">:</span>                         <span style="color:#94a3b8"># Docker manages the path</span>
+
+<span style="color:#93c5fd">networks</span><span style="color:#e8e6e1">:</span>                         <span style="color:#94a3b8"># ← top-level network declarations</span>
+  <span style="color:#fbbf24">frontend</span><span style="color:#e8e6e1">:</span>                       <span style="color:#94a3b8"># empty = use Docker defaults</span></pre>
+  </div>
+</section>
+
+<!-- ===== REFS STRIP ===== -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">.env ≠ env_file:</span><span class="v">.env feeds Compose substitution; env_file: feeds the container</span></div>
+    <div><span class="k">expose ≠ ports:</span><span class="v">expose is docs — containers already see each other; ports opens to the host</span></div>
+    <div><span class="k">depends_on ≠ ready:</span><span class="v">add a healthcheck + condition: service_healthy to actually wait</span></div>
+    <div><span class="k">down ≠ down -v:</span><span class="v">plain down preserves volumes; -v nukes named volumes too</span></div>
+    <div><span class="k">version: key</span><span class="v">deprecated in V2 — omit it completely from new files</span></div>
+    <div><span class="k">named vol vs bind:</span><span class="v">named = Docker manages path; bind = you pick the host path</span></div>
+    <div><span class="k">unless-stopped</span><span class="v">best restart policy — survives daemon restart, respects manual stop</span></div>
+    <div><span class="k">service name = DNS:</span><span class="v">curl http://db:5432 works inside any container on the same network</span></div>
+    <div><span class="k">docker compose config</span><span class="v">prints the fully merged file — your first debugging step</span></div>
+    <div><span class="k">run --rm</span><span class="v">one-off task (migration, seed) — container is deleted on exit</span></div>
+  </div>
+</section>
+
+<footer>
+  Docker Compose cheat sheet · synthesized from dockerlabs.collabnix.com, devhints.io/docker-compose, devopscycle.com, gist/jonlabelle, helgeklein.com, and docs.docker.com/compose.<br>
+  Commands shown for Docker Compose V2 (the <code>docker compose</code> plugin, not the legacy <code>docker-compose</code> binary) · Compose spec 2.x+.
+</footer>
+
+</body>
+</html>

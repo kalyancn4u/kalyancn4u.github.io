@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CatBoost (Python) Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --data:#2563eb;   --data-bg:#eef2ff;
+    --cat:#db2777;    --cat-bg:#fdeef5;
+    --param:#d97706;  --param-bg:#fdf6ec;
+    --train:#059669;  --train-bg:#ecf7f2;
+    --eval:#7c3aed;   --eval-bg:#f3eefd;
+    --tune:#0891b2;   --tune-bg:#e6f6f9;
+    --util:#64748b;   --util-bg:#f1f3f6;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .cb{font-family:var(--mono); color:var(--cat)}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.data{background:var(--data)} .dot.cat{background:var(--cat)}
+  .dot.param{background:var(--param)} .dot.train{background:var(--train)}
+  .dot.eval{background:var(--eval)} .dot.tune{background:var(--tune)}
+  .dot.util{background:var(--util)} .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1180px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.data{border-left-color:var(--data)}
+  ul.cmds li.cat{border-left-color:var(--cat)}
+  ul.cmds li.param{border-left-color:var(--param)}
+  ul.cmds li.train{border-left-color:var(--train)}
+  ul.cmds li.eval{border-left-color:var(--eval)}
+  ul.cmds li.tune{border-left-color:var(--tune)}
+  ul.cmds li.util{border-left-color:var(--util)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .arg{color:var(--data); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-sig{
+    color:var(--cat); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · gradient boosting on decision trees</div>
+  <h1><span class="cb">CatBoost</span> cheat sheet</h1>
+  <p class="lede">CatBoost's whole pitch: hand it raw <b>categorical</b> and <b>text</b> columns as-is — no manual encoding — and it builds <b>symmetric (oblivious) trees</b> with built-in <b>ordered boosting</b> to avoid target leakage. Everything below moves through the same pipeline: raw data → <b>Pool</b> → train with an <b>overfitting detector</b> → best model → predict / explain / ship.</p>
+  <div class="legend">
+    <span><i class="dot data"></i>data &amp; pool</span>
+    <span><i class="dot cat"></i>categorical / text</span>
+    <span><i class="dot param"></i>core params</span>
+    <span><i class="dot train"></i>training</span>
+    <span><i class="dot eval"></i>predict &amp; explain</span>
+    <span><i class="dot tune"></i>tuning</span>
+    <span><i class="dot util"></i>utility</span>
+    <span><i class="dot danger"></i>watch out</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>catboost.ai/docs</b> (Python reference, training parameters, parameter tuning) · <b>github.com/catboost/catboost</b> · original NeurIPS 2018 CatBoost paper · <b>geeksforgeeks.org</b> · <b>coderzcolumn.com</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The pipeline &amp; the calls that move you through it</div>
+  <svg class="flow-svg" viewBox="0 0 1140 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the CatBoost pipeline from raw data through Pool, training with an overfitting detector, to a best model that predicts and exports.">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <!-- boxes -->
+    <g>
+      <rect x="15"  y="120" width="205" height="130" rx="12" fill="#eef2ff" stroke="#2563eb" stroke-width="2"/>
+      <text x="117" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Raw Data</text>
+      <text x="117" y="172" text-anchor="middle" font-size="11" fill="#2563eb">DataFrame / array / list</text>
+      <text x="117" y="205" text-anchor="middle" font-size="11" fill="#64748b">num + cat + text cols</text>
+      <text x="117" y="221" text-anchor="middle" font-size="11" fill="#64748b">no one-hot needed</text>
+    </g>
+    <g>
+      <rect x="300" y="120" width="205" height="130" rx="12" fill="#fdeef5" stroke="#db2777" stroke-width="2"/>
+      <text x="402" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Pool</text>
+      <text x="402" y="172" text-anchor="middle" font-size="11" fill="#db2777">cat_features=[...]</text>
+      <text x="402" y="205" text-anchor="middle" font-size="11" fill="#64748b">weight / group_id</text>
+      <text x="402" y="221" text-anchor="middle" font-size="11" fill="#64748b">text_features=[...]</text>
+    </g>
+    <g>
+      <rect x="585" y="120" width="210" height="130" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="690" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Train + OD</text>
+      <text x="690" y="172" text-anchor="middle" font-size="11" fill="#059669">model.fit(eval_set=...)</text>
+      <text x="690" y="205" text-anchor="middle" font-size="11" fill="#64748b">early_stopping_rounds</text>
+      <text x="690" y="221" text-anchor="middle" font-size="11" fill="#64748b">use_best_model=True</text>
+    </g>
+    <g>
+      <rect x="880" y="120" width="245" height="130" rx="12" fill="#f3eefd" stroke="#7c3aed" stroke-width="2"/>
+      <text x="1002" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Best Model</text>
+      <text x="1002" y="172" text-anchor="middle" font-size="11" fill="#7c3aed">predict / predict_proba</text>
+      <text x="1002" y="205" text-anchor="middle" font-size="11" fill="#64748b">SHAP · feature importance</text>
+      <text x="1002" y="221" text-anchor="middle" font-size="11" fill="#64748b">save_model(.cbm/.onnx)</text>
+    </g>
+
+    <!-- forward arrows (top) -->
+    <line x1="220" y1="150" x2="298" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="259" y="142" text-anchor="middle" font-size="11" font-weight="700" fill="#db2777">Pool(X, y,…)</text>
+
+    <line x1="505" y1="150" x2="583" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="544" y="142" text-anchor="middle" font-size="11" font-weight="700" fill="#059669">.fit()</text>
+
+    <line x1="795" y1="150" x2="878" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="836" y="142" text-anchor="middle" font-size="11" font-weight="700" fill="#7c3aed">best iter</text>
+
+    <!-- backward arrow: tuning loop -->
+    <line x1="795" y1="270" x2="220" y2="270" stroke="#0891b2" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+    <text x="507" y="288" text-anchor="middle" font-size="11" font-weight="600" fill="#0891b2">cv() / grid_search() / randomized_search() — retry with new params</text>
+
+    <!-- group labels -->
+    <text x="117" y="100" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">YOUR DATASET</text>
+    <text x="1002" y="100" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#7c3aed">DEPLOYABLE ARTIFACT</text>
+  </svg>
+</section>
+
+<main>
+
+  <!-- 01 INSTALL & IMPORT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; Import</span><span class="card-sub">get going</span></div>
+    <ul class="cmds">
+      <li class="util"><code class="cmd">pip install catboost</code><span class="star">★</span><div class="desc">CPU + GPU support ship in one package.</div></li>
+      <li class="util"><code class="cmd">from catboost import CatBoostClassifier</code><span class="star">★</span><div class="desc">Binary / multi-class classification.</div></li>
+      <li class="util"><code class="cmd">from catboost import CatBoostRegressor</code><span class="star">★</span><div class="desc">Regression tasks.</div></li>
+      <li class="util"><code class="cmd">from catboost import CatBoostRanker</code><div class="desc">Learning-to-rank (needs <span class="arg">group_id</span>).</div></li>
+      <li class="util"><code class="cmd">from catboost import Pool, cv</code><span class="star">★</span><div class="desc">Native data container + cross-validation.</div></li>
+      <li class="util"><code class="cmd">catboost.__version__</code><div class="desc">Check the installed version.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 BUILD A POOL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Build a Pool</span><span class="card-sub">the native dataset object</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">Pool(<span class="arg">X, y</span>, cat_features=<span class="arg">[...]</span>)</code><span class="star">★</span><div class="desc">Wraps features + labels + column roles.</div></li>
+      <li class="data"><code class="cmd">model.fit(<span class="arg">X, y</span>, cat_features=<span class="arg">[...]</span>)</code><span class="star">★</span><div class="desc"><b>fit() also accepts raw arrays/DataFrames directly</b> — a Pool isn't mandatory.</div></li>
+      <li class="data"><code class="cmd">Pool(<span class="arg">X, y</span>, weight=<span class="arg">w</span>)</code><div class="desc">Per-object sample weights.</div></li>
+      <li class="data"><code class="cmd">Pool(<span class="arg">X, y</span>, group_id=<span class="arg">g</span>)</code><div class="desc">Query/group ids for ranking losses.</div></li>
+      <li class="data"><code class="cmd">Pool(<span class="arg">X, y</span>, text_features=<span class="arg">[...]</span>)</code><div class="desc">Free-text columns get tokenized internally.</div></li>
+      <li class="data"><code class="cmd">pool.set_baseline(<span class="arg">preds</span>)</code><div class="desc">Warm-start from another model's predictions.</div></li>
+      <li class="data"><code class="cmd">pool.get_feature_names()</code><div class="desc">Inspect columns after loading.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 CATEGORICAL & TEXT — SIGNATURE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Categorical &amp; Text</span><span class="card-sub">CatBoost's signature feature</span></div>
+    <ul class="cmds">
+      <li class="cat"><code class="cmd">cat_features=<span class="arg">[idx, ...]</span></code><span class="star">★</span><span class="badge-sig">core</span><div class="desc">Indices or names. <b>Never one-hot these yourself.</b></div></li>
+      <li class="cat"><code class="cmd">one_hot_max_size=<span class="arg">2</span></code><div class="desc">Cardinality ≤ this → plain one-hot instead of stats.</div></li>
+      <li class="cat"><code class="cmd"># Ordered Target Statistics</code><span class="badge-sig">default</span><div class="desc">Encodes categories from <i>past</i> rows only — no leak.</div></li>
+      <li class="cat"><code class="cmd">max_ctr_complexity=<span class="arg">4</span></code><div class="desc">Max categorical columns combined into new CTR features.</div></li>
+      <li class="cat"><code class="cmd">text_features=<span class="arg">[...]</span></code><div class="desc">Free text → tokenizers + embeddings automatically.</div></li>
+      <li class="cat"><code class="cmd">has_time=<span class="arg">True</span></code><div class="desc">Keep row order (time series) instead of random permutation.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 CORE TRAINING PARAMS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Core Params</span><span class="card-sub">constructor arguments</span></div>
+    <ul class="cmds">
+      <li class="param"><code class="cmd">iterations=<span class="arg">1000</span></code><span class="star">★</span><div class="desc">Number of trees; alias <span class="arg">n_estimators</span>.</div></li>
+      <li class="param"><code class="cmd">learning_rate=<span class="arg">0.03</span></code><span class="star">★</span><div class="desc">Unset → auto-picked from dataset size &amp; iterations.</div></li>
+      <li class="param"><code class="cmd">depth=<span class="arg">6</span></code><span class="star">★</span><div class="desc">Oblivious tree depth; typical range 4–10.</div></li>
+      <li class="param"><code class="cmd">l2_leaf_reg=<span class="arg">3.0</span></code><div class="desc">L2 regularization on leaf values.</div></li>
+      <li class="param"><code class="cmd">loss_function=<span class="arg">'Logloss'</span></code><span class="star">★</span><div class="desc">Sets the task; see the reference card below.</div></li>
+      <li class="param"><code class="cmd">random_seed=<span class="arg">42</span></code><div class="desc">Reproducible splits &amp; permutations.</div></li>
+      <li class="param"><code class="cmd">random_strength=<span class="arg">1</span></code><div class="desc">Randomness added to split scores; guards overfitting.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 TRAIN -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Train the Model</span><span class="card-sub">scikit-learn-style API</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd">model = CatBoostClassifier(<span class="arg">**params</span>)</code><span class="star">★</span><div class="desc">Instantiate — no training happens yet.</div></li>
+      <li class="train"><code class="cmd">model.fit(<span class="arg">X, y</span>)</code><span class="star">★</span><div class="desc">Trains in place; returns the fitted model.</div></li>
+      <li class="train"><code class="cmd">model.fit(<span class="arg">train_pool</span>, eval_set=<span class="arg">val_pool</span>)</code><span class="star">★</span><div class="desc">Fit directly on Pool objects.</div></li>
+      <li class="train"><code class="cmd">model.fit(<span class="arg">X, y</span>, verbose=<span class="arg">100</span>)</code><div class="desc">Print metrics every N iterations.</div></li>
+      <li class="train"><code class="cmd">model.fit(<span class="arg">X, y</span>, plot=<span class="arg">True</span>)</code><div class="desc">Live training chart in Jupyter.</div></li>
+      <li class="train"><code class="cmd">CatBoostRanker(loss_function=<span class="arg">'YetiRank'</span>)</code><div class="desc">Learning-to-rank variant.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 OVERFITTING DETECTOR -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Overfitting Control</span><span class="card-sub">stop at the right iteration</span></div>
+    <ul class="cmds">
+      <li class="eval"><code class="cmd">eval_set=<span class="arg">(X_val, y_val)</span></code><span class="star">★</span><div class="desc">Validation data scored every iteration.</div></li>
+      <li class="eval"><code class="cmd">early_stopping_rounds=<span class="arg">50</span></code><span class="star">★</span><div class="desc">Stop if no improvement for N rounds.</div></li>
+      <li class="eval"><code class="cmd">use_best_model=<span class="arg">True</span></code><span class="star">★</span><div class="desc">Keep trees only up to the best iteration.</div></li>
+      <li class="danger"><code class="cmd">use_best_model=True</code><span class="badge-danger">needs eval_set</span><div class="desc">Silently ignored without an <span class="arg">eval_set</span>.</div></li>
+      <li class="eval"><code class="cmd">od_type=<span class="arg">'IncToDec'</span></code><div class="desc">Default detector algorithm; pair with <span class="arg">od_pval</span>.</div></li>
+      <li class="eval"><code class="cmd">model.get_best_iteration()</code><div class="desc">Which tree count the detector settled on.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 PREDICT & SCORE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Predict &amp; Score</span><span class="card-sub">use the trained model</span></div>
+    <ul class="cmds">
+      <li class="eval"><code class="cmd">model.predict(<span class="arg">X</span>)</code><span class="star">★</span><div class="desc">Class labels or regression values.</div></li>
+      <li class="eval"><code class="cmd">model.predict_proba(<span class="arg">X</span>)</code><span class="star">★</span><div class="desc">Class probabilities (classifier only).</div></li>
+      <li class="eval"><code class="cmd">model.predict(<span class="arg">X</span>, prediction_type=<span class="arg">'RawFormulaVal'</span>)</code><div class="desc">Raw score before sigmoid/softmax.</div></li>
+      <li class="eval"><code class="cmd">model.score(<span class="arg">X, y</span>)</code><div class="desc">Accuracy (clf) or R² (reg) shortcut.</div></li>
+      <li class="eval"><code class="cmd">model.eval_metrics(<span class="arg">pool</span>, [<span class="arg">'AUC'</span>])</code><div class="desc">Compute any metric post-hoc on a Pool.</div></li>
+      <li class="eval"><code class="cmd">model.get_best_score()</code><div class="desc">Best per-metric scores on eval_set.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 FEATURE IMPORTANCE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Explainability</span><span class="card-sub">feature importance &amp; SHAP</span></div>
+    <ul class="cmds">
+      <li class="eval"><code class="cmd">model.get_feature_importance()</code><span class="star">★</span><div class="desc">Default: PredictionValuesChange.</div></li>
+      <li class="eval"><code class="cmd">model.feature_importances_</code><div class="desc">Sklearn-style shortcut attribute.</div></li>
+      <li class="eval"><code class="cmd">get_feature_importance(type=<span class="arg">'ShapValues'</span>)</code><span class="star">★</span><div class="desc">Per-object, per-feature contributions.</div></li>
+      <li class="eval"><code class="cmd">get_feature_importance(type=<span class="arg">'LossFunctionChange'</span>)</code><div class="desc">Importance via metric degradation.</div></li>
+      <li class="eval"><code class="cmd">model.plot_tree(tree_idx=<span class="arg">0</span>)</code><div class="desc">Visualize a single oblivious tree.</div></li>
+      <li class="eval"><code class="cmd">model.select_features(<span class="arg">...</span>)</code><div class="desc">Built-in recursive feature elimination.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 TUNING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Cross-Validation &amp; Tuning</span><span class="card-sub">find good hyperparameters</span></div>
+    <ul class="cmds">
+      <li class="tune"><code class="cmd">cv(<span class="arg">pool</span>, params, fold_count=<span class="arg">5</span>)</code><span class="star">★</span><div class="desc">K-fold CV; returns per-iteration mean ± std.</div></li>
+      <li class="tune"><code class="cmd">model.grid_search(<span class="arg">param_grid</span>, X, y)</code><span class="star">★</span><div class="desc">Exhaustive search; auto-refits on the best combo.</div></li>
+      <li class="tune"><code class="cmd">model.randomized_search(<span class="arg">dists</span>, X, y, n_iter=<span class="arg">10</span>)</code><div class="desc">Sample a fixed number of settings instead.</div></li>
+      <li class="tune"><code class="cmd">grid_search(<span class="arg">...</span>, cv=<span class="arg">3</span>, plot=<span class="arg">True</span>)</code><div class="desc">Both searches accept a live Jupyter chart.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 GPU & PERFORMANCE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">GPU &amp; Performance</span><span class="card-sub">scale up training</span></div>
+    <ul class="cmds">
+      <li class="util"><code class="cmd">task_type=<span class="arg">'GPU'</span></code><span class="star">★</span><div class="desc">Switch the whole run to GPU.</div></li>
+      <li class="util"><code class="cmd">devices=<span class="arg">'0:1'</span></code><div class="desc">Pick specific GPU device ids.</div></li>
+      <li class="util"><code class="cmd">thread_count=<span class="arg">-1</span></code><div class="desc">Use all available CPU cores.</div></li>
+      <li class="util"><code class="cmd">border_count=<span class="arg">254</span></code><div class="desc">Splits per numeric feature — max quality on GPU.</div></li>
+      <li class="util"><code class="cmd">bootstrap_type=<span class="arg">'Bayesian'</span></code><div class="desc">How object weights are sampled each iteration.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 SAVE / LOAD / EXPORT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Save, Load &amp; Export</span><span class="card-sub">ship the model</span></div>
+    <ul class="cmds">
+      <li class="util"><code class="cmd">model.save_model(<span class="arg">'model.cbm'</span>)</code><span class="star">★</span><div class="desc">Native format — fastest save/load.</div></li>
+      <li class="util"><code class="cmd">model.load_model(<span class="arg">'model.cbm'</span>)</code><span class="star">★</span><div class="desc">Instantiate the class first, then load.</div></li>
+      <li class="util"><code class="cmd">model.save_model(<span class="arg">'m.onnx'</span>, format=<span class="arg">'onnx'</span>)</code><div class="desc">Cross-platform inference format.</div></li>
+      <li class="util"><code class="cmd">model.save_model(<span class="arg">'m.json'</span>, format=<span class="arg">'json'</span>)</code><div class="desc">Human-readable, for inspection/porting.</div></li>
+      <li class="util"><code class="cmd">save_model(<span class="arg">'m.mlmodel'</span>, format=<span class="arg">'coreml'</span>)</code><div class="desc">Apple CoreML, for iOS deployment.</div></li>
+    </ul>
+  </article>
+
+  <!-- REFER TO A LOSS FUNCTION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">★</span><span class="card-title">Choosing loss_function</span><span class="card-sub">picks the task for you</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">Logloss</code><div class="desc">Binary classification (target is 0/1).</div></li>
+      <li><code class="cmd">MultiClass</code><div class="desc">More than two target classes.</div></li>
+      <li><code class="cmd">RMSE · MAE · Quantile</code><div class="desc">Regression, by error shape wanted.</div></li>
+      <li><code class="cmd">YetiRank · PairLogit</code><div class="desc">Ranking — requires <span class="arg">group_id</span>.</div></li>
+      <li><code class="cmd">eval_metric='AUC'</code><div class="desc">Metric to watch can differ from the loss optimized.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>What makes CatBoost different</h2>
+  <p class="sub">Same boosting idea as XGBoost/LightGBM — four mechanisms give it its name and its edge on categorical data.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>Oblivious (symmetric) tree</h3>
+      <p>Every node at a given depth splits on the <b>same</b> feature &amp; threshold. Fast to evaluate, and acts as built-in regularization.</p>
+      <svg viewBox="0 0 390 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Oblivious tree: one split condition per level applied to every node at that level">
+        <g font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">
+          <line x1="195" y1="25" x2="90" y2="65" stroke="#059669" stroke-width="2"/>
+          <line x1="195" y1="25" x2="300" y2="65" stroke="#059669" stroke-width="2"/>
+          <rect x="150" y="10" width="90" height="26" rx="6" fill="#ecf7f2" stroke="#059669"/>
+          <text x="195" y="27" fill="#1a1d24">age &lt; 30 ?</text>
+
+          <line x1="90" y1="65" x2="30" y2="105" stroke="#0891b2" stroke-width="2"/>
+          <line x1="90" y1="65" x2="150" y2="105" stroke="#0891b2" stroke-width="2"/>
+          <line x1="300" y1="65" x2="240" y2="105" stroke="#0891b2" stroke-width="2"/>
+          <line x1="300" y1="65" x2="360" y2="105" stroke="#0891b2" stroke-width="2"/>
+          <rect x="42" y="52" width="96" height="26" rx="6" fill="#e6f6f9" stroke="#0891b2"/>
+          <text x="90" y="69" fill="#1a1d24">city = NY ?</text>
+          <rect x="252" y="52" width="96" height="26" rx="6" fill="#e6f6f9" stroke="#0891b2"/>
+          <text x="300" y="69" fill="#1a1d24">city = NY ?</text>
+          <text x="90" y="46" fill="#94a3b8" font-size="9">same condition →</text>
+          <text x="300" y="46" fill="#94a3b8" font-size="9">← same condition</text>
+
+          <circle cx="30" cy="118" r="14" fill="#7c3aed"/><text x="30" y="122" fill="#fff">L1</text>
+          <circle cx="150" cy="118" r="14" fill="#7c3aed"/><text x="150" y="122" fill="#fff">L2</text>
+          <circle cx="240" cy="118" r="14" fill="#7c3aed"/><text x="240" y="122" fill="#fff">L3</text>
+          <circle cx="360" cy="118" r="14" fill="#7c3aed"/><text x="360" y="122" fill="#fff">L4</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Ordered Target Statistics</h3>
+      <p>To encode a category, CatBoost uses the target of only <b>rows seen earlier</b> in a random permutation — never the row's own target, so there's no leakage.</p>
+      <svg viewBox="0 0 390 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ordered target statistics: each row's categorical encoding uses only the target values of earlier rows in a random permutation">
+        <g font-family="JetBrains Mono, monospace" font-size="10.5" text-anchor="middle">
+          <line x1="30" y1="70" x2="360" y2="70" stroke="#db2777" stroke-width="2"/>
+          <circle cx="30"  cy="70" r="15" fill="#db2777"/><text x="30"  y="74" fill="#fff">r1</text>
+          <circle cx="130" cy="70" r="15" fill="#db2777"/><text x="130" y="74" fill="#fff">r2</text>
+          <circle cx="230" cy="70" r="15" fill="#db2777"/><text x="230" y="74" fill="#fff">r3</text>
+          <circle cx="330" cy="70" r="16" fill="#1a1d24"/><text x="330" y="74" fill="#fff">r4</text>
+
+          <path d="M310,95 C260,120 150,120 55,90" fill="none" stroke="#64748b" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arrow2)"/>
+          <path d="M310,95 C280,115 200,118 145,90" fill="none" stroke="#64748b" stroke-width="1.4" stroke-dasharray="4 3"/>
+          <path d="M310,95 C300,110 270,112 245,90" fill="none" stroke="#64748b" stroke-width="1.4" stroke-dasharray="4 3"/>
+          <text x="195" y="132" fill="#64748b" font-size="9.5">r4's category → average target of r1, r2, r3 only</text>
+          <text x="330" y="30" fill="#1a1d24" font-size="9.5">encoding r4</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Ordered boosting</h3>
+      <p>Standard boosting reuses the same rows to fit trees and to evaluate them — a subtle bias. CatBoost trains on a permutation prefix and scores the <b>next unseen row</b> instead.</p>
+      <svg viewBox="0 0 390 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ordered boosting: model trained on a prefix of the permutation is used to score the next row, which was not part of training that step">
+        <g font-family="JetBrains Mono, monospace" font-size="10.5" text-anchor="middle">
+          <rect x="20" y="40" width="180" height="50" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+          <text x="110" y="60" fill="#1a1d24" font-size="11">model Mₖ trained on</text>
+          <text x="110" y="76" fill="#059669" font-size="11">rows 1 … k</text>
+          <line x1="200" y1="65" x2="260" y2="65" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow2)"/>
+          <text x="230" y="55" fill="#1a1d24" font-size="9.5">scores</text>
+          <rect x="262" y="40" width="108" height="50" rx="8" fill="#f3eefd" stroke="#7c3aed" stroke-width="2"/>
+          <text x="316" y="60" fill="#1a1d24" font-size="11">row k+1</text>
+          <text x="316" y="76" fill="#7c3aed" font-size="10">unbiased residual</text>
+          <text x="195" y="118" fill="#64748b" font-size="9.5">row k+1 only enters training at step k+1 — never scored by its own model</text>
+        </g>
+        <defs><marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker></defs>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Overfitting detector</h3>
+      <p>Eval-set loss is tracked every iteration; training halts once it stops improving for <span class="arg" style="color:var(--star)">od_wait</span> rounds, and only the trees up to the best point survive.</p>
+      <svg viewBox="0 0 390 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Overfitting detector: training loss keeps falling while validation loss dips then rises; the model stops at the best validation iteration">
+        <g font-family="JetBrains Mono, monospace" font-size="9.5">
+          <line x1="30" y1="125" x2="360" y2="125" stroke="#c9c4b8" stroke-width="1"/>
+          <path d="M30,110 C120,80 220,55 360,40" fill="none" stroke="#059669" stroke-width="2"/>
+          <text x="330" y="35" fill="#059669" text-anchor="end">train loss</text>
+          <path d="M30,115 C110,75 190,58 250,60 C300,63 330,90 355,110" fill="none" stroke="#7c3aed" stroke-width="2"/>
+          <text x="355" y="122" fill="#7c3aed" text-anchor="end">eval loss</text>
+          <line x1="250" y1="30" x2="250" y2="130" stroke="#dc2626" stroke-width="1.4" stroke-dasharray="4 3"/>
+          <circle cx="250" cy="60" r="4" fill="#dc2626"/>
+          <text x="250" y="20" fill="#dc2626" text-anchor="middle" font-weight="700">best_iteration</text>
+          <text x="303" y="100" fill="#94a3b8" text-anchor="middle" font-size="9">early stop →</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">cat_features ≠ one-hot</span><span class="v">never manually encode columns you list there</span></div>
+    <div><span class="k">Pool is optional</span><span class="v">fit() takes raw X, y directly for simple cases</span></div>
+    <div><span class="k">use_best_model</span><span class="v">silently ignored without an eval_set</span></div>
+    <div><span class="k">learning_rate=None</span><span class="v">auto-picked from iterations &amp; dataset size</span></div>
+    <div><span class="k">od_type IncToDec</span><span class="v">needs od_pval; 'Iter' just counts od_wait rounds</span></div>
+    <div><span class="k">symmetric trees</span><span class="v">fast &amp; regularized, less flexible than leaf-wise growth</span></div>
+    <div><span class="k">border_count=254</span><span class="v">best GPU quality; lower it to train faster</span></div>
+    <div><span class="k">.cbm is native</span><span class="v">use onnx/pmml/coreml only for cross-platform export</span></div>
+  </div>
+</section>
+
+<footer>
+  CatBoost (Python) cheat sheet · synthesized from the official references at <b>catboost.ai/docs</b> (Python API, training parameters, parameter tuning), the CatBoost GitHub repository, the original NeurIPS 2018 paper, GeeksforGeeks, and coderzcolumn.com.<br>
+  Commands shown for the current stable catboost PyPI release · scikit-learn-style estimator API (CatBoostClassifier / CatBoostRegressor / CatBoostRanker).
+</footer>
+
+</body>
+</html>

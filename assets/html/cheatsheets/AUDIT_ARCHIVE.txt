@@ -1,0 +1,1247 @@
+================================================================================
+AUDIT_ARCHIVE.txt  —  retired §6 audit notes (topics already built & shipped)
+Companion to instructions.txt. These per-topic ADD/EXTEND/UPDATE audit notes were
+moved out of instructions.txt §6 on 2026-08-26 once their builds shipped (rule 1.9).
+The realized changes are recorded in CHANGELOG.txt; these are the original audits.
+Order matches the original §6 (P1 core, then completed P2).
+================================================================================
+
+### python314  —  python314_cheatsheet_v4.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: CPython 3.14.5 (3.14.0 released 2025-10-07). Python: this IS the 3.14 sheet.
+Sources:
+  - https://docs.python.org/3.14/whatsnew/3.14.html
+Current coverage (summary): Already strong & current. Dedicated cards for t-strings
+  (PEP 750), deferred annotations (PEP 649/749, names annotationlib), free-threaded
+  (PEP 779), multiple interpreters (InterpreterPoolExecutor), except/finally changes
+  (PEP 758/765), plus a full language reference. Crucially it ALREADY notes the
+  incremental-GC reversion in 3.14.5 and mentions the opt-in tail-call interpreter.
+  Accuracy is in good shape — this is a low-severity, additive audit.
+ADD (missing, from official whatsnew):
+  - PEP 768 remote debugging: sys.remote_exec(); `python -m pdb -p PID`;
+    `python -m asyncio ps PID` / `pstree PID`. [not present at all]
+  - multiprocessing default start method now 'forkserver' on Unix (except macOS) —
+    a real behavior change worth a Pitfalls/Concurrency line. [not present]
+  - pathlib new methods: Path.copy(), copy_into(), move(), move_into(), and the
+    cached .info attribute. [not present]
+  - Built-ins: map(..., strict=True); float.from_number()/complex.from_number();
+    heapq max-heap fns heapify_max()/heappush_max()/heappop_max(); memoryview
+    subscription (memoryview[...] generic). [not present]
+  - http.server.HTTPSServer; os.readinto(). [minor, optional]
+EXTEND (present but thin):
+  - Name the module explicitly: compression.zstd (PEP 784) + that tarfile/zipfile/
+    shutil gained zstd support (sheet says "zstd" without the module path).
+  - Name concurrent.interpreters module alongside InterpreterPoolExecutor.
+  - REPL: note syntax highlighting is ON by default in 3.14, import auto-completion,
+    and _colorize.set_theme() (experimental).
+UPDATE / FIX:
+  - JIT/tail-call line claims "up to 40% faster" — official geomean for the tail-call
+    interpreter is ~3–5% (pyperformance); "up to 40%" is a single-benchmark outlier.
+    Reword to avoid overstating (e.g. "~5% geomean; opt-in --with-tail-call-interp").
+  - json: `python -m json.tool` soft-deprecated in favour of `python -m json` — verify
+    the sheet doesn't present json.tool as the only/preferred form.
+Notes for HTML edit phase: All additive — fold into existing "Stdlib & tooling polish"
+  and "Debugging & Profiling" cards; add remote-debug as 1–2 lis. No restyle. Keep the
+  3.14.5 GC caveat verbatim (it's correct and valuable).
+
+### pandas  —  pandas_cheatsheet_v1.html   (LATEST; next output -> _v2. per section 4)
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: pandas 3.0.5 (2026-07-22); 3.0.0 released 2026-01-21. Python: pandas 3.0
+  needs Python >=3.11; 3.12/3.13 fully supported (confirm 3.14 wheels before claiming).
+Sources:
+  - https://pandas.pydata.org/docs/whatsnew/v3.0.0.html
+  - https://pandas.pydata.org/docs/user_guide/migration-3-strings.html
+  - https://pandas.pydata.org/docs/user_guide/copy_on_write.html
+Current coverage (summary): Comprehensive & mostly current. Already uses modern offset
+  alias resample('ME'), mentions copy-on-write + chained assignment, has a "Nullable &
+  Arrow Dtypes" card and a "Performance & Gotchas" card. Good shape; targeted fixes.
+ADD (headline 3.0 changes, from official whatsnew):
+  - NEW DEFAULT str dtype: string columns now infer dtype 'str' (PyArrow-backed if
+    pyarrow installed, else object) instead of 'object' — 5–10x faster string ops,
+    can only hold strings, missing sentinel is NaN. This is THE user-facing 3.0 change
+    and the sheet does not show `dtype: str`. Add to "Nullable & Arrow Dtypes"/dtypes.
+  - Nullable dtypes: NaN now treated as NA by default (e.g. Float64 `ser/0` -> <NA>);
+    escape hatch `pd.option_context("future.distinguish_nan_and_na", True)`.
+  - Removed offset aliases (now hard errors, not just deprecated): M->ME, Q->QE, Y->YE,
+    BM->BME, SM->SME, BQ->BQE, BY->BYE. Worth a small mapping note.
+EXTEND (present but thin):
+  - Copy-on-Write: state it is now the DEFAULT and ONLY behavior in 3.0; the
+    `mode.copy_on_write` option is a no-op (removed in 4.0); SettingWithCopyWarning is
+    GONE; defensive .copy() no longer needed. (Sheet mentions CoW but verify it says
+    "default/only in 3.0", not "opt-in".)
+  - groupby idxmin()/idxmax() now raise ValueError on all-NA groups / skipna=False+NA.
+UPDATE / FIX:
+  - DataFrame.applymap was REMOVED in 3.0 -> use DataFrame.map (Series.map unchanged).
+    Sheet still contains `applymap` (1x) AND `df.map` (1x) — verify applymap is shown
+    as REMOVED/renamed, not as current API.
+  - Audit for any lingering single-letter time offsets ('M','Q','Y','H','T','S') in
+    date_range/resample/asfreq examples and convert to 'ME','QE','YE','h','min','s'.
+Notes for HTML edit phase: additive + a few corrections; no restyle. The str-dtype
+  default and applymap removal are the two must-fix items.
+
+### numpy  —  numpy_cheatsheet_v1.html   (LATEST; next output -> _v2. per section 4)
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: NumPy 2.4.x (stable in 2026; sheet references 2.0/2.2). Python: NumPy
+  2.x supports 3.11–3.13; free-threaded CPython supported from 2.1+ (verify 3.14).
+Sources:
+  - https://numpy.org/doc/2.3/release/2.3.0-notes.html
+  - https://numpy.org/doc/stable/release/2.4.0-notes.html
+Current coverage (summary): Excellent and already NumPy-2.x-clean. Uses the np.strings
+  namespace (14x), NO deprecated aliases present (np.float_/np.NaN/np.string_/np.core all
+  absent), has Copies-vs-Views, Performance & Gotchas, String Operations cards. Only a
+  light refresh needed.
+ADD (small, from 2.1–2.4 notes):
+  - np.trapezoid() is the replacement for the deprecated np.trapz() (deprecated since
+    2.0) — add/prefer trapezoid.
+  - np.unique(..., sorted=False) fast path (2.3 hash-table; can return in-found order).
+EXTEND:
+  - Performance card: note np.sort/np.argsort gained OpenMP parallelism (2.3, up to ~3.5x
+    on AVX2/AVX-512), and that NumPy supports free-threaded CPython (2.1+).
+  - StringDType (variable-width UTF-8, NEP 55): now generic re na_object, e.g.
+    StringDType(na_object=None). Mention in String Operations/dtypes if not already.
+UPDATE / FIX:
+  - Bump any "verified against NumPy 2.0/2.2" line to 2.4. Sanity-check no np.trapz,
+    np.in1d (use np.isin), np.row_stack (use np.vstack) linger as current API.
+Notes for HTML edit phase: minor/additive only; sheet is one of the healthiest audited.
+
+### polars  —  polars_cheatsheet_v1.html   (LATEST; next output -> _v2. per section 4)
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: Polars 1.x (current stable ~1.2x in 2026; sheet refs 1.0/1.1). Python 3.12+ ok.
+Sources:
+  - https://docs.pola.rs/user-guide/lazy/gpu/
+  - https://github.com/pola-rs/polars/pull/21589  (streaming sinks default)
+  - https://docs.pola.rs/  (API reference)
+Current coverage (summary): Very comprehensive & modern. Uses group_by (not groupby),
+  map_elements (not apply), lazy scan_*/sink_*, selectors, SQL interface, streaming sinks,
+  window ops, expression contexts. Already has collect(engine='streaming').
+ADD:
+  - GPU engine: collect(engine="gpu") / collect(engine=pl.GPUEngine(...)) via cudf-polars
+    (open beta; streaming GPU executor for larger-than-VRAM). Add a Performance line.
+EXTEND:
+  - Note the new streaming engine is now default for memory sinks and is slated to become
+    the overall default; frame engine="streaming" as the forward path.
+UPDATE / FIX:
+  - Sheet still contains ONE legacy `collect(streaming=True)` (1x) alongside the modern
+    `collect(engine='streaming')`. Replace the deprecated streaming=True form.
+  - Minor: one lingering `Utf8` reference — prefer pl.String (Utf8 is the old alias).
+Notes for HTML edit phase: 1 must-fix (streaming=True), rest additive. No restyle.
+
+### pytorch  —  pytorch_cheatsheet_v1.html   (LATEST; next output -> _v2. per section 4)
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: PyTorch 2.13 (stable in 2026; sheet references 2.0/2.1 — ~stale by
+  several releases). Python: 3.12/3.13 supported; 3.14/3.15 wheels exist by 2.13.
+Sources:
+  - https://pytorch.org/blog/pytorch-2-7/  (Blackwell, Mega Cache, FlexAttention)
+  - https://github.com/pytorch/pytorch/releases  (2.12/2.13 notes)
+  - https://docs.pytorch.org/docs/stable/  (torch.accelerator, torch.func, FSDP2)
+Current coverage (summary): Broad & well-built (tensors, autograd, nn, training loop,
+  torch.compile, torch.export, DDP/FSDP, inference_mode, transforms v2, TVTensors,
+  torchaudio). Main issue is version staleness + a few post-2.1 APIs missing.
+ADD (post-2.1, from official releases):
+  - torch.accelerator device-agnostic API: torch.accelerator.is_available() /
+    current_accelerator() — write device-agnostic code across cuda/xpu/mps.
+  - torch.func functional API (vmap, grad, functional_call, jacrev/hessian) — this is
+    the replacement for the now-removed functorch; sheet has neither (add a small card/lis).
+  - FSDP2: torch.distributed.fsdp.fully_shard (supersedes FSDP1 wrapper); better/
+    deterministic memory, comm overlap, float8 support. Sheet only has FSDP(1x).
+  - FlexAttention (torch.nn.attention.flex_attention) alongside existing
+    scaled_dot_product_attention; nn.LinearCrossEntropyLoss (fused, 2.13).
+EXTEND:
+  - torch.compile: mention Mega Cache (portable/warm compile cache) and regional
+    compilation; keep inductor backend note.
+  - torch.export -> AOTInductor packaging as the ship/deploy path (sheet has export 2x).
+UPDATE / FIX:
+  - Bump all "2.0/2.1" version references to 2.13; refresh Install & verify card
+    (CUDA 12.8 wheels, Blackwell support, ROCm/XPU/Arm availability).
+  - Remove any functorch references if present (removed) -> torch.func.
+Notes for HTML edit phase: this one needs a genuine version refresh, not just additions.
+  Highest-effort P1 audited so far. No restyle.
+
+### tensorflow  —  tensorflow_cheatsheet_v1.html   (LATEST; next output -> _v2. per section 4)
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: TensorFlow 2.21 (2026-03; sheet references 2.16). Python: 3.9 support
+  removed in 2.21; supports 3.10–3.13 (verify 3.14). 3.12 fine.
+Sources:
+  - https://github.com/tensorflow/tensorflow/releases
+  - https://ai.google.dev/edge/litert/migration
+  - https://blog.tensorflow.org/2024/03/whats-new-in-tensorflow-216.html
+Current coverage (summary): Architecturally current — built around Keras 3 (30x),
+  keras.ops, KerasHub, LiteRT rebrand, LoRA/QLoRA, jax backend, tf.data, GradientTape,
+  custom training loops. Content is modern; mainly a version + LiteRT-API refresh.
+UPDATE / FIX (important):
+  - Bump version references 2.16 -> 2.21 (install & verify card, "Where it stands").
+  - LiteRT API move: tf.lite.Interpreter was DEPRECATED in 2.19 and DELETED in 2.20 ->
+    use ai_edge_litert.interpreter (pip install ai-edge-litert). Sheet still shows
+    tf.lite (4x) — correct these to the LiteRT/ai-edge-litert path.
+  - tf.estimator was REMOVED from 2.16+ (last shipped in 2.15). Verify the 4 estimator
+    mentions are framed as removed/migration-only, not current API.
+EXTEND:
+  - Note Keras 2 lives on only as the tf-keras package (TF_USE_LEGACY_KERAS=1) for legacy.
+  - Confirm keras.saving .keras format is presented as the default save format (not h5).
+ADD (optional):
+  - Multi-backend note: Keras 3 runs on TF / JAX / PyTorch backends (KERAS_BACKEND env).
+Notes for HTML edit phase: version refresh + LiteRT correction are the must-fixes;
+  architecture already right. No restyle.
+
+### keras  —  keras_cheatsheet_v1.html   (LATEST; next output -> _v2. per section 4)
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: Keras 3.x (current ~3.11 in 2026; sheet references 3.6). Python 3.12+ ok.
+Sources:
+  - https://github.com/keras-team/keras/releases
+  - https://keras.io/keras_3/
+Current coverage (summary): Excellent, Keras-3-native. Multi-backend (jax/torch/tf),
+  keras.ops, KERAS_BACKEND switch, .keras format, KerasHub, LoRA/quantization, KerasTuner,
+  distribution API, per-backend training sections, Keras 2->3 migration. Very healthy.
+ADD:
+  - 4th backend: OpenVINO (inference-only), introduced in Keras 3.8 — set
+    KERAS_BACKEND=openvino; runs KerasHub models (MobileNet, BERT) for fast CPU inference.
+    Sheet currently lists only jax/torch/tf; add OpenVINO to "the backend switch".
+EXTEND:
+  - keras.ops has grown large (linalg/NaN-aware/segment ops etc.) — a one-line "parity
+    across backends incl. OpenVINO" note is enough.
+UPDATE / FIX:
+  - Bump 3.6 -> current 3.11 in install/verify + "Where it stands".
+Notes for HTML edit phase: light/additive; OpenVINO backend is the one real addition.
+
+### scikit_learn  —  scikit_learn_cheatsheet_v1.html   (LATEST; next output -> _v2. per section 4)
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: scikit-learn 1.9 (2026-06 — the current release). Python 3.12+ ok.
+Sources:
+  - https://scikit-learn.org/stable/whats_new/v1.8.html  (Array API / GPU)
+  - https://scikit-learn.org/stable/whats_new/v1.9.html  (callback API)
+Current coverage (summary): The healthiest sheet audited. Already has "Version Highlights
+  1.3 -> 1.9", Metadata Routing, DataFrame-in/out (set_output pandas+polars),
+  TunedThresholdClassifier, TargetEncoder, HistGradientBoosting, Display API, and a
+  "Performance, GPU & Callbacks" card. Essentially current.
+VERIFY (rather than add) — confirm these 1.8/1.9 items are present & correct:
+  - Array API / GPU (1.8): passing PyTorch tensors / CuPy arrays runs on GPU when
+    set_config(array_api_dispatch=True); estimators incl. StandardScaler, RidgeCV,
+    GaussianMixture, CalibratedClassifierCV, PolynomialFeatures.
+  - Callback API (1.9): sklearn.callback.ProgressBar and sklearn.callback.ScoringMonitor.
+  - L1 solvers (ElasticNet/Lasso + CV) fit-time speedups via gap-safe screening (1.8).
+ADD (only if missing after verify): the two named callbacks above; array_api_dispatch flag.
+UPDATE / FIX: ensure target line reads 1.9 (not 1.7). Otherwise nothing outdated found.
+Notes for HTML edit phase: near-zero work expected; mostly a verification pass. No restyle.
+
+### scipy  —  scipy_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: SciPy 1.18.0 (2026-06-19 — the current release). Python 3.12+ ok.
+Sources:
+  - https://scipy.org/news/
+  - https://docs.scipy.org/doc/scipy/  (release notes)
+Current coverage (summary): Bang current. Already references 1.18 (10x) and 1.15+
+  features: new distribution infrastructure (scipy.stats make_distribution / the new
+  random-variable protocol), black-box derivatives (scipy.differentiate), solve_ivp,
+  QMC sampling, resampling tests. Nothing outdated found.
+VERIFY: confirm the "New distribution infrastructure (1.15+)" card names the current
+  scipy.stats infrastructure and that examples import as the docs do.
+ADD/EXTEND/UPDATE: none material. Just ensure the target-version line says 1.18.
+Notes for HTML edit phase: essentially complete; verification only. No restyle.
+
+### matplotlib  —  matplotlib_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: Matplotlib 3.11.1 (2026-07). Python 3.12+ ok.
+Sources:
+  - https://matplotlib.org/stable/users/explain/axes/constrainedlayout_guide.html
+  - https://matplotlib.org/stable/api/  (colormaps, deprecations)
+Current coverage (summary): Solid, mostly timeless (stable API). Covers both interfaces,
+  colormaps/colorbar, subplots/layout, 3-D/polar, pandas integration, fmt string. No
+  version references anywhere.
+ADD / EXTEND:
+  - Modern figure layout: plt.subplots(layout="constrained") (and layout="compressed")
+    as the recommended replacement for tight_layout(); sheet uses tight_layout (2x),
+    constrained_layout (0). Note default is still off, but 'constrained' is preferred.
+  - Modern colormap access: matplotlib.colormaps["viridis"] and
+    matplotlib.colormaps.get_cmap(...) (the old cm.get_cmap / plt.cm.register_cmap paths
+    are deprecated/removed). Add to "Colormaps & Colorbar".
+UPDATE / FIX:
+  - Add a small "verified against Matplotlib 3.11" note (currently versionless).
+  - Sanity-check no removed APIs linger (register_cmap, epoch2num-era helpers, plt.hold).
+Notes for HTML edit phase: two genuine additions (constrained layout, colormaps[]).
+  Low overall effort. No restyle.
+
+### fastapi  —  fastapi_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: FastAPI 0.141.x (2026-07). Python 3.12+ ok (FastAPI needs 3.8+).
+Sources:
+  - https://fastapi.tiangolo.com/  (tutorial — Annotated is the documented default)
+  - https://pypi.org/project/fastapi/
+Current coverage (summary): Modern surface — uses lifespan (not on_event), Depends,
+  response_model, APIRouter, WebSockets, BackgroundTasks, OAuth2/JWT, CORS, ML inference
+  endpoint. Structurally current.
+UPDATE / FIX (important idiom):
+  - The sheet uses ZERO Annotated[...] (0 occurrences). Modern FastAPI documents the
+    Annotated pattern as the DEFAULT for params & dependencies:
+      q: Annotated[str | None, Query(default=None)]
+      user: Annotated[User, Depends(get_current_user)]
+      DbSession = Annotated[Session, Depends(get_db)]  # reusable dependency alias
+    Rework Path/Query/Body/Depends examples to the Annotated form (keep old form as a
+    one-line "legacy default-value style" note). This is the single biggest fix.
+ADD (optional):
+  - Reusable dependency type-aliases via Annotated; note app.frontend dependency (0.139+).
+EXTEND:
+  - Ensure lifespan example uses @asynccontextmanager + app=FastAPI(lifespan=...).
+Notes for HTML edit phase: the Annotated modernization is the must-do. No restyle.
+
+### pydantic  —  pydantic_cheatsheet_v1.html   (LATEST; next output -> _v2. per section 4)
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: Pydantic 2.12.x (2026); sheet already targets v2. Python 3.12+ ok.
+Sources:
+  - https://docs.pydantic.dev/latest/changelog/
+  - https://pydantic.dev/articles/pydantic-v2-11-release
+Current coverage (summary): Fully v2 and thorough — field_validator/model_validator,
+  ConfigDict, model_dump, Field(), computed_field, TypeAdapter, RootModel, Annotated
+  validators, discriminated unions, pydantic-settings, and a v1->v2 migration card.
+  One of the healthiest sheets.
+VERIFY / minor:
+  - Confirm the 4x `class Config` and 2x `@validator` appear ONLY in the v1->v2 migration
+    card (as legacy), never as current API.
+EXTEND (small):
+  - Note 2.11 schema-build/validation performance improvements and FieldInfo.asdict()
+    (2.12) if a "what's new" line exists.
+UPDATE / FIX:
+  - Bump target line to 2.12. Nothing outdated found.
+Notes for HTML edit phase: near-complete; verification + version bump. No restyle.
+
+### sqlalchemy  —  sqlalchemy_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: SQLAlchemy 2.0.52 (stable, 2026-08); 2.1.0 imminent (2.1.0b3 2026-06).
+  Python 3.12+ ok; free-threaded wheels now published.
+Sources:
+  - https://docs.sqlalchemy.org/en/20/
+  - https://www.sqlalchemy.org/blog/2026/06/27/sqlalchemy-2.1.0b3-released/
+Current coverage (summary): Fully 2.0-native and excellent — Mapped/mapped_column,
+  DeclarativeBase, select() builder (35x), scalars()/execute() 2.0 style, AsyncSession,
+  loading strategies, plus "New in 2.1" and "Legacy -> Modern" cards. Very healthy.
+UPDATE / FIX (install change — VERSION-ATTRIBUTED after validation):
+  - [CONFIRMED] The "greenlet no longer installs by default" change is SQLAlchemy 2.1
+    (in beta as of this audit), NOT 2.0.x. In 2.0.52 (current stable / the sheet's target)
+    greenlet IS still bundled and async works out of the box. So: for a 2.0-targeted sheet,
+    present `pip install "sqlalchemy[asyncio]"` as the FORWARD-COMPATIBLE / 2.1 install
+    (and note it's harmless on 2.0), NOT as a current-2.0 requirement. Do NOT tell 2.0 users
+    async is broken without the extra — it isn't.
+EXTEND (2.1, for the existing "New in 2.1" card):
+  - ORM row fetching returns plain tuples (3–16% faster loads); selectinload applies
+    omit_join automatically for non-self-referential many-to-many.
+  - Free-threaded CPython wheels supported (2.0 & 2.1 series).
+VERIFY: the single session.query (1x) and declarative_base (2x) appear only in the
+  Legacy->Modern card, not as current API.
+UPDATE: bump target line to 2.0.52 (note 2.1 imminent).
+Notes for HTML edit phase: one must-fix (sqlalchemy[asyncio] install), rest additive.
+
+### django  —  django_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: Django 6.0.6 (2026) + 5.2 LTS. Sheet references 6.0 and 5.1. Python: Django
+  6.0 requires Python 3.12+ (good fit).
+Sources:
+  - https://docs.djangoproject.com/en/6.0/releases/6.0/
+Current coverage (summary): Solid core (models, migrations, ORM read/write/aggregate, FBV
+  & CBV, forms, admin, auth, testing). Already 6.0-aware.
+ADD / EXTEND (Django 6.0 headline features — verify then add):
+  - Background Tasks framework (django.tasks / Tasks API) — new in 6.0.
+  - Content Security Policy (CSP) support built into django.middleware.
+  - Template partials support.
+UPDATE / FIX:
+  - Note the current LTS is 5.2 (not 5.1); frame 6.0 as current feature release.
+Notes for HTML edit phase: add a small "New in Django 6.0" set; otherwise current.
+
+### flask  —  flask_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: Flask 3.1.3 (2026-02). Sheet has NO version reference. Python 3.12+ ok.
+Sources:
+  - https://flask.palletsprojects.com/en/stable/changes/
+Current coverage (summary): Complete for core Flask (app, config, routing, request,
+  responses, Jinja2, sessions, blueprints, SQLAlchemy, migrations, login). Timeless-ish.
+ADD / EXTEND (Flask 3.1):
+  - TRUSTED_HOSTS config (host validation); SESSION_COOKIE_PARTITIONED (CHIPS);
+    Request.max_form_memory_size / max_content_length defaults. Add to Common Config Keys.
+UPDATE / FIX:
+  - Add "verified against Flask 3.1" note (currently versionless). Nothing outdated.
+Notes for HTML edit phase: add version + a few 3.1 config keys. Low effort.
+
+### requests  —  requests_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: requests 2.33.x (sheet already says 2.33.1 — correct/current). Python 3.12+ ok.
+Sources:
+  - https://requests.readthedocs.io/en/latest/community/updates/
+Current coverage (summary): Comprehensive & current — verbs, params/body, Response,
+  raise_for_status, JSON, cookies, redirects, timeouts, Session, auth, retries/adapters,
+  streaming, uploads, TLS/proxies, prepared requests & hooks. Nothing outdated.
+ADD/EXTEND/UPDATE: none material. Optionally cross-reference httpx for HTTP/2 & async
+  (requests remains sync/HTTP-1.1 only). Version line already correct.
+Notes for HTML edit phase: essentially complete; no changes required beyond a sanity read.
+
+### httpx  —  httpx_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: httpx 0.28.1 (current stable; sheet correct). httpx 1.0 in PRERELEASE
+  (1.0.dev4, 2026-08). Python 3.12+ ok.
+Sources:
+  - https://www.python-httpx.org/  ;  https://pypi.org/project/httpx/
+Current coverage (summary): Excellent — sync Client + AsyncClient, HTTP/2, transports/
+  retries, streaming, auth, timeouts, proxies/TLS, is_* helpers. Modern.
+VERIFY / UPDATE:
+  - Confirm proxy config uses singular proxy=/mounts (the old proxies= dict was removed in
+    0.28); flag any lingering proxies= usage.
+  - Add a one-line "httpx 1.0 is imminent (prerelease)" heads-up; API is largely stable.
+Notes for HTML edit phase: verification + a 1.0 heads-up; near-complete.
+
+### pytest  —  pytest_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: pytest 9.1.1 (2026-06 — EXACTLY current; sheet already says 9.1.1). Python 3.12+ ok.
+Sources:
+  - https://docs.pytest.org/en/stable/announce/release-9.0.0.html
+Current coverage (summary): Bang current — has "New in pytest 9" and "Gone or Going"
+  cards, full fixtures/marks/parametrize/skip-xfail, every built-in fixture, config,
+  plugins. One of the most up-to-date sheets.
+ADD/EXTEND/UPDATE: none material. Just confirm the "New in pytest 9" card matches the
+  9.0 release notes (breaking changes + new features) and 9.1 typing improvements.
+Notes for HTML edit phase: complete; verification only.
+
+### pyspark  —  pyspark_cheatsheet_v1.html   (LATEST; next output -> _v2. per section 4)
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): pyspark_cheatsheet_v3.html
+Target version: PySpark 4.2.0 (2026-07; Spark 4.x). Python 3.12+ ok. Sheet has NO version ref.
+Sources:
+  - https://spark.apache.org/releases/spark-release-4-0-0.html
+  - https://spark.apache.org/docs/latest/api/python/
+Current coverage (summary): Very comprehensive (DataFrame ops, SQL, window, streaming,
+  pandas UDFs / applyInPandas / mapInPandas, MLlib pipeline). But written pre-Spark-4:
+  connect mentioned only 2x, no VariantType, no version stamp.
+ADD (Spark 4.0/4.x headline features):
+  - Spark Connect (GA in 4.0): SparkSession.builder.remote("sc://host:15002"); the thin
+    client `pip install pyspark-connect` / pyspark-client (~1.5MB). Add a Setup card line.
+  - [CONFIRMED] VARIANT data type (VariantType) for semi-structured JSON; parse_json().
+  - [CONFIRMED] Python UDTF (@udtf table functions); string collations (COLLATE);
+    SQL UDFs; session variables; SQL scripting; pipe syntax (|>).
+  - ANSI SQL mode is ON by default in Spark 4 — note the behavior change (errors on overflow/
+    bad casts) and how to relax (spark.sql.ansi.enabled).
+UPDATE / FIX:
+  - Stamp "verified against Spark/PySpark 4.2". Confirm no Spark 2.x-isms
+    (e.g. sqlContext, RDD-first framing) presented as current.
+Notes for HTML edit phase: real content additions (Spark Connect + VARIANT + ANSI default).
+
+### dask  —  dask_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): dask_cheatsheet_v2.html
+Target version: Dask 2026.7.x (CalVer; sheet already says "Dask ~= 2026.7"). Python 3.12+ ok.
+Sources:
+  - https://docs.dask.org/en/stable/changelog.html
+Current coverage (summary): Good spread (collections chooser, DataFrame/Array/Bag/Delayed,
+  scheduler, futures, partitions, diagnostics). Version already current.
+ADD / EXTEND / VERIFY:
+  - Confirm the new query-planning engine (dask-expr) is presented as the DEFAULT for
+    dask.dataframe (it became default in the 2024/2025 line) — mention df.optimize()/
+    query planning and that legacy graph-based DataFrame is gone.
+UPDATE / FIX: none material; version already current.
+Notes for HTML edit phase: light; mainly the dask-expr default confirmation.
+
+### dask_distributed  —  dask_distributed_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): dask_distributed_cheatsheet_v2.html
+Target version: distributed 2026.7.x (tracks Dask CalVer). Python 3.12+ ok.
+Sources:
+  - https://distributed.dask.org/en/stable/changelog.html
+Current coverage (summary): Solid (Client/cluster, futures submit/collect, memory, placement,
+  locks/events, shared state, diagnostics/dashboard). Architecturally stable.
+ADD/EXTEND/UPDATE: minimal. Optionally stamp CalVer 2026.7 and confirm dashboard URL/port
+  and LocalCluster kwargs match current API. Nothing outdated.
+Notes for HTML edit phase: near-complete; version stamp + sanity read.
+
+### pyarrow  —  pyarrow_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): pyarrow_cheatsheet_v2.html
+Target version: PyArrow 25.0.1 (2026-07). Sheet says "PyArrow ~= 25" — CORRECT/current. Py 3.12+ ok.
+Sources:
+  - https://arrow.apache.org/docs/python/  ;  https://pypi.org/project/pyarrow/
+Current coverage (summary): Well-scoped (data model, arrays/tables, types/schema, compute
+  filter/aggregate/transform, joins, Parquet, CSV/Feather/IPC, Datasets, filesystems,
+  pandas/numpy interop). Version stamp already right.
+ADD/EXTEND/UPDATE: minimal. Optionally note Arrow's role as pandas 3.0 default string
+  backend and the acero-based streaming Dataset API. Nothing outdated found.
+Notes for HTML edit phase: essentially complete; verification only.
+
+### mlflow  —  mlflow_cheatsheet_v2.html   (LATEST, underscore; next output -> _v3. per section 4)
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7, HYPHEN style): mlflow_cheatsheet-v3.html
+Target version: MLflow 3.15.1 (latest 3.x, 2026). Sheet says 3.14.0 — very close. Py 3.12+ ok.
+Sources:
+  - https://mlflow.org/releases  ;  https://github.com/mlflow/mlflow/releases
+Current coverage (summary): Excellent and modern MLflow 3 — GenAI evaluation, tracing
+  (spans, LLM judges/scorers), Model Registry with ALIASES (not stages), autolog, pyfunc,
+  signatures, serving. Bang up to date.
+UPDATE / FIX:
+  - Bump 3.14.0 -> 3.15.1. Confirm any 3.15 additions (patch-level; likely none major).
+ADD/EXTEND: minimal. Sheet already captures the MLflow 3 GenAI/tracing shift correctly.
+Notes for HTML edit phase: version bump; otherwise complete. One of the healthiest P2 sheets.
+
+### xgboost  —  xgboost_cheatsheet_v2.html   (LATEST; next output -> _v3. per section 4)
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): xgboost_cheatsheet_v4.html
+Target version: XGBoost 3.3.0 (2026; sheet says ~=3.2). Python 3.12+ ok.
+Sources: https://xgboost.readthedocs.io/en/stable/changes/index.html
+Current coverage (summary): Comprehensive & 3.x-native — QuantileDMatrix, external memory
+  (terabyte-scale), mature categorical support, device/tree_method, multi-target & vector
+  leaf, monotone/interaction constraints, DART, custom obj/metric, CV. Excellent.
+UPDATE: bump ~=3.2 -> 3.3.0. Confirm tree_method='hist' + device='cuda' is the shown GPU
+  idiom (the old gpu_hist is removed). ADD/EXTEND: minimal.
+Notes for HTML edit phase: version bump + GPU-idiom check; otherwise complete.
+
+### lightgbm  —  lightgbm_cheatsheet_v1.html   (LATEST; next output -> _v2. per section 4)
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): lightgbm_cheatsheet_v3.html
+Target version: LightGBM 4.6.0 (2026). Sheet has NO version ref. Python 3.12+ ok.
+Sources: https://github.com/microsoft/LightGBM/releases
+Current coverage (summary): Very complete — Booster + sklearn APIs, DART, linear trees,
+  categorical, callbacks/early stopping, custom obj/metric, Dask distributed, importance,
+  production persist, reproducibility. Healthy.
+UPDATE: add "verified against LightGBM 4.6" stamp. Confirm device_type='gpu'/'cuda'
+  wording current. ADD/EXTEND: minimal.
+Notes for HTML edit phase: add version stamp; otherwise complete.
+
+### catboost  —  catboost_cheatsheet_v2.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): catboost_cheatsheet_v3.html
+Target version: CatBoost 1.2.10 (2026). Sheet has NO version ref. Python 3.12+ ok.
+Sources: https://github.com/catboost/catboost/releases
+Current coverage (summary): Thorough — Pool, categorical & text, growth/boosting schemes,
+  imbalance, snapshot/resume, uncertainty estimation, explainability (SHAP), CV/tuning,
+  GPU, export, custom obj/metric. Healthy.
+UPDATE: add "verified against CatBoost 1.2.10" stamp. ADD/EXTEND: minimal.
+Notes for HTML edit phase: add version stamp; otherwise complete.
+
+### optuna  —  optuna_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): optuna_cheatsheet_v2.html
+Target version: Optuna 4.9.x (sheet says ~=4.9 / 4.9.0 — CURRENT). Python 3.12+ ok.
+Sources: https://github.com/optuna/optuna/releases
+Current coverage (summary): Excellent & current — define-by-run, samplers (TPE/CMA-ES/
+  GP/NSGA), pruners, ask-and-tell, multi-objective, warm-starts, storage/parallel,
+  visualization, importance, OptunaHub integrations, dashboard/CLI. Version already right.
+ADD/EXTEND/UPDATE: none material. Optionally confirm OptunaHub (registry for samplers/
+  pruners) is named in Integrations. Nothing outdated.
+Notes for HTML edit phase: essentially complete; verification only.
+
+### streamlit  —  streamlit_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): streamlit_cheatsheet_v2.html
+Target version: Streamlit 1.61 (2026-08; sheet references ~1.4x — STALE). Python 3.12+ ok.
+Sources: https://docs.streamlit.io/develop/quick-reference/release-notes
+Current coverage (summary): Modern API surface — st.fragment, st.dialog, st.rerun (not
+  experimental_rerun), st.data_editor, st.chat_*, st.connection, st.navigation/st.Page,
+  st.write_stream, cache_data/cache_resource. No experimental_* leftovers. Good.
+UPDATE / FIX:
+  - Bump version 1.4x -> 1.61 (the stamp is the main stale item).
+EXTEND (small):
+  - st.column_config (0 uses) — column configuration API for st.dataframe/data_editor;
+    add a few entries. Note st.dataframe lazy loading (1.61) and that st.navigation/st.Page
+    is the current multipage approach (vs the old pages/ folder).
+Notes for HTML edit phase: mostly a version bump; add column_config. No restyle.
+
+### plotly  —  plotly_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): plotly_cheatsheet_v2.html
+Target version: Plotly 6.7.0 (2026-04). Sheet has NO version ref. Python 3.12+ ok.
+Sources: https://plotly.com/python/v6-migration/  ; https://github.com/plotly/plotly.py/releases
+Current coverage (summary): Solid (Express + Graph Objects, trace zoo, subplots, layout/
+  templates, interactivity, export, express-vs-GO). Structurally fine.
+ADD / EXTEND (Plotly 6):
+  - Narwhals-native dataframe support: Plotly Express now accepts pandas / polars / pyarrow
+    (any Narwhals-compatible frame) directly — worth a Setup/Express note.
+  - Kaleido v1 is the current static-image export path (fig.write_image).
+UPDATE / FIX:
+  - Add "verified against Plotly 6.7" stamp. Remove any orca references (orca is dead -> kaleido).
+Notes for HTML edit phase: add version + Narwhals note; check export card for orca.
+
+### seaborn  —  seaborn_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): seaborn_cheatsheet_v2.html
+Target version: seaborn 0.13.2 (still current; no 0.14 — library is dormant). Python 3.12+ ok.
+Sources: https://seaborn.pydata.org/whatsnew/index.html
+Current coverage (summary): Complete & current — relational/distribution/categorical/
+  regression/matrix, multi-grids, palettes, the seaborn.objects interface, figure- vs
+  axes-level. Matches 0.13 (objects API is the newest thing seaborn has).
+ADD/EXTEND/UPDATE: none material. Add "verified against seaborn 0.13.2" stamp.
+Notes for HTML edit phase: complete; version stamp only.
+
+### docker  —  docker_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): docker_cheatsheet_v2.html
+Target version: Docker Engine/CLI 27–28 era (2026). CLI commands are stable. Not Python.
+Sources: https://docs.docker.com/reference/cli/docker/
+Current coverage (summary): Standard CLI map (build/run/inspect/rm, registry, volumes,
+  networks, compose pointer, system prune). Stable and correct.
+ADD/EXTEND (optional): `docker init` (scaffold), `docker scout` (CVE scan), `docker debug`,
+  and that `docker build` uses BuildKit/buildx by default. UPDATE: none material.
+Notes for HTML edit phase: near-complete; a couple of modern subcommands at most.
+
+### docker_compose  —  docker_compose_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): docker_compose_cheatsheet_v2.html
+Target version: Compose v2 (docker compose plugin, 2026). Not Python.
+Sources: https://docs.docker.com/compose/  ; https://docs.docker.com/reference/compose-file/
+Current coverage (summary): Good — mostly modern `docker compose` (37x), file anatomy,
+  ports/env/volumes/networks, depends_on, healthchecks, restart, entrypoint.
+UPDATE / FIX:
+  - The top-level `version:` key is OBSOLETE in the Compose Spec (ignored, warns). Sheet
+    still shows `version:` (3x) — mark it as obsolete/remove.
+  - Frame `docker-compose` (hyphen, v1, EOL) usages (4x) as legacy only.
+ADD (modern Compose features, currently 0 uses):
+  - Compose Watch: `docker compose watch` + the `develop: watch:` block (sync/rebuild).
+  - `profiles:` for optional services; `docker compose config`, `--wait` on up.
+Notes for HTML edit phase: obsolete `version:` fix + add Watch/profiles. Real content work.
+
+### dockerfile  —  dockerfile_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): dockerfile_cheatsheet_v2.html
+Target version: Dockerfile 1.x frontend / BuildKit (2026). Not Python.
+Sources: https://docs.docker.com/reference/dockerfile/
+Current coverage (summary): Complete instruction reference; already BuildKit-aware
+  (`# syntax=`, RUN --mount x4, multi-stage COPY --from, HEALTHCHECK, ONBUILD).
+ADD (modern, currently missing):
+  - Heredocs: RUN <<EOF ... EOF and COPY <<EOF file (0 uses) — the modern multi-line form.
+  - Call out RUN --mount=type=cache / type=secret / type=bind explicitly if not already.
+UPDATE: none material.
+Notes for HTML edit phase: add heredocs; otherwise complete.
+
+### git  —  git_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): git_cheatsheet_v2.html
+Target version: Git 2.4x+ (2026). This is the DESIGN-SYSTEM REFERENCE file — content edits
+  fine, but do not alter its styling.
+Sources: https://git-scm.com/docs
+Current coverage (summary): Clean, modern (switch/restore preferred over checkout, reflog,
+  force-with-lease, rebase -i). Solid.
+ADD/EXTEND (optional, modern niceties): `git switch -c`/`git restore --staged` already there;
+  could add `git worktree`, `git sparse-checkout`, `git maintenance`, and `git config
+  --global init.defaultBranch main`. UPDATE: none material.
+Notes for HTML edit phase: content near-complete; DO NOT restyle (reference file).
+
+### github_actions  —  github_actions_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): github_actions_cheatsheet_v2.html
+Target version: GitHub Actions (2026). Not a Python package.
+Sources: https://docs.github.com/actions
+Current coverage (summary): Modern & current — actions/checkout@v4, setup-python@v5,
+  upload-artifact@v4, cache@v4, node20 runners, GITHUB_OUTPUT (with set-output shown as
+  deprecated), permissions:, OIDC (7x), workflow_dispatch. Healthy.
+UPDATE / VERIFY:
+  - Confirm action majors are the latest by edit time (actions/checkout may be @v5;
+    setup-node/setup-python majors) — bump if newer majors shipped.
+ADD (optional): artifact attestations / build provenance (actions/attest-build-provenance),
+  and reusable workflows (workflow_call) + `uses:` at workflow level if not present.
+Notes for HTML edit phase: verify action majors; otherwise current.
+
+### uv  —  uv_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): uv_cheatsheet_v2.html
+Target version: uv ~0.11.x (2026; sheet says uv 0.11.32 — current). Manages Python 3.12+ easily.
+Sources: https://docs.astral.sh/uv/  ; https://github.com/astral-sh/uv/releases
+Current coverage (summary): Excellent & current — uv init/add/sync/run/lock, uvx & uv tool,
+  uv python, uv pip interface, compile requirements, build & publish, workspaces, sources/
+  indexes, standalone scripts (PEP 723). Very healthy.
+UPDATE / VERIFY:
+  - uv iterates fast; re-confirm the exact version stamp at edit time.
+  - `uv build` shows 0 uses though a Build & Publish card exists — ensure `uv build` is present.
+ADD/EXTEND: minimal. Optionally note `uv sync --locked`, `uv export`, and PEP 751
+  universal lockfile status if finalized. Nothing outdated.
+Notes for HTML edit phase: near-complete; version re-check + ensure `uv build` shown.
+
+### poetry  —  poetry_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): poetry_cheatsheet_v2.html
+Target version: Poetry 2.4.1 (2026-01 — sheet EXACT/current). Python 3.12+ ok.
+Sources: https://python-poetry.org/blog/category/releases/
+Current coverage (summary): Complete & 2.x-native — groups vs extras, PEP 621 [project]
+  table, lock/sync, environments, build/publish, plugins/export, and a 1.x->2.x migration
+  card. Bang current.
+ADD/EXTEND/UPDATE: none material. Confirm the sheet uses PEP 621 [project] (2.x default)
+  rather than the legacy [tool.poetry] table as primary; keep [tool.poetry] as the legacy note.
+Notes for HTML edit phase: complete; verification only.
+
+### pip  —  pip_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): pip_cheatsheet_v2.html
+Target version: pip 26.2.1 (2026-08). Sheet has NO version ref. Python 3.12+ ok.
+Sources: https://pip.pypa.io/en/stable/news/  ; https://discuss.python.org/t/announcement-pip-26-0-release/
+Current coverage (summary): Solid, resolver-aware (invoke via python -m pip, venvs, install,
+  version operators, extras/markers, requirements, lock/reproduce, wheels vs sdist, resolver
+  conflicts, config/env). Timeless-ish.
+ADD / EXTEND (pip 26.0):
+  - Upload-time filtering: `--exclude-newer <date>` for reproducible resolutions; improved
+    prerelease handling. Add to Lock & Reproduce.
+  - Note pip's support for PEP 751 (pylock.toml) lockfiles if present.
+UPDATE / FIX: add "verified against pip 26.2" stamp (currently versionless).
+Notes for HTML edit phase: add version + --exclude-newer; otherwise complete.
+
+### conda  —  conda_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): conda_cheatsheet_v2.html
+Target version: conda 26.3.2 (2026-04). Sheet says "conda 23.10" — STALE stamp. Not Python-pkg specific.
+Sources: https://docs.conda.io/projects/conda/en/stable/release-notes.html
+Current coverage (summary): Good coverage (env create/activate, install, build specs,
+  channels/.condarc, export/import, pip-inside-conda, revisions, disk/speed). Content OK.
+UPDATE / FIX:
+  - Bump stamp 23.10 -> 26.3.x. Confirm the fast libmamba solver is presented as the DEFAULT
+    (it became default in 23.10 — so still true, just phrase as "default").
+ADD/EXTEND (optional): mention `conda` vs `mamba`/`micromamba` and conda-forge as the
+  recommended channel; `conda config --set channel_priority strict`.
+Notes for HTML edit phase: version bump is the must-fix; rest optional.
+
+================================================================================
+ARCHIVED 2026-08-30 — §6 audit notes for topics BUILT in Phase C2 (39, shipped 2026-08-27),
+Phase C3 groups 1-4 + the first 5 of the Data IO group (shipped 2026-08-28 & 2026-08-30),
+and the reconciled general-Python sheet. Moved verbatim out of instructions.txt §6 per the
+archive convention (rule 1.9) to keep that file lean. HISTORICAL ONLY — the shipped result is
+recorded in CHANGELOG.txt; §4 CURRENT FILE MAP is authoritative for filenames.
+================================================================================
+
+### redis  —  redis_cheatsheet_v1.html   (LATEST; next output -> _v2. per section 4)
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): redis_cheatsheet_v3.html
+Target version: Redis 8.x (2026; title already "Redis 7.0+ / 8.x"). CLI/commands sheet.
+Sources: https://redis.io/docs/latest/commands/
+Current coverage (summary): Current & rich — strings/lists/hashes/sets/zsets, Hash field
+  TTL (7.4), Multi-key pop, bitmaps/HLL, streams, geospatial, transactions. Healthy.
+ADD/EXTEND (optional): Redis 8 folded in the query engine / vector sets (VADD/VSIM) and
+  JSON/Search as core — a one-line mention if scope allows. UPDATE: none material.
+Notes for HTML edit phase: near-complete; optional Redis 8 vector/JSON mention.
+
+### mongodb  —  mongodb_cheatsheet_v1.html   (LATEST; next output -> _v2. per section 4)
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): mongodb_cheatsheet_v3.html
+Target version: MongoDB 8.0+ (title already says so; current). mongosh/aggregation sheet.
+Sources: https://www.mongodb.com/docs/manual/release-notes/8.0/
+Current coverage (summary): Current — CRUD, query/update operators, projection, aggregation
+  pipeline (core + reshape/combine stages). Healthy.
+ADD/EXTEND (optional): Atlas Vector Search ($vectorSearch) and time-series collections if
+  scope allows; queryable encryption. UPDATE: none material.
+Notes for HTML edit phase: near-complete; optional vector-search mention.
+
+### postgresql  —  postgresql_cheatsheet_v0.html   (LATEST; next output -> _v1. per section 4)
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): postgresql_cheatsheet_v2.html
+Target version: PostgreSQL 18.6 (2026-08; PG19 in beta). Sheet says "PostgreSQL 13" — STALE.
+Sources: https://www.postgresql.org/docs/current/  ; https://www.postgresql.org/docs/release/18.0/
+Current coverage (summary): Solid core SQL/psql reference (mostly version-timeless). But
+  stamped to PG13 and misses several now-standard features.
+UPDATE / FIX:
+  - Bump stamp 13 -> 18.
+ADD (features standard since PG14-18 the sheet likely lacks):
+  - MERGE (PG15) for upserts; INSERT ... ON CONFLICT already common.
+  - SQL/JSON: JSON_TABLE, JSON_QUERY/JSON_VALUE (PG16/17); jsonb operators.
+  - Generated columns (STORED; PG12+ and virtual generated columns in PG18).
+  - uuidv7() (PG18); OAuth auth, async I/O, skip-scan index usage (PG18 headline).
+Notes for HTML edit phase: version bump + add MERGE/JSON_TABLE/generated cols. Real work.
+
+### postgresql_postgis  —  postgresql_postgis_cheatsheet_extended_v4.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): postgresql_postgis_cheatsheet_extended_v5.html
+Target version: PostgreSQL 18.6 + PostGIS 3.5/3.6 + pgRouting (2026). Sheet says PG13/PostGIS3.
+Sources: https://postgis.net/documentation/  ; https://www.postgresql.org/docs/current/
+Current coverage (summary): Rich master reference (partitioning, CTEs, grouping sets, views/
+  sequences/types, plus PostGIS + pgRouting). The most comprehensive Postgres artifact.
+UPDATE / FIX:
+  - Bump PG 13 -> 18 and PostGIS 3 -> 3.5/3.6 stamps.
+  - Same PG14-18 SQL additions as the base postgres note (MERGE, JSON_TABLE, generated cols,
+    uuidv7). Confirm PostGIS raster/topology and ST_* examples match 3.5/3.6.
+DO NOT: fold in the postgres master-reference DARK files — they are OUT OF SCOPE (rule 1.1);
+  leave them as-is. Work only from this latest light postgis sheet.
+Notes for HTML edit phase: version bumps + PG feature adds. (No dark merge.)
+
+### mysql  —  mysql_cheatsheet_v2.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): mysql_cheatsheet_v3.html
+Target version: MySQL 8.4 LTS (title says 8.0+/8.4) + 9.x innovation (9.7 in 2026). Good.
+Sources: https://dev.mysql.com/doc/relnotes/mysql/9.0/en/
+Current coverage (summary): Current — DDL/DML, joins, grouping, set ops, CTEs, window
+  functions. Already 8.x-aware. Healthy.
+EXTEND (optional): note the 9.x innovation series exists (JS stored programs, VECTOR type
+  for AI/embeddings in 9.x) while 8.4 is the LTS to target. UPDATE: none material.
+Notes for HTML edit phase: near-complete; optional 9.x/VECTOR note.
+
+### cassandra  —  cassandra_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): cassandra_cheatsheet_v2.html
+Target version: Apache Cassandra 5.0 (title says 4/5.0; current). CQL/cqlsh + ops sheet.
+Sources: https://cassandra.apache.org/doc/latest/
+Current coverage (summary): Current — keyspaces/tables, primary-key anatomy, collections/UDT,
+  batch, indexes/MVs, consistency levels, roles, nodetool ops. Healthy.
+ADD/EXTEND (optional, Cassandra 5.0): Storage-Attached Indexes (SAI) as the modern index;
+  Vector Search / VECTOR type + ANN for embeddings; trie memtables. UPDATE: none material.
+Notes for HTML edit phase: near-complete; optional SAI + vector mention.
+
+### airflow3  —  airflow3_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): airflow3_cheatsheet_v2.html
+Target version: Apache Airflow 3.3 (title/stamp already Airflow 3 / 3.3 — current). Python 3.12+ ok.
+Sources: https://airflow.apache.org/docs/apache-airflow/stable/
+Current coverage (summary): Current & modern — built for Airflow 3 (with an Airflow 2->3
+  framing) + provider packages. Covers the 3.x model.
+VERIFY / EXTEND: confirm 3.x headline items are present — the new React UI, DAG versioning,
+  the Task Execution API / Task SDK (airflow.sdk), assets/data-aware scheduling (replacing
+  the old Dataset naming), and scheduler-managed backfills. UPDATE: re-confirm 3.3 stamp.
+Notes for HTML edit phase: near-complete; verify Task SDK + assets terminology.
+
+### dbt  —  dbt_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): dbt_cheatsheet_v2.html
+Target version: dbt Core ~1.9/1.10 (2026 — VERIFY exact at edit time; sheet unstamped). Py 3.12+ ok.
+Sources: https://docs.getdbt.com/docs/dbt-versions/core  ; https://github.com/dbt-labs/dbt-core/releases
+Current coverage (summary): Solid dbt Core — models, materializations, incremental,
+  build vs run, node selection + state, sources/freshness, schema.yml, seeds/snapshots.
+ADD / EXTEND (recent dbt):
+  - Unit tests (dbt test unit / the `unit_tests:` block, 1.8+); the `dbt-` adapter split;
+    `--empty` flag; microbatch incremental strategy (1.9); model versions & contracts;
+    saved queries / semantic layer (MetricFlow) if scope allows.
+UPDATE / FIX: add version stamp once verified. Note dbt Fusion engine (new Rust engine)
+  exists as an option in 2026 — verify before adding.
+Notes for HTML edit phase: add version + unit tests/microbatch; verify Fusion mention.
+
+### databricks_sdk  —  databricks_sdk_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): databricks_sdk_cheatsheet_v2.html
+Target version: databricks-sdk for Python (0.x, fast-moving — VERIFY exact at edit time). Py 3.12+ ok.
+Sources: https://databricks-sdk-py.readthedocs.io/  ; https://github.com/databricks/databricks-sdk-py/releases
+Current coverage (summary): Reference-style SDK sheet (WorkspaceClient/AccountClient
+  patterns). Structurally fine.
+VERIFY / UPDATE: pin the exact SDK version at edit time (0.x changes API surface often);
+  confirm auth (unified auth / OAuth U2M+M2M), WorkspaceClient service accessors, and paging
+  helpers match current. ADD: Lakebase / serverless + genie/model-serving clients if present.
+Notes for HTML edit phase: version pin is essential (0.x churn); verify service names.
+
+### sagemaker  —  sagemaker_cheatsheet_v2.html   (LATEST; next output -> _v3. per section 4)
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): sagemaker_cheatsheet_v4.html
+Target version: SageMaker Python SDK v3 (stamp "sagemaker 3.8" — current). Py 3.12+ ok.
+  (NOTE: aws_sagemaker_cheatsheet_v0.html is the LEGACY sheet — ignore per version map.)
+Sources: https://sagemaker.readthedocs.io/  ; https://github.com/aws/sagemaker-python-sdk/releases
+Current coverage (summary): Current SDK v3 reference — estimators, processing, pipelines,
+  model/endpoint deploy. Modern.
+VERIFY / EXTEND: confirm the ModelBuilder / SDK v3 patterns, SageMaker Unified Studio +
+  JumpStart, and modern real-time/serverless/async inference deploy paths. UPDATE: re-confirm 3.8.
+Notes for HTML edit phase: near-complete; verify ModelBuilder + deploy modes.
+
+### boto3_s3  —  boto3_s3_cheatsheet_v1.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): boto3_s3_cheatsheet_v2.html
+Target version: boto3 ~1.4x (CalVer; stamp "boto3 1.36 / 1.43" — current). Py 3.12+ ok.
+Sources: https://boto3.amazonaws.com/v1/documentation/api/latest/  ; https://github.com/boto/boto3
+Current coverage (summary): Focused S3 reference (client/resource, upload/download, multipart,
+  presigned URLs, pagination, transfer config). Current.
+ADD/EXTEND (optional): S3 Express One Zone directory buckets; conditional writes
+  (If-None-Match) for S3; note resource API is in maintenance (prefer client). UPDATE: none material.
+Notes for HTML edit phase: near-complete; optional S3 Express + conditional writes.
+
+### aws  —  aws_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): aws_cheatsheet_v2.html
+Target version: AWS CLI v2 (2026). Command sheet.
+Sources: https://docs.aws.amazon.com/cli/latest/
+Current coverage (summary): Broad CLI map (S3, EC2, IAM, Lambda, RDS, jq filtering). Stable/current.
+ADD/EXTEND (optional): `aws sso login` / IAM Identity Center auth; `--query` (JMESPath) shown
+  alongside jq. UPDATE: none material. Confirm no aws-cli v1-only syntax.
+Notes for HTML edit phase: near-complete; optional SSO + --query note.
+
+### aws_cli_docker_ecr  —  aws_cli_docker_ecr_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): aws_cli_docker_ecr_cheatsheet_v2.html
+Target version: AWS CLI v2 + Docker + ECR (2026). Command sheet. NOTE: shares the aws_cheatsheet
+  base cards + adds ECR/Docker; keep the two consistent when editing.
+Sources: https://docs.aws.amazon.com/AmazonECR/latest/userguide/
+Current coverage (summary): AWS CLI cards + ECR login/push/pull flow. Current.
+ADD/EXTEND (optional): `aws ecr get-login-password | docker login` is the current login idiom
+  (get-login is long removed) — verify it's the shown form; ECR image scanning. UPDATE: none material.
+Notes for HTML edit phase: verify get-login-password idiom; otherwise current.
+
+### wandb  —  wandb_cheatsheet_v1.html   (LATEST; next output -> _v2. per section 4)
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): wandb_cheatsheet_v2.html
+Target version: wandb 0.28.1 (2026-07). Sheet has NO version ref. Python 3.12+ ok.
+Sources: https://github.com/wandb/wandb/releases  ; https://docs.wandb.ai/
+Current coverage (summary): Thorough & modern — init/run object, resume/fork/rewind,
+  config, run.log(), define_metric, media (images/video/audio), tables, custom charts.
+UPDATE: add "verified against wandb 0.28" stamp.
+ADD/EXTEND (optional): W&B Weave (LLM/GenAI tracing & evals) and the Model/Artifact
+  Registry as first-class 2026 features; note the Rust-backed core is default now.
+Notes for HTML edit phase: add version; optional Weave/Registry mention.
+
+### tensorboard  —  tensorboard_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): tensorboard_cheatsheet_v2.html
+Target version: TensorBoard 2.21 (stamp already present — current, tracks TF 2.21). Py 3.12+ ok.
+Sources: https://www.tensorflow.org/tensorboard
+Current coverage (summary): Complete & current — launch/logdir/flags, notebooks/Colab,
+  remote, dashboards, comparing runs, graphs, media, histograms, tf.summary writer. Healthy.
+ADD/EXTEND/UPDATE: none material. Optionally note framework-agnostic use (PyTorch
+  torch.utils.tensorboard SummaryWriter) if not already present.
+Notes for HTML edit phase: essentially complete; verification only.
+
+### raytune  —  raytune_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): raytune_cheatsheet_v2.html
+Target version: Ray 2.56 (stamp present — current). Python 3.12+ ok.
+Sources: https://docs.ray.io/en/latest/tune/
+Current coverage (summary): Current Tune API — Tuner/TuneConfig/RunConfig, function & class
+  Trainable, search space, checkpointing, search algorithms, schedulers. Healthy.
+UPDATE / VERIFY: RunConfig moved from ray.air to ray.tune/ray.train in recent Ray — confirm
+  imports match Ray 2.56 (ray.tune.RunConfig / ray.train). ADD: minimal.
+Notes for HTML edit phase: near-complete; verify RunConfig import path.
+
+### hyperopt  —  hyperopt_cheatsheet_v0.html
+Status: DONE (audited)   |   Session: 2026-08-23
+Next output file (rule 1.7): hyperopt_cheatsheet_v2.html
+Target version: Hyperopt 0.3.0 (uploaded 2026-07-24 — sheet's "0.3" is CORRECT; project was
+  dormant at 0.2.7 for years then revived). Python 3.12+ ok.
+Sources: https://pypi.org/project/hyperopt/  ; http://hyperopt.github.io/hyperopt/
+Current coverage (summary): Complete classic Hyperopt — fmin driver, search spaces (hp.*),
+  conditional/nested, TPE tuning, Trials object, recovering best. Matches the library.
+VERIFY / EXTEND: confirm what 0.3.0 changed (first release in years) and fold any API
+  changes; note SparkTrials for distributed. UPDATE: keep 0.3.0 stamp (authentic).
+ADD (context, optional): a one-line "Optuna is the more actively-developed alternative" note.
+Notes for HTML edit phase: verify 0.3.0 changelog; otherwise complete.
+
+========================== P3 TIER ==========================
+
+### javascript  —  javascript_cheatsheet_v1.html   (next output -> _v2)
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: ECMAScript 2025 (sheet says ES2024). Runtime-agnostic.
+Sources: https://tc39.es/  ; https://developer.mozilla.org/  (whatsnew per year)
+Current coverage (summary): Strong core JS reference (types, coercion, strings, arrays,
+  objects, destructuring, functions, this, classes). Stamped ES2024.
+ADD (ES2025, finalized): Set methods (union/intersection/difference/isSubsetOf...),
+  Iterator helpers (.map/.filter/.take/.drop on iterators), Promise.try, RegExp.escape,
+  JSON module import attributes (import x from "./d.json" with {type:"json"}),
+  Float16Array, duplicate named capture groups. (ES2024 already: Object.groupBy/
+  Map.groupBy, Promise.withResolvers, Array.fromAsync, well-formed unicode — verify present.)
+UPDATE: bump ES2024 -> ES2025 stamp.
+Notes for HTML edit phase: additive; Set methods + Iterator helpers are the headline adds.
+
+### typescript  —  typescript_cheatsheet_v1.html   (next output -> _v2)
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: TypeScript 6.0 (GA 2026-03); TS 7.0 (Go-based rewrite) RC 2026-06, shipping.
+  Sheet references older (Node 22.18, ES2024).
+Sources: https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/
+Current coverage (summary): Thorough type-layer reference (everyday types, unions/literals,
+  generics, narrowing, mapped/conditional/template types, utility types, decorators).
+ADD / UPDATE (TS 6.0):
+  - [CONFIRMED] 6.0 flips DEFAULTS: strict=true, module=esnext, target=ES2025; ES5/ES3
+    targets REMOVED (min target ES2015); outFile REMOVED; esModuleInterop always-on;
+    alwaysStrict permanent. Update Setup & Compile + note this is a breaking migration.
+  - New lib types: Temporal, RegExp.escape, Map upsert (getOrInsert/getOrInsertComputed).
+  - Add a heads-up: TS 7.0 is the native Go compiler (~10x faster, "tsgo"); same type system.
+UPDATE: bump version stamp; refresh Node stamp (24 LTS).
+Notes for HTML edit phase: Setup/defaults change is the must-fix; add 7.0 note.
+
+### node  —  node_cheatsheet_v0.html   (next output -> _v1)
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: Node.js 24 LTS 'Krypton' (title says Node 24 — CURRENT). Node 26 = Current line.
+Sources: https://nodejs.org/en/blog/  ; https://github.com/nodejs/node/releases
+Current coverage (summary): Current — built for Node 24. Verify it covers the stable
+  built-in test runner (node:test), native fetch, --watch, permission model (--permission),
+  node:sqlite, and ESM-by-default guidance. Healthy.
+ADD/EXTEND (optional): node:sqlite (stable in 24), stable permission model, type-stripping
+  for TS (--experimental-strip-types / stable in 24+). UPDATE: none material (stamp current).
+Notes for HTML edit phase: near-complete; optional node:sqlite + type-stripping.
+
+### deno  —  deno_cheatsheet_v0.html   (next output -> _v1)
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: Deno 2.9 (title — current). Sources: https://docs.deno.com/  ; deno.com/blog
+Current coverage (summary): Current Deno 2.x (npm/node compat, deno.json, tasks, permissions,
+  deno compile, JSR). Healthy.
+ADD/EXTEND (optional): JSR (jsr.io) as the default registry, `deno install` npm compat,
+  `deno deploy`. UPDATE: none material.
+Notes for HTML edit phase: near-complete; verification only.
+
+### bun  —  bun_cheatsheet_v0.html   (next output -> _v1)
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: Bun 1.3 (title — current). Sources: https://bun.sh/docs  ; bun.sh/blog
+Current coverage (summary): Current Bun 1.x (runtime, bun install, bundler, test runner,
+  bun:sqlite, package manager, hot reload). Healthy.
+ADD/EXTEND (optional): full-stack dev server / routes (1.2+), bun:sqlite, Bun.serve, catalogs
+  in workspaces. UPDATE: none material.
+Notes for HTML edit phase: near-complete; verification only.
+
+### go  —  go_cheatsheet_v1.html   (next output -> _v2)
+Status: DONE (audited)   |   Session: 2026-08-23
+Target version: Go 1.26 (2026-02; title "up to 1.26" — current). Python n/a.
+Sources: https://go.dev/doc/go1.26  ; https://go.dev/doc/devel/release
+Current coverage (summary): Comprehensive Go core (toolchain, types, slices/maps/structs,
+  methods, errors, defer/panic/recover, control flow). Current stamp.
+ADD/EXTEND (1.24–1.26): generic type aliases (1.24), Green Tea GC on by default (1.26),
+  faster small-object allocation, new optional-field ergonomics (1.26); range-over-func
+  iterators (1.23) + slices/maps/iter stdlib. Confirm generics/iterators covered.
+UPDATE: none material (stamp current).
+Notes for HTML edit phase: additive; confirm iterators + generic aliases present.
+
+### java21  —  java21_cheatsheet_v1.html   (next output -> _v2)
+Status: DONE (audited)   |   Session: 2026-08-23
+*** OWNER DECISION 2026-08-28 (supersedes the audit's "extend 21 -> 25" plan): java21 STAYS a
+    Java 21 LTS reference — VERIFY-ONLY re-version (refresh stamp + point to the new java25 sheet),
+    do NOT fold Java 22-25 content into it. A SEPARATE NET-NEW sheet, java25_cheatsheet_v0.html,
+    carries the Java 25 LTS content. Both BUILT 2026-08-28 (C3). ***
+  DONE (C3): java21_cheatsheet_v2.html = lean verify+stamp (dated 2026-08-28, "still an active LTS",
+    cross-ref to java25). java25_cheatsheet_v0.html = new Java-25 sheet (see its §6 note + CHANGELOG).
+Target version: Java 21 LTS (this sheet); Java 25 LTS (Sep 2025) lives in java25.
+Sources: https://dev.java  ; https://docs.oracle.com/javase/21  ; https://openjdk.org/projects/jdk/25/
+Current coverage (summary): Solid through Java 21 LTS (records, sealed, pattern matching,
+  switch patterns, virtual threads, text blocks). Intentionally frozen at 21.
+Notes: the Java 25 finalized-feature list (module imports JEP 511, compact source + instance main
+  JEP 512, flexible constructor bodies JEP 513, scoped values JEP 506, KDF JEP 510; still-preview:
+  primitive patterns JEP 507, structured concurrency JEP 505, stable values JEP 502; stream gatherers
+  final since 24 JEP 485) is realized in the java25 sheet, NOT here.
+
+### java25  —  java25_cheatsheet_v0.html   (NET-NEW 2026-08-28; next output -> _v1)
+Status: BUILT (C3, net-new)   |   Session: 2026-08-28
+Target version: Java 25 LTS (OpenJDK 25, released 2025-09-16). Built from the java21 design skeleton
+  (identical tokens/CSS; content-only re-target). Verified against openjdk.org/projects/jdk/25.
+Content: reframed header/chip/lede/timeline/footer to 25 LTS; spotlight now carries the finalized-25
+  headliners (compact source + void main() JEP 512, module imports JEP 511, flexible constructors
+  JEP 513, scoped values JEP 506) + a "still preview in 25" card (JEP 507/505/502); setup card
+  --enable-preview --source 25; anatomy card instance main() = FINAL in 25 + import module. Core
+  language cards (version-timeless) carried over from java21 unchanged. Cross-refs java21 both ways.
+
+--- P3 NLP / CV / specialized ML (all currently _v0 -> next _v1) ---
+
+### nltk  —  nltk_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: NLTK 3.10 (sheet stamp current). Py 3.12+ ok.
+Source: https://www.nltk.org/  Coverage: tokenize/stem/POS/NER/corpora/WordNet — complete & current.
+ADD/EXTEND/UPDATE: none material; verify 3.10 stamp. (NLTK is stable/slow-moving.)
+
+### spacy  —  spacy_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: spaCy 3.8.x (sheet 3.8.14 — CURRENT; no 4.0 yet). Py 3.12+ ok.
+Source: https://spacy.io/  Coverage: pipelines, Doc/Span/Token, matchers, training, transformers.
+ADD (optional): spacy-llm (LLM components) integration. UPDATE: none material.
+
+### gensim  —  gensim_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: gensim 4.4 (sheet stamp current). Py 3.12+ ok.
+Source: https://radimrehurek.com/gensim/  Coverage: corpora, TF-IDF, Word2Vec/Doc2Vec, LDA, KeyedVectors.
+ADD/EXTEND/UPDATE: none material; verify 4.4 (note SciPy>=1.7 / numpy 2 compat).
+
+### opencv  —  opencv_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: OpenCV 4.13 (sheet stamp; verify — 4.x current). Py 3.12+ ok.
+Source: https://docs.opencv.org/4.x/  Coverage: io/draw/color/transform/filter/features/video/DNN.
+UPDATE: confirm 4.13 stamp; note cv2 typing stubs. ADD: DNN module + optional cv2.dnn/onnx.
+
+### imbalanced_learn  —  imbalanced_learn_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: imbalanced-learn 0.14.2 (2026). Sheet UNSTAMPED. Py 3.12+ ok.
+Source: https://imbalanced-learn.org/stable/  Coverage: SMOTE family, under/over-samplers, pipelines, ensembles.
+UPDATE: add version stamp 0.14; confirm sklearn>=1.4 compat + set_output support.
+
+### category_encoders  —  category_encoders_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: category_encoders ~2.6/2.7 (VERIFY). Sheet UNSTAMPED. Py 3.12+ ok.
+Source: https://contrib.scikit-learn.org/category_encoders/  Coverage: Target/WOE/CatBoost/Hashing/Ordinal encoders.
+UPDATE: add version stamp; confirm sklearn transformer API (get_feature_names_out).
+
+### mlxtend  —  mlxtend_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: mlxtend ~0.23 (VERIFY). Sheet UNSTAMPED. Py 3.12+ ok.
+Source: https://rasbt.github.io/mlxtend/  Coverage: apriori/fpgrowth assoc rules, stacking, plotting, feature selection.
+UPDATE: add version stamp. ADD/EXTEND: none material.
+
+### umap_learn  —  umap_learn_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: umap-learn ~0.5.7 (VERIFY). Sheet UNSTAMPED. Py 3.12+ ok.
+Source: https://umap-learn.readthedocs.io/  Coverage: UMAP fit/transform, params, supervised, inverse_transform, plotting.
+UPDATE: add version stamp; note numba dependency (see numba). ADD: densMAP, parametric UMAP.
+
+### opentsne  —  opentsne_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: openTSNE ~1.0 (VERIFY). Sheet UNSTAMPED. Py 3.12+ ok.
+Source: https://opentsne.readthedocs.io/  Coverage: TSNE, affinities, initialization, transform (add new points).
+UPDATE: add version stamp. Content stable.
+
+### hdbscan  —  hdbscan_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: hdbscan ~0.8.x (VERIFY). Sheet UNSTAMPED. Py 3.12+ ok.
+Source: https://hdbscan.readthedocs.io/  Coverage: clustering, min_cluster_size, soft clustering, condensed tree, outliers.
+NOTE: sklearn now has cluster.HDBSCAN natively — add a "sklearn.cluster.HDBSCAN exists" cross-ref.
+UPDATE: add version stamp.
+
+### prophet  —  prophet_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: prophet 1.3 (sheet stamp). Py 3.12+ — VERIFY wheels (cmdstanpy backend).
+Source: https://facebook.github.io/prophet/  Coverage: fit/predict, seasonality, holidays, changepoints, cross_validation, diagnostics.
+UPDATE: confirm 1.3 + Python 3.12/3.13 wheel availability (Stan build is the usual pain point).
+
+### ruptures  —  ruptures_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: ruptures ~1.1.9 (VERIFY). Sheet UNSTAMPED. Py 3.12+ ok.
+Source: https://centre-borelli.github.io/ruptures-docs/  Coverage: Pelt/Binseg/BottomUp/Window/Dynp, costs, penalties, display.
+UPDATE: add version stamp. Content stable.
+
+### statsmodels  —  statsmodels_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: statsmodels 0.14.x (2026). Sheet UNSTAMPED. Py 3.12+ ok.
+Source: https://www.statsmodels.org/stable/  Coverage: OLS/GLM/formula API, time series (ARIMA/SARIMAX/ETS), diagnostics, robust.
+UPDATE: add version stamp 0.14; confirm numpy 2 + scipy 1.13+ compat. ADD/EXTEND: none material.
+
+### sympy  —  sympy_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: SymPy 1.14 (sheet stamp; verify 1.14 latest). Py 3.12+ ok.
+Source: https://docs.sympy.org/latest/  Coverage: symbols, simplify, solve, calculus, matrices, printing, lambdify.
+UPDATE: confirm 1.14 stamp. ADD/EXTEND: none material.
+
+### numba  —  numba_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: Numba 0.63.1 (2025-12). Sheet UNSTAMPED. Py: numba 0.63 supports up to Python 3.13; VERIFY 3.14.
+Source: https://numba.readthedocs.io/  Coverage: @njit, nopython, parallel/prange, vectorize/guvectorize, CUDA, typed containers.
+UPDATE: add version stamp 0.63; state the supported Python/NumPy matrix (0.63 -> NumPy 2.x, Py 3.10-3.13).
+  This is the version-sensitive one (compat matrix matters most). ADD: numba typed.List/Dict caveats.
+
+--- P3 explainability / experiment / recsys (all _v0 -> next _v1) ---
+
+### shap  —  shap_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: SHAP 0.52.0 (2026-05; sheet stamp CURRENT). Py 3.12+ ok.
+Source: https://shap.readthedocs.io/  Coverage: Explainer API, Tree/Kernel/Linear/Deep/Partition, plots (beeswarm/waterfall/bar/force), Explanation objects.
+UPDATE: confirm 0.52; note build moved to nanobind + scikit-build-core (install note). ADD/EXTEND: none material.
+
+### lime  —  lime_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: LIME 0.2.0.1 (DORMANT since 2020; sheet stamp correct). Py 3.12+ usually ok.
+Source: https://github.com/marcotcr/lime  Coverage: LimeTabular/Text/Image explainers, explain_instance.
+UPDATE: none (unmaintained). ADD (context): note SHAP is the more active alternative.
+
+### eli5  —  eli5_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: ELI5 0.16 (sheet stamp; project largely DORMANT). Py 3.12 — VERIFY compat.
+Source: https://eli5.readthedocs.io/  Coverage: show_weights/show_prediction, sklearn/permutation importance, text highlighting.
+UPDATE: verify it imports under sklearn 1.4+ (eli5 has lagged sklearn API changes) — flag if broken. Low priority.
+
+### interpretml  —  interpretml_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: interpret ~0.6.x (sheet stamp). Py 3.12+ ok.
+Source: https://interpret.ml/docs/  Coverage: EBM (ExplainableBoostingClassifier/Regressor), glassbox vs blackbox, global/local explanations, show() dashboard.
+UPDATE: confirm 0.6 stamp. ADD: EBM interactions / monotonicity constraints if not present.
+
+### shapash  —  shapash_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: Shapash ~2.7 (VERIFY). Sheet UNSTAMPED. Py 3.12+ ok.
+Source: https://shapash.readthedocs.io/  Coverage: SmartExplainer, compile, webapp, to_pandas, plots.
+UPDATE: add version stamp; confirm it wraps current shap/plotly.
+
+### evidently  —  evidently_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: Evidently 0.7.21 (2026-03; sheet "0.7" — CURRENT, uses redesigned API). Py 3.12+ ok.
+Source: https://docs.evidentlyai.com/  Coverage: reports/tests, data & target drift, quality, performance.
+VERIFY (important): confirm sheet uses the NEW 0.7 API (Report + Dataset + metric objects), NOT the
+  pre-0.7 API (ColumnMapping / metric_preset / test_preset) which was replaced with breaking changes.
+ADD: LLM/text evals + embeddings drift metrics (added through 0.7.x); Evidently Cloud pointer.
+
+### scikit_surprise  —  scikit_surprise_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: scikit-surprise 1.1.4 (sheet "1.1"; slow-moving). Py: VERIFY 3.12/3.13 wheels (Cython build).
+Source: https://surpriselib.com/  Coverage: Dataset/Reader, SVD/KNN/NMF, cross_validate, GridSearchCV, accuracy.
+UPDATE: confirm 1.1.x + Python 3.12+ build/wheel availability (the usual pain point). Content stable.
+
+### cmfrec  —  cmfrec_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: cmfrec ~3.5 (VERIFY). Sheet UNSTAMPED. Py 3.12+ ok.
+Source: https://github.com/david-cortes/cmfrec  Coverage: CMF/collective matrix factorization, side info, fit/predict/topN, cold-start.
+UPDATE: add version stamp. ADD/EXTEND: none material.
+
+--- P3 viz extras (all _v0 -> next _v1) ---
+
+### altair  —  altair_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: Vega-Altair 6.x (sheet "6.2" — VERIFY exact). Py 3.12+ ok.
+Source: https://altair-viz.github.io/  Coverage: Chart grammar, encodings, marks, transforms, interactivity/selections, layering/concat, themes.
+UPDATE: confirm 6.x stamp (Altair 6 dropped Py<3.9 and bumped Vega-Lite). ADD: Chart.save (vl-convert), params API.
+
+### bokeh  —  bokeh_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: Bokeh 3.9 (sheet stamp; 3.x current). Py 3.12+ ok.
+Source: https://docs.bokeh.org/  Coverage: figure/glyphs, ColumnDataSource, layouts, widgets, server, themes, tools.
+UPDATE: confirm 3.9. ADD/EXTEND: none material.
+
+### dash  —  dash_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: Dash 4.x (sheet "4.2" — VERIFY; Dash 3.0 was a big 2025 release). Py 3.12+ ok.
+Source: https://dash.plotly.com/  Coverage: layout, callbacks, Input/Output/State, dcc/html/dash_table, pages, clientside.
+UPDATE: confirm major (3 vs 4); ensure the modern `from dash import Dash, html, dcc, callback` imports + Pages API are shown, and background callbacks. ADD: dash-ag-grid pointer.
+
+### graphviz  —  graphviz_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: graphviz (Python) 0.21 (sheet stamp; current). Needs Graphviz binaries on PATH. Py 3.12+ ok.
+Source: https://graphviz.readthedocs.io/  Coverage: Graph/Digraph, node/edge/attr, render/pipe, formats, subgraphs/clusters.
+UPDATE: confirm 0.21. ADD/EXTEND: none material.
+
+### networkx  —  networkx_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: NetworkX 3.6.x (sheet stamp; current). Py 3.12+ ok.
+Source: https://networkx.org/documentation/stable/  Coverage: graph types, add/remove, algorithms (shortest path/centrality/community), drawing, IO.
+UPDATE: confirm 3.6. ADD: note backend dispatch (nx-cugraph/GPU) + np.random Generator seeding. Content strong.
+
+### wordcloud  —  wordcloud_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: wordcloud ~1.9.x (VERIFY). Sheet UNSTAMPED. Py 3.12+ ok.
+Source: https://github.com/amueller/word_cloud  Coverage: WordCloud(), generate/generate_from_frequencies, masks, coloring, stopwords.
+UPDATE: add version stamp. Content stable.
+
+### joypy  —  joypy_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: joypy ~0.2.6 (DORMANT; VERIFY). Sheet UNSTAMPED. Py 3.12+ ok.
+Source: https://github.com/leotac/joypy  Coverage: joyplot(), by=, overlap, colormap, matplotlib integration.
+UPDATE: add version stamp. Low priority (niche/dormant).
+
+### pywaffle  —  pywaffle_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: pywaffle ~1.1.x (VERIFY). Sheet UNSTAMPED. Py 3.12+ ok.
+Source: https://pywaffle.readthedocs.io/  Coverage: Waffle via plt.figure(FigureClass=Waffle), rows/columns/values, icons (FontAwesome), legend.
+UPDATE: add version stamp. Content stable.
+
+### squarify  —  squarify_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: squarify ~0.4.4 (DORMANT/stable; VERIFY). Sheet UNSTAMPED. Py 3.12+ ok.
+Source: https://github.com/laserson/squarify  Coverage: squarify.plot(), normalize_sizes, treemap layout with matplotlib.
+UPDATE: add version stamp. Tiny stable lib; no content changes.
+
+--- P3 data IO / utils / config / finance (mostly _v0 -> next _v1) ---
+
+### openpyxl  —  openpyxl_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: openpyxl 3.1.5 (current). Sheet UNSTAMPED. Py 3.12-3.14 supported.
+Source: https://openpyxl.readthedocs.io/  Coverage: load/save Workbook, cells/ranges, formulas, styles, charts, images, iter_rows.
+UPDATE: add version stamp 3.1.5. ADD/EXTEND: none material (openpyxl is stable/slow).
+
+### xlrd  —  xlrd_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: xlrd 2.0.1 (current) BUT sheet pins 1.2.0. Py 3.12+ ok.
+Source: https://xlrd.readthedocs.io/
+IMPORTANT UPDATE: xlrd 2.0 (2020) REMOVED .xlsx/.xlsm support — it reads ONLY legacy .xls now.
+  The sheet's 1.2.0 pin is the deprecated/insecure way to read xlsx. Reframe clearly:
+  use xlrd ONLY for legacy .xls; for .xlsx use openpyxl (or pandas read_excel(engine='openpyxl')).
+Notes for HTML edit phase: the xlrd-2.0 caveat is the whole point — make it prominent.
+
+### h5py  —  h5py_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: h5py 3.16 (sheet stamp; current). Py 3.12+ ok (needs HDF5 libs).
+Source: https://docs.h5py.org/  Coverage: File/Group/Dataset, slicing, attrs, chunking/compression, virtual datasets, SWMR.
+UPDATE: confirm 3.16. ADD/EXTEND: none material.
+
+### faker  —  faker_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: Faker 40.x (sheet 40.36.0 — plausibly current; VERIFY). Py 3.12+ ok.
+Source: https://faker.readthedocs.io/  Coverage: providers, locales, seeding, unique, community providers.
+UPDATE: confirm the fast-moving version stamp. ADD/EXTEND: none material.
+
+### bs4  —  bs4_cheatsheet_v1.html   (LATEST; next -> _v2)   [backlog line shows stale _v2]
+Status: DONE (audited) | 2026-08-23 | Target: beautifulsoup4 4.14 (sheet stamp; current). Py 3.12+ ok.
+Source: https://www.crummy.com/software/BeautifulSoup/bs4/doc/  Coverage: parsers, find/find_all, CSS select, navigation, modify, output.
+UPDATE: confirm 4.14; note parser choice (lxml vs html.parser vs html5lib). ADD/EXTEND: none material.
+
+
+### python (general)  —  python_cheatsheet_v1.html   (next -> _v2)   [backlog "python_v2" line shows stale name]
+Status: DONE (audited) | 2026-08-23 | Target: general Python language (no release-specific stamp). Py 3.12+.
+RECONCILE — RESOLVED 2026-08-27 (owner): option (b). Kept as the general Python LANGUAGE reference (3.12+),
+  built -> python_cheatsheet_v2.html, scoped apart from python314 with a mutual cross-ref note; the two are
+  maintained INDEPENDENTLY (not folded). See CHANGELOG.txt. No further action.
+
+================================================================================
+ARCHIVED 2026-08-30 (part 2) — the final 6 §6 audit notes, for the C3 Data IO/utils/config/finance
+sheets shipped 2026-08-30 (aiohttp, dynaconf, tox, yfinance, nsepython, nselib). With these moved,
+PHASE C is COMPLETE and §6 has NO remaining pending-topic notes. HISTORICAL ONLY.
+================================================================================
+
+### aiohttp  —  aiohttp_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: aiohttp 3.14.3 (sheet stamp; current). Py 3.12+ ok.
+Source: https://docs.aiohttp.org/  Coverage: ClientSession, requests, server/web.Application, routing, middleware, ws, streaming.
+UPDATE: confirm 3.14. ADD/EXTEND: none material (mature).
+
+### dynaconf  —  dynaconf_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: Dynaconf 3.3.3 (sheet stamp; current). Py 3.12+ ok.
+Source: https://www.dynaconf.com/  Coverage: settings files, env layering, @format/@jinja, validators, secrets, Flask/Django integration.
+UPDATE: confirm 3.3.x. ADD/EXTEND: none material.
+
+### tox  —  tox_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: tox 4.x (current; tox 4 was the 2022 rewrite). Sheet UNSTAMPED (shows Python versions only). Py 3.12+ ok.
+Source: https://tox.wiki/  Coverage: tox.ini, envlist, deps, commands, factors/generative envs, pyproject config.
+UPDATE: add tox 4.x version stamp; ensure examples are tox-4 syntax (not tox-3), and note tox-uv plugin.
+
+### yfinance  —  yfinance_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: yfinance — VERIFY EXACT (sheet says 1.5.1; historically 0.2.x — confirm on PyPI). Py 3.12+ ok.
+Source: https://github.com/ranaroussi/yfinance
+CAUTION: yfinance breaks FREQUENTLY (undocumented Yahoo endpoints). Verify current version AND that
+  Ticker/download/history APIs still match; flag any methods Yahoo has since broken. High-churn topic.
+UPDATE: pin exact version at edit time. ADD: rate-limiting / session caveats.
+
+### nsepython  —  nsepython_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: nsepython 2.97 (sheet stamp; VERIFY). Py 3.12+ ok. Niche (NSE India data).
+Source: https://github.com/aeron7/nsepython
+CAUTION: like yfinance, depends on NSE endpoints that change; verify functions still return data. Low priority.
+
+### nselib  —  nselib_cheatsheet_v0.html   (next -> _v1)
+Status: DONE (audited) | 2026-08-23 | Target: nselib 2.5.1 (sheet stamp; VERIFY). Py 3.12+ ok. Niche (NSE India).
+Source: https://github.com/pkjmesra/... / PyPI nselib
+CAUTION: NSE-endpoint dependent; verify at edit time. Low priority.
+

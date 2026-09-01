@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS CLI Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#c2410c;   --setup-bg:#fff4ee;
+    --storage:#0369a1; --storage-bg:#eff8fd;
+    --compute:#be123c; --compute-bg:#fdf1f3;
+    --iam:#4f46e5;     --iam-bg:#eef0fd;
+    --data:#0d9488;    --data-bg:#ecfbf9;
+    --network:#059669; --network-bg:#edfaf4;
+    --ops:#64748b;     --ops-bg:#f4f5f7;
+    --danger:#dc2626;  --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --aws-orange:#ff9900;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .aws{font-family:var(--mono); color:var(--aws-orange)}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)} .dot.storage{background:var(--storage)}
+  .dot.compute{background:var(--compute)} .dot.iam{background:var(--iam)}
+  .dot.data{background:var(--data)} .dot.network{background:var(--network)}
+  .dot.ops{background:var(--ops)} .dot.star{background:var(--star)}
+
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1140px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.48rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup   {border-left-color:var(--setup)}
+  ul.cmds li.storage {border-left-color:var(--storage)}
+  ul.cmds li.compute {border-left-color:var(--compute)}
+  ul.cmds li.iam     {border-left-color:var(--iam)}
+  ul.cmds li.data    {border-left-color:var(--data)}
+  ul.cmds li.network {border-left-color:var(--network)}
+  ul.cmds li.ops     {border-left-color:var(--ops)}
+  ul.cmds li.danger  {border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.79rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.45;
+  }
+  code.cmd .arg{color:var(--iam); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .svc{color:var(--setup); font-weight:700}
+  code.cmd .kw{color:var(--compute); font-weight:600}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.77rem; color:#525761; margin-top:.15rem; line-height:1.4}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .tip{
+    font-size:.72rem; font-family:var(--mono); color:var(--muted);
+    background:#f7f6f2; border-radius:4px; margin:.6rem 1rem .2rem;
+    padding:.4rem .6rem; border-left:3px solid var(--aws-orange);
+    line-height:1.5;
+  }
+  .tip b{color:var(--ink)}
+
+  /* ---- diagrams section ---- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .dg{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .dg{grid-template-columns:1fr 1fr} }
+  @media(min-width:1160px){ .dg.three{grid-template-columns:1fr 1fr 1fr} }
+  .dc{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem; break-inside:avoid}
+  .dc h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .dc p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .dc svg{width:100%;height:auto;display:block}
+
+  /* ---- refs strip ---- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline; flex-wrap:wrap}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700; min-width:18ch}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header>
+  <div class="eyebrow">Quick Reference · Amazon Web Services Command Line Interface v2</div>
+  <h1><span class="aws">aws</span> cli cheat sheet</h1>
+  <p class="lede">Every AWS CLI call follows the same pattern: <b>aws &lt;service&gt; &lt;action&gt; [options]</b>. Master the global flags (<code style="font-family:var(--mono);font-size:.95em">--output</code>, <code style="font-family:var(--mono);font-size:.95em">--query</code>, <code style="font-family:var(--mono);font-size:.95em">--profile</code>, <code style="font-family:var(--mono);font-size:.95em">--region</code>) and you can drive any of 200+ services from the terminal.</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>setup &amp; config</span>
+    <span><i class="dot storage"></i>S3 storage</span>
+    <span><i class="dot compute"></i>compute (EC2 · Lambda · ECS)</span>
+    <span><i class="dot iam"></i>IAM &amp; security</span>
+    <span><i class="dot data"></i>databases (RDS · DynamoDB)</span>
+    <span><i class="dot network"></i>networking (Route53 · CF · ELB)</span>
+    <span><i class="dot ops"></i>ops (CloudWatch · SNS · SQS)</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Cross-referenced from: <b>docs.aws.amazon.com/cli/latest</b> · <b>devhints.io/awscli</b> · <b>bluematador.com/learn/aws-cli-cheatsheet</b> · <b>gist.github.com/apolloclark</b> · <b>pluralsight.com S3 cheatsheet</b></p>
+</header>
+
+<!-- ===================== COMMAND ANATOMY SVG ===================== -->
+<section class="flow-wrap">
+  <div class="flow-title">Command anatomy — every service, every action, same shape</div>
+  <svg class="flow-svg" viewBox="0 0 1140 230" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="Diagram showing the anatomy of an AWS CLI command broken into four segments: 'aws' the binary, the service (e.g. s3 or ec2), the action (e.g. ls or describe-instances), and options (--profile, --region, --output, --query, --filter)">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <!-- boxes -->
+    <rect x="16"  y="62" width="130" height="66" rx="10" fill="#fff4ee" stroke="#c2410c" stroke-width="2.2"/>
+    <rect x="168" y="62" width="185" height="66" rx="10" fill="#eff8fd" stroke="#0369a1" stroke-width="2.2"/>
+    <rect x="375" y="62" width="240" height="66" rx="10" fill="#fdf1f3" stroke="#be123c" stroke-width="2.2"/>
+    <rect x="637" y="62" width="490" height="66" rx="10" fill="#eef0fd" stroke="#4f46e5" stroke-width="2.2"/>
+
+    <!-- monospace labels inside -->
+    <text x="81"  y="95"  text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="22" font-weight="700" fill="#c2410c">aws</text>
+    <text x="260" y="95"  text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="18" font-weight="700" fill="#0369a1">s3 · ec2 · iam …</text>
+    <text x="495" y="95"  text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="17" font-weight="700" fill="#be123c">describe-instances</text>
+    <text x="882" y="91"  text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="13" fill="#4f46e5">--profile prod  --region us-east-1</text>
+    <text x="882" y="111" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="13" fill="#4f46e5">--output json  --query '…'  --filter '…'</text>
+
+    <!-- captions below -->
+    <text x="81"  y="148" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#c2410c">binary</text>
+    <text x="260" y="148" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#0369a1">service</text>
+    <text x="495" y="148" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#be123c">action / sub-command</text>
+    <text x="882" y="148" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#4f46e5">global options (any order, any service)</text>
+
+    <!-- arrows between boxes -->
+    <line x1="146" y1="95" x2="166" y2="95" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#arr)"/>
+    <line x1="353" y1="95" x2="373" y2="95" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#arr)"/>
+    <line x1="615" y1="95" x2="635" y2="95" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#arr)"/>
+
+    <!-- example full command at bottom -->
+    <rect x="16" y="174" width="1111" height="42" rx="8" fill="#1a1d24"/>
+    <text x="34" y="200" font-family="JetBrains Mono,monospace" font-size="13" fill="#fbbf24" font-weight="700">$</text>
+    <text x="50" y="200" font-family="JetBrains Mono,monospace" font-size="13" fill="#ff9900" font-weight="700">aws</text>
+    <text x="87" y="200" font-family="JetBrains Mono,monospace" font-size="13" fill="#60cdff">ec2</text>
+    <text x="123" y="200" font-family="JetBrains Mono,monospace" font-size="13" fill="#f28b82">describe-instances</text>
+    <text x="318" y="200" font-family="JetBrains Mono,monospace" font-size="13" fill="#a8d5a2">--filters</text>
+    <text x="392" y="200" font-family="JetBrains Mono,monospace" font-size="13" fill="#e8e6e1">Name=instance-state-name,Values=running</text>
+    <text x="758" y="200" font-family="JetBrains Mono,monospace" font-size="13" fill="#a8d5a2">--query</text>
+    <text x="822" y="200" font-family="JetBrains Mono,monospace" font-size="13" fill="#e8e6e1">'Reservations[].Instances[].[InstanceId,InstanceType]'</text>
+
+    <text x="81"  y="19" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" letter-spacing="2" fill="#94a3b8">BINARY</text>
+    <text x="260" y="19" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" letter-spacing="2" fill="#94a3b8">SERVICE</text>
+    <text x="495" y="19" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" letter-spacing="2" fill="#94a3b8">ACTION</text>
+    <text x="882" y="19" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" letter-spacing="2" fill="#94a3b8">OPTIONS</text>
+    <line x1="16"  y1="28" x2="146"  y2="28" stroke="#c2410c" stroke-width="1.2"/>
+    <line x1="168" y1="28" x2="353"  y2="28" stroke="#0369a1" stroke-width="1.2"/>
+    <line x1="375" y1="28" x2="615"  y2="28" stroke="#be123c" stroke-width="1.2"/>
+    <line x1="637" y1="28" x2="1127" y2="28" stroke="#4f46e5" stroke-width="1.2"/>
+  </svg>
+</section>
+
+<!-- ===================== CARDS ===================== -->
+<main>
+
+  <!-- 01 INSTALL & SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; Setup</span><span class="card-sub">first-time</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">pip install awscli</code><span class="star">★</span><div class="desc">Install AWS CLI v1 via pip (Python package manager).</div></li>
+      <li class="setup"><code class="cmd">brew install awscli</code><span class="star">★</span><div class="desc">Install on macOS via Homebrew — keeps updates easy.</div></li>
+      <li class="setup"><code class="cmd">aws --version</code><div class="desc">Confirm the installed version.</div></li>
+      <li class="setup"><code class="cmd">aws configure</code><span class="star">★</span><div class="desc">Interactive wizard: sets Access Key, Secret, Region, and output format in <code>~/.aws/credentials</code> &amp; <code>~/.aws/config</code>.</div></li>
+      <li class="setup"><code class="cmd">aws configure --profile <span class="arg">prod</span></code><span class="star">★</span><div class="desc">Create a named profile — useful for multiple accounts or roles.</div></li>
+      <li class="setup"><code class="cmd">aws configure list</code><div class="desc">Show current active credentials &amp; config source.</div></li>
+      <li class="setup"><code class="cmd">aws configure list-profiles</code><div class="desc">List all locally configured profiles.</div></li>
+    </ul>
+    <p class="tip"><b>Credentials precedence:</b> env vars → CLI flags → ~/.aws/credentials → IAM instance role. An instance role is the recommended production approach — no local keys needed.</p>
+  </article>
+
+  <!-- 02 GLOBAL FLAGS & PATTERNS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Global Flags</span><span class="card-sub">work with every service</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">aws <span class="svc">s3</span> ls --profile <span class="arg">prod</span></code><span class="star">★</span><div class="desc">Use a non-default named profile for one command.</div></li>
+      <li class="setup"><code class="cmd">aws <span class="svc">ec2</span> describe-instances --region <span class="arg">eu-west-1</span></code><span class="star">★</span><div class="desc">Override the region for one command.</div></li>
+      <li class="setup"><code class="cmd">aws <span class="svc">ec2</span> describe-instances --output <span class="arg">table</span></code><span class="star">★</span><div class="desc">Output as human-readable table (also: <code>json</code>, <code>yaml</code>, <code>text</code>).</div></li>
+      <li class="setup"><code class="cmd">aws <span class="svc">ec2</span> describe-instances --query <span class="arg">'Reservations[].Instances[].[InstanceId,State.Name]'</span></code><span class="star">★</span><div class="desc">JMESPath query to pluck specific fields from JSON output.</div></li>
+      <li class="setup"><code class="cmd">aws <span class="svc">ec2</span> run-instances ... --dry-run</code><div class="desc">Check permissions &amp; validate params without making real changes.</div></li>
+      <li class="setup"><code class="cmd">aws <span class="svc">ec2</span> describe-instances help</code><span class="star">★</span><div class="desc">Append <code>help</code> to any (sub-)command for inline docs.</div></li>
+      <li class="setup"><code class="cmd">aws <span class="svc">sts</span> get-caller-identity</code><span class="star">★</span><div class="desc">Show which IAM user / role is currently authenticated.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 OUTPUT & JQ -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Filtering Output with jq</span><span class="card-sub">parse JSON like a pro</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">aws <span class="svc">ec2</span> describe-instances | jq <span class="arg">-r '.Reservations[].Instances[] | .InstanceId'</span></code><span class="star">★</span><div class="desc"><code>jq -r</code> pipes JSON → extracts just the instance IDs as plain text.</div></li>
+      <li class="setup"><code class="cmd">aws <span class="svc">iam</span> list-users | jq <span class="arg">-r '.Users[] | .UserId+" "+.UserName'</span></code><span class="star">★</span><div class="desc">Concatenate fields with <code>+</code> for space-separated output.</div></li>
+      <li class="setup"><code class="cmd">aws <span class="svc">dynamodb</span> scan --table-name <span class="arg">events</span> --select count | jq <span class="arg">.ScannedCount</span></code><div class="desc">Extract a single top-level value.</div></li>
+      <li class="setup"><code class="cmd">... | jq <span class="arg">-r '.Items[] | select(.Status == "ACTIVE") | .Name'</span></code><div class="desc"><code>select()</code> filters array elements by a condition.</div></li>
+    </ul>
+    <p class="tip"><b>Tip:</b> install jq with <code>brew install jq</code> or <code>apt install jq</code>. It turns verbose JSON into scriptable one-liners.</p>
+  </article>
+
+  <!-- 04 S3 BUCKETS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">S3 — Buckets</span><span class="card-sub">s3 · s3api</span></div>
+    <ul class="cmds">
+      <li class="storage"><code class="cmd">aws <span class="svc">s3</span> ls</code><span class="star">★</span><div class="desc">List all buckets in the account.</div></li>
+      <li class="storage"><code class="cmd">aws <span class="svc">s3</span> ls <span class="arg">s3://mybucket/</span></code><span class="star">★</span><div class="desc">List objects (files) inside a bucket or prefix.</div></li>
+      <li class="storage"><code class="cmd">aws <span class="svc">s3</span> mb <span class="arg">s3://my-new-bucket</span></code><span class="star">★</span><div class="desc">Make (create) a new bucket — name must be globally unique.</div></li>
+      <li class="storage"><code class="cmd">aws <span class="svc">s3</span> rb <span class="arg">s3://my-bucket</span> --force</code><div class="desc">Remove bucket and all contents. <code>--force</code> deletes non-empty buckets.</div></li>
+      <li class="storage"><code class="cmd">aws <span class="svc">s3api</span> get-bucket-acl --bucket <span class="arg">my-bucket</span></code><div class="desc">Check Access Control List — is it public? (low-level s3api command).</div></li>
+      <li class="storage"><code class="cmd">aws <span class="svc">s3api</span> put-bucket-acl --acl <span class="arg">private</span> --bucket <span class="arg">my-bucket</span></code><div class="desc">Make a bucket private (revoke public access).</div></li>
+      <li class="storage"><code class="cmd">aws <span class="svc">s3api</span> put-bucket-versioning --bucket <span class="arg">my-bucket</span> --versioning-configuration Status=Enabled</code><div class="desc">Enable object versioning — keeps old versions on overwrite/delete.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 S3 OBJECTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">S3 — Objects</span><span class="card-sub">cp · mv · rm · sync · presign</span></div>
+    <ul class="cmds">
+      <li class="storage"><code class="cmd">aws <span class="svc">s3</span> cp <span class="arg">backup.tar</span> <span class="arg">s3://my-bucket/</span></code><span class="star">★</span><div class="desc">Upload a local file to a bucket.</div></li>
+      <li class="storage"><code class="cmd">aws <span class="svc">s3</span> cp <span class="arg">s3://my-bucket/backup.tar</span> <span class="arg">./</span></code><span class="star">★</span><div class="desc">Download an object to the current directory.</div></li>
+      <li class="storage"><code class="cmd">aws <span class="svc">s3</span> cp <span class="arg">myfolder/</span> <span class="arg">s3://my-bucket/folder/</span> --recursive</code><span class="star">★</span><div class="desc">Upload an entire local folder. <code>--recursive</code> walks subdirectories.</div></li>
+      <li class="storage"><code class="cmd">aws <span class="svc">s3</span> mv <span class="arg">s3://bucket/old.txt</span> <span class="arg">s3://bucket/new.txt</span></code><div class="desc">Move (rename) an object within or between buckets.</div></li>
+      <li class="storage"><code class="cmd">aws <span class="svc">s3</span> rm <span class="arg">s3://my-bucket/secret.gz</span></code><span class="star">★</span><div class="desc">Delete a single object.</div></li>
+      <li class="storage"><code class="cmd">aws <span class="svc">s3</span> rm <span class="arg">s3://my-bucket/folder/</span> --recursive</code><div class="desc">Delete all objects under a prefix.</div></li>
+      <li class="storage"><code class="cmd">aws <span class="svc">s3</span> sync <span class="arg">./local-dir/</span> <span class="arg">s3://my-bucket/</span></code><span class="star">★</span><div class="desc">Sync local → bucket; only uploads new or changed files.</div></li>
+      <li class="storage"><code class="cmd">aws <span class="svc">s3</span> sync <span class="arg">s3://src-bucket/</span> <span class="arg">s3://dst-bucket/</span></code><div class="desc">Sync between two buckets (cross-region backup).</div></li>
+      <li class="storage"><code class="cmd">aws <span class="svc">s3</span> sync <span class="arg">./</span> <span class="arg">s3://my-bucket/</span> --exclude <span class="flag">'*.tmp'</span></code><div class="desc">Exclude files matching a glob from the sync operation.</div></li>
+      <li class="storage"><code class="cmd">aws <span class="svc">s3</span> presign <span class="arg">s3://bucket/file.pdf</span> --expires-in <span class="arg">3600</span></code><span class="star">★</span><div class="desc">Generate a temporary signed URL for private objects. Expires in 3600 seconds (1 hour).</div></li>
+    </ul>
+    <p class="tip"><b>s3 vs s3api:</b> <code>s3</code> = high-level shortcuts (cp, sync, mb). <code>s3api</code> = raw API access for policies, ACLs, versioning.</p>
+  </article>
+
+  <!-- 06 EC2 INSTANCES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">EC2 — Instances</span><span class="card-sub">virtual machines</span></div>
+    <ul class="cmds">
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> describe-instances</code><span class="star">★</span><div class="desc">List all instances (running and stopped) in the region.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> describe-instances --filters <span class="arg">Name=instance-state-name,Values=running</span></code><span class="star">★</span><div class="desc">Show only running instances.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> describe-instances | jq <span class="arg">-r '.Reservations[].Instances[] | .InstanceId+" "+.InstanceType+" "+(.Tags[]|select(.Key=="Name").Value)'</span></code><div class="desc">Human-readable table of ID, type, and Name tag via jq.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> run-instances --image-id <span class="arg">ami-0abcdef1234</span> --instance-type <span class="arg">t3.micro</span> --security-group-ids <span class="arg">sg-xxxx</span> --key-name <span class="arg">MyKey</span></code><span class="star">★</span><div class="desc">Launch (start) a new EC2 instance.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> start-instances --instance-ids <span class="arg">i-1234567890abcdef0</span></code><span class="star">★</span><div class="desc">Start a stopped instance (billing resumes).</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> stop-instances --instance-ids <span class="arg">i-1234567890abcdef0</span></code><span class="star">★</span><div class="desc">Stop a running instance (billing pauses for compute).</div></li>
+      <li class="compute danger"><code class="cmd">aws <span class="svc">ec2</span> terminate-instances --instance-ids <span class="arg">i-1234567890abcdef0</span></code><div class="desc">⚠ Permanently delete an instance and its ephemeral storage.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> describe-instance-status --instance-ids <span class="arg">i-xxx</span></code><div class="desc">Check health checks and system status for an instance.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> describe-instances --query <span class="arg">'Reservations[].Instances[].[PublicIpAddress,Tags[?Key==`Name`].Value|[0]]'</span> --output text</code><div class="desc">List running instance IPs + Name tags, clean text output.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 EC2 SECURITY GROUPS & NETWORKING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">EC2 — Security Groups &amp; VPC</span><span class="card-sub">firewall rules</span></div>
+    <ul class="cmds">
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> describe-security-groups | jq <span class="arg">-r '.SecurityGroups[] | .GroupId+" "+.GroupName'</span></code><span class="star">★</span><div class="desc">List all security groups with ID and name.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> create-security-group --group-name <span class="arg">web-sg</span> --description <span class="arg">"Web access"</span> --vpc-id <span class="arg">vpc-xxx</span></code><div class="desc">Create a new security group inside a VPC.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> authorize-security-group-ingress --group-id <span class="arg">sg-xxx</span> --protocol <span class="arg">tcp</span> --port <span class="arg">443</span> --cidr <span class="arg">0.0.0.0/0</span></code><span class="star">★</span><div class="desc">Open inbound port 443 (HTTPS) from anywhere. Use <code>/0</code> for all IPs.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> authorize-security-group-ingress --group-id <span class="arg">sg-xxx</span> --protocol <span class="arg">tcp</span> --port <span class="arg">22</span> --cidr <span class="arg">$MY_IP/32</span></code><div class="desc">Restrict SSH (port 22) to your own IP only — use <code>/32</code> for one IP.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> revoke-security-group-ingress --group-id <span class="arg">sg-xxx</span> --protocol <span class="arg">tcp</span> --port <span class="arg">22</span> --cidr <span class="arg">0.0.0.0/0</span></code><div class="desc">Remove an inbound rule from a security group.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> describe-vpcs | jq <span class="arg">-r '.Vpcs[] | .VpcId+" "+.CidrBlock'</span></code><div class="desc">List VPCs and their CIDR blocks.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> describe-subnets --filter <span class="arg">Name=vpc-id,Values=vpc-xxx</span></code><div class="desc">List subnets within a specific VPC.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 EC2 KEY PAIRS & AMIs -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">EC2 — Key Pairs &amp; AMIs</span><span class="card-sub">SSH keys · machine images</span></div>
+    <ul class="cmds">
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> describe-key-pairs</code><div class="desc">List all registered SSH key pairs.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> create-key-pair --key-name <span class="arg">MyKey</span> --output text</code><span class="star">★</span><div class="desc">Create a key pair — save the output as a <code>.pem</code> file immediately.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> import-key-pair --key-name <span class="arg">MyKey</span> --public-key-material <span class="arg">fileb://~/.ssh/id_rsa.pub</span></code><div class="desc">Import your existing local public key so AWS knows it.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> delete-key-pair --key-name <span class="arg">MyKey</span></code><div class="desc">Remove a key pair from AWS (doesn't affect local files).</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> describe-images --filters <span class="arg">Name=is-public,Values=false</span> --query <span class="arg">'Images[].[ImageId,Name]'</span> --output text</code><span class="star">★</span><div class="desc">List your private AMIs (machine images).</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> create-image --instance-id <span class="arg">i-xxx</span> --name <span class="arg">"MyAMI-v1"</span> --no-reboot</code><div class="desc">Snapshot a running instance into an AMI without rebooting.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> deregister-image --image-id <span class="arg">ami-xxx</span></code><div class="desc">Delete an AMI (doesn't delete the backing EBS snapshots).</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ec2</span> create-tags --resources <span class="arg">i-xxx</span> --tags <span class="arg">Key=Env,Value=prod</span></code><div class="desc">Add or update tags on any resource — tags are key–value labels.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 IAM USERS & KEYS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">IAM — Users &amp; Access Keys</span><span class="card-sub">identity</span></div>
+    <ul class="cmds">
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> list-users | jq <span class="arg">-r '.Users[] | .UserId+" "+.UserName'</span></code><span class="star">★</span><div class="desc">List all IAM users in the account.</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> get-user</code><div class="desc">Show the current caller's IAM user info.</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> create-user --user-name <span class="arg">alice</span></code><span class="star">★</span><div class="desc">Create a new IAM user (no console access or keys yet).</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> delete-user --user-name <span class="arg">alice</span></code><div class="desc">Delete a user (must remove keys, policies, group memberships first).</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> list-access-keys --user-name <span class="arg">alice</span></code><span class="star">★</span><div class="desc">List access key IDs for a user (secrets are never shown again after creation).</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> create-access-key --user-name <span class="arg">alice</span> | jq <span class="arg">-r '.AccessKey | .AccessKeyId+" "+.SecretAccessKey'</span></code><span class="star">★</span><div class="desc">Generate a new key pair — save the secret immediately, it won't appear again.</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> update-access-key --user-name <span class="arg">alice</span> --access-key-id <span class="arg">AKIA…</span> --status <span class="flag">Inactive</span></code><div class="desc">Deactivate a key without deleting it (useful during key rotation).</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> delete-access-key --user-name <span class="arg">alice</span> --access-key-id <span class="arg">AKIA…</span></code><div class="desc">Permanently delete an access key.</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> get-account-password-policy</code><div class="desc">View the account-level password complexity rules.</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> update-account-password-policy --minimum-password-length <span class="arg">12</span> --require-symbols --require-numbers</code><div class="desc">Enforce a stricter password policy for the whole account.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 IAM GROUPS, POLICIES, ROLES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">IAM — Groups, Policies &amp; Roles</span><span class="card-sub">permissions</span></div>
+    <ul class="cmds">
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> list-groups | jq <span class="arg">-r .Groups[].GroupName</span></code><span class="star">★</span><div class="desc">List all IAM groups — groups collect users and assign shared policies.</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> create-group --group-name <span class="arg">Developers</span></code><div class="desc">Create a new group.</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> add-user-to-group --group-name <span class="arg">Developers</span> --user-name <span class="arg">alice</span></code><span class="star">★</span><div class="desc">Add a user to a group (they inherit the group's policies).</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> remove-user-from-group --group-name <span class="arg">Developers</span> --user-name <span class="arg">alice</span></code><div class="desc">Remove a user from a group.</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> list-policies --scope <span class="arg">Local</span> | jq <span class="arg">-r '.Policies[] | .PolicyName+" "+.Arn'</span></code><span class="star">★</span><div class="desc">List custom (non-AWS-managed) policies in the account.</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> attach-group-policy --group-name <span class="arg">Developers</span> --policy-arn <span class="arg">arn:aws:iam::aws:policy/AmazonS3FullAccess</span></code><span class="star">★</span><div class="desc">Attach an AWS managed policy to a group.</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> detach-group-policy --group-name <span class="arg">Developers</span> --policy-arn <span class="arg">arn:aws:iam::aws:policy/AmazonS3FullAccess</span></code><div class="desc">Remove a policy from a group.</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> list-entities-for-policy --policy-arn <span class="arg">arn:aws:iam::…:policy/MyPolicy</span></code><div class="desc">See which users/groups/roles use a given policy.</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">iam</span> list-roles | jq <span class="arg">-r '.Roles[] | .RoleName'</span></code><div class="desc">List IAM roles — roles are assumed by services, instances, or users.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 LAMBDA -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Lambda</span><span class="card-sub">serverless functions</span></div>
+    <ul class="cmds">
+      <li class="compute"><code class="cmd">aws <span class="svc">lambda</span> list-functions | jq <span class="arg">-r '.Functions[] | .FunctionName+" "+.Runtime+" "+(.MemorySize|tostring)+"MB"'</span></code><span class="star">★</span><div class="desc">List all Lambda functions with runtime and memory size.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">lambda</span> invoke --function-name <span class="arg">my-function</span> --payload <span class="arg">'{"key":"value"}'</span> <span class="arg">output.json</span></code><span class="star">★</span><div class="desc">Invoke a function synchronously; response goes to <code>output.json</code>.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">lambda</span> update-function-code --function-name <span class="arg">my-fn</span> --zip-file <span class="arg">fileb://fn.zip</span></code><span class="star">★</span><div class="desc">Deploy new code to an existing function from a local zip.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">lambda</span> get-function --function-name <span class="arg">DynamoToSQS</span> | jq <span class="arg">-r .Code.Location</span></code><div class="desc">Get a pre-signed URL to download the function's source code.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">lambda</span> list-layers | jq <span class="arg">-r '.Layers[] | .LayerName'</span></code><div class="desc">List Lambda layers (shared libraries/dependencies).</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">lambda</span> list-event-source-mappings | jq <span class="arg">-r '.EventSourceMappings[] | .FunctionArn+" "+.EventSourceArn'</span></code><div class="desc">Show which event sources (SQS, Kinesis, DynamoDB) trigger each function.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 RDS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">RDS — Relational Databases</span><span class="card-sub">MySQL · Postgres · Aurora</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">aws <span class="svc">rds</span> describe-db-instances | jq <span class="arg">-r '.DBInstances[] | .DBInstanceIdentifier+" "+.DBInstanceClass+" "+.Endpoint.Address'</span></code><span class="star">★</span><div class="desc">List all DB instances with class and endpoint hostname.</div></li>
+      <li class="data"><code class="cmd">aws <span class="svc">rds</span> describe-db-clusters | jq <span class="arg">-r '.DBClusters[] | .DBClusterIdentifier+" "+.Endpoint'</span></code><div class="desc">List Aurora clusters (multi-instance databases).</div></li>
+      <li class="data"><code class="cmd">aws <span class="svc">rds</span> create-db-snapshot --db-instance-identifier <span class="arg">mydb</span> --db-snapshot-identifier <span class="arg">snap-$(date +%F)</span></code><span class="star">★</span><div class="desc">Take a manual snapshot (backup) of a DB instance.</div></li>
+      <li class="data"><code class="cmd">aws <span class="svc">rds</span> describe-db-snapshots --db-instance-identifier <span class="arg">mydb</span></code><div class="desc">List snapshots for a specific DB instance.</div></li>
+      <li class="data"><code class="cmd">aws <span class="svc">rds</span> start-db-instance --db-instance-identifier <span class="arg">mydb</span></code><div class="desc">Start a stopped DB instance (billing resumes).</div></li>
+      <li class="data"><code class="cmd">aws <span class="svc">rds</span> stop-db-instance --db-instance-identifier <span class="arg">mydb</span></code><div class="desc">Stop a DB instance to pause compute billing.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 DYNAMODB -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">DynamoDB</span><span class="card-sub">NoSQL key–value &amp; document store</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">aws <span class="svc">dynamodb</span> list-tables | jq <span class="arg">-r .TableNames[]</span></code><span class="star">★</span><div class="desc">List all DynamoDB tables.</div></li>
+      <li class="data"><code class="cmd">aws <span class="svc">dynamodb</span> scan --table-name <span class="arg">events</span></code><span class="star">★</span><div class="desc">Return all items from a table (expensive on large tables — use for dev/debug).</div></li>
+      <li class="data"><code class="cmd">aws <span class="svc">dynamodb</span> scan --table-name <span class="arg">events</span> --select count | jq <span class="arg">.ScannedCount</span></code><div class="desc">Count items without fetching their data.</div></li>
+      <li class="data"><code class="cmd">aws <span class="svc">dynamodb</span> get-item --table-name <span class="arg">events</span> --key <span class="arg">'{"email":{"S":"bob@example.com"}}'</span></code><span class="star">★</span><div class="desc">Fetch one item by its primary key. Note the DynamoDB type notation (<code>"S"</code> = String).</div></li>
+      <li class="data"><code class="cmd">aws <span class="svc">dynamodb</span> put-item --table-name <span class="arg">events</span> --item <span class="arg">'{"email":{"S":"bob@example.com"},"age":{"N":"30"}}'</span></code><div class="desc">Insert or overwrite one item.</div></li>
+      <li class="data"><code class="cmd">aws <span class="svc">dynamodb</span> delete-item --table-name <span class="arg">events</span> --key <span class="arg">'{"email":{"S":"bob@example.com"}}'</span></code><div class="desc">Delete one item by primary key.</div></li>
+      <li class="data"><code class="cmd">aws <span class="svc">dynamodb</span> query --table-name <span class="arg">events</span> --key-condition-expression <span class="arg">"email = :e"</span> --expression-attribute-values <span class="arg">'{":e":{"S":"bob@example.com"}}'</span></code><div class="desc">Query items by partition key (efficient — uses the index).</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 ECS & EKS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">ECS &amp; EKS</span><span class="card-sub">containers</span></div>
+    <ul class="cmds">
+      <li class="compute"><code class="cmd">aws <span class="svc">ecs</span> list-clusters | jq <span class="arg">-r .clusterArns[]</span></code><span class="star">★</span><div class="desc">List ECS cluster ARNs in the region.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ecs</span> create-cluster --cluster-name <span class="arg">my-cluster</span></code><div class="desc">Create a new ECS cluster (container orchestrator).</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ecs</span> list-tasks --cluster <span class="arg">my-cluster</span></code><div class="desc">List running task ARNs in a cluster.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">ecs</span> create-service --cluster <span class="arg">my-cluster</span> --service-name <span class="arg">web</span> --task-definition <span class="arg">web:1</span> --desired-count <span class="arg">2</span></code><div class="desc">Deploy a service (keeps <em>N</em> task replicas running).</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">eks</span> list-clusters</code><span class="star">★</span><div class="desc">List Kubernetes (EKS) clusters in the region.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">eks</span> create-cluster --name <span class="arg">my-k8s</span> --role-arn <span class="arg">arn:aws:iam::…:role/EKSRole</span> --resources-vpc-config <span class="arg">subnetIds=…,securityGroupIds=…</span></code><div class="desc">Create a managed Kubernetes control plane.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">eks</span> update-kubeconfig --name <span class="arg">my-k8s</span></code><span class="star">★</span><div class="desc">Configure <code>kubectl</code> to talk to this EKS cluster.</div></li>
+      <li class="compute"><code class="cmd">aws <span class="svc">eks</span> describe-cluster --name <span class="arg">my-k8s</span></code><div class="desc">Show cluster details including endpoint and status.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 CLOUDWATCH -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">CloudWatch</span><span class="card-sub">metrics · alarms · logs</span></div>
+    <ul class="cmds">
+      <li class="ops"><code class="cmd">aws <span class="svc">cloudwatch</span> describe-alarms | jq <span class="arg">-r '.MetricAlarms[] | .AlarmName+" "+.StateValue'</span></code><span class="star">★</span><div class="desc">List all alarms and their current state (OK / ALARM / INSUFFICIENT_DATA).</div></li>
+      <li class="ops"><code class="cmd">aws <span class="svc">cloudwatch</span> delete-alarms --alarm-names <span class="arg">MyAlarm1 MyAlarm2</span></code><div class="desc">Delete one or more alarms (up to 100 at once).</div></li>
+      <li class="ops"><code class="cmd">aws <span class="svc">logs</span> describe-log-groups</code><span class="star">★</span><div class="desc">List all CloudWatch log groups.</div></li>
+      <li class="ops"><code class="cmd">aws <span class="svc">logs</span> create-log-group --log-group-name <span class="arg">/app/prod</span></code><div class="desc">Create a new log group (container for log streams).</div></li>
+      <li class="ops"><code class="cmd">aws <span class="svc">logs</span> describe-log-streams --log-group-name <span class="arg">/app/prod</span></code><div class="desc">List streams within a log group (one stream per host/container).</div></li>
+      <li class="ops"><code class="cmd">aws <span class="svc">logs</span> get-log-events --log-group-name <span class="arg">/app/prod</span> --log-stream-name <span class="arg">i-xxx</span></code><span class="star">★</span><div class="desc">Fetch recent log events from a stream.</div></li>
+      <li class="ops"><code class="cmd">aws <span class="svc">logs</span> filter-log-events --log-group-name <span class="arg">/app/prod</span> --filter-pattern <span class="arg">"ERROR"</span></code><span class="star">★</span><div class="desc">Search for a pattern across all streams in a log group.</div></li>
+      <li class="ops"><code class="cmd">aws <span class="svc">logs</span> delete-log-group --log-group-name <span class="arg">/app/prod</span></code><div class="desc">Delete a log group and all its streams permanently.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 ROUTE 53 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Route 53</span><span class="card-sub">DNS management</span></div>
+    <ul class="cmds">
+      <li class="network"><code class="cmd">aws <span class="svc">route53</span> list-hosted-zones | jq <span class="arg">-r '.HostedZones[] | .Id+" "+.Name'</span></code><span class="star">★</span><div class="desc">List all hosted zones (DNS domains) in the account.</div></li>
+      <li class="network"><code class="cmd">aws <span class="svc">route53</span> create-hosted-zone --name <span class="arg">example.com</span> --caller-reference <span class="arg">$(date +%s)</span></code><div class="desc">Create a new hosted zone. <code>caller-reference</code> is a unique ID to prevent duplicate creation.</div></li>
+      <li class="network"><code class="cmd">aws <span class="svc">route53</span> list-resource-record-sets --hosted-zone-id <span class="arg">Z1234</span></code><span class="star">★</span><div class="desc">List all DNS records (A, CNAME, MX, etc.) in a zone.</div></li>
+      <li class="network"><code class="cmd">aws <span class="svc">route53</span> change-resource-record-sets --hosted-zone-id <span class="arg">Z1234</span> --change-batch <span class="arg">file://records.json</span></code><span class="star">★</span><div class="desc">Create / update / delete records via a JSON change-batch file.</div></li>
+      <li class="network"><code class="cmd">aws <span class="svc">route53</span> delete-hosted-zone --id <span class="arg">Z1234</span></code><div class="desc">Delete a hosted zone (must be empty first).</div></li>
+    </ul>
+    <p class="tip"><b>Change-batch:</b> use Action <code>CREATE</code>, <code>UPSERT</code> (create or update), or <code>DELETE</code> in the JSON file.</p>
+  </article>
+
+  <!-- 17 CLOUDFRONT & ELB -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">CloudFront &amp; ELB</span><span class="card-sub">CDN · load balancers</span></div>
+    <ul class="cmds">
+      <li class="network"><code class="cmd">aws <span class="svc">cloudfront</span> list-distributions | jq <span class="arg">-r '.DistributionList.Items[] | .DomainName+" "+.Origins.Items[0].DomainName'</span></code><span class="star">★</span><div class="desc">List CloudFront distributions with domain and their origin.</div></li>
+      <li class="network"><code class="cmd">aws <span class="svc">cloudfront</span> create-invalidation --distribution-id <span class="arg">EDFDVBD6EXAMPLE</span> --paths <span class="arg">"/*"</span></code><span class="star">★</span><div class="desc">Purge all cached files from edge locations — use after deploying new assets.</div></li>
+      <li class="network"><code class="cmd">aws <span class="svc">elbv2</span> describe-load-balancers | jq <span class="arg">-r '.LoadBalancers[] | .DNSName'</span></code><span class="star">★</span><div class="desc">List Application/Network Load Balancer DNS names.</div></li>
+      <li class="network"><code class="cmd">aws <span class="svc">elbv2</span> describe-target-groups | jq <span class="arg">-r '.TargetGroups[] | .TargetGroupArn'</span></code><div class="desc">List target groups (the registered EC2 instances/containers behind a load balancer).</div></li>
+      <li class="network"><code class="cmd">aws <span class="svc">elbv2</span> describe-target-health --target-group-arn <span class="arg">arn:aws:…</span> | jq <span class="arg">-r '.TargetHealthDescriptions[] | .Target.Id+" "+.TargetHealth.State'</span></code><div class="desc">Check the health status of each registered target.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 SNS & SQS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">SNS &amp; SQS</span><span class="card-sub">pub/sub · queues</span></div>
+    <ul class="cmds">
+      <li class="ops"><code class="cmd">aws <span class="svc">sns</span> list-topics | jq <span class="arg">-r '.Topics[] | .TopicArn'</span></code><span class="star">★</span><div class="desc">List all SNS topics (notification channels).</div></li>
+      <li class="ops"><code class="cmd">aws <span class="svc">sns</span> publish --topic-arn <span class="arg">arn:aws:sns:…</span> --message <span class="arg">"Deploy complete"</span></code><span class="star">★</span><div class="desc">Publish a message to an SNS topic — fans out to all subscribers.</div></li>
+      <li class="ops"><code class="cmd">aws <span class="svc">sns</span> list-subscriptions | jq <span class="arg">-r '.Subscriptions[] | .TopicArn+" "+.Protocol+" "+.Endpoint'</span></code><div class="desc">List what is subscribed to each topic (email, SQS, Lambda, HTTP…).</div></li>
+      <li class="ops"><code class="cmd">aws <span class="svc">sqs</span> list-queues | jq <span class="arg">-r '.QueueUrls[]'</span></code><span class="star">★</span><div class="desc">List all SQS queue URLs.</div></li>
+      <li class="ops"><code class="cmd">aws <span class="svc">sqs</span> create-queue --queue-name <span class="arg">my-queue</span></code><div class="desc">Create a new queue.</div></li>
+      <li class="ops"><code class="cmd">aws <span class="svc">sqs</span> send-message --queue-url <span class="arg">https://sqs.…/my-queue</span> --message-body <span class="arg">"hello"</span></code><span class="star">★</span><div class="desc">Send a message to a queue.</div></li>
+      <li class="ops"><code class="cmd">aws <span class="svc">sqs</span> receive-message --queue-url <span class="arg">https://…/my-queue</span> | jq <span class="arg">-r '.Messages[] | .Body'</span></code><span class="star">★</span><div class="desc">Poll and receive a message (dequeues up to 1 by default).</div></li>
+      <li class="ops"><code class="cmd">aws <span class="svc">sqs</span> delete-message --queue-url <span class="arg">https://…</span> --receipt-handle <span class="arg">AQE…</span></code><div class="desc">Acknowledge and remove a message using its receipt handle.</div></li>
+      <li class="ops"><code class="cmd">aws <span class="svc">sqs</span> purge-queue --queue-url <span class="arg">https://…/my-queue</span></code><div class="desc">Delete all messages from a queue instantly.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 CLOUDTRAIL & SECRETS MANAGER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">CloudTrail &amp; Secrets Manager</span><span class="card-sub">audit · secure secrets</span></div>
+    <ul class="cmds">
+      <li class="ops"><code class="cmd">aws <span class="svc">cloudtrail</span> describe-trails</code><span class="star">★</span><div class="desc">List all CloudTrail trails (API audit logs).</div></li>
+      <li class="ops"><code class="cmd">aws <span class="svc">cloudtrail</span> get-trail-status --name <span class="arg">my-trail</span></code><div class="desc">Is logging enabled? When did it last deliver a log file?</div></li>
+      <li class="ops"><code class="cmd">aws <span class="svc">cloudtrail</span> create-subscription --name <span class="arg">awslog</span> --s3-new-bucket <span class="arg">awslog-2026</span></code><div class="desc">Create a trail that logs to a new S3 bucket.</div></li>
+      <li class="ops"><code class="cmd">aws <span class="svc">cloudtrail</span> delete-trail --name <span class="arg">awslog</span></code><div class="desc">Delete a trail (stops logging — doesn't delete existing logs in S3).</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">secretsmanager</span> list-secrets | jq <span class="arg">-r '.SecretList[] | .Name'</span></code><span class="star">★</span><div class="desc">List all secrets stored in Secrets Manager.</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">secretsmanager</span> get-secret-value --secret-id <span class="arg">MyDBPassword</span> | jq <span class="arg">-r .SecretString</span></code><span class="star">★</span><div class="desc">Retrieve a secret value — use in scripts instead of hardcoding passwords.</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">secretsmanager</span> create-secret --name <span class="arg">MyDBPassword</span> --secret-string <span class="arg">'{"user":"admin","pass":"s3cr3t"}'</span></code><div class="desc">Store a new secret (JSON or plain string).</div></li>
+      <li class="iam"><code class="cmd">aws <span class="svc">secretsmanager</span> rotate-secret --secret-id <span class="arg">MyDBPassword</span></code><div class="desc">Trigger an immediate secret rotation (requires a rotation Lambda).</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ===================== DIAGRAMS ===================== -->
+<section class="diagrams">
+  <h2>Key mental models</h2>
+  <p class="sub">Three diagrams that unlock how S3, IAM, and jq filtering actually work — drawn from the official docs and community guides.</p>
+  <div class="dg three">
+
+    <!-- S3 Hierarchy -->
+    <div class="dc">
+      <h3>S3 object hierarchy</h3>
+      <p>No real folders — just a key that looks like a path. The bucket is the top-level namespace; everything below is an object key.</p>
+      <svg viewBox="0 0 380 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="S3 hierarchy diagram: Account contains bucket, bucket contains prefixes, prefixes contain object keys and their URL pattern">
+        <rect x="10"  y="10"  width="360" height="170" rx="10" fill="#eff8fd" stroke="#0369a1" stroke-width="1.8"/>
+        <text x="190" y="32" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700" fill="#0369a1">AWS Account</text>
+
+        <rect x="25"  y="42"  width="330" height="128" rx="8" fill="#fff" stroke="#0369a1" stroke-width="1.5"/>
+        <text x="190" y="62" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10.5" font-weight="700" fill="#0369a1">🪣  s3://my-bucket/</text>
+        <text x="190" y="79" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#64748b">globally unique name · region-specific storage</text>
+
+        <rect x="40"  y="88"  width="140" height="72" rx="6" fill="#eff8fd" stroke="#0369a1" stroke-width="1.2"/>
+        <text x="110" y="104" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" fill="#0369a1">images/</text>
+        <text x="110" y="121" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#64748b">logo.png</text>
+        <text x="110" y="137" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#64748b">hero.jpg</text>
+        <text x="110" y="151" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#94a3b8">(prefix)</text>
+
+        <rect x="195" y="88"  width="155" height="72" rx="6" fill="#eff8fd" stroke="#0369a1" stroke-width="1.2"/>
+        <text x="272" y="104" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" fill="#0369a1">backup/2026/</text>
+        <text x="272" y="121" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#64748b">db.tar.gz</text>
+        <text x="272" y="137" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#64748b">logs.zip</text>
+        <text x="272" y="151" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#94a3b8">(prefix)</text>
+      </svg>
+    </div>
+
+    <!-- IAM Principal → Policy → Resource -->
+    <div class="dc">
+      <h3>IAM: who → what → resource</h3>
+      <p>Permissions flow from a principal (user/role/group) through a policy to an action on a resource, identified by its ARN.</p>
+      <svg viewBox="0 0 380 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="IAM model diagram: User or Role (principal) has a policy attached that contains Allow or Deny statements governing which actions can be performed on which AWS resource ARNs">
+        <defs>
+          <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#4f46e5"/>
+          </marker>
+        </defs>
+        <rect x="10"  y="20"  width="90"  height="56" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.8"/>
+        <text x="55"  y="44"  text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700" fill="#4f46e5">User</text>
+        <text x="55"  y="60"  text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" fill="#4f46e5">or Role</text>
+        <text x="55"  y="90"  text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#94a3b8">principal</text>
+
+        <rect x="130" y="10"  width="120" height="76" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.8"/>
+        <text x="190" y="33"  text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700" fill="#4f46e5">Policy</text>
+        <text x="190" y="51"  text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#059669">Effect: Allow</text>
+        <text x="190" y="66"  text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#dc2626">Effect: Deny</text>
+        <text x="190" y="98"  text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#94a3b8">attached policy (JSON)</text>
+
+        <rect x="278" y="20"  width="92"  height="56" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.8"/>
+        <text x="324" y="44"  text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700" fill="#4f46e5">Resource</text>
+        <text x="324" y="60"  text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#4f46e5">ARN</text>
+        <text x="324" y="90"  text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#94a3b8">S3/EC2/RDS…</text>
+
+        <line x1="100" y1="48" x2="128" y2="48" stroke="#4f46e5" stroke-width="1.8" marker-end="url(#a2)"/>
+        <line x1="250" y1="48" x2="276" y2="48" stroke="#4f46e5" stroke-width="1.8" marker-end="url(#a2)"/>
+
+        <rect x="10"  y="115" width="360" height="60" rx="8" fill="#1a1d24"/>
+        <text x="22"  y="135" font-family="JetBrains Mono,monospace" font-size="9.5" fill="#fbbf24">ARN format:</text>
+        <text x="22"  y="151" font-family="JetBrains Mono,monospace" font-size="9" fill="#60cdff">arn:aws:<span style="fill:#f28b82">s3</span>:::my-bucket</text>
+        <text x="22"  y="167" font-family="JetBrains Mono,monospace" font-size="9" fill="#60cdff">arn:aws:<span style="fill:#f28b82">ec2</span>:us-east-1:123456789:instance/i-xxx</text>
+      </svg>
+    </div>
+
+    <!-- S3 Storage Classes -->
+    <div class="dc">
+      <h3>S3 storage class ladder</h3>
+      <p>Choose the class based on how often data is accessed — costs drop significantly for infrequent or archival tiers.</p>
+      <svg viewBox="0 0 380 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="S3 storage class ladder from Standard (frequent hot access) down through Intelligent-Tiering, Standard-IA, One Zone-IA, Glacier, to Glacier Deep Archive (cheapest, coldest, accessed rarely)">
+        <g font-family="JetBrains Mono,monospace">
+          <!-- rungs -->
+          <rect x="10"  y="12"  width="360" height="25" rx="5" fill="#0369a1"/>
+          <rect x="20"  y="44"  width="340" height="23" rx="5" fill="#2e87c5"/>
+          <rect x="32"  y="74"  width="316" height="23" rx="5" fill="#4a9fd4"/>
+          <rect x="46"  y="104" width="288" height="23" rx="5" fill="#68b4e0"/>
+          <rect x="64"  y="134" width="252" height="23" rx="5" fill="#9dd0ef"/>
+          <rect x="86"  y="163" width="208" height="23" rx="5" fill="#c3e5f8"/>
+
+          <text x="190" y="29"  text-anchor="middle" font-size="9.5" font-weight="700" fill="#fff">S3 Standard — hot, frequent, low latency</text>
+          <text x="190" y="60"  text-anchor="middle" font-size="9.5" fill="#fff">Intelligent-Tiering — auto-moves to cheapest tier</text>
+          <text x="190" y="90"  text-anchor="middle" font-size="9.5" fill="#fff">Standard-IA — infrequent, fast when needed</text>
+          <text x="190" y="120" text-anchor="middle" font-size="9.5" fill="#1a1d24">One Zone-IA — same but single AZ (20% cheaper)</text>
+          <text x="190" y="150" text-anchor="middle" font-size="9.5" fill="#1a1d24">Glacier Instant — archives, ms retrieval</text>
+          <text x="190" y="179" text-anchor="middle" font-size="9.5" fill="#0369a1">Glacier Deep Archive — cheapest, hours retrieval</text>
+
+          <text x="375" y="20" text-anchor="end" font-size="8.5" fill="#fbbf24">$$$$</text>
+          <text x="375" y="172" text-anchor="end" font-size="8.5" fill="#fbbf24">$</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== REFS STRIP ===================== -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">aws sts get-caller-identity</span><span class="v">always run first to confirm which account/role you're in</span></div>
+    <div><span class="k">--dry-run</span><span class="v">EC2 commands accept this flag to validate without doing anything</span></div>
+    <div><span class="k">--query (JMESPath)</span><span class="v">built-in server-side filtering; faster than piping full JSON to jq</span></div>
+    <div><span class="k">--output text</span><span class="v">tab-delimited output — easiest to pass to cut/awk in shell scripts</span></div>
+    <div><span class="k">s3 vs s3api</span><span class="v">s3 = high-level; s3api = raw API; use s3api for ACLs, policies, versioning</span></div>
+    <div><span class="k">presign</span><span class="v">share private S3 objects without making them public — expiry in seconds</span></div>
+    <div><span class="k">ARN format</span><span class="v">arn:partition:service:region:account:resource — the universal resource ID</span></div>
+    <div><span class="k">IAM least privilege</span><span class="v">grant only the actions a user/role actually needs, nothing more</span></div>
+    <div><span class="k">named profiles</span><span class="v">keep dev/staging/prod credentials separate with --profile; never cross the streams</span></div>
+    <div><span class="k">jq -r</span><span class="v">raw output (no JSON quotes) — almost always what you want in scripts</span></div>
+    <div><span class="k">instance roles</span><span class="v">preferred over access keys on EC2 — no credentials to rotate or leak</span></div>
+    <div><span class="k">paginate</span><span class="v">add --no-paginate or loop with --starting-token for results > 1 page</span></div>
+  </div>
+</section>
+
+<footer>
+  AWS CLI cheat sheet · synthesized from docs.aws.amazon.com/cli/latest · devhints.io/awscli · bluematador.com/learn/aws-cli-cheatsheet · gist.github.com/apolloclark/b3f60c1f68aa972d324b · pluralsight.com S3 cheat sheet<br>
+  Commands target AWS CLI v2 — verify against <code>aws &lt;service&gt; &lt;action&gt; help</code> for exact flag names in your version. ARNs, IDs, and bucket names shown as placeholders.
+</footer>
+
+</body>
+</html>

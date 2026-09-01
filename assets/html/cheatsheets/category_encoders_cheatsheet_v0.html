@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>category_encoders Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --core:#64748b;   --core-bg:#f1f3f6;
+    --unsup:#059669;  --unsup-bg:#ecf7f2;
+    --sup:#d97706;    --sup-bg:#fdf6ec;
+    --contrast:#4f46e5; --contrast-bg:#eef0fd;
+    --eval:#0891b2;   --eval-bg:#ecf6fa;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .ce{font-family:var(--mono); color:var(--unsup)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.core{background:var(--core)}       .dot.unsup{background:var(--unsup)}
+  .dot.sup{background:var(--sup)}         .dot.contrast{background:var(--contrast)}
+  .dot.eval{background:var(--eval)}       .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1140px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- section headings ---------- */
+  .deck-wrap, .diagrams, .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 2rem;
+  }
+  .deck-wrap h2, .diagrams h2, .refs h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .deck-wrap .sub, .diagrams .sub{
+    color:var(--muted); font-size:.9rem; margin-bottom:1.5rem; max-width:80ch;
+  }
+  .deck-wrap .sub b{color:var(--ink); font-weight:600}
+  .deck-wrap .sub code, .diagrams .sub code{
+    font-family:var(--mono); font-size:.92em; background:#f4f2ee;
+    padding:.05rem .22rem; border-radius:3px;
+  }
+
+  /* ---------- masonry deck ---------- */
+  .deck{column-gap:1.4rem}
+  @media(min-width:760px){ .deck{column-count:2} }
+  @media(min-width:1200px){ .deck{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  .card-note{
+    padding:.6rem 1rem; font-size:.79rem; color:#525761;
+    background:#fcfbf9; border-bottom:1px solid var(--line);
+  }
+  .card-note b{color:var(--ink); font-weight:600}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.core{border-left-color:var(--core)}
+  ul.cmds li.unsup{border-left-color:var(--unsup)}
+  ul.cmds li.sup{border-left-color:var(--sup)}
+  ul.cmds li.contrast{border-left-color:var(--contrast)}
+  ul.cmds li.eval{border-left-color:var(--eval)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.82rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.55;
+  }
+  code.cmd .arg{color:var(--contrast); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .fn{color:var(--unsup); font-weight:700}
+  code.cmd .cm{color:#9aa1ac; font-weight:400}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc b{color:var(--ink); font-weight:600}
+  .desc code, .card-note code, .refs-inner code{
+    font-family:var(--mono); font-size:.92em; background:#f4f2ee;
+    padding:.05rem .22rem; border-radius:3px;
+  }
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-ok{
+    color:var(--unsup); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- tables ---------- */
+  table.grid{width:100%; border-collapse:collapse; font-size:.76rem}
+  table.grid th{
+    text-align:left; font-family:var(--mono); font-size:.64rem; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--muted); font-weight:700;
+    padding:.55rem 1rem .4rem; border-bottom:1px solid var(--line); background:#fcfbf9;
+  }
+  table.grid td{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8; vertical-align:top; color:#525761;
+  }
+  table.grid tr:last-child td{border-bottom:none}
+  table.grid td.key{font-family:var(--mono); color:var(--ink); font-weight:700; white-space:nowrap}
+  table.grid td.num{font-family:var(--mono); font-weight:700; text-align:right; white-space:nowrap}
+  table.grid td b{color:var(--ink); font-weight:600}
+  table.grid td code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:.05rem .22rem; border-radius:3px}
+
+  /* ---------- diagram grids ---------- */
+  .dia-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .dia-grid{grid-template-columns:1fr 1fr} }
+  .dia-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .dia-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .dia-card h3.bad{color:var(--danger)}
+  .dia-card h3.good{color:var(--unsup)}
+  .dia-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .dia-card p b{color:var(--ink); font-weight:600}
+  .dia-card p code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:.05rem .22rem; border-radius:3px}
+  .dia-card .bsvg{width:100%; height:auto; display:block}
+  .dia-card .bsvg text{font-family:var(--mono)}
+  .dia-card.bad{border-color:#f3cdc9; background:var(--danger-bg)}
+  .dia-card.good{border-color:#c3e6d8; background:var(--unsup-bg)}
+  .dia-card.bad .bsvg, .dia-card.good .bsvg{background:#fff; border-radius:6px}
+
+  /* ---------- mermaid ---------- */
+  .mer-wrap{
+    border:1px solid var(--line); border-radius:10px; background:#fff;
+    padding:1.2rem; overflow-x:auto;
+  }
+  .mermaid{text-align:center; font-size:13px}
+
+  /* ---------- refs strip ---------- */
+  .refs{padding-bottom:4rem}
+  .refs h2{margin-bottom:1rem}
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{background:#2b303a; color:#e8e6e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer a{color:var(--contrast); text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · categorical → numeric transformers</div>
+  <h1><span class="ce">category_encoders</span> cheat sheet</h1>
+  <p class="lede">22 sklearn-compatible encoders, and really only <b>three questions</b>: how many <b>columns</b> come out (cardinality), does it need the <b>target</b> (and therefore leak), and is your downstream model a <b>tree or a linear model</b>? Answer those three and the choice makes itself.</p>
+  <div class="legend">
+    <span><i class="dot core"></i>foundations &amp; API</span>
+    <span><i class="dot unsup"></i>unsupervised — no <code>y</code></span>
+    <span><i class="dot sup"></i>supervised — needs <code>y</code></span>
+    <span><i class="dot contrast"></i>contrast coding — linear models</span>
+    <span><i class="dot eval"></i>pipeline &amp; wrappers</span>
+    <span><i class="dot danger"></i>trap</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>contrib.scikit-learn.org/category_encoders</b> (official API docs, v2.8/2.9) · <b>github.com/scikit-learn-contrib/category_encoders</b> · <b>scikit-learn.org</b> · the source papers (<b>Micci-Barreca 2001</b> · <b>Prokhorenkova 2018</b> · <b>Weinberger 2009</b>)</p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">One categorical column, k = 1,000 categories — where does it go?</div>
+  <svg class="flow-svg" viewBox="0 0 1140 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram showing how a 1000-category column maps to different output widths under one-hot, binary, hashing and target encoding, and the target-leakage gate that supervised encoders must pass.">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+      </marker>
+    </defs>
+
+    <text x="330" y="26" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">NO TARGET NEEDED — SAFE ANYWHERE</text>
+    <text x="900" y="26" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#dc2626">NEEDS y — MUST PASS THE GATE</text>
+
+    <!-- source -->
+    <g>
+      <rect x="16" y="150" width="124" height="110" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="78" y="182" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">city</text>
+      <text x="78" y="204" text-anchor="middle" font-size="11" fill="#64748b">dtype: object</text>
+      <text x="78" y="226" text-anchor="middle" font-size="12" font-weight="700" fill="#64748b">k = 1,000</text>
+      <text x="78" y="246" text-anchor="middle" font-size="10" fill="#94a3b8">high cardinality</text>
+    </g>
+    <line x1="140" y1="205" x2="172" y2="205" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- UNSUPERVISED family -->
+    <g>
+      <rect x="176" y="48" width="240" height="46" rx="10" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="190" y="70" font-size="11.5" font-weight="700" fill="#1a1d24">OneHotEncoder</text>
+      <text x="190" y="86" font-size="10" fill="#059669">one column per category</text>
+      <text x="404" y="76" text-anchor="end" font-size="15" font-weight="700" fill="#dc2626">1000</text>
+    </g>
+    <g>
+      <rect x="176" y="102" width="240" height="46" rx="10" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="190" y="124" font-size="11.5" font-weight="700" fill="#1a1d24">Binary / BaseN / Gray</text>
+      <text x="190" y="140" font-size="10" fill="#059669">⌈log₂ k⌉ digit columns</text>
+      <text x="404" y="130" text-anchor="end" font-size="15" font-weight="700" fill="#059669">10</text>
+    </g>
+    <g>
+      <rect x="176" y="156" width="240" height="46" rx="10" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="190" y="178" font-size="11.5" font-weight="700" fill="#1a1d24">HashingEncoder</text>
+      <text x="190" y="194" font-size="10" fill="#059669">fixed width — collisions allowed</text>
+      <text x="404" y="184" text-anchor="end" font-size="15" font-weight="700" fill="#059669">8</text>
+    </g>
+    <g>
+      <rect x="176" y="210" width="240" height="46" rx="10" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="190" y="232" font-size="11.5" font-weight="700" fill="#1a1d24">Ordinal / Count</text>
+      <text x="190" y="248" font-size="10" fill="#059669">integer rank · frequency</text>
+      <text x="404" y="238" text-anchor="end" font-size="15" font-weight="700" fill="#059669">1</text>
+    </g>
+    <!-- CONTRAST -->
+    <g>
+      <rect x="176" y="264" width="240" height="46" rx="10" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="190" y="286" font-size="11.5" font-weight="700" fill="#1a1d24">Helmert / Sum / Poly</text>
+      <text x="190" y="302" font-size="10" fill="#4f46e5">contrast coding — linear models only</text>
+      <text x="404" y="292" text-anchor="end" font-size="15" font-weight="700" fill="#dc2626">999</text>
+    </g>
+    <!-- SUPERVISED -->
+    <g>
+      <rect x="176" y="322" width="240" height="52" rx="10" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="190" y="344" font-size="11.5" font-weight="700" fill="#1a1d24">Target / CatBoost / WOE …</text>
+      <text x="190" y="360" font-size="10" fill="#b45309">mean of y per category</text>
+      <text x="404" y="352" text-anchor="end" font-size="15" font-weight="700" fill="#d97706">1</text>
+    </g>
+    <text x="296" y="392" text-anchor="middle" font-size="10" fill="#94a3b8">columns out →</text>
+
+    <!-- routes -->
+    <line x1="416" y1="140" x2="470" y2="180" stroke="#059669" stroke-width="1.8" marker-end="url(#arrow)"/>
+    <line x1="416" y1="348" x2="470" y2="348" stroke="#d97706" stroke-width="2" marker-end="url(#arrowRed)"/>
+
+    <!-- safe box -->
+    <g>
+      <rect x="474" y="150" width="196" height="86" rx="12" fill="#fff" stroke="#059669" stroke-width="2" stroke-dasharray="5 4"/>
+      <text x="572" y="178" text-anchor="middle" font-size="12" font-weight="700" fill="#059669">No y → no leakage</text>
+      <text x="572" y="200" text-anchor="middle" font-size="10.5" fill="#059669">fit() on train, transform()</text>
+      <text x="572" y="216" text-anchor="middle" font-size="10.5" fill="#059669">anywhere. Nothing to</text>
+      <text x="572" y="232" text-anchor="middle" font-size="10.5" fill="#059669">get wrong.</text>
+    </g>
+
+    <!-- THE GATE -->
+    <g>
+      <rect x="474" y="300" width="196" height="96" rx="12" fill="#fdf0ef" stroke="#dc2626" stroke-width="2"/>
+      <text x="572" y="326" text-anchor="middle" font-size="13" font-weight="700" fill="#dc2626">THE GATE</text>
+      <text x="572" y="348" text-anchor="middle" font-size="11" font-weight="700" fill="#dc2626">fit_transform(X, y)</text>
+      <text x="572" y="364" text-anchor="middle" font-size="10.5" fill="#dc2626">on TRAIN — never</text>
+      <text x="572" y="380" text-anchor="middle" font-size="11" font-weight="700" fill="#dc2626">fit().transform()</text>
+    </g>
+    <line x1="670" y1="348" x2="712" y2="348" stroke="#dc2626" stroke-width="2" marker-end="url(#arrowRed)"/>
+    <line x1="670" y1="193" x2="712" y2="193" stroke="#059669" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- model side -->
+    <g>
+      <rect x="716" y="120" width="200" height="150" rx="12" fill="#ecf6fa" stroke="#0891b2" stroke-width="2"/>
+      <text x="816" y="146" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">TREE MODEL?</text>
+      <text x="816" y="170" text-anchor="middle" font-size="10.5" fill="#0891b2">Ordinal · Count · Target</text>
+      <text x="816" y="186" text-anchor="middle" font-size="10.5" fill="#0891b2">CatBoost — 1 column each</text>
+      <line x1="736" y1="200" x2="896" y2="200" stroke="#cbd5e1"/>
+      <text x="816" y="222" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">LINEAR MODEL?</text>
+      <text x="816" y="244" text-anchor="middle" font-size="10.5" fill="#0891b2">OneHot · contrast coders</text>
+      <text x="816" y="260" text-anchor="middle" font-size="10.5" fill="#0891b2">— never raw Ordinal</text>
+    </g>
+
+    <g>
+      <rect x="716" y="300" width="200" height="96" rx="12" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+      <text x="816" y="326" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">CV-safe encoding</text>
+      <text x="816" y="348" text-anchor="middle" font-size="10.5" fill="#0891b2">Pipeline([enc, model])</text>
+      <text x="816" y="366" text-anchor="middle" font-size="10.5" fill="#0891b2">or NestedCVWrapper</text>
+      <text x="816" y="386" text-anchor="middle" font-size="10" fill="#94a3b8">out-of-fold statistics</text>
+    </g>
+
+    <line x1="916" y1="195" x2="954" y2="230" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="916" y1="348" x2="954" y2="290" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <g>
+      <rect x="958" y="200" width="168" height="110" rx="12" fill="#1a1d24"/>
+      <text x="1042" y="234" text-anchor="middle" font-size="13" font-weight="700" fill="#fbbf24">A NUMERIC</text>
+      <text x="1042" y="252" text-anchor="middle" font-size="13" font-weight="700" fill="#fbbf24">MATRIX</text>
+      <text x="1042" y="278" text-anchor="middle" font-size="10" fill="#cbd5e1">…that your model can</text>
+      <text x="1042" y="293" text-anchor="middle" font-size="10" fill="#cbd5e1">actually learn from</text>
+    </g>
+
+    <!-- leak warning -->
+    <path d="M572 396 Q600 424 700 412" fill="none" stroke="#dc2626" stroke-width="1.6" stroke-dasharray="5 4"/>
+    <text x="880" y="416" text-anchor="middle" font-size="10.5" font-weight="700" fill="#dc2626">skip the gate → the target leaks into the feature → CV score is a fantasy</text>
+  </svg>
+</section>
+
+<!-- ============ FOUNDATIONS ============ -->
+<section class="deck-wrap">
+  <h2>Foundations &amp; contracts</h2>
+  <p class="sub">Four things to know before you pick an encoder. <b>Card 03 is the one that inverts your sklearn instincts</b> — and it is the single most common way people silently leak the target.</p>
+  <div class="deck">
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; the 22 Encoders</span><span class="card-sub">two families</span></div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd">pip install <span class="arg">category_encoders</span><br>import category_encoders <span class="flag">as</span> ce</code><span class="star">★</span><div class="desc">Requires numpy, scipy, <b>statsmodels</b>, pandas, scikit-learn. Conda: <code>-c conda-forge</code>.</div></li>
+      <li class="unsup"><code class="cmd"><span class="cm"># UNSUPERVISED — 12, never touch y</span><br>OrdinalEncoder · OneHotEncoder · BinaryEncoder<br>BaseNEncoder · GrayEncoder · RankHotEncoder<br>CountEncoder · HashingEncoder</code><span class="star">★</span><div class="desc">Plus the four contrast coders below. Safe to <code>fit()</code> anywhere — no leakage is even possible.</div></li>
+      <li class="contrast"><code class="cmd"><span class="cm"># CONTRAST CODING — 4, for linear models</span><br>HelmertEncoder · SumEncoder<br>BackwardDifferenceEncoder · PolynomialEncoder</code><div class="desc">Technically unsupervised, but a <b>different beast</b> — card 12.</div></li>
+      <li class="sup"><code class="cmd"><span class="cm"># SUPERVISED — 9, all need y</span><br>TargetEncoder · MEstimateEncoder · JamesSteinEncoder<br>CatBoostEncoder · LeaveOneOutEncoder · WOEEncoder<br>QuantileEncoder · SummaryEncoder · GLMMEncoder</code><span class="star">★</span><div class="desc">All collapse a column to <b>1 number</b>, regardless of cardinality. All can leak. Cards 08–11.</div></li>
+      <li class="eval"><code class="cmd"><span class="cm"># WRAPPERS</span><br>ce.wrapper.<span class="fn">PolynomialWrapper</span> · ce.wrapper.<span class="fn">NestedCVWrapper</span></code><div class="desc">Multiclass targets, and out-of-fold encoding. Card 13.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">The Shared API</span><span class="card-sub">every encoder, same knobs</span></div>
+    <div class="card-note">All 22 inherit one base class, so these parameters mean the same thing everywhere. Learn them once.</div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd">ce.<span class="fn">TargetEncoder</span>(cols=<span class="arg">['city', 'brand']</span>)</code><span class="star">★</span><div class="desc">Which columns to encode. <b>If <code>cols=None</code>, it encodes every <code>object</code> / <code>category</code> dtype column</b> — and silently leaves the rest alone.</div></li>
+      <li class="core"><code class="cmd">handle_unknown=<span class="arg">'value'</span> <span class="cm"># 'error' | 'return_nan' | 'value' | 'indicator'</span></code><span class="star">★</span><div class="desc">Unseen category at transform time. Default <code>'value'</code> = prior/global mean (supervised) or 0 (one-hot). <b><code>'error'</code> in dev, <code>'value'</code> in prod.</b></div></li>
+      <li class="core"><code class="cmd">handle_missing=<span class="arg">'value'</span></code><div class="desc">Same options, for NaN at <i>fit</i> time. Default treats NaN as a real, countable category — which is usually what you want.</div></li>
+      <li class="core"><code class="cmd">drop_invariant=<span class="arg">True</span></code><div class="desc">Drop output columns with zero variance. Cheap free cleanup.</div></li>
+      <li class="core"><code class="cmd">return_df=<span class="arg">True</span> <span class="cm"># default</span></code><div class="desc">pandas out. Set <code>False</code> for a numpy array.</div></li>
+      <li class="core"><code class="cmd">enc.<span class="fn">get_feature_names_out</span>() · enc.<span class="fn">inverse_transform</span>(X_enc)</code><div class="desc">Names of the produced columns; and — for the invertible encoders (Ordinal, OneHot, Binary, BaseN) — the round trip back.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># 'indicator' can change your column count</span></code><span class="badge-danger">care</span><div class="desc">On OneHot/Binary/BaseN, <code>handle_unknown='indicator'</code> <b>adds an extra column</b> only when unknowns appear — so train and serve can disagree on width.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">fit_transform ≠ fit().transform()</span><span class="card-sub">the contract that bites</span></div>
+    <div class="card-note">For <b>supervised</b> encoders these two are <b>deliberately different</b>, and that violates every sklearn habit you have. Get this backwards and you leak the target.</div>
+    <table class="grid">
+      <thead><tr><th>Data</th><th>Call</th></tr></thead>
+      <tbody>
+        <tr><td class="key">TRAIN</td><td><code>enc.fit_transform(X_tr, y_tr)</code><br><b>Regularised / out-of-fold</b> values. LeaveOneOut excludes each row's own target; CatBoost uses only preceding rows.</td></tr>
+        <tr><td class="key">TEST</td><td><code>enc.transform(X_te)</code><br><b>Full-training statistics</b>, no <code>y</code>. This is correct — the test set must be encoded with what training knew.</td></tr>
+      </tbody>
+    </table>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">enc.<span class="fn">fit</span>(X_tr, y_tr).<span class="fn">transform</span>(X_tr) <span class="cm"># ✗ LEAKS</span></code><span class="badge-danger">never</span><div class="desc">Applies the <b>unregularised</b> full-data means back onto the rows they were computed from. Every row sees its own target. Your CV score will be beautiful and your model worthless.</div></li>
+      <li class="unsup"><code class="cmd">X_tr_e = enc.<span class="fn">fit_transform</span>(X_tr, y_tr)<br>X_te_e = enc.<span class="fn">transform</span>(X_te)</code><span class="star">★</span><div class="desc"><b>The only correct two-liner.</b> Memorise its shape.</div></li>
+      <li class="core"><code class="cmd"><span class="cm"># unsupervised encoders: both are identical</span></code><span class="badge-ok">safe</span><div class="desc">No <code>y</code>, nothing to leak. The distinction only exists for the 9 supervised ones.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Cardinality → Column Count</span><span class="card-sub">the sizing table</span></div>
+    <div class="card-note">The first question is always <b>how wide does this get?</b> For <code>k = 1,000</code> categories:</div>
+    <table class="grid">
+      <thead><tr><th>Encoder</th><th>Formula</th><th style="text-align:right">Cols</th></tr></thead>
+      <tbody>
+        <tr><td class="key">OneHot</td><td><code>k</code></td><td class="num" style="color:#dc2626">1000</td></tr>
+        <tr><td class="key">RankHot</td><td><code>k</code> (cumulative)</td><td class="num" style="color:#dc2626">1000</td></tr>
+        <tr><td class="key">Contrast ×4</td><td><code>k − 1</code></td><td class="num" style="color:#dc2626">999</td></tr>
+        <tr><td class="key">Binary / Gray</td><td><code>⌈log₂ k⌉</code></td><td class="num" style="color:#059669">10</td></tr>
+        <tr><td class="key">BaseN(base=3)</td><td><code>⌈log₃ k⌉</code></td><td class="num" style="color:#059669">7</td></tr>
+        <tr><td class="key">Hashing</td><td><code>n_components</code> — <b>fixed</b></td><td class="num" style="color:#059669">8</td></tr>
+        <tr><td class="key">Summary</td><td><code>len(quantiles)</code></td><td class="num" style="color:#059669">3</td></tr>
+        <tr><td class="key">Ordinal / Count</td><td>1</td><td class="num" style="color:#059669">1</td></tr>
+        <tr><td class="key">All supervised</td><td>1</td><td class="num" style="color:#059669">1</td></tr>
+      </tbody>
+    </table>
+    <div class="card-note"><b>BaseN is the generalisation:</b> <code>base=1</code> → OneHot, <code>base=2</code> → Binary. Everything in between trades width against how much the model must learn to un-mix the digits.</div>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ UNSUPERVISED ============ -->
+<section class="deck-wrap">
+  <h2>Unsupervised — no target, no leakage</h2>
+  <p class="sub">Nothing here can leak, so nothing here needs a wrapper. The only real decision is <b>how much width you can afford</b> and <b>whether the integers you produce imply a false ordering</b>.</p>
+  <div class="deck">
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Ordinal &amp; OneHot</span><span class="card-sub">the two you already know</span></div>
+    <ul class="cmds">
+      <li class="unsup"><code class="cmd">ce.<span class="fn">OrdinalEncoder</span>(cols=<span class="arg">['size']</span>)</code><span class="star">★</span><div class="desc">Category → integer. <b>Perfect for trees</b> (a tree can split anywhere, so arbitrary integers cost nothing) and <b>actively harmful for linear models</b>, which will read <code>Paris=3</code> as three times <code>Tokyo=1</code>.</div></li>
+      <li class="unsup"><code class="cmd">ce.<span class="fn">OrdinalEncoder</span>(mapping=[{<br>&nbsp;&nbsp;<span class="arg">'col'</span>: <span class="arg">'size'</span>,<br>&nbsp;&nbsp;<span class="arg">'mapping'</span>: {<span class="arg">'S'</span>: 1, <span class="arg">'M'</span>: 2, <span class="arg">'L'</span>: 3}}])</code><div class="desc"><b>Genuinely ordinal data?</b> Supply the order explicitly. This is the one time an Ordinal integer is honest — and the library will otherwise assign order alphabetically or by first appearance.</div></li>
+      <li class="unsup"><code class="cmd">ce.<span class="fn">OneHotEncoder</span>(use_cat_names=<span class="arg">True</span>)</code><span class="star">★</span><div class="desc">One column per category. The safe default <b>below ~15 categories</b>. <code>use_cat_names</code> gives you <code>city_Paris</code> instead of <code>city_1</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># OneHot on k=1000 → 1000 sparse columns</span></code><span class="badge-danger">explodes</span><div class="desc">Memory, training time, and — for trees especially — a <b>badly weakened model</b>: each binary column carries so little signal that the tree can't find a good split. This is <i>the</i> reason this library exists.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Binary · BaseN · Gray</span><span class="card-sub">log-width, no target</span></div>
+    <div class="card-note">Ordinal-encode, then write the integer in <b>base <i>n</i></b>, one column per digit. You get one-hot's "no false ordering" property at <b>logarithmic</b> width.</div>
+    <ul class="cmds">
+      <li class="unsup"><code class="cmd">ce.<span class="fn">BinaryEncoder</span>(cols=<span class="arg">['city']</span>) <span class="cm"># 1000 → 10 cols</span></code><span class="star">★</span><div class="desc">Base 2. The pragmatic middle ground when you can't afford one-hot but won't risk the target.</div></li>
+      <li class="unsup"><code class="cmd">ce.<span class="fn">BaseNEncoder</span>(base=<span class="arg">3</span>)</code><div class="desc">The generalisation. <code>base=1</code> <b>is</b> OneHot; <code>base=2</code> <b>is</b> Binary. Higher base → fewer, denser columns.</div></li>
+      <li class="unsup"><code class="cmd">ce.<span class="fn">GrayEncoder</span>()</code><div class="desc">Binary, but in <b>Gray code</b> — adjacent integers differ in exactly <b>one</b> bit. Slightly kinder to distance-based and neural models, since a ±1 category change is a ±1 bit change.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># the honest caveat</span></code><span class="badge-danger">think</span><div class="desc">The digit columns are <b>arbitrary</b> — bit 3 of a hashed integer means nothing. A tree must recombine several columns to isolate one category, so Binary often <b>underperforms both</b> one-hot (low k) and target encoding (high k). It's a compromise, not a free lunch. <b>Benchmark it, don't assume it.</b></div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Count &amp; Hashing</span><span class="card-sub">frequency · fixed width</span></div>
+    <ul class="cmds">
+      <li class="unsup"><code class="cmd">ce.<span class="fn">CountEncoder</span>(cols=<span class="arg">['city']</span>)</code><span class="star">★</span><div class="desc">Category → <b>how often it appears</b>. Surprisingly strong with gradient boosting, and <b>completely leak-free</b>. Often the best first thing to try on high cardinality.</div></li>
+      <li class="unsup"><code class="cmd">ce.<span class="fn">CountEncoder</span>(normalize=<span class="arg">True</span>, min_group_size=<span class="arg">10</span>)</code><div class="desc"><code>normalize</code> → relative frequency instead of raw count. <code>min_group_size</code> <b>lumps rare categories into one bucket</b> — a cheap, principled way to kill the long tail.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># Count collides by construction</span></code><span class="badge-danger">care</span><div class="desc">Two <i>unrelated</i> categories that each appear 47 times get the <b>same value</b>. If frequency isn't actually predictive, you've just thrown the column away.</div></li>
+      <li class="unsup"><code class="cmd">ce.<span class="fn">HashingEncoder</span>(n_components=<span class="arg">8</span>, hash_method=<span class="arg">'md5'</span>)</code><div class="desc"><b>The hashing trick.</b> Width is <b>fixed in advance</b> and independent of k — so unseen categories at serve time need no special handling at all. The go-to for <b>streaming / online learning</b> and truly unbounded vocabularies.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># hash collisions are permanent and silent</span></code><span class="badge-danger">tradeoff</span><div class="desc">Two categories can land in the same bucket and become <b>indistinguishable forever</b>. Not invertible, not interpretable. Raise <code>n_components</code> to trade memory for fewer collisions.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">RankHot</span><span class="card-sub">thermometer coding</span></div>
+    <div class="card-note">For <b>genuinely ordinal</b> data. Category of rank <i>r</i> → the first <i>r</i> columns are 1, the rest 0. So the encoding of "Large" <b>contains</b> the encoding of "Medium".</div>
+    <ul class="cmds">
+      <li class="unsup"><code class="cmd">ce.<span class="fn">RankHotEncoder</span>(cols=<span class="arg">['size']</span>)</code><div class="desc"><code>S → [1,0,0]</code> · <code>M → [1,1,0]</code> · <code>L → [1,1,1]</code>. Unlike OneHot it <b>preserves the order</b>; unlike Ordinal it doesn't force <i>equal spacing</i> between ranks.</div></li>
+      <li class="unsup"><code class="cmd"><span class="cm"># the sweet spot</span></code><span class="badge-ok">use when</span><div class="desc">Low-cardinality ordinal features on a <b>linear model</b>, where "L is more than M" matters but "L is exactly 3× S" is a lie you don't want to tell.</div></li>
+    </ul>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ SUPERVISED ============ -->
+<section class="deck-wrap">
+  <h2>Supervised — the target-based family</h2>
+  <p class="sub">All nine collapse <i>any</i> cardinality into <b>one</b> highly predictive column. All nine can leak. The entire design space is one question: <b>how do you compute a category's mean without letting a row see its own target?</b> — and the different answers are what separate Target, CatBoost and LeaveOneOut.</p>
+  <div class="deck">
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">TargetEncoder</span><span class="card-sub">mean of y, smoothed</span></div>
+    <div class="card-note">Replace each category with <b>the mean of <code>y</code> for that category</b> — blended toward the global mean, so rare categories don't overfit on a sample of three.</div>
+    <ul class="cmds">
+      <li class="sup"><code class="cmd">ce.<span class="fn">TargetEncoder</span>(<br>&nbsp;&nbsp;cols=<span class="arg">['city']</span>,<br>&nbsp;&nbsp;min_samples_leaf=<span class="arg">20</span>, <span class="cm"># k — S-curve midpoint</span><br>&nbsp;&nbsp;smoothing=<span class="arg">10</span>) <span class="cm"># f — S-curve steepness</span></code><span class="star">★</span><div class="desc">The blend weight is a <b>sigmoid in the category count</b>:<br><code>λ(n) = 1 / (1 + exp(−(n − k) / f))</code><br><code>enc = prior·(1−λ) + category_mean·λ</code><br>λ = <b>0.5 exactly at n = min_samples_leaf</b>. Bigger <code>smoothing</code> → flatter curve → more shrinkage overall.</div></li>
+      <li class="sup"><code class="cmd">ce.<span class="fn">TargetEncoder</span>(hierarchy=<span class="arg">{'city': {...}}</span>)</code><div class="desc">Shrink toward the <b>parent group's</b> mean instead of the global one (city → region → country). Genuinely powerful on geography and product taxonomies, and largely undiscovered.</div></li>
+      <li class="sup"><code class="cmd">ce.<span class="fn">MEstimateEncoder</span>(m=<span class="arg">1.0</span>)</code><div class="desc"><b>The simpler cousin — one knob instead of two.</b><br><code>enc = (Σy + m·prior) / (n + m)</code><br><code>m</code> is literally "how many virtual prior observations to add". Easier to reason about and to tune than TargetEncoder's S-curve. Start here.</div></li>
+      <li class="danger"><code class="cmd">min_samples_leaf=<span class="arg">1</span>, smoothing=<span class="arg">1</span></code><span class="badge-danger">overfits</span><div class="desc">Barely any shrinkage — a category seen <b>once</b> gets encoded as its own target. That's not a feature, that's a copy of <code>y</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">CatBoost &amp; LeaveOneOut</span><span class="card-sub">two ways to hide a row's own y</span></div>
+    <ul class="cmds">
+      <li class="sup"><code class="cmd">ce.<span class="fn">CatBoostEncoder</span>(a=<span class="arg">1</span>, sigma=<span class="arg">None</span>)</code><span class="star">★</span><div class="desc"><b>Ordered target statistics.</b> Walks the rows top to bottom; row <i>k</i> is encoded using only rows <b>before</b> it:<br><code>enc_k = (Σ_{j&lt;k} y_j·[x_j=x_k] + a·prior) / (count_{j&lt;k} + a)</code><br>No future information can flow backwards. Usually the <b>strongest</b> of the family.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># CatBoostEncoder is ORDER-SENSITIVE</span></code><span class="badge-danger">shuffle</span><div class="desc">This implementation is <b>time-aware</b> (no random permutations, like CatBoost's <code>has_time=True</code>). If your rows arrive sorted by anything correlated with <code>y</code>, you get garbage. <b>Shuffle first</b> — unless it's genuinely a time series, in which case that ordering is exactly what you want.</div></li>
+      <li class="sup"><code class="cmd">ce.<span class="fn">LeaveOneOutEncoder</span>(sigma=<span class="arg">0.05</span>)</code><div class="desc">Encode each row with the category mean computed <b>excluding that row</b>:<br><code>enc_i = (Σ_{j≠i} y_j·[x_j=x_i]) / (n_i − 1)</code><br><code>sigma</code> injects Gaussian noise <b>on training data only</b> to blunt the remaining overfit.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># LOO still leaks, subtly</span></code><span class="badge-danger">care</span><div class="desc">Excluding your own row isn't enough: in a 2-row category, your encoding <b>is</b> the other row's target, and the model can invert it. This is exactly why the docs say <b>only LeaveOneOut benefits greatly from <code>NestedCVWrapper</code></b>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">The Specialists</span><span class="card-sub">WOE · Quantile · GLMM · JamesStein</span></div>
+    <ul class="cmds">
+      <li class="sup"><code class="cmd">ce.<span class="fn">WOEEncoder</span>(regularization=<span class="arg">1.0</span>)</code><div class="desc"><b>Weight of Evidence</b> — <code>ln(%events / %non-events)</code>. <b>Binary target only.</b> The standard in <b>credit scoring</b>, because it's monotonic with log-odds, so it drops straight into a logistic regression and stays interpretable. <code>regularization</code> exists mainly to prevent division by zero.</div></li>
+      <li class="sup"><code class="cmd">ce.<span class="fn">QuantileEncoder</span>(quantile=<span class="arg">0.5</span>, m=<span class="arg">1.0</span>)</code><div class="desc">Uses a <b>quantile of <code>y</code> instead of the mean</b>. Default is the <b>median</b>. Built for <b>regression with skewed targets or outliers</b>, where one billionaire in a postcode ruins the mean forever.</div></li>
+      <li class="sup"><code class="cmd">ce.<span class="fn">SummaryEncoder</span>(quantiles=<span class="arg">[0.25, 0.5, 0.75]</span>)</code><div class="desc">Several QuantileEncoders stacked → <b>one column per quantile</b>. Captures the <i>shape</i> of y's distribution within a category, not just its centre.</div></li>
+      <li class="sup"><code class="cmd">ce.<span class="fn">JamesSteinEncoder</span>(model=<span class="arg">'independent'</span>)</code><div class="desc">Shrinks the category mean toward the global mean by a <b>variance-derived</b> factor — the shrinkage weight is <i>estimated</i>, not tuned. Elegant, but formally justified only for <b>normally distributed</b> targets.</div></li>
+      <li class="sup"><code class="cmd">ce.<span class="fn">GLMMEncoder</span>()</code><div class="desc">Fits a <b>generalized linear mixed model</b> with the category as a random effect. Its selling point: <b>no hyperparameters to tune</b> — the shrinkage falls out of the model. Its cost: <b>slow</b> (statsmodels under the hood), so it doesn't scale to huge k.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Contrast Coding</span><span class="card-sub">linear models only</span></div>
+    <div class="card-note">Four encoders straight out of <b>classical statistics</b>. They produce <code>k−1</code> columns whose regression coefficients answer a <i>specific pre-planned question</i>. If you're fitting a tree, <b>skip this entire card</b> — it's pointless there.</div>
+    <ul class="cmds">
+      <li class="contrast"><code class="cmd">ce.<span class="fn">SumEncoder</span>() <span class="cm"># deviation coding</span></code><div class="desc">Each level compared to the <b>grand mean</b>. The intercept becomes the overall mean rather than one arbitrary reference level — which is what you usually wanted from one-hot anyway.</div></li>
+      <li class="contrast"><code class="cmd">ce.<span class="fn">HelmertEncoder</span>()</code><div class="desc">Each level compared to the <b>mean of all subsequent levels</b>. Useful for ordered factors when you want "does this step up matter?"</div></li>
+      <li class="contrast"><code class="cmd">ce.<span class="fn">BackwardDifferenceEncoder</span>()</code><div class="desc">Each level compared to the <b>level immediately before it</b>. The natural choice for ordinal data — the coefficients read as "the jump from S to M".</div></li>
+      <li class="contrast"><code class="cmd">ce.<span class="fn">PolynomialEncoder</span>()</code><div class="desc">Orthogonal <b>polynomial trends</b> (linear, quadratic, cubic…). <b>Assumes the levels are equally spaced</b> — which is a real assumption, and usually a false one.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># contrast coding on a tree = wasted columns</span></code><span class="badge-danger">no-op</span><div class="desc">Trees don't have coefficients to interpret, and these dense <code>k−1</code> columns are strictly harder to split on than plain integers. The <b>only</b> reason to use them is that you intend to <b>read the coefficients</b>.</div></li>
+    </ul>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ THE LEAKAGE DIAGRAM ============ -->
+<section class="diagrams">
+  <h2>How the target-based encoders avoid cheating</h2>
+  <p class="sub">Every supervised encoder is one answer to the same question: <b>how do I give this row its category's mean, without letting it see its own target?</b> These are the three answers — and the naive non-answer that ruins models.</p>
+  <div class="dia-grid">
+
+    <div class="dia-card bad">
+      <h3 class="bad">✗ naive — fit().transform() on train</h3>
+      <p><b>Every row sees its own target.</b> A category with one row gets encoded as <i>exactly that row's y</i>. The model just reads the answer off the feature.</p>
+      <svg viewBox="0 0 440 176" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Naive target encoding: the mean of all rows in a category, including the row being encoded, leaks that row's own target.">
+        <text x="12" y="16" font-size="9.5" font-weight="700" fill="#6b7280">row</text>
+        <text x="60" y="16" font-size="9.5" font-weight="700" fill="#6b7280">city</text>
+        <text x="130" y="16" font-size="9.5" font-weight="700" fill="#6b7280">y</text>
+        <text x="200" y="16" font-size="9.5" font-weight="700" fill="#dc2626">enc  (mean of ALL rows)</text>
+
+        <g font-size="10.5" fill="#1a1d24">
+          <text x="12" y="42">1</text><text x="60" y="42">Paris</text><text x="130" y="42">1</text>
+          <text x="12" y="66">2</text><text x="60" y="66">Paris</text><text x="130" y="66">0</text>
+          <text x="12" y="90">3</text><text x="60" y="90">Paris</text><text x="130" y="90">1</text>
+          <text x="12" y="122">4</text><text x="60" y="122">Oslo</text><text x="130" y="122">1</text>
+        </g>
+        <g font-size="10.5" font-weight="700" fill="#dc2626">
+          <text x="200" y="42">0.67</text><text x="200" y="66">0.67</text><text x="200" y="90">0.67</text>
+        </g>
+        <rect x="192" y="108" width="52" height="18" rx="4" fill="#dc2626"/>
+        <text x="218" y="121" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">1.00</text>
+
+        <path d="M148 118 Q170 118 188 118" fill="none" stroke="#dc2626" stroke-width="1.6"/>
+        <text x="256" y="121" font-size="10" font-weight="700" fill="#dc2626">← this IS row 4's y</text>
+
+        <line x1="12" y1="140" x2="428" y2="140" stroke="#f3cdc9"/>
+        <text x="12" y="158" font-size="10" fill="#dc2626">Oslo appears once, so its "category mean" is just its own label.</text>
+        <text x="12" y="171" font-size="10" font-weight="700" fill="#dc2626">The feature has become a copy of the target.</text>
+      </svg>
+    </div>
+
+    <div class="dia-card good">
+      <h3 class="good">✓ LeaveOneOut — exclude the row itself</h3>
+      <p>Row <i>i</i>'s encoding is the category mean computed <b>over every other row</b>. Row 1 sees only rows 2 and 3.</p>
+      <svg viewBox="0 0 440 176" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Leave-one-out encoding: each row is encoded with the category mean computed from all other rows.">
+        <text x="12" y="16" font-size="9.5" font-weight="700" fill="#6b7280">row</text>
+        <text x="60" y="16" font-size="9.5" font-weight="700" fill="#6b7280">city</text>
+        <text x="130" y="16" font-size="9.5" font-weight="700" fill="#6b7280">y</text>
+        <text x="200" y="16" font-size="9.5" font-weight="700" fill="#059669">enc  (mean of OTHERS)</text>
+
+        <g font-size="10.5" fill="#1a1d24">
+          <text x="12" y="42">1</text><text x="60" y="42">Paris</text><text x="130" y="42">1</text>
+          <text x="12" y="66">2</text><text x="60" y="66">Paris</text><text x="130" y="66">0</text>
+          <text x="12" y="90">3</text><text x="60" y="90">Paris</text><text x="130" y="90">1</text>
+        </g>
+        <g font-size="10.5" font-weight="700" fill="#059669">
+          <text x="200" y="42">0.50</text><text x="200" y="66">1.00</text><text x="200" y="90">0.50</text>
+        </g>
+        <g font-size="9" fill="#6b7280">
+          <text x="256" y="42">= mean(y₂, y₃)</text>
+          <text x="256" y="66">= mean(y₁, y₃)</text>
+          <text x="256" y="90">= mean(y₁, y₂)</text>
+        </g>
+        <rect x="192" y="30" width="46" height="14" rx="3" fill="none" stroke="#059669" stroke-dasharray="2 2"/>
+
+        <line x1="12" y1="112" x2="428" y2="112" stroke="#c3e6d8"/>
+        <text x="12" y="132" font-size="10" fill="#059669">No row contributes to its own encoding.</text>
+        <text x="12" y="148" font-size="10" font-weight="700" fill="#b45309">But: in a 2-row category your encoding IS the other row's y —</text>
+        <text x="12" y="163" font-size="10" font-weight="700" fill="#b45309">which is why LOO is the one encoder that needs NestedCVWrapper.</text>
+      </svg>
+    </div>
+
+    <div class="dia-card good">
+      <h3 class="good">✓ CatBoost — only look backwards</h3>
+      <p>Walk the rows in order. Row <i>k</i> uses only the rows <b>above</b> it. Nothing from the future can flow back — the same trick as time-series validation.</p>
+      <svg viewBox="0 0 440 176" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CatBoost ordered target statistics: each row is encoded using a running mean of only the preceding rows of the same category.">
+        <defs>
+          <marker id="dn" viewBox="0 0 10 10" refX="5" refY="9" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,0 L5,10 z" fill="#059669"/>
+          </marker>
+        </defs>
+        <text x="12" y="16" font-size="9.5" font-weight="700" fill="#6b7280">row</text>
+        <text x="56" y="16" font-size="9.5" font-weight="700" fill="#6b7280">city</text>
+        <text x="120" y="16" font-size="9.5" font-weight="700" fill="#6b7280">y</text>
+        <text x="176" y="16" font-size="9.5" font-weight="700" fill="#059669">enc  (running mean, prior a=1)</text>
+
+        <g font-size="10.5" fill="#1a1d24">
+          <text x="12" y="42">1</text><text x="56" y="42">Paris</text><text x="120" y="42">1</text>
+          <text x="12" y="66">2</text><text x="56" y="66">Paris</text><text x="120" y="66">0</text>
+          <text x="12" y="90">3</text><text x="56" y="90">Paris</text><text x="120" y="90">1</text>
+          <text x="12" y="114">4</text><text x="56" y="114">Paris</text><text x="120" y="114">1</text>
+        </g>
+        <g font-size="10.5" font-weight="700" fill="#059669">
+          <text x="176" y="42">prior</text>
+          <text x="176" y="66">0.75</text>
+          <text x="176" y="90">0.50</text>
+          <text x="176" y="114">0.60</text>
+        </g>
+        <g font-size="9" fill="#6b7280">
+          <text x="232" y="42">nothing above it yet</text>
+          <text x="232" y="66">sees row 1</text>
+          <text x="232" y="90">sees rows 1–2</text>
+          <text x="232" y="114">sees rows 1–3</text>
+        </g>
+        <line x1="166" y1="30" x2="166" y2="120" stroke="#059669" stroke-width="1.6" marker-end="url(#dn)"/>
+
+        <line x1="12" y1="134" x2="428" y2="134" stroke="#c3e6d8"/>
+        <text x="12" y="152" font-size="10" fill="#059669">enc_k = (Σ_{j&lt;k} y_j·[x_j=x_k] + a·prior) / (count_{j&lt;k} + a)</text>
+        <text x="12" y="168" font-size="10" font-weight="700" fill="#dc2626">Row order matters → SHUFFLE first, unless it's a real time series.</text>
+      </svg>
+    </div>
+
+    <div class="dia-card">
+      <h3>Smoothing — the trust dial</h3>
+      <p>TargetEncoder blends the category mean toward the global prior. The weight <code>λ</code> is a <b>sigmoid in the category count</b>, crossing 0.5 exactly at <code>min_samples_leaf</code>.</p>
+      <svg viewBox="0 0 440 176" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sigmoid smoothing curve: the weight given to a category's own mean rises from 0 to 1 with sample count, crossing 0.5 at min_samples_leaf.">
+        <line x1="46" y1="140" x2="410" y2="140" stroke="#cbd5e1" stroke-width="1.2"/>
+        <line x1="46" y1="20" x2="46" y2="140" stroke="#cbd5e1" stroke-width="1.2"/>
+        <line x1="46" y1="30" x2="410" y2="30" stroke="#e7e3db" stroke-dasharray="3 3"/>
+        <line x1="46" y1="85" x2="410" y2="85" stroke="#e7e3db" stroke-dasharray="3 3"/>
+
+        <text x="40" y="34" text-anchor="end" font-size="9" fill="#6b7280">1.0</text>
+        <text x="40" y="89" text-anchor="end" font-size="9" fill="#6b7280">0.5</text>
+        <text x="40" y="144" text-anchor="end" font-size="9" fill="#6b7280">0.0</text>
+        <text x="16" y="86" text-anchor="middle" font-size="9" fill="#6b7280" transform="rotate(-90 16 86)">λ  (trust)</text>
+
+        <!-- flatter curve : smoothing=25 -->
+        <path d="M46 138 C 130 136, 160 100, 200 85 C 250 66, 300 40, 410 34"
+              fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4 3"/>
+        <!-- default curve : smoothing=10 -->
+        <path d="M46 139 C 140 138, 180 120, 200 85 C 220 50, 250 33, 410 31"
+              fill="none" stroke="#d97706" stroke-width="2.5"/>
+
+        <circle cx="200" cy="85" r="4.5" fill="#d97706"/>
+        <line x1="200" y1="85" x2="200" y2="140" stroke="#d97706" stroke-width="1.2" stroke-dasharray="3 2"/>
+        <text x="200" y="156" text-anchor="middle" font-size="9.5" font-weight="700" fill="#d97706">min_samples_leaf</text>
+        <text x="200" y="168" text-anchor="middle" font-size="8.5" fill="#6b7280">λ = 0.5 exactly here</text>
+
+        <text x="70" y="60" font-size="9" fill="#dc2626" font-weight="700">rare category</text>
+        <text x="70" y="72" font-size="8.5" fill="#6b7280">→ trust the prior</text>
+        <text x="340" y="58" text-anchor="middle" font-size="9" fill="#059669" font-weight="700">common category</text>
+        <text x="340" y="70" text-anchor="middle" font-size="8.5" fill="#6b7280">→ trust its own mean</text>
+
+        <text x="404" y="86" text-anchor="end" font-size="8.5" fill="#94a3b8">dashed = higher `smoothing`</text>
+        <text x="404" y="97" text-anchor="end" font-size="8.5" fill="#94a3b8">(flatter → more shrinkage)</text>
+        <text x="230" y="172" font-size="8.5" fill="#6b7280">n (rows in category) →</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ PIPELINE & WRAPPERS ============ -->
+<section class="deck-wrap">
+  <h2>Pipeline, wrappers &amp; choosing</h2>
+  <p class="sub">The library is sklearn-native — but it works internally in <b>pandas</b>, which is where the ColumnTransformer friction comes from. And since scikit-learn 1.3 ships its own <code>TargetEncoder</code>, card 15 is the honest "do you even need this library?" answer.</p>
+  <div class="deck">
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">The Two Wrappers</span><span class="card-sub">multiclass · out-of-fold</span></div>
+    <ul class="cmds">
+      <li class="eval"><code class="cmd"><span class="flag">from</span> category_encoders.wrapper <span class="flag">import</span> <span class="fn">PolynomialWrapper</span><br><span class="fn">PolynomialWrapper</span>(ce.<span class="fn">WOEEncoder</span>())</code><div class="desc"><b>Multiclass targets</b> for encoders that only support binary (WOE) or binomial/continuous (Target, JamesStein…). It one-vs-rest's the target and encodes each class separately, so you get <b>one column per class per feature</b>.</div></li>
+      <li class="eval"><code class="cmd"><span class="flag">from</span> category_encoders.wrapper <span class="flag">import</span> <span class="fn">NestedCVWrapper</span><br><span class="fn">NestedCVWrapper</span>(ce.<span class="fn">LeaveOneOutEncoder</span>(), cv=<span class="arg">5</span>)</code><span class="star">★</span><div class="desc"><b>Out-of-fold encodings.</b> Splits the training data into folds, fits the encoder on <i>k−1</i> and encodes the held-out fold — so no row's encoding was ever informed by its own target.</div></li>
+      <li class="core"><code class="cmd"><span class="cm"># don't wrap everything reflexively</span></code><div class="desc">The docs are explicit: <b>only <code>LeaveOneOutEncoder</code> benefits greatly</b> from NestedCV. Target/CatBoost/MEstimate already regularise internally — wrapping them mostly buys you a 5× slowdown.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Pipelines &amp; ColumnTransformer</span><span class="card-sub">the pandas friction</span></div>
+    <div class="card-note">These encoders work internally with <b>DataFrames</b>, while sklearn historically passed <b>numpy arrays</b>. That mismatch is the source of nearly every integration bug.</div>
+    <ul class="cmds">
+      <li class="eval"><code class="cmd"><span class="fn">Pipeline</span>([<br>&nbsp;&nbsp;(<span class="arg">"enc"</span>, ce.<span class="fn">TargetEncoder</span>(cols=<span class="arg">['city']</span>)),<br>&nbsp;&nbsp;(<span class="arg">"clf"</span>, <span class="fn">HistGradientBoostingClassifier</span>()),<br>])</code><span class="star">★</span><div class="desc"><b>The clean fix for leakage.</b> Inside <code>cross_val_score</code>, the pipeline calls <code>fit_transform</code> on each training fold and <code>transform</code> on the validation fold — automatically, every time.</div></li>
+      <li class="eval"><code class="cmd">SomePreprocessor().<span class="fn">set_output</span>(transform=<span class="arg">"pandas"</span>)</code><span class="star">★</span><div class="desc"><b>Required for clean ColumnTransformer interop.</b> The official docs recommend sklearn <b>≥ 1.2</b> plus pandas output, so <code>cols=</code> and <code>get_feature_names_out</code> keep working through the stack.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># cols=None inside a ColumnTransformer</span></code><span class="badge-danger">surprise</span><div class="desc">If upstream steps hand you a <b>numpy array</b>, dtype information is gone — so "encode all object columns" can't find any, and your encoder becomes a silent no-op. <b>Name your columns explicitly</b>, or set pandas output.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Do You Even Need This Library?</span><span class="card-sub">an honest answer</span></div>
+    <div class="card-note">Since <b>scikit-learn 1.3</b>, sklearn ships its own <code>TargetEncoder</code> with built-in cross-fitting — and it covers the most common case natively.</div>
+    <table class="grid">
+      <thead><tr><th>Use sklearn's built-in</th><th>Reach for category_encoders</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>OneHotEncoder</code>, <code>OrdinalEncoder</code> — mature, sparse-aware, fast.</td>
+          <td><b>Binary / BaseN / Gray / Hashing / Count</b> — sklearn has no equivalent.</td>
+        </tr>
+        <tr>
+          <td><code>TargetEncoder(smooth="auto", cv=5)</code> — <b>cross-fits by default</b>, multiclass-native.</td>
+          <td><b>CatBoost, WOE, GLMM, Quantile, JamesStein</b> — and the <b>contrast coders</b>.</td>
+        </tr>
+        <tr>
+          <td>You want zero extra dependencies.</td>
+          <td>You want <b>hierarchical</b> target encoding, or <code>min_group_size</code> rare-category lumping.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="card-note"><b>Same trap, both libraries:</b> sklearn's <code>TargetEncoder.fit_transform()</code> also differs from <code>fit().transform()</code> — it cross-fits internally. Card 03 applies no matter which one you import.</div>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ DECISION MAP ============ -->
+<section class="diagrams">
+  <h2>Decision map</h2>
+  <p class="sub">Nearly every real choice is settled by three questions: <b>how many categories</b>, <b>tree or linear</b>, and <b>can I afford the leakage risk</b>.</p>
+  <div class="mer-wrap">
+    <pre class="mermaid">
+flowchart LR
+  A["Categorical<br/>column"] --> B{"Genuinely<br/>ordered?"}
+  B -->|yes| B1["OrdinalEncoder<br/>with explicit mapping<br/>· or RankHot"]
+  B -->|no| C{"Cardinality k?"}
+
+  C -->|"k &lt; 15"| D{"Model type?"}
+  D -->|linear| D1["OneHotEncoder<br/>· or contrast coders<br/>if you'll read coefficients"]
+  D -->|tree| D2["OrdinalEncoder<br/>trees split anywhere"]
+
+  C -->|"k = 15 … 1000"| E{"Can you use y?"}
+  E -->|"no — unsupervised<br/>or leakage-averse"| E1["CountEncoder<br/>· or BinaryEncoder"]
+  E -->|yes| F{"Which regulariser?"}
+  F -->|"strongest default"| F1["CatBoostEncoder<br/>shuffle rows first!"]
+  F -->|"simple, one knob"| F2["MEstimateEncoder"]
+  F -->|"binary target,<br/>credit scoring"| F3["WOEEncoder"]
+  F -->|"skewed / outlier y<br/>regression"| F4["QuantileEncoder"]
+
+  C -->|"k &gt; 1000<br/>or unbounded"| G["HashingEncoder<br/>fixed width · streaming-safe"]
+
+  F1 --> Y["Put it in a Pipeline.<br/>fit_transform on train,<br/>transform on test."]
+  F2 --> Y
+  F3 --> Y
+  F4 --> Y
+  E1 --> Z(["Ship it"])
+  D1 --> Z
+  D2 --> Z
+  B1 --> Z
+  G --> Z
+  Y --> Z
+
+  classDef safe fill:#ecf7f2,stroke:#059669,color:#065f46,stroke-width:2px;
+  classDef targ fill:#fdf6ec,stroke:#d97706,color:#92400e,stroke-width:2px;
+  classDef gate fill:#ecf6fa,stroke:#0891b2,color:#155e75,stroke-width:2px;
+  classDef lin  fill:#eef0fd,stroke:#4f46e5,color:#3730a3,stroke-width:2px;
+  classDef warn fill:#fdf0ef,stroke:#dc2626,color:#991b1b,stroke-width:2px;
+  classDef ship fill:#1a1d24,stroke:#1a1d24,color:#fbbf24,stroke-width:2px;
+  class B,C,D,E,F gate;
+  class E1,G,D2,B1 safe;
+  class F1,F2,F3,F4 targ;
+  class D1 lin;
+  class Y warn;
+  class Z ship;
+    </pre>
+  </div>
+</section>
+
+<!-- ============ TRAPS ============ -->
+<section class="deck-wrap">
+  <h2>Traps</h2>
+  <p class="sub">The first group produces <b>wrong numbers, silently</b> — a beautiful CV score and a worthless model. The second just wastes your afternoon.</p>
+  <div class="deck">
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Silently Wrong</span><span class="card-sub">these invalidate results</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">enc.fit(X, y).transform(X) <span class="cm"># on training data</span></code><span class="badge-danger">leak</span><div class="desc">The cardinal sin. Use <code>fit_transform(X_tr, y_tr)</code>. Card 03.</div></li>
+      <li class="danger"><code class="cmd">enc.fit_transform(X_all, y_all) <b>→</b> train_test_split(…)</code><span class="badge-danger">leak</span><div class="desc">Encode <i>after</i> splitting, never before. Or just put the encoder in a <code>Pipeline</code> and stop thinking about it.</div></li>
+      <li class="danger"><code class="cmd">CatBoostEncoder() <span class="cm"># on data sorted by y</span></code><span class="badge-danger">garbage</span><div class="desc">It's <b>time-aware by design</b> — no random permutation. Sorted input means the running mean is systematically biased. <b>Shuffle first.</b></div></li>
+      <li class="danger"><code class="cmd">ce.OrdinalEncoder() <b>→</b> LogisticRegression()</code><div class="desc">You've told a linear model that <code>Paris(3)</code> is three times <code>Tokyo(1)</code>. It will dutifully fit a slope through nonsense. Trees are fine with this; <b>linear models are not</b>.</div></li>
+      <li class="danger"><code class="cmd">min_samples_leaf=1, smoothing=1</code><div class="desc">Effectively no shrinkage. Singleton categories get encoded as their own target. Card 09.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># int-coded categories are silently skipped</span></code><div class="desc">With <code>cols=None</code>, only <code>object</code>/<code>category</code> dtypes get encoded. A <code>store_id</code> stored as <code>int64</code> <b>passes through untouched</b> and gets treated as a magnitude. <b>Always pass <code>cols=</code> explicitly.</b></div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Friction &amp; Surprises</span><span class="card-sub">what the traceback means</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="cm"># encoder did nothing at all</span></code><div class="desc"><code>cols=None</code> found no <code>object</code>/<code>category</code> columns — usually because an upstream ColumnTransformer handed you a numpy array. Set <code>set_output(transform="pandas")</code>. Card 14.</div></li>
+      <li class="danger"><code class="cmd">WOEEncoder on a 3-class target</code><span class="badge-danger">raises</span><div class="desc">WOE is <b>binary only</b>. Wrap it: <code>PolynomialWrapper(WOEEncoder())</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># column count differs between train and serve</span></code><div class="desc"><code>handle_unknown='indicator'</code> adds a column <b>only when unknowns appear</b>. Use <code>'value'</code> for a stable width in production.</div></li>
+      <li class="core"><code class="cmd"><span class="cm"># GLMMEncoder is taking forever</span></code><div class="desc">It fits a mixed model per column via statsmodels. That's the price of "no hyperparameters". Don't point it at <code>k = 50,000</code>.</div></li>
+      <li class="core"><code class="cmd">HashingEncoder — no inverse_transform</code><div class="desc">Hashing is <b>lossy and one-way</b> by construction. If you need to recover the original category, use Binary or BaseN instead.</div></li>
+      <li class="core"><code class="cmd"><span class="cm"># target encoding didn't help</span></code><div class="desc">Perfectly normal. If the category has <b>no relationship with y</b>, you've compressed it into a noisy constant. <b>Always benchmark against CountEncoder and plain OneHot</b> — the fancy encoder is not automatically the better one.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">The Meta-Point</span><span class="card-sub">read this before optimising</span></div>
+    <div class="card-note">Encoder choice is <b>far less important than people think</b>, and the ranking flips between datasets. Three things that reliably matter more:</div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd"><span class="cm"># 1. leakage discipline</span></code><span class="badge-ok">first</span><div class="desc">A leaky CatBoostEncoder is <b>strictly worse</b> than a clean CountEncoder — and it will look better in CV, which is exactly what makes it dangerous.</div></li>
+      <li class="core"><code class="cmd"><span class="cm"># 2. the rare-category tail</span></code><div class="desc">Most of the damage lives in categories seen 1–3 times. <code>min_group_size</code>, smoothing, and an explicit <code>handle_unknown</code> policy do more for you than swapping encoder families.</div></li>
+      <li class="core"><code class="cmd"><span class="cm"># 3. native categorical support</span></code><div class="desc"><b>LightGBM, CatBoost and HistGradientBoosting handle categoricals natively</b> — often better than any pre-encoding, because the split is optimised jointly with the tree. Before reaching for this library, check whether your model already solved it.</div></li>
+      <li class="unsup"><code class="cmd"><span class="cm"># the pragmatic shortlist</span></code><span class="badge-ok">start here</span><div class="desc"><b>k &lt; 15</b> → OneHot (linear) / Ordinal (tree). <b>k high, tree</b> → Count, then CatBoost. <b>k unbounded</b> → Hashing. Benchmark those four and you'll be within noise of the best possible choice, 90% of the time.</div></li>
+    </ul>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">fit_transform ≠ fit().transform()</span><span class="v">for every supervised encoder — train uses the first, test the second</span></div>
+    <div><span class="k">import as ce</span><span class="v"><code>pip install category_encoders</code> · <code>import category_encoders as ce</code></span></div>
+    <div><span class="k">cols=None is a trap</span><span class="v">only encodes <code>object</code>/<code>category</code> dtypes — int-coded IDs pass through untouched</span></div>
+    <div><span class="k">OneHot = k cols</span><span class="v">Binary = ⌈log₂k⌉ · Hashing = fixed · every supervised encoder = 1</span></div>
+    <div><span class="k">BaseN generalises</span><span class="v"><code>base=1</code> is OneHot · <code>base=2</code> is Binary</span></div>
+    <div><span class="k">Ordinal → trees only</span><span class="v">a linear model reads <code>Paris=3</code> as 3× <code>Tokyo=1</code></span></div>
+    <div><span class="k">contrast coders → linear only</span><span class="v">Helmert/Sum/BackDiff/Poly are pointless unless you read the coefficients</span></div>
+    <div><span class="k">λ = 0.5 at min_samples_leaf</span><span class="v">TargetEncoder's sigmoid midpoint · higher <code>smoothing</code> = flatter = more shrinkage</span></div>
+    <div><span class="k">MEstimate = simpler Target</span><span class="v"><code>(Σy + m·prior) / (n + m)</code> — one knob, easier to tune</span></div>
+    <div><span class="k">SHUFFLE before CatBoost</span><span class="v">it's time-aware by design — sorted rows give a biased running mean</span></div>
+    <div><span class="k">only LOO needs NestedCV</span><span class="v">Target/CatBoost/MEstimate already regularise internally</span></div>
+    <div><span class="k">WOE is binary-only</span><span class="v">multiclass? wrap it in <code>PolynomialWrapper</code></span></div>
+    <div><span class="k">set_output("pandas")</span><span class="v">required for clean ColumnTransformer interop — the library thinks in DataFrames</span></div>
+    <div><span class="k">Pipeline solves leakage</span><span class="v">it calls <code>fit_transform</code> on the train fold and <code>transform</code> on the val fold, free</span></div>
+    <div><span class="k">CountEncoder is underrated</span><span class="v">leak-free, one column, strong with GBMs — try it before target encoding</span></div>
+    <div><span class="k">check your model first</span><span class="v">LightGBM/CatBoost/HistGBM handle categoricals natively, often better</span></div>
+  </div>
+</section>
+
+<footer>
+  category_encoders cheat sheet · grounded against the official <a href="https://contrib.scikit-learn.org/category_encoders/">API documentation</a> and the <a href="https://github.com/scikit-learn-contrib/category_encoders">scikit-learn-contrib repository</a>, cross-checked with scikit-learn's own encoder docs and the source papers.<br>
+  API shown for <b>category_encoders 2.8 / 2.9</b> · <span class="star">★</span> = everyday · <span style="color:#dc2626">red</span> = it will bite you.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+        fontSize: '12px',
+        primaryColor: '#fbfaf8',
+        primaryTextColor: '#1a1d24',
+        primaryBorderColor: '#64748b',
+        lineColor: '#94a3b8',
+        secondaryColor: '#f1f3f6',
+        tertiaryColor: '#ffffff'
+      },
+      flowchart: { curve: 'basis', nodeSpacing: 30, rankSpacing: 55, useMaxWidth: true }
+    });
+  }
+</script>
+
+</body>
+</html>

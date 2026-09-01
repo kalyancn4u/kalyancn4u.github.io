@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dynaconf Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b; --setup-bg:#f1f3f6;
+    --files:#d97706; --files-bg:#fdf6ec;
+    --read:#059669;  --read-bg:#ecf7f2;
+    --env:#4f46e5;   --env-bg:#eef0fd;
+    --cast:#0d9488;  --cast-bg:#e9f6f4;
+    --valid:#7c3aed; --valid-bg:#f3eefc;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem; font-family:var(--mono);}
+  h1 .dyna{color:var(--cast)} h1 .conf{color:var(--env)} h1 .paren{color:var(--muted); font-weight:400}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede code{font-family:var(--mono); font-size:.86em; background:#efece6; padding:.05rem .3rem; border-radius:4px}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)} .dot.files{background:var(--files)}
+  .dot.read{background:var(--read)} .dot.env{background:var(--env)}
+  .dot.cast{background:var(--cast)} .dot.valid{background:var(--valid)}
+  .dot.danger{background:var(--danger)} .dot.star{background:var(--star)}
+
+  .flow-wrap{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;}
+  .flow-title{font-family:var(--mono); font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem;}
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  .quick{max-width:1120px; margin:1.2rem auto 0; background:var(--ink); border-radius:10px; overflow:hidden;}
+  .quick-bar{font-family:var(--mono); font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:#94a3b8; padding:.6rem 1rem; border-bottom:1px solid #2b2f38;}
+  pre.quick-inner{white-space:pre; margin:0; padding:1rem 1.2rem; font-family:var(--mono); font-size:.8rem; color:#e8e6e1; line-height:1.75; overflow-x:auto;}
+  pre.quick-inner .c{color:#7b8494}
+  pre.quick-inner .kw{color:#c792ea}
+  pre.quick-inner .fn{color:#82aaff}
+  pre.quick-inner .st{color:#c3e88d}
+  pre.quick-inner .o{color:#f78c6c}
+
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  @media(min-width:1640px){ main{column-count:4} }
+
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.6rem; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.files{border-left-color:var(--files)}
+  ul.cmds li.read{border-left-color:var(--read)}
+  ul.cmds li.env{border-left-color:var(--env)}
+  ul.cmds li.cast{border-left-color:var(--cast)}
+  ul.cmds li.valid{border-left-color:var(--valid)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{font-family:var(--mono); font-size:.805rem; font-weight:500; color:var(--ink); display:block; word-break:break-word;}
+  code.cmd .arg{color:var(--env); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .out{color:var(--read); font-weight:400}
+  code.cmd .kw{color:#7c3aed}
+  code.cmd .tok{color:#0d9488; font-weight:700}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.775rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f3f0ea; padding:.02rem .25rem; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+
+  .diagrams{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;}
+  .diagrams h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.8rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#c3e88d; font-size:.95em}
+
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  footer code{color:var(--ink)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · layered configuration for Python</div>
+  <h1><span class="dyna">dyna</span><span class="conf">conf</span> <span class="paren">·</span> cheat sheet</h1>
+  <p class="lede">One idea underneath everything: config flows through a <b>layered override stack</b> — defaults, then settings files, then <code>.env</code>, then environment variables, then vault/redis. <b>Later layers win.</b> Everything merges into a single <code>settings</code> object you read four equivalent ways, with <code>[environments]</code>, <code>@</code>-casting tokens, and validators layered on top.</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>setup</span>
+    <span><i class="dot files"></i>settings files</span>
+    <span><i class="dot read"></i>access</span>
+    <span><i class="dot env"></i>env &amp; layering</span>
+    <span><i class="dot cast"></i>casting &amp; dynamic</span>
+    <span><i class="dot valid"></i>validation &amp; advanced</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Introspected from <b>Dynaconf 3.3.3</b> (installed &amp; run) &amp; cross-checked with: <b>dynaconf.com</b> (official docs) · <b>github.com/dynaconf/dynaconf</b> · <b>PyPI</b> · <b>12factor.net</b> · <b>DeepWiki</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The override waterfall — where a value comes from, and how you read it back</div>
+  <svg class="flow-svg" viewBox="0 0 1120 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dynaconf loads config from a stack of sources (defaults, settings files, secrets, dotenv, environment variables, vault/redis), each overriding the previous, into one settings object read via attribute, item, get, or nested dot access; an environment switcher selects the active section.">
+    <defs>
+      <marker id="dc-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <!-- BAND A : the override stack -->
+    <text x="24" y="28" font-size="12" font-weight="700" fill="#4f46e5">LOAD ORDER — each layer overrides the one above</text>
+
+    <!-- stacked layers -->
+    <g font-family="JetBrains Mono, monospace">
+      <rect x="24"  y="42"  width="330" height="30" rx="6" fill="#f1f3f6" stroke="#64748b" stroke-width="1.5"/>
+      <text x="40" y="61" font-size="11" fill="#475569">1 · defaults (code / Validator default=)</text>
+      <rect x="46"  y="80"  width="330" height="30" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/>
+      <text x="62" y="99" font-size="11" fill="#8a5a12">2 · settings.{py,toml,yaml,json,ini}</text>
+      <rect x="68"  y="118" width="330" height="30" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/>
+      <text x="84" y="137" font-size="11" fill="#8a5a12">3 · .secrets.* &nbsp;·&nbsp; vault / redis</text>
+      <rect x="90"  y="156" width="330" height="30" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.5"/>
+      <text x="106" y="175" font-size="11" fill="#3730a3">4 · .env &nbsp;(load_dotenv=True)</text>
+      <rect x="112" y="194" width="330" height="30" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="128" y="213" font-size="11" font-weight="700" fill="#3730a3">5 · DYNACONF_* env vars &nbsp;⇐ win</text>
+    </g>
+    <!-- downward "later wins" arrow -->
+    <line x1="14" y1="46" x2="14" y2="222" stroke="#4f46e5" stroke-width="2" marker-end="url(#dc-arrow)"/>
+    <text x="9" y="250" font-size="9.5" fill="#4f46e5" transform="rotate(-90 9 250)" text-anchor="middle">later wins</text>
+
+    <!-- merge into settings -->
+    <line x1="442" y1="132" x2="520" y2="132" stroke="#1a1d24" stroke-width="2" marker-end="url(#dc-arrow)"/>
+    <rect x="524" y="96" width="150" height="74" rx="12" fill="#1a1d24"/>
+    <text x="599" y="128" text-anchor="middle" font-size="14" font-weight="700" fill="#c3e88d" font-family="JetBrains Mono, monospace">settings</text>
+    <text x="599" y="149" text-anchor="middle" font-size="9.5" fill="#94a3b8">one merged object</text>
+
+    <!-- BAND B : reading it -->
+    <text x="724" y="28" font-size="12" font-weight="700" fill="#059669">READ IT — four equivalent ways</text>
+    <g font-family="JetBrains Mono, monospace" font-size="11">
+      <rect x="724" y="42"  width="372" height="26" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/><text x="738" y="59" fill="#0a7a52">settings.PORT</text><text x="1082" y="59" text-anchor="end" fill="#94a3b8">attr</text>
+      <rect x="724" y="74"  width="372" height="26" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/><text x="738" y="91" fill="#0a7a52">settings['PORT']</text><text x="1082" y="91" text-anchor="end" fill="#94a3b8">item</text>
+      <rect x="724" y="106" width="372" height="26" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/><text x="738" y="123" fill="#0a7a52">settings.get('PORT', 8080)</text><text x="1082" y="123" text-anchor="end" fill="#94a3b8">+ default</text>
+      <rect x="724" y="138" width="372" height="26" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/><text x="738" y="155" fill="#0a7a52">settings.db.host</text><text x="1082" y="155" text-anchor="end" fill="#94a3b8">nested dot</text>
+    </g>
+    <line x1="674" y1="133" x2="720" y2="120" stroke="#059669" stroke-width="1.6" marker-end="url(#dc-arrow)"/>
+    <text x="908" y="182" text-anchor="middle" font-size="9.5" fill="#6b7280" font-style="italic">first-level keys are case-insensitive</text>
+
+    <!-- BAND C : environments -->
+    <line x1="24" y1="290" x2="1096" y2="290" stroke="#e7e3db" stroke-width="1.5"/>
+    <text x="24" y="316" font-size="12" font-weight="700" fill="#4f46e5">ENVIRONMENTS — a horizontal layer, selected by a switcher</text>
+
+    <g font-family="JetBrains Mono, monospace">
+      <rect x="24" y="330" width="150" height="72" rx="10" fill="#f1f3f6" stroke="#64748b" stroke-width="1.6"/>
+      <text x="99" y="352" text-anchor="middle" font-size="11" font-weight="700" fill="#475569">[default]</text>
+      <text x="99" y="371" text-anchor="middle" font-size="9.5" fill="#6b7280">base values for</text>
+      <text x="99" y="385" text-anchor="middle" font-size="9.5" fill="#6b7280">every env</text>
+
+      <rect x="196" y="330" width="150" height="72" rx="10" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.6"/>
+      <text x="271" y="352" text-anchor="middle" font-size="11" font-weight="700" fill="#3730a3">[development]</text>
+      <text x="271" y="378" text-anchor="middle" font-size="9.5" fill="#6b7280">overrides default</text>
+
+      <rect x="368" y="330" width="150" height="72" rx="10" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.6"/>
+      <text x="443" y="352" text-anchor="middle" font-size="11" font-weight="700" fill="#3730a3">[production]</text>
+      <text x="443" y="378" text-anchor="middle" font-size="9.5" fill="#6b7280">overrides default</text>
+    </g>
+    <line x1="150" y1="366" x2="194" y2="366" stroke="#64748b" stroke-width="1.4" stroke-dasharray="3 3" marker-end="url(#dc-arrow)"/>
+
+    <rect x="560" y="336" width="536" height="60" rx="10" fill="#f3eefc" stroke="#7c3aed" stroke-width="1.6"/>
+    <text x="576" y="360" font-size="11" fill="#525761">Turn on with <tspan font-family="JetBrains Mono, monospace" font-weight="700" fill="#5b21b6">environments=True</tspan>. Switch with</text>
+    <text x="576" y="380" font-size="11" font-family="JetBrains Mono, monospace" fill="#5b21b6">export ENV_FOR_DYNACONF=production</text>
+    <text x="1080" y="360" text-anchor="end" font-size="9" fill="#94a3b8">env= at init</text>
+    <text x="1080" y="380" text-anchor="end" font-size="9" fill="#94a3b8">FORCE_ENV wins</text>
+
+    <text x="559" y="428" text-anchor="middle" font-size="10.5" fill="#94a3b8" font-style="italic">stack the sources · merge into one object · switch the environment · read it anywhere — that is the whole library</text>
+  </svg>
+</section>
+
+<!-- ============ QUICKSTART ============ -->
+<section class="flow-wrap" style="padding-top:.5rem">
+  <div class="quick">
+    <div class="quick-bar">quickstart · a project in 12 lines</div>
+<pre class="quick-inner"><span class="c"># settings.toml</span>
+<span class="c"># [default]</span>
+<span class="c">#   name = "myapp"</span>
+<span class="c">#   port = 8080</span>
+<span class="c"># [production]</span>
+<span class="c">#   port = 80</span>
+
+<span class="c"># config.py</span>
+<span class="kw">from</span> dynaconf <span class="kw">import</span> Dynaconf
+
+settings <span class="o">=</span> <span class="fn">Dynaconf</span>(
+    settings_files<span class="o">=</span>[<span class="st">"settings.toml"</span>, <span class="st">".secrets.toml"</span>],
+    environments<span class="o">=</span><span class="kw">True</span>,      <span class="c"># enable [default]/[production]</span>
+    load_dotenv<span class="o">=</span><span class="kw">True</span>,       <span class="c"># read a .env file too</span>
+    envvar_prefix<span class="o">=</span><span class="st">"MYAPP"</span>,   <span class="c"># MYAPP_PORT=80 overrides</span>
+)
+
+settings.PORT          <span class="c"># 8080  (or 80 if ENV_FOR_DYNACONF=production)</span>
+settings.get(<span class="st">"NAME"</span>)    <span class="c"># "myapp"</span></pre>
+  </div>
+</section>
+
+<main>
+
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; instantiate</span><span class="card-sub">Dynaconf(...)</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">pip install dynaconf</code><div class="desc"><code>[yaml]</code>, <code>[ini]</code>, <code>[vault]</code>, <code>[redis]</code> extras for those sources.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">from</span> dynaconf <span class="kw">import</span> Dynaconf</code><span class="star">★</span><div class="desc">The one import. <code>settings = Dynaconf(...)</code>.</div></li>
+      <li class="setup"><code class="cmd">Dynaconf(settings_files=<span class="arg">[…]</span>)</code><span class="star">★</span><div class="desc">List of files to load, in order. First-format wins ties.</div></li>
+      <li class="env"><code class="cmd">Dynaconf(environments=<span class="kw">True</span>)</code><span class="star">★</span><div class="desc">Enable <code>[default]</code>/<code>[dev]</code>/<code>[prod]</code> sections (off by default).</div></li>
+      <li class="env"><code class="cmd">Dynaconf(envvar_prefix=<span class="arg">"MYAPP"</span>)</code><div class="desc">Env override prefix. Default <code>DYNACONF</code>; <code>False</code> = none.</div></li>
+      <li class="env"><code class="cmd">Dynaconf(load_dotenv=<span class="kw">True</span>)</code><div class="desc">Also read a <code>.env</code> file from the project root.</div></li>
+      <li class="setup"><code class="cmd">dynaconf init <span class="flag">-f</span> toml</code><div class="desc">Scaffold <code>config.py</code> + <code>settings.toml</code> + <code>.secrets.toml</code> + gitignore.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 READ -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Read your settings</span><span class="card-sub">four equivalent ways</span></div>
+    <ul class="cmds">
+      <li class="read"><code class="cmd">settings.NAME</code><span class="star">★</span><div class="desc">Attribute access — case-insensitive on the first key.</div></li>
+      <li class="read"><code class="cmd">settings[<span class="arg">'NAME'</span>]</code><span class="star">★</span><div class="desc">Item access — identical result.</div></li>
+      <li class="read"><code class="cmd">settings.get(<span class="arg">'NAME', 'fallback'</span>)</code><span class="star">★</span><div class="desc">Safe read with a default if the key is absent.</div></li>
+      <li class="read"><code class="cmd">settings.DATABASE.host</code><span class="star">★</span><div class="desc">Dotted access dives into nested dicts.</div></li>
+      <li class="read"><code class="cmd">settings(<span class="arg">'NAME', 'fallback'</span>)</code><div class="desc">Callable form — same as <code>.get()</code>.</div></li>
+      <li class="read"><code class="cmd">settings.exists(<span class="arg">'NAME'</span>)</code><div class="desc">True/False without raising.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 SETTINGS FILES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Settings files</span><span class="card-sub">toml · yaml · json · ini · py</span></div>
+    <ul class="cmds">
+      <li class="files"><code class="cmd">settings.toml</code><span class="star">★</span><div class="desc">Recommended format. Also <code>.yaml</code>, <code>.json</code>, <code>.ini</code>, <code>.py</code>.</div></li>
+      <li class="files"><code class="cmd">settings_files=<span class="arg">["a.toml","b.yaml"]</span></code><div class="desc">Mix formats; later files override earlier keys.</div></li>
+      <li class="files"><code class="cmd">settings.local.toml</code><div class="desc">Any <code>*.local.*</code> loads <b>last</b> — keep it gitignored.</div></li>
+      <li class="files"><code class="cmd">includes=<span class="arg">["other.yaml"]</span></code><div class="desc">Loaded <b>after</b> the main files · <code>preload=</code> loads before.</div></li>
+      <li class="files"><code class="cmd">root_path=<span class="arg">"/etc/app"</span></code><div class="desc">Base dir for relative file lookups (also checks <code>config/</code>).</div></li>
+      <li class="setup"><code class="cmd">dynaconf write toml <span class="flag">-v</span> key=val</code><div class="desc">CLI writes values back into a source file.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 ENV VARS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Environment variables</span><span class="card-sub">the override layer</span></div>
+    <ul class="cmds">
+      <li class="env"><code class="cmd">export DYNACONF_PORT=<span class="arg">80</span></code><span class="star">★</span><div class="desc">Overrides any file value. Auto-typed via TOML → <code>int 80</code>.</div></li>
+      <li class="env"><code class="cmd">export DYNACONF_DEBUG=<span class="arg">true</span></code><div class="desc">Real <code>bool</code>, not a string. Floats, lists, dicts too.</div></li>
+      <li class="env"><code class="cmd">export DYNACONF_DB__host=<span class="arg">h</span></code><span class="star">★</span><div class="desc"><b>Double</b> underscore sets a nested key (<code>db.host</code>).</div></li>
+      <li class="env"><code class="cmd">export MYAPP_PORT=<span class="arg">80</span></code><div class="desc">With <code>envvar_prefix="MYAPP"</code>. Must be UPPERCASE.</div></li>
+      <li class="env"><code class="cmd">DYNACONF_LIST=<span class="arg">'@json ["a"]'</span></code><div class="desc">Dicts/lists from envvars need TOML syntax or <code>@json</code>.</div></li>
+      <li class="env"><code class="cmd">Dynaconf(ignore_unknown_envvars=<span class="kw">True</span>)</code><div class="desc">Only pull envvars for keys already defined — avoids pollution.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 DOTENV -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">.env files</span><span class="card-sub">python-dotenv</span></div>
+    <ul class="cmds">
+      <li class="env"><code class="cmd">Dynaconf(load_dotenv=<span class="kw">True</span>)</code><span class="star">★</span><div class="desc">Reads <code>.env</code> from the project root at startup.</div></li>
+      <li class="env"><code class="cmd">DYNACONF_USER=admin</code><div class="desc">Same prefix rules as exported envvars.</div></li>
+      <li class="env"><code class="cmd">dotenv_path=<span class="arg">"/path/.env"</span></code><div class="desc">Point at a specific dotenv file.</div></li>
+      <li class="files"><code class="cmd">.env.example</code><div class="desc">Commit a template; keep the real <code>.env</code> gitignored.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 ENVIRONMENTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Layered environments</span><span class="card-sub">default · dev · prod</span></div>
+    <ul class="cmds">
+      <li class="env"><code class="cmd">environments=<span class="kw">True</span></code><span class="star">★</span><div class="desc">Required for <code>[default]</code>/<code>[development]</code>/<code>[production]</code> sections.</div></li>
+      <li class="env"><code class="cmd">[default]</code><div class="desc">Base layer merged under <b>every</b> environment.</div></li>
+      <li class="env"><code class="cmd">export ENV_FOR_DYNACONF=<span class="arg">production</span></code><span class="star">★</span><div class="desc">Switch the active environment at runtime.</div></li>
+      <li class="env"><code class="cmd">Dynaconf(env=<span class="arg">"production"</span>)</code><div class="desc">Or select it programmatically at init.</div></li>
+      <li class="env"><code class="cmd">settings.from_env(<span class="arg">'production'</span>)</code><div class="desc">A fresh clone reading another env; chain with <code>keep=True</code>.</div></li>
+      <li class="danger"><code class="cmd">FORCE_ENV_FOR_DYNACONF</code><span class="badge-danger">note</span><div class="desc">Beats <code>ENV_FOR_DYNACONF</code> — use it in pytest fixtures.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 TYPE CASTING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Type casting tokens</span><span class="card-sub">@int @bool @json …</span></div>
+    <ul class="cmds">
+      <li class="cast"><code class="cmd"><span class="tok">@int</span> 42</code><span class="star">★</span><div class="desc">Force an integer. Also <code>@float</code>, <code>@bool</code>, <code>@str</code>.</div></li>
+      <li class="cast"><code class="cmd"><span class="tok">@bool</span> off</code><div class="desc">Parses yes/no/on/off/true/false.</div></li>
+      <li class="cast"><code class="cmd"><span class="tok">@json</span> ["a", 42]</code><span class="star">★</span><div class="desc">Any heterogeneous list or dict.</div></li>
+      <li class="cast"><code class="cmd"><span class="tok">@none</span> None</code><div class="desc">A real <code>None</code> value.</div></li>
+      <li class="cast"><code class="cmd">port = 8080</code><div class="desc">In files, TOML types are honoured automatically — no token needed.</div></li>
+      <li class="cast"><code class="cmd">settings.as_int(<span class="arg">'PORT'</span>)</code><div class="desc">Coerce on read: <code>as_bool</code>, <code>as_float</code>, <code>as_json</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 LAZY / INTERP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Lazy &amp; interpolation</span><span class="card-sub">@format · @jinja</span></div>
+    <ul class="cmds">
+      <li class="cast"><code class="cmd"><span class="tok">@format</span> {this.base_dir}/app.log</code><span class="star">★</span><div class="desc"><code>{this.KEY}</code> = another setting; <code>{env[VAR]}</code> = an os env var.</div></li>
+      <li class="cast"><code class="cmd"><span class="tok">@jinja</span> {{ this.base_dir }}/x</code><div class="desc">Full Jinja templating (needs <code>jinja2</code>).</div></li>
+      <li class="cast"><code class="cmd"><span class="tok">@format</span> …</code> then <code>| abspath</code><div class="desc">Jinja filters like <code>abspath</code> post-process the result.</div></li>
+      <li class="cast"><code class="cmd"><span class="tok">@path @format</span> {env[HOME]}/x</code><div class="desc">Tokens <b>chain</b> — cast the interpolated string.</div></li>
+      <li class="valid"><code class="cmd">add_converter(<span class="arg">"path", Path</span>)</code><div class="desc">Register your own <code>@path</code>-style casting token.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 MERGING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Merging vs overriding</span><span class="card-sub">extend, don't replace</span></div>
+    <ul class="cmds">
+      <li class="env"><code class="cmd">db = {host="h", dynaconf_merge=<span class="kw">true</span>}</code><span class="star">★</span><div class="desc">Merge into the existing <code>db</code> dict instead of replacing it.</div></li>
+      <li class="env"><code class="cmd">[production.database]<br>dynaconf_merge = {user="x"}</code><div class="desc">Section form of the same merge.</div></li>
+      <li class="env"><code class="cmd">tags = <span class="tok">"@merge"</span> [c, d]</code><div class="desc"><code>@merge</code> token appends to an existing list/dict.</div></li>
+      <li class="env"><code class="cmd">DYNACONF_TAGS=<span class="arg">'@merge [x]'</span></code><div class="desc">Merge from an envvar too.</div></li>
+      <li class="env"><code class="cmd">Dynaconf(merge_enabled=<span class="kw">True</span>)</code><div class="desc">Merge <b>everything</b> globally without per-key markers.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw"># default:</span> replace</code><span class="badge-danger">gotcha</span><div class="desc">Without a merge marker, dicts &amp; lists are <b>overwritten</b> wholesale.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 SECRETS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Secrets</span><span class="card-sub">.secrets · vault · redis</span></div>
+    <ul class="cmds">
+      <li class="files"><code class="cmd">.secrets.toml</code><span class="star">★</span><div class="desc">Separate file for tokens/passwords — <b>gitignore it</b>.</div></li>
+      <li class="valid"><code class="cmd">vault_enabled=<span class="kw">True</span></code><div class="desc">Pull secrets from HashiCorp Vault (<code>pip install dynaconf[vault]</code>).</div></li>
+      <li class="valid"><code class="cmd">redis_enabled=<span class="kw">True</span></code><div class="desc">Load from a Redis server (<code>dynaconf[redis]</code>).</div></li>
+      <li class="setup"><code class="cmd">dynaconf write vault <span class="flag">-s</span> pw=1234</code><div class="desc">CLI writes a secret to the configured store.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 VALIDATION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Validation</span><span class="card-sub">Validator(...)</span></div>
+    <ul class="cmds">
+      <li class="valid"><code class="cmd"><span class="kw">from</span> dynaconf <span class="kw">import</span> Validator</code><span class="star">★</span><div class="desc">Declare rules; fail fast on bad config.</div></li>
+      <li class="valid"><code class="cmd">Validator(<span class="arg">"PORT"</span>, must_exist=<span class="kw">True</span>)</code><span class="star">★</span><div class="desc">Also aliased <code>required=True</code>.</div></li>
+      <li class="valid"><code class="cmd">Validator(<span class="arg">"PORT"</span>, is_type_of=<span class="arg">int</span>)</code><span class="star">★</span><div class="desc">Type check on load.</div></li>
+      <li class="valid"><code class="cmd">Dynaconf(validators=<span class="arg">[…]</span>)</code><div class="desc">Attach at init; or <code>settings.validators.register(...)</code>.</div></li>
+      <li class="valid"><code class="cmd">settings.validators.validate()</code><span class="star">★</span><div class="desc"><code>validate_all()</code> collects <b>every</b> error at once.</div></li>
+      <li class="valid"><code class="cmd">Validator(<span class="arg">"X"</span>, default=<span class="arg">5</span>)</code><div class="desc">Supply a default; <code>cast=int</code> coerces the value.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 VALIDATOR CONDITIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Validator conditions</span><span class="card-sub">the constraint kwargs</span></div>
+    <ul class="cmds">
+      <li class="valid"><code class="cmd">gte=1, lte=<span class="arg">65535</span></code><div class="desc">Range checks · also <code>gt</code>, <code>lt</code>, <code>eq</code>, <code>ne</code>.</div></li>
+      <li class="valid"><code class="cmd">is_in=<span class="arg">["a","b"]</span></code><div class="desc">Membership · <code>is_not_in</code> for the inverse.</div></li>
+      <li class="valid"><code class="cmd">len_min=3, len_max=<span class="arg">20</span></code><div class="desc">Length bounds on strings/lists.</div></li>
+      <li class="valid"><code class="cmd">startswith=<span class="arg">"http"</span></code><div class="desc"><code>endswith</code>, <code>contains</code>, <code>cont</code> too.</div></li>
+      <li class="valid"><code class="cmd">condition=<span class="arg">lambda v: v&gt;0</span></code><div class="desc">Arbitrary predicate returning bool.</div></li>
+      <li class="valid"><code class="cmd">when=<span class="arg">Validator(...)</span>, env=<span class="arg">"prod"</span></code><div class="desc">Conditional / env-scoped rule.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 OBJECT METHODS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Settings object methods</span><span class="card-sub">manipulate &amp; export</span></div>
+    <ul class="cmds">
+      <li class="read"><code class="cmd">settings.as_dict()</code><span class="star">★</span><div class="desc">Whole config as a plain dict · <code>to_json()</code>.</div></li>
+      <li class="read"><code class="cmd">settings.keys() / .values() / .items()</code><div class="desc">Iterate like a mapping.</div></li>
+      <li class="read"><code class="cmd">settings.set(<span class="arg">'KEY', val</span>)</code><div class="desc">Set at runtime · <code>update({...})</code> for many.</div></li>
+      <li class="read"><code class="cmd">settings.get_fresh(<span class="arg">'KEY'</span>)</code><div class="desc">Re-read from source, bypassing the cache.</div></li>
+      <li class="read"><code class="cmd">settings.populate_obj(<span class="arg">obj</span>)</code><div class="desc">Copy all settings onto another object.</div></li>
+      <li class="read"><code class="cmd"><span class="kw">with</span> settings.using_env(<span class="arg">'dev'</span>):</code><div class="desc">Temporarily read another env in a block.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 CLI -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Command line</span><span class="card-sub">dynaconf …</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">dynaconf <span class="flag">-i</span> config.settings list</code><span class="star">★</span><div class="desc">Dump every resolved key (<code>-i</code> = the instance path).</div></li>
+      <li class="setup"><code class="cmd">dynaconf <span class="flag">-i</span> … get PORT</code><div class="desc">Print one raw value.</div></li>
+      <li class="setup"><code class="cmd">dynaconf <span class="flag">-i</span> … inspect</code><div class="desc">Show the loading history — which source set each key.</div></li>
+      <li class="setup"><code class="cmd">dynaconf <span class="flag">-i</span> … validate</code><div class="desc">Run validators from the command line.</div></li>
+      <li class="setup"><code class="cmd">dynaconf init <span class="flag">-f</span> yaml</code><div class="desc">Scaffold a new project in the chosen format.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 FLASK -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Flask</span><span class="card-sub">contrib · FlaskDynaconf</span></div>
+    <ul class="cmds">
+      <li class="valid"><code class="cmd"><span class="kw">from</span> dynaconf <span class="kw">import</span> FlaskDynaconf</code><span class="star">★</span><div class="desc">Extension that backs <code>app.config</code>.</div></li>
+      <li class="valid"><code class="cmd">FlaskDynaconf(app)</code><div class="desc"><code>app.config.NAME</code> now reads from Dynaconf.</div></li>
+      <li class="env"><code class="cmd">export FLASK_ENV=<span class="arg">production</span></code><div class="desc">Switches env; prefix is <code>FLASK_</code>, environments on by default.</div></li>
+      <li class="env"><code class="cmd">export FLASK_PORT=<span class="arg">80</span></code><div class="desc">Override any config key with the <code>FLASK_</code> prefix.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 DJANGO -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Django</span><span class="card-sub">contrib · DjangoDynaconf</span></div>
+    <ul class="cmds">
+      <li class="valid"><code class="cmd"><span class="kw">import</span> dynaconf<br>settings = dynaconf.DjangoDynaconf(__name__)</code><span class="star">★</span><div class="desc">Add at the <b>bottom</b> of <code>settings.py</code>.</div></li>
+      <li class="read"><code class="cmd"><span class="kw">from</span> django.conf <span class="kw">import</span> settings</code><div class="desc">Use Django's own settings as usual — now Dynaconf-backed.</div></li>
+      <li class="env"><code class="cmd">export DJANGO_DEBUG=<span class="arg">false</span></code><div class="desc">Prefix is <code>DJANGO_</code>; switch env via <code>DJANGO_ENV</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 INSPECT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Inspect &amp; debug</span><span class="card-sub">where did this come from?</span></div>
+    <ul class="cmds">
+      <li class="valid"><code class="cmd"><span class="kw">from</span> dynaconf <span class="kw">import</span> inspect_settings</code><span class="star">★</span><div class="desc">Full per-key loading history across all sources.</div></li>
+      <li class="valid"><code class="cmd">inspect_settings(settings, <span class="arg">"PORT"</span>)</code><div class="desc">Trace one key's value through every layer.</div></li>
+      <li class="valid"><code class="cmd"><span class="kw">from</span> dynaconf <span class="kw">import</span> get_history</code><div class="desc">Programmatic list of load events.</div></li>
+      <li class="valid"><code class="cmd">settings.dynaconf.loaded_by_loaders</code><div class="desc">Raw view of what each loader contributed.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four ideas that make the rest obvious</h2>
+  <p class="sub">Everything above is one of these four patterns in disguise. Learn the shapes, not the option list.</p>
+  <div class="merge-grid">
+
+    <!-- D1 : the override waterfall -->
+    <div class="merge-card">
+      <h3>the override waterfall</h3>
+      <p>A key set in a later source wins. Here <code>PORT</code> starts at a default and is overridden twice on the way down.</p>
+      <svg viewBox="0 0 390 176" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PORT is 8080 by default, 8080 in the file, then overridden to 80 by an environment variable">
+        <g font-family="JetBrains Mono, monospace" font-size="10.5">
+          <rect x="14" y="12" width="250" height="24" rx="6" fill="#f1f3f6" stroke="#64748b" stroke-width="1.3"/><text x="24" y="28" fill="#475569">default</text><text x="254" y="28" text-anchor="end" fill="#94a3b8">PORT=8080</text>
+          <rect x="14" y="48" width="250" height="24" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/><text x="24" y="64" fill="#8a5a12">settings.toml</text><text x="254" y="64" text-anchor="end" fill="#94a3b8">PORT=8080</text>
+          <rect x="14" y="84" width="250" height="24" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.3"/><text x="24" y="100" fill="#3730a3">.env</text><text x="254" y="100" text-anchor="end" fill="#c7c2bb">— unset —</text>
+          <rect x="14" y="120" width="250" height="26" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/><text x="24" y="137" fill="#3730a3" font-weight="700">DYNACONF_PORT</text><text x="254" y="137" text-anchor="end" fill="#3730a3" font-weight="700">80</text>
+          <line x1="300" y1="18" x2="300" y2="140" stroke="#4f46e5" stroke-width="2" marker-end="url(#dc-arrow)"/>
+          <text x="316" y="24" font-size="9" fill="#94a3b8">loads</text>
+          <text x="316" y="140" font-size="9" fill="#94a3b8">last</text>
+          <rect x="286" y="150" width="90" height="22" rx="6" fill="#1a1d24"/><text x="331" y="165" text-anchor="middle" font-size="10" fill="#c3e88d">PORT → 80</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D2 : environments as horizontal layers -->
+    <div class="merge-card">
+      <h3>environments merge on [default]</h3>
+      <p>Each environment sees <code>[default]</code> plus its own overrides. The switcher picks which column is active.</p>
+      <svg viewBox="0 0 390 176" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="default provides name and port; development and production each override port on top of default">
+        <g font-family="JetBrains Mono, monospace" font-size="9.5" text-anchor="middle">
+          <rect x="24" y="70" width="100" height="86" rx="8" fill="#f1f3f6" stroke="#64748b" stroke-width="1.5"/>
+          <text x="74" y="88" font-weight="700" fill="#475569">[default]</text>
+          <text x="74" y="108" fill="#525761">name=app</text>
+          <text x="74" y="124" fill="#525761">port=8080</text>
+          <text x="74" y="140" fill="#525761">debug=off</text>
+
+          <rect x="140" y="40" width="106" height="46" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.5"/>
+          <text x="193" y="58" font-weight="700" fill="#3730a3">[development]</text>
+          <text x="193" y="76" fill="#525761">debug=on</text>
+
+          <rect x="262" y="40" width="106" height="46" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.5"/>
+          <text x="315" y="58" font-weight="700" fill="#3730a3">[production]</text>
+          <text x="315" y="76" fill="#525761">port=80</text>
+
+          <line x1="193" y1="86" x2="150" y2="104" stroke="#4f46e5" stroke-width="1.3" stroke-dasharray="3 3" marker-end="url(#dc-arrow)"/>
+          <line x1="315" y1="86" x2="130" y2="120" stroke="#4f46e5" stroke-width="1.3" stroke-dasharray="3 3" marker-end="url(#dc-arrow)"/>
+
+          <rect x="140" y="104" width="228" height="24" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/>
+          <text x="254" y="120" fill="#0a7a52">active env = default + its overrides</text>
+          <text x="254" y="150" fill="#6b7280">ENV_FOR_DYNACONF selects the column</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D3 : one value, four reads -->
+    <div class="merge-card">
+      <h3>one value, four ways to read it</h3>
+      <p>Attribute, item, <code>get</code>, and nested dot all resolve against the same merged store. First-level keys are case-insensitive.</p>
+      <svg viewBox="0 0 390 176" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="four access styles all pointing at the merged settings store">
+        <g font-family="JetBrains Mono, monospace" font-size="9.5">
+          <rect x="130" y="66" width="130" height="44" rx="10" fill="#1a1d24"/>
+          <text x="195" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#c3e88d">settings</text>
+          <text x="195" y="101" text-anchor="middle" font-size="8" fill="#94a3b8">merged store</text>
+
+          <rect x="8"  y="12" width="150" height="22" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.2"/><text x="18" y="27" fill="#0a7a52">settings.PORT</text>
+          <rect x="232" y="12" width="150" height="22" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.2"/><text x="242" y="27" fill="#0a7a52">settings['PORT']</text>
+          <rect x="8"  y="142" width="150" height="22" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.2"/><text x="18" y="157" fill="#0a7a52">.get('PORT', 80)</text>
+          <rect x="232" y="142" width="150" height="22" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.2"/><text x="242" y="157" fill="#0a7a52">settings.db.host</text>
+
+          <line x1="120" y1="30" x2="150" y2="64" stroke="#059669" stroke-width="1.3" marker-end="url(#dc-arrow)"/>
+          <line x1="270" y1="30" x2="240" y2="64" stroke="#059669" stroke-width="1.3" marker-end="url(#dc-arrow)"/>
+          <line x1="120" y1="146" x2="150" y2="112" stroke="#059669" stroke-width="1.3" marker-end="url(#dc-arrow)"/>
+          <line x1="270" y1="146" x2="240" y2="112" stroke="#059669" stroke-width="1.3" marker-end="url(#dc-arrow)"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D4 : a casting token decoded -->
+    <div class="merge-card">
+      <h3>a casting token, decoded</h3>
+      <p>A string value can carry a <code>@token</code> that transforms it at load time — cast the type, or interpolate other settings.</p>
+      <svg viewBox="0 0 390 176" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="the value @format {this.base_dir}/app.log splits into token, template with interpolation, and resolves to a path">
+        <g font-family="JetBrains Mono, monospace">
+          <rect x="14" y="16" width="362" height="26" rx="6" fill="#e9f6f4" stroke="#0d9488" stroke-width="1.4"/>
+          <text x="24" y="33" font-size="10"><tspan fill="#0d9488" font-weight="700">@format </tspan><tspan fill="#1a1d24">{this.base_dir}/app.log</tspan></text>
+
+          <line x1="80" y1="42" x2="80" y2="66" stroke="#0d9488" stroke-width="1.3" marker-end="url(#dc-arrow)"/>
+          <line x1="240" y1="42" x2="240" y2="66" stroke="#64748b" stroke-width="1.3" marker-end="url(#dc-arrow)"/>
+
+          <rect x="14" y="70" width="120" height="40" rx="6" fill="#e9f6f4" stroke="#0d9488" stroke-width="1.2"/>
+          <text x="74" y="88" text-anchor="middle" font-size="9" fill="#0d7d72">token</text>
+          <text x="74" y="102" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0d9488">@format</text>
+
+          <rect x="150" y="70" width="226" height="40" rx="6" fill="#f1f3f6" stroke="#64748b" stroke-width="1.2"/>
+          <text x="263" y="86" text-anchor="middle" font-size="9" fill="#475569">{this.base_dir} → another setting</text>
+          <text x="263" y="100" text-anchor="middle" font-size="8.5" fill="#6b7280">{env[VAR]} → os env var</text>
+
+          <line x1="195" y1="110" x2="195" y2="132" stroke="#1a1d24" stroke-width="1.4" marker-end="url(#dc-arrow)"/>
+          <rect x="70" y="136" width="250" height="26" rx="6" fill="#1a1d24"/>
+          <text x="195" y="153" text-anchor="middle" font-size="10.5" fill="#c3e88d">'/app/app.log'</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WORTH MEMORIZING ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">later wins</span><span class="v">envvars override files; among files, later-loaded overrides earlier</span></div>
+    <div><span class="k">UPPERCASE + prefix</span><span class="v">only <code>DYNACONF_KEY</code> (or your prefix) is read; lowercase is ignored</span></div>
+    <div><span class="k">nested = __</span><span class="v"><b>double</b> underscore: <code>DYNACONF_DB__host</code>; single won't nest</span></div>
+    <div><span class="k">dicts/lists in envvars</span><span class="v">need TOML <code>{k=v}</code>/<code>[x]</code> or a <code>@json</code> token</span></div>
+    <div><span class="k">environments=True</span><span class="v">off by default in <code>Dynaconf()</code>; on for Flask/Django</span></div>
+    <div><span class="k">case-insensitive</span><span class="v">first-level keys only; nested reached via <code>.dot</code></span></div>
+    <div><span class="k">merge, don't clobber</span><span class="v"><code>dynaconf_merge=true</code> or <code>@merge</code> — else dicts/lists are replaced</span></div>
+    <div><span class="k">gitignore secrets</span><span class="v"><code>.secrets.*</code>, <code>.env</code>, <code>*.local.*</code> stay out of the repo</span></div>
+    <div><span class="k">FORCE_ENV wins</span><span class="v">beats <code>ENV_FOR_DYNACONF</code> — use it in pytest</span></div>
+    <div><span class="k">validate() vs validate_all()</span><span class="v">latter reports <b>every</b> error, not just the first</span></div>
+    <div><span class="k">True/False → TOML bool</span><span class="v">auto-lowercased; wrap in <code>@str</code> to keep the string</span></div>
+    <div><span class="k">dynaconf inspect</span><span class="v">shows exactly which source set a key when debugging</span></div>
+  </div>
+</section>
+
+<footer>
+  Dynaconf cheat sheet · introspected from a live install of <code>Dynaconf 3.3.3</code> and cross-checked against the official docs (dynaconf.com), the dynaconf/dynaconf source, PyPI, and the 12-factor guidelines.<br>
+  Load order is customizable and the merge behaviour is per-key — run <code>dynaconf -i path.to.settings inspect</code> to see the resolved history for your own project.
+</footer>
+
+</body>
+</html>

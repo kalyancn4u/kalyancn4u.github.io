@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BeautifulSoup (Python) Cheat Sheet — Expanded</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b;  --setup-bg:#f1f3f6;
+    --obj:#d97706;    --obj-bg:#fdf6ec;
+    --search:#059669; --search-bg:#ecf7f2;
+    --nav:#4f46e5;    --nav-bg:#eef0fd;
+    --mod:#7c3aed;    --mod-bg:#f4eefc;
+    --io:#0d9488;     --io-bg:#e8f6f4;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --t-mod:#0d9488; --t-fn:#4f46e5; --t-arg:#b45309; --t-str:#059669;
+    --t-kw:#7c3aed;  --t-num:#d97706; --t-cm:#94a3b8;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;}
+
+  /* header */
+  header{border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;}
+  h1 .beautiful{font-family:var(--mono); color:var(--search)}
+  h1 .soup{font-family:var(--mono); color:var(--obj)}
+  h1 .tag{font-family:var(--mono); font-size:.9rem; color:var(--muted); font-weight:500; letter-spacing:.02em}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* legend */
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)} .dot.obj{background:var(--obj)}
+  .dot.search{background:var(--search)} .dot.nav{background:var(--nav)}
+  .dot.mod{background:var(--mod)} .dot.io{background:var(--io)}
+  .dot.danger{background:var(--danger)}
+
+  /* hero */
+  .flow-wrap{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;}
+  .flow-title{font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;}
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* quickstart code panel */
+  .quick{max-width:1120px; margin:1.4rem auto 0; background:var(--ink); border-radius:10px;
+    overflow:hidden; box-shadow:0 2px 8px rgba(20,20,30,.08)}
+  .quick-bar{display:flex; align-items:center; gap:.5rem; padding:.55rem .9rem;
+    border-bottom:1px solid #2b2f3a}
+  .quick-bar .d{width:11px;height:11px;border-radius:50%}
+  .quick-bar .t{font-family:var(--mono); font-size:.72rem; color:#8b93a7; margin-left:.4rem}
+  pre.quick-inner{margin:0; padding:1rem 1.15rem; white-space:pre; overflow-x:auto;
+    font-family:var(--mono); font-size:.8rem; line-height:1.6; color:#e8e6e1; tab-size:2}
+  .quick-inner .cm{color:var(--t-cm)} .quick-inner .kw{color:#c084fc}
+  .quick-inner .mod{color:#2dd4bf} .quick-inner .fn{color:#818cf8}
+  .quick-inner .str{color:#6ee7b7} .quick-inner .arg{color:#fbbf24}
+  .quick-inner .num{color:#fbbf24}
+
+  /* main grid */
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 2rem;
+    column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  @media(min-width:1640px){ main{column-count:4} }
+
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.obj{border-left-color:var(--obj)}
+  ul.cmds li.search{border-left-color:var(--search)}
+  ul.cmds li.nav{border-left-color:var(--nav)}
+  ul.cmds li.mod{border-left-color:var(--mod)}
+  ul.cmds li.io{border-left-color:var(--io)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.5}
+  code.cmd .mod{color:var(--t-mod)} code.cmd .fn{color:var(--t-fn); font-weight:600}
+  code.cmd .arg{color:var(--t-arg)} code.cmd .str{color:var(--t-str)}
+  code.cmd .kw{color:var(--t-kw)} code.cmd .num{color:var(--t-num)}
+  code.cmd .cm{color:var(--t-cm)} code.cmd .p{color:#94a3b8}
+  li.danger code.cmd{color:#b42318}
+  .desc{font-size:.77rem; color:#525761; margin-top:.2rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee;
+    padding:.02rem .25rem; border-radius:3px; color:#3f444f}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.64rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+
+  /* diagrams */
+  .diagrams{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;}
+  .diagrams h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:var(--mono)}
+
+  /* refs strip */
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.8rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner .v code{color:#fcd9a8; font-size:.95em}
+
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;}
+  footer code{color:#3f444f}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · pull data out of HTML &amp; XML · Python</div>
+  <h1><span class="beautiful">Beautiful</span><span class="soup">Soup</span> <span class="tag">cheat sheet &middot; bs4 &middot; expanded</span></h1>
+  <p class="lede">Feed it messy markup and a parser turns it into a <b>tree of Python objects</b> &mdash; <b>Tag</b> nodes and <b>NavigableString</b> text. From there you do three things: <b>navigate</b> the family (parents, children, siblings), <b>search</b> it (<code>find_all</code> &amp; CSS <code>select</code>), and <b>extract</b> what you want (<code>.get_text()</code>, attributes). It doesn&rsquo;t fetch pages &mdash; pair it with <code>requests</code> for that.</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>setup / parsers</span>
+    <span><i class="dot obj"></i>objects &amp; tags</span>
+    <span><i class="dot search"></i>search: find &middot; select</span>
+    <span><i class="dot nav"></i>navigate the tree</span>
+    <span><i class="dot mod"></i>modify the tree</span>
+    <span><i class="dot io"></i>extract &amp; output</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Introspected from <b>bs4 4.14</b>, updated for <b>4.15.0</b> (7 Jun 2026), &amp; cross-checked across: <b>crummy.com/&hellip;/bs4/doc</b> (official) &middot; <b>Real Python</b> &middot; <b>ScrapeOps</b> &middot; <b>DataCamp</b> &middot; <b>tutorialspoint</b> &middot; <b>Soup Sieve (CSS) docs</b> &middot; <b>re-verified 2026-08-30: beautifulsoup4 4.15.0 current; Python 3.7+</b></p>
+</header>
+
+<!-- ============ SIGNATURE HERO DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">Markup &rarr; a parser builds a tree &rarr; navigate, search, extract</div>
+  <svg class="flow-svg" viewBox="0 0 1120 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Band A: an HTML string passes through a chosen parser to become a parse tree, which you navigate, search, extract from, and modify. Band B: the four object types — BeautifulSoup, Tag, NavigableString, and Comment.">
+    <defs>
+      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <!-- BAND A -->
+    <text x="24" y="26" font-size="10.5" letter-spacing="2.5" fill="#94a3b8">BAND A &middot; THE PIPELINE</text>
+
+    <!-- html string -->
+    <rect x="20" y="44" width="188" height="150" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+    <text x="114" y="68" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">Raw markup</text>
+    <text x="114" y="90" text-anchor="middle" font-size="10" fill="#64748b">a str or bytes of</text>
+    <text x="114" y="105" text-anchor="middle" font-size="10" fill="#64748b">HTML / XML</text>
+    <text x="114" y="132" text-anchor="middle" font-size="9.5" fill="#475569">&lt;div&gt;&lt;p&gt;Hi</text>
+    <text x="114" y="147" text-anchor="middle" font-size="9.5" fill="#475569">&lt;b&gt;there&lt;/b&gt;&lt;/p&gt;&lt;/div&gt;</text>
+    <text x="114" y="174" text-anchor="middle" font-size="9" fill="#94a3b8">often requests(url).content</text>
+
+    <!-- parser -->
+    <rect x="248" y="60" width="150" height="118" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+    <text x="323" y="84" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1d24">Parser</text>
+    <text x="323" y="106" text-anchor="middle" font-size="9.5" fill="#64748b">html.parser (stdlib)</text>
+    <text x="323" y="122" text-anchor="middle" font-size="9.5" fill="#64748b">lxml (fast)</text>
+    <text x="323" y="138" text-anchor="middle" font-size="9.5" fill="#64748b">html5lib (lenient)</text>
+    <text x="323" y="162" text-anchor="middle" font-size="9" fill="#94a3b8">BeautifulSoup(html, &hellip;)</text>
+
+    <!-- tree -->
+    <rect x="438" y="40" width="300" height="160" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <text x="588" y="62" text-anchor="middle" font-size="12.5" font-weight="700" fill="#047857">Parse tree</text>
+    <!-- mini tree -->
+    <circle cx="588" cy="86" r="5" fill="#d97706"/><text x="600" y="90" font-size="9" fill="#b45309">html</text>
+    <line x1="588" y1="91" x2="520" y2="112" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="588" y1="91" x2="656" y2="112" stroke="#94a3b8" stroke-width="1"/>
+    <circle cx="520" cy="116" r="5" fill="#d97706"/><text x="500" y="120" font-size="8.5" fill="#b45309">head</text>
+    <circle cx="656" cy="116" r="5" fill="#d97706"/><text x="666" y="120" font-size="8.5" fill="#b45309">body</text>
+    <line x1="520" y1="121" x2="520" y2="140" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="656" y1="121" x2="620" y2="140" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="656" y1="121" x2="694" y2="140" stroke="#94a3b8" stroke-width="1"/>
+    <circle cx="520" cy="144" r="5" fill="#d97706"/><text x="500" y="148" font-size="8.5" fill="#b45309">title</text>
+    <circle cx="620" cy="144" r="5" fill="#d97706"/><text x="600" y="148" font-size="8.5" fill="#b45309">p</text>
+    <circle cx="694" cy="144" r="5" fill="#d97706"/><text x="702" y="148" font-size="8.5" fill="#b45309">a</text>
+    <line x1="620" y1="149" x2="620" y2="168" stroke="#94a3b8" stroke-width="1"/>
+    <rect x="596" y="168" width="48" height="15" rx="3" fill="#d1fae5" stroke="#059669" stroke-width="1"/>
+    <text x="620" y="179" text-anchor="middle" font-size="8" fill="#047857">"Hi"</text>
+    <text x="588" y="196" text-anchor="middle" font-size="8.5" fill="#059669">Tag nodes (amber) &middot; text = NavigableString (green)</text>
+
+    <!-- verbs -->
+    <rect x="770" y="40" width="330" height="160" rx="12" fill="#fff" stroke="#cbd5e1" stroke-width="1.6"/>
+    <text x="935" y="60" text-anchor="middle" font-size="11.5" font-weight="700" fill="#475569">&hellip; then you do 4 things</text>
+    <rect x="784" y="72" width="150" height="26" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/><text x="859" y="89" text-anchor="middle" font-size="9.5" fill="#047857" font-weight="700">SEARCH find/select</text>
+    <rect x="942" y="72" width="150" height="26" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.3"/><text x="1017" y="89" text-anchor="middle" font-size="9.5" fill="#4338ca" font-weight="700">NAVIGATE family</text>
+    <rect x="784" y="104" width="150" height="26" rx="6" fill="#e8f6f4" stroke="#0d9488" stroke-width="1.3"/><text x="859" y="121" text-anchor="middle" font-size="9.5" fill="#0f766e" font-weight="700">EXTRACT text/attrs</text>
+    <rect x="942" y="104" width="150" height="26" rx="6" fill="#f4eefc" stroke="#7c3aed" stroke-width="1.3"/><text x="1017" y="121" text-anchor="middle" font-size="9.5" fill="#6d28d9" font-weight="700">MODIFY edit/build</text>
+    <text x="935" y="152" text-anchor="middle" font-size="9" fill="#64748b">soup.find_all("a") &middot; soup.select("a.cls")</text>
+    <text x="935" y="169" text-anchor="middle" font-size="9" fill="#64748b">tag.parent &middot; tag.get_text(strip=True)</text>
+    <text x="935" y="186" text-anchor="middle" font-size="9" fill="#64748b">tag["href"] &middot; tag.decompose()</text>
+
+    <line x1="208" y1="119" x2="244" y2="119" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#ar)"/>
+    <line x1="398" y1="119" x2="434" y2="119" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#ar)"/>
+    <line x1="738" y1="119" x2="766" y2="119" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#ar)"/>
+
+    <!-- divider -->
+    <line x1="20" y1="228" x2="1100" y2="228" stroke="#e7e3db" stroke-width="1.5"/>
+
+    <!-- BAND B: object types -->
+    <text x="24" y="258" font-size="10.5" letter-spacing="2.5" fill="#94a3b8">BAND B &middot; THE FOUR OBJECT TYPES YOU&rsquo;LL MEET IN THE TREE</text>
+
+    <rect x="20" y="278" width="262" height="188" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+    <text x="151" y="302" text-anchor="middle" font-size="12.5" font-weight="700" fill="#334155">BeautifulSoup</text>
+    <text x="151" y="324" text-anchor="middle" font-size="10" fill="#64748b">the whole parsed document</text>
+    <text x="151" y="342" text-anchor="middle" font-size="10" fill="#64748b">(the root; acts like a Tag)</text>
+    <text x="151" y="372" text-anchor="middle" font-size="9.5" fill="#94a3b8">soup = BeautifulSoup(html,</text>
+    <text x="151" y="387" text-anchor="middle" font-size="9.5" fill="#94a3b8">&nbsp;&nbsp;&nbsp;&nbsp;"html.parser")</text>
+    <text x="151" y="420" text-anchor="middle" font-size="9" fill="#64748b">it contains Tags,</text>
+    <text x="151" y="435" text-anchor="middle" font-size="9" fill="#64748b">which contain more</text>
+    <text x="151" y="450" text-anchor="middle" font-size="9" fill="#64748b">Tags and strings&hellip;</text>
+
+    <rect x="298" y="278" width="262" height="188" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+    <text x="429" y="302" text-anchor="middle" font-size="12.5" font-weight="700" fill="#b45309">Tag</text>
+    <text x="429" y="324" text-anchor="middle" font-size="10" fill="#8a6d3b">an element: &lt;a href="/x"&gt;&hellip;&lt;/a&gt;</text>
+    <text x="429" y="348" text-anchor="middle" font-size="9.5" fill="#8a6d3b">.name &rarr; "a"</text>
+    <text x="429" y="366" text-anchor="middle" font-size="9.5" fill="#8a6d3b">.attrs &rarr; {"href": "/x"}</text>
+    <text x="429" y="384" text-anchor="middle" font-size="9.5" fill="#8a6d3b">tag["href"] &rarr; "/x"</text>
+    <text x="429" y="408" text-anchor="middle" font-size="9.5" fill="#8a6d3b">.contents / .children</text>
+    <text x="429" y="426" text-anchor="middle" font-size="9" fill="#b45309">has parents, children,</text>
+    <text x="429" y="440" text-anchor="middle" font-size="9" fill="#b45309">siblings &mdash; the searchable,</text>
+    <text x="429" y="454" text-anchor="middle" font-size="9" fill="#b45309">navigable node</text>
+
+    <rect x="576" y="278" width="262" height="188" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <text x="707" y="302" text-anchor="middle" font-size="12.5" font-weight="700" fill="#047857">NavigableString</text>
+    <text x="707" y="324" text-anchor="middle" font-size="10" fill="#0f766e">the text inside a tag</text>
+    <text x="707" y="348" text-anchor="middle" font-size="9.5" fill="#0f766e">it IS a Python str subclass</text>
+    <text x="707" y="372" text-anchor="middle" font-size="9.5" fill="#0f766e">"Hello world"</text>
+    <text x="707" y="400" text-anchor="middle" font-size="9" fill="#059669">no .contents, no find() &mdash;</text>
+    <text x="707" y="414" text-anchor="middle" font-size="9" fill="#059669">a leaf, not a branch</text>
+    <text x="707" y="440" text-anchor="middle" font-size="9" fill="#059669">get it via .string / .strings /</text>
+    <text x="707" y="454" text-anchor="middle" font-size="9" fill="#059669">.get_text()</text>
+
+    <rect x="854" y="278" width="246" height="188" rx="12" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.8"/>
+    <text x="977" y="302" text-anchor="middle" font-size="12.5" font-weight="700" fill="#b42318">Comment</text>
+    <text x="977" y="324" text-anchor="middle" font-size="10" fill="#b42318">&amp; friends: CData,</text>
+    <text x="977" y="340" text-anchor="middle" font-size="10" fill="#b42318">Doctype, Declaration</text>
+    <text x="977" y="366" text-anchor="middle" font-size="9.5" fill="#b42318">&lt;!-- like this --&gt;</text>
+    <text x="977" y="392" text-anchor="middle" font-size="9" fill="#dc2626">special NavigableString</text>
+    <text x="977" y="406" text-anchor="middle" font-size="9" fill="#dc2626">subclasses &mdash; text that</text>
+    <text x="977" y="420" text-anchor="middle" font-size="9" fill="#dc2626">isn&rsquo;t page content</text>
+    <text x="977" y="446" text-anchor="middle" font-size="9" fill="#dc2626">isinstance(s, Comment)</text>
+  </svg>
+
+  <!-- quickstart panel -->
+  <div class="quick">
+    <div class="quick-bar"><span class="d" style="background:#ff5f56"></span><span class="d" style="background:#ffbd2e"></span><span class="d" style="background:#27c93f"></span><span class="t">quickstart.py &mdash; the canonical requests + BeautifulSoup combo</span></div>
+<pre class="quick-inner"><span class="kw">import</span> <span class="mod">requests</span>
+<span class="kw">from</span> <span class="mod">bs4</span> <span class="kw">import</span> <span class="fn">BeautifulSoup</span>
+
+html = <span class="mod">requests</span>.<span class="fn">get</span>(<span class="str">"https://example.com"</span>).content   <span class="cm"># bytes → let BS4 detect encoding</span>
+soup = <span class="fn">BeautifulSoup</span>(html, <span class="str">"html.parser"</span>)             <span class="cm"># always name a parser</span>
+
+<span class="cm"># SEARCH — CSS selector returns a list</span>
+<span class="kw">for</span> a <span class="kw">in</span> soup.<span class="fn">select</span>(<span class="str">"a[href]"</span>):
+    <span class="kw">print</span>(a.<span class="fn">get_text</span>(<span class="arg">strip</span>=<span class="kw">True</span>), <span class="str">"→"</span>, a[<span class="str">"href"</span>])   <span class="cm"># extract text + attribute</span>
+
+<span class="cm"># find() returns ONE tag or None (note class_, not class)</span>
+h = soup.<span class="fn">find</span>(<span class="str">"h1"</span>, <span class="arg">class_</span>=<span class="str">"headline"</span>)
+<span class="kw">print</span>(h.<span class="fn">get_text</span>(<span class="arg">strip</span>=<span class="kw">True</span>) <span class="kw">if</span> h <span class="kw">else</span> <span class="str">"no headline"</span>)</pre>
+  </div>
+</section>
+
+<!-- ============ REFERENCE CARDS ============ -->
+<main>
+
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Import</span><span class="card-sub">install once</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="cm">$</span> pip install beautifulsoup4</code><div class="desc">The package is <code>beautifulsoup4</code>; you import it as <code>bs4</code>.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm">$</span> pip install lxml html5lib</code><div class="desc">Optional faster / more-lenient parsers (see card 02).</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">from</span> <span class="mod">bs4</span> <span class="kw">import</span> <span class="fn">BeautifulSoup</span></code><span class="star">&#9733;</span><div class="desc">The one class you need to start.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">from</span> <span class="mod">bs4</span> <span class="kw">import</span> Tag, NavigableString, Comment</code><div class="desc">Import the node types for <code>isinstance</code> checks while walking.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">import</span> <span class="mod">bs4</span>; <span class="mod">bs4</span>.__version__</code><div class="desc">Check the version, e.g. <code>'4.15.0'</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 MAKE THE SOUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Make the Soup &amp; Parsers</span><span class="card-sub">pick one</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">soup = <span class="fn">BeautifulSoup</span>(html, <span class="str">"html.parser"</span>)</code><span class="star">&#9733;</span><div class="desc">stdlib, no deps, decent &mdash; the safe default.</div></li>
+      <li class="setup"><code class="cmd"><span class="fn">BeautifulSoup</span>(html, <span class="str">"lxml"</span>)</code><span class="star">&#9733;</span><div class="desc">Fastest; needs <code>pip install lxml</code>. Great for big pages.</div></li>
+      <li class="setup"><code class="cmd"><span class="fn">BeautifulSoup</span>(html, <span class="str">"html5lib"</span>)</code><div class="desc">Browser-lenient, fixes broken markup like a browser; slowest.</div></li>
+      <li class="setup"><code class="cmd"><span class="fn">BeautifulSoup</span>(xml, <span class="str">"lxml-xml"</span>)</code><div class="desc">Parse XML (or pass <code>features="xml"</code>).</div></li>
+      <li class="setup"><code class="cmd"><span class="fn">BeautifulSoup</span>(<span class="fn">open</span>(<span class="str">"page.html"</span>), <span class="str">"lxml"</span>)</code><div class="desc">Feed a file handle directly, or a str / bytes.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># always name the parser</span></code><span class="badge-danger">gotcha</span><div class="desc">Omitting it triggers <code>GuessedAtParserWarning</code> &amp; can change behaviour across machines.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 OBJECT TYPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">The Four Object Types</span><span class="card-sub">what's in the tree</span></div>
+    <ul class="cmds">
+      <li class="obj"><code class="cmd"><span class="mod">bs4</span>.BeautifulSoup</code><div class="desc">The whole document / root. Behaves like a Tag.</div></li>
+      <li class="obj"><code class="cmd"><span class="mod">bs4</span>.Tag</code><span class="star">&#9733;</span><div class="desc">An element &mdash; has <code>.name</code>, <code>.attrs</code>, children. What you search &amp; navigate.</div></li>
+      <li class="obj"><code class="cmd"><span class="mod">bs4</span>.NavigableString</code><div class="desc">Text inside a tag &mdash; a <code>str</code> subclass, so string methods work.</div></li>
+      <li class="obj"><code class="cmd"><span class="mod">bs4</span>.Comment</code><div class="desc"><code>&lt;!-- --&gt;</code>; a special NavigableString (also CData, Doctype).</div></li>
+      <li class="obj"><code class="cmd"><span class="fn">isinstance</span>(x, <span class="mod">bs4</span>.Tag)</code><div class="desc">Test node type when walking mixed children.</div></li>
+      <li class="obj"><code class="cmd">x.<span class="fn">__class__</span>.__name__</code><div class="desc">All four share the <code>PageElement</code> base &mdash; hence common navigation.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 INSPECT A TAG -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Inspect a Tag</span><span class="card-sub">name · attrs</span></div>
+    <ul class="cmds">
+      <li class="obj"><code class="cmd">tag.name</code><span class="star">&#9733;</span><div class="desc">The tag's name, e.g. <code>"a"</code>. Assignable to rename.</div></li>
+      <li class="obj"><code class="cmd">tag.attrs</code><div class="desc">All attributes as a dict: <code>{"href": "/x", "id": "c1"}</code>.</div></li>
+      <li class="obj"><code class="cmd">tag[<span class="str">"href"</span>]</code><span class="star">&#9733;</span><div class="desc">One attribute value. <code>KeyError</code> if missing.</div></li>
+      <li class="obj"><code class="cmd">tag.<span class="fn">get</span>(<span class="str">"href"</span>)</code><span class="star">&#9733;</span><div class="desc">Safe access &mdash; returns <code>None</code> if absent.</div></li>
+      <li class="obj"><code class="cmd">tag.<span class="fn">has_attr</span>(<span class="str">"href"</span>)</code><div class="desc">Boolean presence check &mdash; cleaner than <code>in tag.attrs</code>.</div></li>
+      <li class="obj"><code class="cmd">tag.contents &middot; <span class="fn">str</span>(tag)</code><div class="desc">Direct children as a list; the tag rendered back to HTML.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 FIND &amp; FIND_ALL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">find &amp; find_all</span><span class="card-sub">the workhorse</span></div>
+    <ul class="cmds">
+      <li class="search"><code class="cmd">soup.<span class="fn">find_all</span>(<span class="str">"a"</span>)</code><span class="star">&#9733;</span><div class="desc">Every matching tag &mdash; a list (empty if none).</div></li>
+      <li class="search"><code class="cmd">soup.<span class="fn">find</span>(<span class="str">"a"</span>)</code><span class="star">&#9733;</span><div class="desc">First match only, or <code>None</code>. Same as <code>soup.a</code>.</div></li>
+      <li class="search"><code class="cmd">soup(<span class="str">"a"</span>)</code><div class="desc">Calling the soup <b>is</b> <code>find_all</code> &mdash; a handy shortcut.</div></li>
+      <li class="search"><code class="cmd"><span class="fn">find_all</span>([<span class="str">"h1"</span>, <span class="str">"h2"</span>])</code><div class="desc">A list matches any of several tag names.</div></li>
+      <li class="search"><code class="cmd"><span class="fn">find_all</span>(<span class="mod">re</span>.<span class="fn">compile</span>(<span class="str">"^h[1-6]$"</span>))</code><div class="desc">A regex matches tag names by pattern.</div></li>
+      <li class="search"><code class="cmd"><span class="fn">find_all</span>(<span class="arg">string</span>=<span class="kw">True</span>)</code><div class="desc">Return NavigableStrings instead of Tags &mdash; grab raw text nodes.</div></li>
+      <li class="search"><code class="cmd"><span class="fn">find_all</span>(<span class="str">"a"</span>, <span class="arg">limit</span>=<span class="num">5</span>, <span class="arg">recursive</span>=<span class="kw">False</span>)</code><div class="desc">Cap results; <code>recursive=False</code> = direct children only.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 SEARCH BY ATTRS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Search by Attributes &amp; Text</span><span class="card-sub">filter the match</span></div>
+    <ul class="cmds">
+      <li class="search"><code class="cmd"><span class="fn">find_all</span>(<span class="str">"div"</span>, <span class="arg">class_</span>=<span class="str">"lead"</span>)</code><span class="star">&#9733;</span><div class="desc"><code>class_</code> (trailing underscore) &mdash; <code>class</code> is reserved.</div></li>
+      <li class="search"><code class="cmd"><span class="fn">find_all</span>(<span class="str">"a"</span>, <span class="arg">class_</span>=<span class="str">"btn"</span>, <span class="arg">id</span>=<span class="str">"go"</span>)</code><span class="star">&#9733;</span><div class="desc">Stack keyword filters &mdash; all must match (AND).</div></li>
+      <li class="search"><code class="cmd"><span class="fn">find_all</span>(<span class="arg">attrs</span>={<span class="str">"data-id"</span>: <span class="str">"7"</span>})</code><span class="star">&#9733;</span><div class="desc">Use <code>attrs=</code> for hyphenated / reserved names.</div></li>
+      <li class="search"><code class="cmd"><span class="fn">find_all</span>(<span class="str">"a"</span>, <span class="arg">href</span>=<span class="mod">re</span>.<span class="fn">compile</span>(<span class="str">"^/docs"</span>))</code><div class="desc">Regex-match an attribute value.</div></li>
+      <li class="search"><code class="cmd"><span class="fn">find_all</span>(<span class="arg">string</span>=<span class="mod">re</span>.<span class="fn">compile</span>(<span class="str">"Sale"</span>))</code><div class="desc"><code>string=</code> filters by text; takes a str, regex, list, or <code>True</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="arg">class_</span>=<span class="str">"a b"</span> vs <span class="arg">class_</span>=<span class="str">"b a"</span></code><span class="badge-danger">gotcha</span><div class="desc">Multi-class match is order-sensitive; use <code>select("div.a.b")</code> instead.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 FUNCTION &amp; CUSTOM FILTERS (NEW) -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Function &amp; Custom Filters</span><span class="card-sub">when kwargs aren't enough</span></div>
+    <ul class="cmds">
+      <li class="search"><code class="cmd"><span class="fn">find_all</span>(<span class="kw">lambda</span> t: t.name==<span class="str">"a"</span> <span class="kw">and</span></code><div class="desc">Pass a function &mdash; it receives each Tag, returns True to keep.</div></li>
+      <li class="search"><code class="cmd">&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">not</span> t.<span class="fn">has_attr</span>(<span class="str">"id"</span>))</code><span class="star">&#9733;</span><div class="desc">e.g. links that lack an <code>id</code> &mdash; logic no kwarg can express.</div></li>
+      <li class="search"><code class="cmd"><span class="fn">find_all</span>(<span class="kw">lambda</span> t: <span class="fn">len</span>(t.<span class="fn">get</span>(<span class="str">"class"</span>, [])) &gt; <span class="num">2</span>)</code><div class="desc">Match tags with more than two CSS classes.</div></li>
+      <li class="search"><code class="cmd"><span class="kw">def</span> <span class="fn">has_price</span>(t): <span class="kw">return</span> <span class="str">"$"</span> <span class="kw">in</span> t.<span class="fn">get_text</span>()</code><div class="desc">Named functions read better for complex rules.</div></li>
+      <li class="search"><code class="cmd"><span class="fn">find_all</span>(<span class="kw">True</span>)</code><div class="desc">The <code>True</code> filter matches <b>every</b> tag &mdash; useful with a string/attr filter.</div></li>
+      <li class="search"><code class="cmd"><span class="fn">find_all</span>(<span class="arg">id</span>=<span class="kw">lambda</span> v: v <span class="kw">and</span> v.<span class="fn">startswith</span>(<span class="str">"nav"</span>))</code><div class="desc">A function can also filter a single attribute's value.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 CSS SELECT BASICS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">CSS Selectors &middot; Basics</span><span class="card-sub">soupsieve</span></div>
+    <ul class="cmds">
+      <li class="search"><code class="cmd">soup.<span class="fn">select</span>(<span class="str">"div.content a"</span>)</code><span class="star">&#9733;</span><div class="desc">CSS selector &rarr; list of tags. Familiar if you know CSS.</div></li>
+      <li class="search"><code class="cmd">soup.<span class="fn">select_one</span>(<span class="str">"h1#title"</span>)</code><span class="star">&#9733;</span><div class="desc">First match or <code>None</code> &mdash; the <code>find</code> of the CSS world.</div></li>
+      <li class="search"><code class="cmd"><span class="fn">select</span>(<span class="str">"ul &gt; li"</span>)</code><div class="desc">Child combinator (direct children only).</div></li>
+      <li class="search"><code class="cmd"><span class="fn">select</span>(<span class="str">"p.lead.intro"</span>)</code><span class="star">&#9733;</span><div class="desc">Multiple classes the easy way (vs order-sensitive <code>class_</code>).</div></li>
+      <li class="search"><code class="cmd"><span class="fn">select</span>(<span class="str">"li:nth-of-type(2)"</span>)</code><div class="desc">Pseudo-classes via the bundled <code>soupsieve</code> engine.</div></li>
+      <li class="search"><code class="cmd">table.<span class="fn">select</span>(<span class="str">"tr td"</span>)</code><div class="desc">Call <code>select</code> on any Tag to scope the search to its subtree.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 CSS SELECT ADVANCED (NEW) -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">CSS Selectors &middot; Attributes &amp; Pseudo</span><span class="card-sub">the scraping power tools</span></div>
+    <ul class="cmds">
+      <li class="search"><code class="cmd"><span class="fn">select</span>(<span class="str">"a[href]"</span>)</code><span class="star">&#9733;</span><div class="desc">Attribute presence &mdash; only <code>&lt;a&gt;</code> that actually have an href.</div></li>
+      <li class="search"><code class="cmd"><span class="fn">select</span>(<span class="str">'a[href^="https"]'</span>)</code><span class="star">&#9733;</span><div class="desc"><code>^=</code> starts-with &mdash; external links.</div></li>
+      <li class="search"><code class="cmd"><span class="fn">select</span>(<span class="str">'a[href$=".pdf"]'</span>)</code><div class="desc"><code>$=</code> ends-with &mdash; PDF links.</div></li>
+      <li class="search"><code class="cmd"><span class="fn">select</span>(<span class="str">'a[href*="/blog/"]'</span>)</code><div class="desc"><code>*=</code> contains &mdash; substring anywhere in the value.</div></li>
+      <li class="search"><code class="cmd"><span class="fn">select</span>(<span class="str">"h2 ~ p"</span>) &middot; <span class="fn">select</span>(<span class="str">"label + input"</span>)</code><div class="desc">General (<code>~</code>) &amp; adjacent (<code>+</code>) sibling combinators.</div></li>
+      <li class="search"><code class="cmd"><span class="fn">select</span>(<span class="str">"div:has(&gt; img)"</span>)</code><div class="desc"><code>:has()</code> &mdash; parents that contain a match.</div></li>
+      <li class="search"><code class="cmd"><span class="fn">select</span>(<span class="str">"p:-soup-contains('Sale')"</span>)</code><div class="desc">soupsieve's text selector (the old <code>:contains</code>).</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 DIRECTIONAL SEARCH -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Directional Search</span><span class="card-sub">find near a tag</span></div>
+    <ul class="cmds">
+      <li class="search"><code class="cmd">tag.<span class="fn">find_parent</span>(<span class="str">"div"</span>)</code><div class="desc">Nearest ancestor matching; <code>find_parents</code> for all.</div></li>
+      <li class="search"><code class="cmd">tag.<span class="fn">find_next_sibling</span>(<span class="str">"td"</span>)</code><span class="star">&#9733;</span><div class="desc">Next sibling tag &mdash; skips whitespace strings (see card 12).</div></li>
+      <li class="search"><code class="cmd">tag.<span class="fn">find_previous_sibling</span>(&hellip;)</code><div class="desc">The sibling before it.</div></li>
+      <li class="search"><code class="cmd">tag.<span class="fn">find_next</span>(<span class="str">"p"</span>) &middot; <span class="fn">find_all_next</span>()</code><div class="desc">Anything later in the document (parse order, any depth).</div></li>
+      <li class="search"><code class="cmd">tag.<span class="fn">find_previous</span>(&hellip;) &middot; <span class="fn">find_all_previous</span>()</code><div class="desc">Anything earlier in the document.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 NAVIGATE DOWN -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Navigate Down</span><span class="card-sub">into children</span></div>
+    <ul class="cmds">
+      <li class="nav"><code class="cmd">soup.title &middot; soup.body.p</code><span class="star">&#9733;</span><div class="desc">Dotted access = first matching child tag by name.</div></li>
+      <li class="nav"><code class="cmd">tag.contents</code><div class="desc">Direct children as a <b>list</b>.</div></li>
+      <li class="nav"><code class="cmd"><span class="kw">for</span> c <span class="kw">in</span> tag.children:</code><span class="star">&#9733;</span><div class="desc">Direct children as an iterator.</div></li>
+      <li class="nav"><code class="cmd"><span class="kw">for</span> d <span class="kw">in</span> tag.descendants:</code><div class="desc">Every nested node, depth-first.</div></li>
+      <li class="nav"><code class="cmd">tag.string</code><div class="desc">The single child string &mdash; <code>None</code> if 0 or 2+ children.</div></li>
+      <li class="nav"><code class="cmd">tag.strings &middot; tag.stripped_strings</code><div class="desc">Iterate all text pieces; <code>stripped_</code> drops whitespace-only ones.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 NAVIGATE UP &amp; SIDEWAYS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Navigate Up &amp; Sideways</span><span class="card-sub">parents · siblings</span></div>
+    <ul class="cmds">
+      <li class="nav"><code class="cmd">tag.parent</code><span class="star">&#9733;</span><div class="desc">The tag that contains this one.</div></li>
+      <li class="nav"><code class="cmd"><span class="kw">for</span> p <span class="kw">in</span> tag.parents:</code><div class="desc">All ancestors, up to the document root.</div></li>
+      <li class="nav"><code class="cmd">tag.next_sibling &middot; tag.previous_sibling</code><div class="desc">Adjacent node at the same level.</div></li>
+      <li class="nav"><code class="cmd">tag.next_siblings &middot; tag.previous_siblings</code><div class="desc">Iterators over siblings in each direction.</div></li>
+      <li class="danger"><code class="cmd">next_sibling &rarr; often <span class="str">'\n'</span></code><span class="badge-danger">gotcha</span><div class="desc">Whitespace between tags is a NavigableString sibling &mdash; use <code>find_next_sibling()</code>.</div></li>
+      <li class="nav"><code class="cmd">tag.next_element &middot; tag.previous_element</code><div class="desc">Next node in <b>parse order</b> (descends into children) &mdash; not the same as siblings.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 EXTRACT TEXT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Extract Text</span><span class="card-sub">get the words out</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd">tag.<span class="fn">get_text</span>() &middot; tag.text</code><span class="star">&#9733;</span><div class="desc">All text under the tag, concatenated. <code>.text</code> is the property alias.</div></li>
+      <li class="io"><code class="cmd">tag.<span class="fn">get_text</span>(<span class="arg">separator</span>=<span class="str">" "</span>, <span class="arg">strip</span>=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Join pieces with a separator &amp; trim whitespace &mdash; clean output.</div></li>
+      <li class="io"><code class="cmd">tag.string</code><div class="desc">Text only if the tag has exactly one string child, else <code>None</code>.</div></li>
+      <li class="io"><code class="cmd"><span class="fn">list</span>(tag.stripped_strings)</code><div class="desc">Each non-empty text chunk as its own list item.</div></li>
+      <li class="io"><code class="cmd">tag.<span class="fn">get_text</span>(<span class="arg">types</span>=(NavigableString,))</code><div class="desc">Restrict which string types count &mdash; e.g. skip Comment / CData text.</div></li>
+      <li class="danger"><code class="cmd">.string <span class="kw">is</span> <span class="kw">None</span> here?</code><span class="badge-danger">gotcha</span><div class="desc">Multiple children &rarr; <code>.string</code> is <code>None</code>. Reach for <code>get_text()</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 EXTRACT ATTRIBUTES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Extract Attributes</span><span class="card-sub">href · src · class</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd">a[<span class="str">"href"</span>]</code><span class="star">&#9733;</span><div class="desc">Direct access &mdash; raises <code>KeyError</code> if the attr is absent.</div></li>
+      <li class="io"><code class="cmd">a.<span class="fn">get</span>(<span class="str">"href"</span>, <span class="str">""</span>)</code><span class="star">&#9733;</span><div class="desc">Safe access with a default &mdash; the scraping-friendly form.</div></li>
+      <li class="io"><code class="cmd">img[<span class="str">"src"</span>] &middot; a[<span class="str">"data-id"</span>]</code><div class="desc">Any attribute by name, including <code>data-*</code>.</div></li>
+      <li class="danger"><code class="cmd">tag[<span class="str">"class"</span>] &rarr; [<span class="str">"a"</span>, <span class="str">"b"</span>]</code><span class="badge-danger">gotcha</span><div class="desc"><code>class</code> is multi-valued &mdash; you get a <b>list</b>, not a string. Also <code>rel</code>, <code>accept-charset</code>.</div></li>
+      <li class="io"><code class="cmd"><span class="str">" "</span>.<span class="fn">join</span>(tag.<span class="fn">get</span>(<span class="str">"class"</span>, []))</code><div class="desc">Re-join a multi-valued attribute into a string.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 MODIFY EDIT &amp; BUILD -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Modify &middot; Edit &amp; Build</span><span class="card-sub">change the tree</span></div>
+    <ul class="cmds">
+      <li class="mod"><code class="cmd">tag.name = <span class="str">"div"</span>; tag[<span class="str">"class"</span>] = <span class="str">"new"</span></code><div class="desc">Rename an element; set or (<code>del tag["id"]</code>) delete attributes.</div></li>
+      <li class="mod"><code class="cmd">tag.string = <span class="str">"new text"</span></code><div class="desc">Replace all contents with a single string.</div></li>
+      <li class="mod"><code class="cmd">new = soup.<span class="fn">new_tag</span>(<span class="str">"a"</span>, <span class="arg">href</span>=<span class="str">"/x"</span>)</code><span class="star">&#9733;</span><div class="desc">Build a fresh tag (then set <code>.string</code> / append it). <b>4.15:</b> callable on <i>any</i> Tag, not just the <code>BeautifulSoup</code> object.</div></li>
+      <li class="mod"><code class="cmd">soup.<span class="fn">new_string</span>(<span class="str">"hello"</span>)</code><div class="desc">Build a standalone text node. <b>4.15:</b> also callable directly on any <code>Tag</code>/<code>NavigableString</code>.</div></li>
+      <li class="mod"><code class="cmd">child = tag.<span class="fn">append</span>(x) &middot; tag.<span class="fn">extend</span>([a, b]) &middot; tag.<span class="fn">insert</span>(<span class="num">0</span>, x)</code><div class="desc">Add one / many children at the end, or at an index. <b>4.15:</b> <code>append</code> now <i>returns</i> the appended element; <code>extend</code>/<code>insert</code> return the list of inserted items (was <code>None</code>).</div></li>
+      <li class="mod"><code class="cmd">tag.<span class="fn">insert_before</span>(x) &middot; tag.<span class="fn">insert_after</span>(x)</code><div class="desc">Place a node as a sibling. <b>4.15:</b> these return the inserted item(s) too.</div></li>
+      <li class="mod"><code class="cmd">tag.<span class="fn">smooth</span>()</code><div class="desc">Consolidate adjacent NavigableStrings after edits.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 MODIFY DELETE &amp; REPLACE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Modify &middot; Delete &amp; Replace</span><span class="card-sub">remove nodes</span></div>
+    <ul class="cmds">
+      <li class="mod"><code class="cmd">tag.<span class="fn">decompose</span>()</code><span class="star">&#9733;</span><div class="desc">Destroy the tag &amp; its contents in place. Check <code>tag.decomposed</code>.</div></li>
+      <li class="mod"><code class="cmd">removed = tag.<span class="fn">extract</span>()</code><div class="desc">Remove from the tree but <b>return</b> it for reuse.</div></li>
+      <li class="mod"><code class="cmd">tag.<span class="fn">clear</span>()</code><div class="desc">Empty the tag's contents, keep the tag.</div></li>
+      <li class="mod"><code class="cmd">tag.<span class="fn">replace_with</span>(new)</code><div class="desc">Swap this node for another.</div></li>
+      <li class="mod"><code class="cmd">tag.<span class="fn">unwrap</span>()</code><div class="desc">Remove the tag, keep its children (strip a wrapper).</div></li>
+      <li class="mod"><code class="cmd">tag.<span class="fn">wrap</span>(soup.<span class="fn">new_tag</span>(<span class="str">"div"</span>))</code><div class="desc">Surround a node with a new parent.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 OUTPUT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Output &amp; Formatting</span><span class="card-sub">tree → string</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd"><span class="fn">print</span>(soup.<span class="fn">prettify</span>())</code><span class="star">&#9733;</span><div class="desc">Indented, human-readable HTML &mdash; great for debugging.</div></li>
+      <li class="io"><code class="cmd"><span class="fn">str</span>(soup) &middot; <span class="fn">str</span>(tag)</code><span class="star">&#9733;</span><div class="desc">Compact HTML for the whole tree or one node.</div></li>
+      <li class="io"><code class="cmd">soup.<span class="fn">encode</span>(<span class="str">"utf-8"</span>)</code><div class="desc">Serialize to bytes in a chosen encoding.</div></li>
+      <li class="io"><code class="cmd">tag.<span class="fn">decode</span>(<span class="arg">formatter</span>=<span class="str">"html"</span>)</code><div class="desc">Formatters: <code>"minimal"</code> (default), <code>"html"</code>, <code>"html5"</code>, <code>None</code>, or a function.</div></li>
+      <li class="io"><code class="cmd"><span class="kw">from</span> <span class="mod">bs4.formatter</span> <span class="kw">import</span> HTMLFormatter</code><div class="desc"><code>prettify(formatter=HTMLFormatter(indent=2))</code> to control indent width.</div></li>
+      <li class="danger"><code class="cmd"><span class="arg">formatter</span>=<span class="kw">None</span></code><span class="badge-danger">unsafe</span><div class="desc">Emits <b>no</b> entity escaping &mdash; risky if the HTML is untrusted.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 ENCODING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Encoding &amp; Unicode</span><span class="card-sub">bytes in, str out</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="fn">BeautifulSoup</span>(resp.content, <span class="str">"lxml"</span>)</code><span class="star">&#9733;</span><div class="desc">Pass <b>bytes</b> so BS4 can sniff the encoding itself.</div></li>
+      <li class="setup"><code class="cmd"><span class="fn">BeautifulSoup</span>(data, <span class="arg">from_encoding</span>=<span class="str">"latin-1"</span>)</code><div class="desc">Force an input encoding when detection is wrong.</div></li>
+      <li class="setup"><code class="cmd"><span class="arg">exclude_encodings</span>=[<span class="str">"utf-8"</span>]</code><div class="desc">Rule out encodings you know are wrong to help the sniffer.</div></li>
+      <li class="setup"><code class="cmd">soup.original_encoding</code><div class="desc">What BS4 decided the input encoding was.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">from</span> <span class="mod">bs4</span> <span class="kw">import</span> UnicodeDammit</code><div class="desc"><code>UnicodeDammit(data).unicode_markup</code> &mdash; standalone encoding guesser.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 TABLES &amp; STRUCTURED DATA (NEW) -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Tables &amp; Structured Data</span><span class="card-sub">the #1 scrape</span></div>
+    <ul class="cmds">
+      <li class="search"><code class="cmd">rows = [[c.<span class="fn">get_text</span>(<span class="arg">strip</span>=<span class="kw">True</span>)</code><div class="desc">Walk a table into a list of row-lists&hellip;</div></li>
+      <li class="search"><code class="cmd">&nbsp;&nbsp;<span class="kw">for</span> c <span class="kw">in</span> tr([<span class="str">"td"</span>,<span class="str">"th"</span>])] <span class="kw">for</span> tr <span class="kw">in</span> soup.<span class="fn">select</span>(<span class="str">"table tr"</span>)]</code><span class="star">&#9733;</span><div class="desc">&hellip;<code>tr([...])</code> is <code>tr.find_all([...])</code>.</div></li>
+      <li class="io"><code class="cmd">head, *body = rows</code><div class="desc">Split header row from data rows.</div></li>
+      <li class="io"><code class="cmd">[<span class="fn">dict</span>(<span class="fn">zip</span>(head, r)) <span class="kw">for</span> r <span class="kw">in</span> body]</code><span class="star">&#9733;</span><div class="desc">Zip each row against the header &rarr; list of dicts.</div></li>
+      <li class="search"><code class="cmd"><span class="kw">import</span> <span class="mod">json</span>; s = soup.<span class="fn">find</span>(<span class="str">"script"</span>,</code><div class="desc">Structured data is often embedded as JSON-LD&hellip;</div></li>
+      <li class="search"><code class="cmd">&nbsp;&nbsp;<span class="arg">type</span>=<span class="str">"application/ld+json"</span>); <span class="mod">json</span>.<span class="fn">loads</span>(s.string)</code><span class="star">&#9733;</span><div class="desc">&hellip;pull &amp; parse it in two lines.</div></li>
+      <li class="io"><code class="cmd"><span class="kw">import</span> <span class="mod">pandas</span>; <span class="mod">pandas</span>.<span class="fn">read_html</span>(<span class="fn">str</span>(table))</code><div class="desc">For big tables, hand the HTML to pandas.</div></li>
+    </ul>
+  </article>
+
+  <!-- 20 REAL-WORLD SCRAPING (NEW) -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">20</span><span class="card-title">Real-World Scraping</span><span class="card-sub">the full loop</span></div>
+    <ul class="cmds">
+      <li class="search"><code class="cmd">soup = <span class="fn">BeautifulSoup</span>(<span class="mod">requests</span>.<span class="fn">get</span>(url).content, <span class="str">"lxml"</span>)</code><span class="star">&#9733;</span><div class="desc">Fetch with <code>requests</code>, parse with BS4 &mdash; they're a pair.</div></li>
+      <li class="io"><code class="cmd"><span class="kw">from</span> <span class="mod">urllib.parse</span> <span class="kw">import</span> urljoin</code><span class="star">&#9733;</span><div class="desc"><code>urljoin(base, a["href"])</code> &rarr; turn relative links absolute.</div></li>
+      <li class="search"><code class="cmd">el = soup.<span class="fn">select_one</span>(<span class="str">".price"</span>); el.<span class="fn">get_text</span>() <span class="kw">if</span> el <span class="kw">else</span> <span class="kw">None</span></code><span class="star">&#9733;</span><div class="desc">Always guard &mdash; missing elements return <code>None</code>, not empty.</div></li>
+      <li class="mod"><code class="cmd"><span class="kw">for</span> s <span class="kw">in</span> soup(<span class="str">"script"</span>): s.<span class="fn">decompose</span>()</code><div class="desc">Strip <code>&lt;script&gt;</code>/<code>&lt;style&gt;</code> before extracting clean page text.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># BS4 can't run JavaScript</span></code><span class="badge-danger">key</span><div class="desc">It sees only the initial HTML. For JS-rendered pages use Selenium / Playwright, then feed <code>.page_source</code> to BS4.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm"># be polite: rate-limit, honour robots.txt</span></code><div class="desc">Set a real User-Agent and add delays between requests.</div></li>
+    </ul>
+  </article>
+
+  <!-- 21 COMMON RECIPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">21</span><span class="card-title">Common Recipes</span><span class="card-sub">copy-paste</span></div>
+    <ul class="cmds">
+      <li class="search"><code class="cmd">[a[<span class="str">"href"</span>] <span class="kw">for</span> a <span class="kw">in</span> soup.<span class="fn">select</span>(<span class="str">"a[href]"</span>)]</code><span class="star">&#9733;</span><div class="desc">Every link on the page.</div></li>
+      <li class="search"><code class="cmd">[img[<span class="str">"src"</span>] <span class="kw">for</span> img <span class="kw">in</span> soup.<span class="fn">find_all</span>(<span class="str">"img"</span>)]</code><div class="desc">All image sources.</div></li>
+      <li class="io"><code class="cmd">soup.<span class="fn">get_text</span>(<span class="str">"\n"</span>, <span class="arg">strip</span>=<span class="kw">True</span>)</code><div class="desc">All visible text, one line per chunk.</div></li>
+      <li class="io"><code class="cmd"><span class="str">""</span>.<span class="fn">join</span>(p.<span class="fn">find_all</span>(<span class="arg">string</span>=<span class="kw">True</span>, <span class="arg">recursive</span>=<span class="kw">False</span>))</code><div class="desc">A tag's <b>direct</b> text only, ignoring nested tags.</div></li>
+      <li class="nav"><code class="cmd">soup.<span class="fn">find</span>(<span class="str">"label"</span>).<span class="fn">find_next</span>(<span class="str">"input"</span>)[<span class="str">"value"</span>]</code><div class="desc">Hop from one tag to a related one, then read an attr.</div></li>
+    </ul>
+  </article>
+
+  <!-- 22 PERFORMANCE &amp; SoupStrainer -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">22</span><span class="card-title">Performance &amp; SoupStrainer</span><span class="card-sub">go faster</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="cm"># use lxml for speed on big docs</span></code><span class="star">&#9733;</span><div class="desc">The parser choice is the biggest lever on performance.</div></li>
+      <li class="mod"><code class="cmd"><span class="kw">from</span> <span class="mod">bs4</span> <span class="kw">import</span> SoupStrainer</code><div class="desc">Parse only part of a document to save time &amp; memory.</div></li>
+      <li class="mod"><code class="cmd">only = <span class="fn">SoupStrainer</span>(<span class="str">"a"</span>, <span class="arg">href</span>=<span class="kw">True</span>)</code><div class="desc">Keep just <code>&lt;a href&gt;</code> tags &mdash; strainers take the same filters as <code>find</code>&hellip;</div></li>
+      <li class="mod"><code class="cmd"><span class="fn">BeautifulSoup</span>(html, <span class="str">"lxml"</span>, <span class="arg">parse_only</span>=only)</code><div class="desc">&hellip;the rest of the tree is never built.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm"># pip install charset_normalizer</span></code><div class="desc">Speeds up &amp; sharpens BS4's encoding detection.</div></li>
+      <li class="mod"><code class="cmd"><span class="fn">str</span>(navstr)  <span class="cm"># detach text</span></code><div class="desc">Call <code>str()</code> on a NavigableString you keep, or it pins the whole tree in memory.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Six pictures that make BeautifulSoup click</h2>
+  <p class="sub">How markup becomes a tree, how you move around it, the two ways to search, what the text accessors return, how the parsers differ, and the whole find_* family at a glance.</p>
+  <div class="merge-grid">
+    <!-- D1: source -> tree -->
+    <div class="merge-card">
+      <h3>1 &middot; From markup to tree</h3>
+      <p>Each tag becomes a <b>Tag</b> node; the text between tags becomes a <b>NavigableString</b> leaf.</p>
+      <svg viewBox="0 0 430 250" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The HTML div containing a paragraph with text Hi and a bold there becomes a tree: div contains p, which contains the string Hi and a b tag, which contains the string there.">
+        <!-- source -->
+        <rect x="10" y="16" width="180" height="86" rx="8" fill="#f1f3f6" stroke="#64748b" stroke-width="1.4"/>
+        <text x="22" y="38" font-size="9.5" fill="#475569">&lt;div class="c"&gt;</text>
+        <text x="34" y="54" font-size="9.5" fill="#475569">&lt;p&gt;Hi</text>
+        <text x="46" y="70" font-size="9.5" fill="#475569">&lt;b&gt;there&lt;/b&gt;</text>
+        <text x="34" y="86" font-size="9.5" fill="#475569">&lt;/p&gt;</text>
+        <text x="22" y="98" font-size="9.5" fill="#475569">&lt;/div&gt;</text>
+        <!-- arrow -->
+        <text x="205" y="60" font-size="16" fill="#94a3b8">&rarr;</text>
+        <!-- tree -->
+        <g font-size="9">
+          <rect x="250" y="20" width="70" height="24" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.4"/>
+          <text x="285" y="36" text-anchor="middle" fill="#b45309" font-weight="700">div</text>
+          <line x1="285" y1="44" x2="285" y2="64" stroke="#94a3b8" stroke-width="1.1"/>
+          <rect x="250" y="64" width="70" height="24" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.4"/>
+          <text x="285" y="80" text-anchor="middle" fill="#b45309" font-weight="700">p</text>
+          <line x1="285" y1="88" x2="240" y2="112" stroke="#94a3b8" stroke-width="1.1"/>
+          <line x1="285" y1="88" x2="340" y2="112" stroke="#94a3b8" stroke-width="1.1"/>
+          <rect x="198" y="112" width="84" height="24" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/>
+          <text x="240" y="128" text-anchor="middle" fill="#047857">"Hi"</text>
+          <rect x="304" y="112" width="70" height="24" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.4"/>
+          <text x="339" y="128" text-anchor="middle" fill="#b45309" font-weight="700">b</text>
+          <line x1="339" y1="136" x2="339" y2="156" stroke="#94a3b8" stroke-width="1.1"/>
+          <rect x="298" y="156" width="84" height="24" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/>
+          <text x="340" y="172" text-anchor="middle" fill="#047857">"there"</text>
+        </g>
+        <!-- legend -->
+        <rect x="30" y="150" width="14" height="14" rx="3" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/>
+        <text x="50" y="161" font-size="9" fill="#8a6d3b">Tag</text>
+        <rect x="30" y="172" width="14" height="14" rx="3" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/>
+        <text x="50" y="183" font-size="9" fill="#0f766e">NavigableString</text>
+        <text x="30" y="208" font-size="8.5" fill="#94a3b8">div.get_text() &rarr; "Hithere"</text>
+        <text x="30" y="222" font-size="8.5" fill="#94a3b8">div.b.string &rarr; "there"</text>
+      </svg>
+    </div>
+
+    <!-- D2: family navigation -->
+    <div class="merge-card">
+      <h3>2 &middot; Moving around the family</h3>
+      <p>Relations are relative to a node. Beware: <code>next_element</code> descends into children; <code>next_sibling</code> stays at the same level (and is often whitespace).</p>
+      <svg viewBox="0 0 430 250" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="From a p node: parent goes up to div, children and contents go down to its text and b, next_sibling moves to the next p at the same level, while next_element descends into the b child.">
+        <defs><marker id="d2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4f46e5"/></marker></defs>
+        <g font-size="9">
+          <!-- div -->
+          <rect x="170" y="14" width="70" height="24" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.3"/>
+          <text x="205" y="30" text-anchor="middle" fill="#4338ca" font-weight="700">div</text>
+          <!-- p (focus) -->
+          <rect x="120" y="90" width="80" height="28" rx="6" fill="#4f46e5" stroke="#3730a3" stroke-width="1.5"/>
+          <text x="160" y="108" text-anchor="middle" fill="#fff" font-weight="700">p  (you)</text>
+          <!-- sibling p -->
+          <rect x="250" y="90" width="80" height="28" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.3"/>
+          <text x="290" y="108" text-anchor="middle" fill="#4338ca" font-weight="700">p</text>
+          <!-- children -->
+          <rect x="86" y="170" width="70" height="24" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.2"/>
+          <text x="121" y="186" text-anchor="middle" fill="#047857">"Hi"</text>
+          <rect x="170" y="170" width="60" height="24" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/>
+          <text x="200" y="186" text-anchor="middle" fill="#b45309" font-weight="700">b</text>
+          <!-- parent arrow -->
+          <line x1="160" y1="90" x2="195" y2="40" stroke="#4f46e5" stroke-width="1.4" marker-end="url(#d2a)"/>
+          <text x="150" y="62" font-size="8.5" fill="#4338ca">.parent</text>
+          <!-- children arrows -->
+          <line x1="150" y1="118" x2="125" y2="168" stroke="#4f46e5" stroke-width="1.4" marker-end="url(#d2a)"/>
+          <line x1="168" y1="118" x2="196" y2="168" stroke="#4f46e5" stroke-width="1.4" marker-end="url(#d2a)"/>
+          <text x="92" y="140" font-size="8.5" fill="#4338ca">.children</text>
+          <!-- next_sibling -->
+          <line x1="200" y1="104" x2="248" y2="104" stroke="#4f46e5" stroke-width="1.4" marker-end="url(#d2a)"/>
+          <text x="205" y="99" font-size="8" fill="#4338ca">.next_sibling</text>
+          <!-- next_element (dashed to b) -->
+          <line x1="182" y1="116" x2="196" y2="168" stroke="#7c3aed" stroke-width="1.3" stroke-dasharray="3 2" marker-end="url(#d2a)"/>
+          <text x="214" y="150" font-size="8" fill="#6d28d9">.next_element</text>
+          <text x="214" y="162" font-size="7.5" fill="#7c3aed">(into b!)</text>
+          <text x="14" y="224" font-size="8.5" fill="#b42318">&#9888; .next_sibling is often the "\n" between tags &rarr; use find_next_sibling()</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D3: find_all vs select -->
+    <div class="merge-card">
+      <h3>3 &middot; find_all vs select &mdash; same goal</h3>
+      <p>Two syntaxes to reach the same tags: keyword filters, or a CSS selector string.</p>
+      <svg viewBox="0 0 430 250" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="find_all with name, class_ and attribute keywords maps to the equivalent CSS selector string passed to select; both return a list of matching tags.">
+        <g font-size="9">
+          <!-- find_all side -->
+          <rect x="10" y="16" width="200" height="118" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+          <text x="110" y="36" text-anchor="middle" fill="#047857" font-weight="700" font-size="10">find_all( &hellip; )</text>
+          <text x="24" y="58" font-size="8.5" fill="#0f766e">name</text>
+          <text x="24" y="74" font-size="9" fill="#334155">find_all(<tspan fill="#b45309">"a"</tspan>,</text>
+          <text x="40" y="90" font-size="9" fill="#334155"><tspan fill="#7c3aed">class_</tspan>=<tspan fill="#059669">"btn"</tspan>,</text>
+          <text x="40" y="106" font-size="9" fill="#334155"><tspan fill="#7c3aed">attrs</tspan>={<tspan fill="#059669">"data-x"</tspan>:<tspan fill="#059669">"1"</tspan>})</text>
+          <text x="24" y="126" font-size="8" fill="#0f766e">Pythonic keywords &middot; regex &middot; funcs</text>
+          <!-- select side -->
+          <rect x="220" y="16" width="200" height="118" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+          <text x="320" y="36" text-anchor="middle" fill="#047857" font-weight="700" font-size="10">select( &hellip; )</text>
+          <text x="234" y="58" font-size="8.5" fill="#0f766e">one CSS string</text>
+          <text x="234" y="80" font-size="9.5" fill="#334155">select(</text>
+          <text x="250" y="98" font-size="9.5" fill="#334155"><tspan fill="#059669">"a.btn[data-x='1']"</tspan></text>
+          <text x="234" y="116" font-size="9.5" fill="#334155">)</text>
+          <text x="234" y="130" font-size="8" fill="#0f766e">combinators &middot; :nth &middot; &gt; ~ +</text>
+          <!-- equals -->
+          <text x="215" y="80" text-anchor="middle" font-size="16" fill="#94a3b8">&#8801;</text>
+          <!-- both -> list -->
+          <line x1="110" y1="134" x2="180" y2="164" stroke="#059669" stroke-width="1.3"/>
+          <line x1="320" y1="134" x2="250" y2="164" stroke="#059669" stroke-width="1.3"/>
+          <rect x="140" y="166" width="150" height="30" rx="7" fill="#d1fae5" stroke="#059669" stroke-width="1.4"/>
+          <text x="215" y="185" text-anchor="middle" fill="#047857" font-weight="700">a list of Tags</text>
+          <text x="215" y="216" text-anchor="middle" font-size="8.5" fill="#64748b">first-only twins: find()  &middot;  select_one()</text>
+          <text x="215" y="232" text-anchor="middle" font-size="8.5" fill="#94a3b8">find() &rarr; Tag or None &nbsp;|&nbsp; find_all() &rarr; [] if none</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D4: text accessors -->
+    <div class="merge-card">
+      <h3>4 &middot; .string vs .get_text() vs .stripped_strings</h3>
+      <p>For <code>&lt;p&gt;Hello &lt;b&gt;world&lt;/b&gt;&lt;/p&gt;</code> the three text accessors give three different results.</p>
+      <svg viewBox="0 0 430 250" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="For a p tag with Hello and a bold world, .string returns None because there are multiple children, get_text returns Hello world, and stripped_strings returns the list Hello and world.">
+        <defs><marker id="d4a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0d9488"/></marker></defs>
+        <!-- source node -->
+        <rect x="140" y="14" width="150" height="30" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/>
+        <text x="215" y="33" text-anchor="middle" font-size="9.5" fill="#b45309">&lt;p&gt;Hello &lt;b&gt;world&lt;/b&gt;&lt;/p&gt;</text>
+        <!-- three branches -->
+        <line x1="180" y1="44" x2="80" y2="72" stroke="#0d9488" stroke-width="1.3" marker-end="url(#d4a)"/>
+        <line x1="215" y1="44" x2="215" y2="72" stroke="#0d9488" stroke-width="1.3" marker-end="url(#d4a)"/>
+        <line x1="250" y1="44" x2="350" y2="72" stroke="#0d9488" stroke-width="1.3" marker-end="url(#d4a)"/>
+        <!-- .string -->
+        <rect x="14" y="74" width="130" height="70" rx="8" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.4"/>
+        <text x="79" y="92" text-anchor="middle" font-size="9.5" fill="#b42318" font-weight="700">.string</text>
+        <text x="79" y="114" text-anchor="middle" font-size="13" fill="#b42318" font-weight="700">None</text>
+        <text x="79" y="133" text-anchor="middle" font-size="7.8" fill="#dc2626">2+ children &rarr; ambiguous</text>
+        <!-- .get_text() -->
+        <rect x="150" y="74" width="130" height="70" rx="8" fill="#e8f6f4" stroke="#0d9488" stroke-width="1.6"/>
+        <text x="215" y="92" text-anchor="middle" font-size="9.5" fill="#0f766e" font-weight="700">.get_text()</text>
+        <text x="215" y="114" text-anchor="middle" font-size="11" fill="#0f766e" font-weight="700">"Hello world"</text>
+        <text x="215" y="133" text-anchor="middle" font-size="7.8" fill="#0d9488">all descendant text joined</text>
+        <!-- .stripped_strings -->
+        <rect x="286" y="74" width="130" height="70" rx="8" fill="#e8f6f4" stroke="#0d9488" stroke-width="1.4"/>
+        <text x="351" y="92" text-anchor="middle" font-size="9" fill="#0f766e" font-weight="700">.stripped_strings</text>
+        <text x="351" y="113" text-anchor="middle" font-size="9.5" fill="#0f766e" font-weight="700">["Hello",</text>
+        <text x="351" y="126" text-anchor="middle" font-size="9.5" fill="#0f766e" font-weight="700">&nbsp;"world"]</text>
+        <text x="351" y="139" text-anchor="middle" font-size="7.8" fill="#0d9488">each chunk, trimmed</text>
+        <!-- note -->
+        <rect x="40" y="176" width="350" height="52" rx="8" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/>
+        <text x="215" y="197" text-anchor="middle" font-size="9" fill="#b45309" font-weight="700">Rule of thumb</text>
+        <text x="215" y="214" text-anchor="middle" font-size="8.5" fill="#8a6d3b">reach for get_text(strip=True) &mdash; .string only works on a single-child tag</text>
+      </svg>
+    </div>
+
+    <!-- D5: parser tradeoffs (NEW) -->
+    <div class="merge-card">
+      <h3>5 &middot; Choosing a parser</h3>
+      <p>Same API, different trade-offs. The parser also decides how broken HTML gets repaired &mdash; so results can differ.</p>
+      <svg viewBox="0 0 430 250" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison of three parsers. html.parser: stdlib, no dependency, medium speed, medium leniency. lxml: external C dependency, very fast, good leniency. html5lib: pure-python dependency, slow, maximum browser-like leniency.">
+        <g font-size="9">
+          <!-- header row -->
+          <text x="150" y="24" font-size="9" font-weight="700" fill="#475569">speed</text>
+          <text x="250" y="24" font-size="9" font-weight="700" fill="#475569">leniency</text>
+          <text x="350" y="24" font-size="9" font-weight="700" fill="#475569">needs</text>
+          <!-- html.parser -->
+          <rect x="10" y="32" width="410" height="52" rx="8" fill="#f1f3f6" stroke="#64748b" stroke-width="1.4"/>
+          <text x="20" y="52" font-size="10" font-weight="700" fill="#334155">"html.parser"</text>
+          <text x="20" y="68" font-size="7.8" fill="#64748b">stdlib default</text>
+          <text x="20" y="78" font-size="7.8" fill="#64748b">safe everywhere</text>
+          <text x="150" y="62" font-size="11" fill="#d97706">&#9679;&#9679;&#9675;</text>
+          <text x="250" y="62" font-size="11" fill="#d97706">&#9679;&#9679;&#9675;</text>
+          <text x="350" y="62" font-size="8.5" fill="#059669" font-weight="700">nothing</text>
+          <!-- lxml -->
+          <rect x="10" y="90" width="410" height="52" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+          <text x="20" y="110" font-size="10" font-weight="700" fill="#047857">"lxml"</text>
+          <text x="20" y="126" font-size="7.8" fill="#0f766e">the usual pick</text>
+          <text x="20" y="136" font-size="7.8" fill="#0f766e">for real work</text>
+          <text x="150" y="120" font-size="11" fill="#059669">&#9679;&#9679;&#9679;</text>
+          <text x="250" y="120" font-size="11" fill="#059669">&#9679;&#9679;&#9675;</text>
+          <text x="350" y="120" font-size="8.5" fill="#b45309">pip lxml</text>
+          <!-- html5lib -->
+          <rect x="10" y="148" width="410" height="52" rx="8" fill="#f4eefc" stroke="#7c3aed" stroke-width="1.4"/>
+          <text x="20" y="168" font-size="10" font-weight="700" fill="#6d28d9">"html5lib"</text>
+          <text x="20" y="184" font-size="7.8" fill="#7c3aed">parses exactly</text>
+          <text x="20" y="194" font-size="7.8" fill="#7c3aed">like a browser</text>
+          <text x="150" y="178" font-size="11" fill="#dc2626">&#9679;&#9675;&#9675;</text>
+          <text x="250" y="178" font-size="11" fill="#059669">&#9679;&#9679;&#9679;</text>
+          <text x="350" y="178" font-size="8.5" fill="#b45309">pip html5lib</text>
+          <!-- footnote -->
+          <text x="215" y="222" text-anchor="middle" font-size="8.3" fill="#b42318">&#9888; broken HTML &rarr; each can build a DIFFERENT tree. Pin one parser per project.</text>
+          <text x="215" y="236" text-anchor="middle" font-size="8" fill="#94a3b8">start with lxml; fall back to html.parser if you can't install it</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D6: find_* family matrix (NEW) -->
+    <div class="merge-card">
+      <h3>6 &middot; The find_* family, by direction</h3>
+      <p>Every navigation direction has a "first match" and an "all matches" method. Learn the grid, not the 10 names.</p>
+      <svg viewBox="0 0 430 250" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A grid of find methods by direction and count. Down: find and find_all. Up: find_parent and find_parents. Sideways: find_next_sibling and find_next_siblings. Forward in parse order: find_next and find_all_next. Backward: find_previous and find_all_previous.">
+        <g font-size="8.5">
+          <!-- column headers -->
+          <text x="250" y="26" text-anchor="middle" font-size="9" font-weight="700" fill="#047857">first match</text>
+          <text x="355" y="26" text-anchor="middle" font-size="9" font-weight="700" fill="#4338ca">all matches (list)</text>
+          <!-- rows -->
+          <!-- down -->
+          <rect x="10" y="34" width="110" height="34" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/>
+          <text x="20" y="50" font-size="8.5" font-weight="700" fill="#b45309">DOWN</text>
+          <text x="20" y="62" font-size="7.3" fill="#8a6d3b">into descendants</text>
+          <rect x="128" y="34" width="150" height="34" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.2"/>
+          <text x="203" y="55" text-anchor="middle" font-size="9" fill="#047857">find()</text>
+          <rect x="286" y="34" width="134" height="34" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.2"/>
+          <text x="353" y="55" text-anchor="middle" font-size="9" fill="#4338ca">find_all()</text>
+          <!-- up -->
+          <rect x="10" y="72" width="110" height="34" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.3"/>
+          <text x="20" y="88" font-size="8.5" font-weight="700" fill="#4338ca">UP</text>
+          <text x="20" y="100" font-size="7.3" fill="#6366f1">to ancestors</text>
+          <rect x="128" y="72" width="150" height="34" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.2"/>
+          <text x="203" y="93" text-anchor="middle" font-size="9" fill="#047857">find_parent()</text>
+          <rect x="286" y="72" width="134" height="34" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.2"/>
+          <text x="353" y="93" text-anchor="middle" font-size="8.5" fill="#4338ca">find_parents()</text>
+          <!-- sideways -->
+          <rect x="10" y="110" width="110" height="34" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.3"/>
+          <text x="20" y="126" font-size="8.5" font-weight="700" fill="#4338ca">SIDEWAYS</text>
+          <text x="20" y="138" font-size="7.3" fill="#6366f1">same level</text>
+          <rect x="128" y="110" width="150" height="34" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.2"/>
+          <text x="203" y="127" text-anchor="middle" font-size="7.8" fill="#047857">find_next_sibling()</text>
+          <text x="203" y="138" text-anchor="middle" font-size="7.8" fill="#047857">find_previous_sibling()</text>
+          <rect x="286" y="110" width="134" height="34" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.2"/>
+          <text x="353" y="127" text-anchor="middle" font-size="7.4" fill="#4338ca">find_next_siblings()</text>
+          <text x="353" y="138" text-anchor="middle" font-size="7.4" fill="#4338ca">find_previous_siblings()</text>
+          <!-- forward -->
+          <rect x="10" y="148" width="110" height="34" rx="6" fill="#f4eefc" stroke="#7c3aed" stroke-width="1.3"/>
+          <text x="20" y="164" font-size="8.5" font-weight="700" fill="#6d28d9">FORWARD</text>
+          <text x="20" y="176" font-size="7.3" fill="#7c3aed">later, any depth</text>
+          <rect x="128" y="148" width="150" height="34" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.2"/>
+          <text x="203" y="169" text-anchor="middle" font-size="9" fill="#047857">find_next()</text>
+          <rect x="286" y="148" width="134" height="34" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.2"/>
+          <text x="353" y="169" text-anchor="middle" font-size="8.5" fill="#4338ca">find_all_next()</text>
+          <!-- backward -->
+          <rect x="10" y="186" width="110" height="34" rx="6" fill="#f4eefc" stroke="#7c3aed" stroke-width="1.3"/>
+          <text x="20" y="202" font-size="8.5" font-weight="700" fill="#6d28d9">BACKWARD</text>
+          <text x="20" y="214" font-size="7.3" fill="#7c3aed">earlier, any depth</text>
+          <rect x="128" y="186" width="150" height="34" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.2"/>
+          <text x="203" y="207" text-anchor="middle" font-size="9" fill="#047857">find_previous()</text>
+          <rect x="286" y="186" width="134" height="34" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.2"/>
+          <text x="353" y="207" text-anchor="middle" font-size="8" fill="#4338ca">find_all_previous()</text>
+          <text x="215" y="238" text-anchor="middle" font-size="8" fill="#94a3b8">same filters as find_all everywhere &middot; select()/select_one() cover DOWN via CSS</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WORTH MEMORIZING ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">class_ not class</span><span class="v"><code>find_all("div", class_="x")</code> &mdash; <code>class</code> is a reserved word</span></div>
+    <div><span class="k">.string can be None</span><span class="v">a tag with 2+ children &rarr; None; use <code>get_text()</code></span></div>
+    <div><span class="k">class &rarr; a list</span><span class="v"><code>tag["class"]</code> returns <code>["a","b"]</code>, not a string</span></div>
+    <div><span class="k">name the parser</span><span class="v"><code>BeautifulSoup(html, "html.parser")</code> &mdash; else a warning + drift</span></div>
+    <div><span class="k">parsers differ</span><span class="v">lxml fast &middot; html.parser stdlib &middot; html5lib browser-lenient</span></div>
+    <div><span class="k">whitespace siblings</span><span class="v"><code>.next_sibling</code> is often <code>"\n"</code> &mdash; use <code>find_next_sibling()</code></span></div>
+    <div><span class="k">find vs find_all</span><span class="v"><code>find</code> &rarr; Tag or None &middot; <code>find_all</code> &rarr; list (maybe empty)</span></div>
+    <div><span class="k">soup("a") == find_all</span><span class="v">and <code>soup.a</code> == <code>soup.find("a")</code> (first only)</span></div>
+    <div><span class="k">pass .content</span><span class="v">give BS4 bytes (not <code>.text</code>) so it can sniff encoding</span></div>
+    <div><span class="k">select &rarr; list</span><span class="v"><code>select_one()</code> is the first-only twin, like <code>find</code></span></div>
+    <div><span class="k">attr operators</span><span class="v"><code>[href^=], [href$=], [href*=]</code> = starts / ends / contains</span></div>
+    <div><span class="k">:-soup-contains()</span><span class="v">select by text; the modern name for CSS <code>:contains</code></span></div>
+    <div><span class="k">string=</span><span class="v">search by text (takes str, regex, list, or True)</span></div>
+    <div><span class="k">tag["x"] vs .get</span><span class="v">bracket raises <code>KeyError</code>; <code>.get("x")</code> returns None</span></div>
+    <div><span class="k">decompose vs extract</span><span class="v">destroy in place vs remove-and-return; <code>clear()</code> empties</span></div>
+    <div><span class="k">attrs={} for names</span><span class="v">hyphenated / reserved attrs: <code>attrs={"data-id": 7}</code></span></div>
+    <div><span class="k">can't run JS</span><span class="v">dynamic pages &rarr; Selenium / Playwright, then feed HTML to BS4</span></div>
+    <div><span class="k">it doesn't fetch</span><span class="v">no HTTP &mdash; pair with <code>requests</code> / <code>httpx</code></span></div>
+    <div><span class="k">urljoin for links</span><span class="v"><code>urljoin(base, href)</code> turns relative URLs absolute</span></div>
+    <div><span class="k">next_element &ne; next_sibling</span><span class="v">element = parse order (descends); sibling = same level</span></div>
+  </div>
+</section>
+
+<footer>
+  BeautifulSoup cheat sheet (expanded edition) &middot; introspected from <code>beautifulsoup4 4.14.3</code>, updated for <code>4.15.0</code> (re-verified 2026-08-30 as current; Python 3.7+) &middot; synthesized from the official docs (crummy.com/software/BeautifulSoup/bs4/doc), Real Python, ScrapeOps, DataCamp and the Soup Sieve (CSS) reference.<br>
+  Parsers shown: <code>html.parser</code> (stdlib) &middot; <code>lxml</code> &middot; <code>html5lib</code> &middot; behaviour, the object hierarchy, CSS operators &amp; the find_* family verified by live introspection &middot; BeautifulSoup parses only &mdash; it does not fetch pages or run JavaScript.
+</footer>
+
+</body>
+</html>

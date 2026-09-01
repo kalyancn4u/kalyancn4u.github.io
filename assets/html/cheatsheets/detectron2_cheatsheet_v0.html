@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detectron2 Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Meta FAIR &middot; object detection &amp; segmentation on PyTorch &middot; verified against Detectron2 0.6 (2026)</div>
+  <h1><span class="mono">Detectron2</span> cheat sheet</h1>
+  <p class="lede"><b>Detectron2</b> is Meta AI's PyTorch library for detection &amp; segmentation: pretrained <b>Faster/Mask R-CNN, RetinaNet, Cascade R-CNN, PointRend, ViTDet, panoptic &amp; keypoint</b> models in a <b>Model Zoo</b>, driven by a config system. The everyday flow: build a <code>cfg</code>, run a <code>DefaultPredictor</code> for inference or a <code>DefaultTrainer</code> for fine-tuning on your own COCO-format data. This sheet targets <b>Detectron2 0.6</b> (main branch adds more). MMDetection is a common alternative.</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>install &amp; config</span>
+    <span><i class="dot c2"></i>inference</span>
+    <span><i class="dot c3"></i>visualize &amp; outputs</span>
+    <span><i class="dot c4"></i>custom data &amp; training</span>
+    <span><i class="dot c5"></i>evaluation</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-08-24 against the official docs at <b>detectron2.readthedocs.io</b> (0.6) and the facebookresearch/detectron2 repo. Requires a matching PyTorch + CUDA build; GPU strongly recommended.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub">Everything hangs off the <code>cfg</code>. Inference = cfg + <code>DefaultPredictor</code>; training = register data + set a few cfg fields + <code>DefaultTrainer</code>.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Setup</h3>
+      <ol class="toc-list">
+        <li><a href="#install">1 &middot; Install &amp; imports</a></li>
+        <li><a href="#config">2 &middot; Config &amp; Model Zoo</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">Run</h3>
+      <ol class="toc-list">
+        <li><a href="#predict">3 &middot; Inference (DefaultPredictor)</a></li>
+        <li><a href="#outputs">4 &middot; Outputs (Instances)</a></li>
+        <li><a href="#visualize">5 &middot; Visualize</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Train</h3>
+      <ol class="toc-list">
+        <li><a href="#register">6 &middot; Register custom data</a></li>
+        <li><a href="#train">7 &middot; Fine-tune (DefaultTrainer)</a></li>
+        <li><a href="#eval">8 &middot; Evaluation</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Reference</h3>
+      <ol class="toc-list">
+        <li><a href="#tasks">9 &middot; Tasks &amp; configs</a></li>
+        <li><a href="#gotchas">10 &middot; Gotchas</a></li>
+        <li><a href="#worth">Worth memorizing</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-setup"><h2 style="color:var(--c1)">Setup</h2><p class="sub">Install, and build the config that drives everything.</p></div>
+<main>
+  <article class="card" id="install">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Install &amp; imports</span><span class="card-sub">0.6</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">pip install <span class="str">'git+https://github.com/facebookresearch/detectron2.git'</span></code><span class="star">&#9733;</span><div class="desc">Or a prebuilt wheel matching your exact torch+CUDA. <b>The install must match your PyTorch/CUDA</b> or it won't import.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">from</span> detectron2 <span class="kw">import</span> model_zoo
+<span class="kw">from</span> detectron2.config <span class="kw">import</span> get_cfg
+<span class="kw">from</span> detectron2.engine <span class="kw">import</span> DefaultPredictor, DefaultTrainer</code><span class="star">&#9733;</span><div class="desc">The core entry points: config, model zoo, and the predictor/trainer engines.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">from</span> detectron2.utils.visualizer <span class="kw">import</span> Visualizer
+<span class="kw">from</span> detectron2.data <span class="kw">import</span> MetadataCatalog, DatasetCatalog</code><div class="desc">Visualization and the dataset/metadata registries.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="config">
+    <div class="card-head"><span class="card-num n1">2</span><span class="card-title">Config &amp; Model Zoo</span><span class="card-sub">cfg is everything</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">cfg = get_cfg()
+cfg.merge_from_file(model_zoo.get_config_file(
+    <span class="str">"COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"</span>))</code><span class="star">&#9733;</span><div class="desc"><b>Start from a zoo config.</b> It sets the architecture, backbone &amp; hyperparameters; you then tweak a few fields.</div></li>
+      <li class="c1"><code class="cmd">cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(same_yaml)</code><span class="star">&#9733;</span><div class="desc">Load the matching pretrained weights from the zoo &mdash; use the <b>same yaml</b> string for config &amp; checkpoint.</div></li>
+      <li class="c1"><code class="cmd">cfg.MODEL.DEVICE = <span class="str">"cuda"</span> <span class="cm"># or "cpu"</span></code><div class="desc">Runs on CPU but slowly. <code>cfg.dump()</code> / <code>cfg.merge_from_list([...])</code> to save/override.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-run"><h2 style="color:var(--c2)">Run Inference</h2><p class="sub">Predict on an image and read the results.</p></div>
+<main>
+  <article class="card" id="predict">
+    <div class="card-head"><span class="card-num n2">3</span><span class="card-title">Inference (DefaultPredictor)</span><span class="card-sub">one image</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
+predictor = DefaultPredictor(cfg)</code><span class="star">&#9733;</span><div class="desc">Set the detection confidence threshold, then build the predictor (loads weights + preprocessing).</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">import</span> cv2
+img = cv2.imread(<span class="str">"photo.jpg"</span>) <span class="cm"># BGR, HWC</span>
+outputs = predictor(img)</code><span class="star">&#9733;</span><div class="desc"><b>Input is a BGR NumPy image</b> (as from <code>cv2.imread</code>) &mdash; <code>DefaultPredictor</code> handles resize/normalize. One image at a time.</div></li>
+      <li class="danger"><code class="cmd">DefaultPredictor = single image, not batched</code><span class="badge-warn">note</span><div class="desc">For throughput, build the model with <code>build_model(cfg)</code> + a data loader and batch yourself &mdash; <code>DefaultPredictor</code> is a convenience wrapper.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="outputs">
+    <div class="card-head"><span class="card-num n3">4</span><span class="card-title">Outputs (Instances)</span><span class="card-sub">read predictions</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">inst = outputs[<span class="str">"instances"</span>].to(<span class="str">"cpu"</span>)</code><span class="star">&#9733;</span><div class="desc">An <code>Instances</code> object on the GPU &mdash; move to CPU before reading in Python.</div></li>
+      <li class="c3"><code class="cmd">inst.pred_boxes &middot; inst.scores &middot; inst.pred_classes &middot; inst.pred_masks</code><span class="star">&#9733;</span><div class="desc">Detections: boxes (<code>Boxes</code>, xyxy), confidences, class indices, and per-instance binary masks (segmentation models).</div></li>
+      <li class="c3"><code class="cmd">len(inst) &middot; inst.pred_classes.tolist() &middot; inst.pred_keypoints</code><div class="desc">Count detections; class indices map to names via the dataset's metadata (below). Keypoint models add <code>pred_keypoints</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="visualize">
+    <div class="card-head"><span class="card-num n3">5</span><span class="card-title">Visualize</span><span class="card-sub">draw results</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">meta = MetadataCatalog.get(cfg.DATASETS.TRAIN[0])
+v = Visualizer(img[:, :, ::-1], meta, scale=1.0)</code><span class="star">&#9733;</span><div class="desc"><b>Note <code>img[:, :, ::-1]</code></b> &mdash; Visualizer wants RGB, but cv2 gives BGR. Metadata supplies class names &amp; colors.</div></li>
+      <li class="c3"><code class="cmd">out = v.draw_instance_predictions(inst)
+cv2.imwrite(<span class="str">"out.jpg"</span>, out.get_image()[:, :, ::-1])</code><span class="star">&#9733;</span><div class="desc">Draws boxes+masks+labels; convert back to BGR to save with cv2.</div></li>
+      <li class="c3"><code class="cmd">v.draw_dataset_dict(sample) <span class="cm"># visualize ground-truth annotations</span></code><div class="desc">Sanity-check your registered dataset's labels before training.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-train"><h2 style="color:var(--c4)">Train on Your Data</h2><p class="sub">Register COCO-format data, then fine-tune.</p></div>
+<main>
+  <article class="card" id="register">
+    <div class="card-head"><span class="card-num n4">6</span><span class="card-title">Register custom data</span><span class="card-sub">COCO format</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="kw">from</span> detectron2.data.datasets <span class="kw">import</span> register_coco_instances
+register_coco_instances(<span class="str">"my_train"</span>, {}, <span class="str">"train.json"</span>, <span class="str">"train/imgs"</span>)</code><span class="star">&#9733;</span><div class="desc">The easy path for COCO-format annotations: name, metadata, JSON, image dir. Register train &amp; val separately.</div></li>
+      <li class="c4"><code class="cmd">DatasetCatalog.register(<span class="str">"my_ds"</span>, my_loader_fn)
+MetadataCatalog.get(<span class="str">"my_ds"</span>).thing_classes = [<span class="str">"cat"</span>, <span class="str">"dog"</span>]</code><span class="star">&#9733;</span><div class="desc">For non-COCO formats: register a function returning a list of dataset dicts, and set class names in the metadata.</div></li>
+      <li class="c4"><code class="cmd">MetadataCatalog.get(<span class="str">"my_train"</span>).thing_classes <span class="cm"># the class names</span></code><div class="desc">Metadata (class names, colors) is what turns class <em>indices</em> back into labels in visualization &amp; eval.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="train">
+    <div class="card-head"><span class="card-num n4">7</span><span class="card-title">Fine-tune (DefaultTrainer)</span><span class="card-sub">transfer learning</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">cfg.DATASETS.TRAIN = (<span class="str">"my_train"</span>,); cfg.DATASETS.TEST = (<span class="str">"my_val"</span>,)
+cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2 <span class="cm"># your class count (no background)</span></code><span class="star">&#9733;</span><div class="desc"><b>Set NUM_CLASSES to your class count</b> (background is implicit). Start from zoo <code>MODEL.WEIGHTS</code> for transfer learning.</div></li>
+      <li class="c4"><code class="cmd">cfg.SOLVER.IMS_PER_BATCH = 2; cfg.SOLVER.BASE_LR = 0.00025
+cfg.SOLVER.MAX_ITER = 1000; cfg.OUTPUT_DIR = <span class="str">"./out"</span></code><span class="star">&#9733;</span><div class="desc">Detectron2 counts <b>iterations, not epochs</b>. Tune LR/iters/batch to your dataset &amp; GPU.</div></li>
+      <li class="c4"><code class="cmd">trainer = DefaultTrainer(cfg)
+trainer.resume_or_load(resume=<span class="kw">False</span>)
+trainer.train()</code><span class="star">&#9733;</span><div class="desc"><code>resume=False</code> = start from the pretrained weights (fine-tune). Checkpoints land in <code>OUTPUT_DIR</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="eval">
+    <div class="card-head"><span class="card-num n5">8</span><span class="card-title">Evaluation</span><span class="card-sub">COCO metrics</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="kw">from</span> detectron2.evaluation <span class="kw">import</span> COCOEvaluator, inference_on_dataset
+<span class="kw">from</span> detectron2.data <span class="kw">import</span> build_detection_test_loader</code><span class="star">&#9733;</span><div class="desc">Standard COCO mAP evaluation over a registered dataset.</div></li>
+      <li class="c5"><code class="cmd">ev = COCOEvaluator(<span class="str">"my_val"</span>, output_dir=<span class="str">"./out"</span>)
+loader = build_detection_test_loader(cfg, <span class="str">"my_val"</span>)
+inference_on_dataset(trainer.model, loader, ev)</code><span class="star">&#9733;</span><div class="desc">Returns AP/AP50/AP75 per category. Subclass <code>DefaultTrainer.build_evaluator</code> to eval during training.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-ref"><h2 style="color:var(--c5)">Reference</h2><p class="sub">What's in the zoo, and the traps.</p></div>
+<main>
+  <article class="card" id="tasks">
+    <div class="card-head"><span class="card-num n5">9</span><span class="card-title">Tasks &amp; configs</span><span class="card-sub">model zoo</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="str">"COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml"</span> <span class="cm"># boxes</span></code><span class="star">&#9733;</span><div class="desc">Object detection. <code>retinanet_*</code> for one-stage.</div></li>
+      <li class="c5"><code class="cmd"><span class="str">"COCO-InstanceSegmentation/mask_rcnn_*"</span> <span class="cm"># boxes + masks</span></code><span class="star">&#9733;</span><div class="desc">Instance segmentation (Mask R-CNN). <code>PointRend</code> for crisp mask boundaries.</div></li>
+      <li class="c5"><code class="cmd"><span class="str">"COCO-Keypoints/*"</span> &middot; <span class="str">"COCO-PanopticSegmentation/*"</span> &middot; <span class="str">"LVIS/*"</span></code><div class="desc">Keypoints (pose), panoptic (things+stuff), long-tail (LVIS). ViTDet/MViTv2 backbones on main.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># newer configs use LazyConfig (.py) instead of yacs (.yaml)</span></code><div class="desc">Some recent models ship a Python <code>LazyConfig</code>; loaded via <code>LazyConfig.load</code> rather than <code>get_cfg</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="gotchas">
+    <div class="card-head"><span class="card-num">!</span><span class="card-title">Common gotchas</span><span class="card-sub">read before shipping</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">install must match torch + CUDA</code><div class="desc">The #1 pain: a version mismatch fails at import or with CUDA errors. Use the build matching your exact PyTorch/CUDA, or build from source.</div></li>
+      <li class="danger"><code class="cmd">BGR in, RGB for Visualizer</code><div class="desc">Predictor takes cv2 BGR; Visualizer wants RGB (<code>img[:, :, ::-1]</code>). Mixing them gives blue-tinted output/wrong colors.</div></li>
+      <li class="danger"><code class="cmd">NUM_CLASSES excludes background</code><div class="desc">Set it to the number of <em>your</em> classes only. Off-by-one here silently wrecks training.</div></li>
+      <li class="danger"><code class="cmd">iterations, not epochs</code><div class="desc"><code>SOLVER.MAX_ITER</code> is total steps. Convert from epochs via dataset size / batch size yourself.</div></li>
+      <li class="danger"><code class="cmd">same yaml for config &amp; weights</code><div class="desc">Config and checkpoint must correspond, or shapes mismatch on load.</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs" id="worth">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">cfg drives everything</span><span class="v">get_cfg + merge zoo yaml + set WEIGHTS</span></div>
+    <div><span class="k">same yaml for config &amp; checkpoint</span><span class="v">get_config_file and get_checkpoint_url with the same string</span></div>
+    <div><span class="k">DefaultPredictor takes BGR, single image</span><span class="v">cv2.imread; batch manually for throughput</span></div>
+    <div><span class="k">outputs["instances"]</span><span class="v">pred_boxes / scores / pred_classes / pred_masks — move .to("cpu")</span></div>
+    <div><span class="k">Visualizer wants RGB</span><span class="v">img[:, :, ::-1] and back again to save</span></div>
+    <div><span class="k">register_coco_instances</span><span class="v">name, {}, json, img_dir — then set DATASETS.TRAIN</span></div>
+    <div><span class="k">NUM_CLASSES = your classes only</span><span class="v">background is implicit</span></div>
+    <div><span class="k">SOLVER counts iterations</span><span class="v">MAX_ITER, not epochs; resume_or_load(False) to fine-tune</span></div>
+    <div><span class="k">COCOEvaluator for mAP</span><span class="v">build_detection_test_loader + inference_on_dataset</span></div>
+  </div>
+</section>
+
+<footer>
+  Detectron2 cheat sheet (detectron2_cheatsheet v0).<br>
+  Verified 2026-08-24 against <b>detectron2.readthedocs.io</b> (0.6) and facebookresearch/detectron2. PyTorch detection/segmentation with a Model Zoo (Faster/Mask R-CNN, RetinaNet, PointRend, ViTDet, panoptic, keypoints), driven by a yacs <code>cfg</code> (newer models use LazyConfig). Requires a torch/CUDA-matched install; GPU recommended. MMDetection is a common alternative. New releases lag the main branch &mdash; check the repo for the latest models.<br>
+  Design system = shared cheat-sheet tokens (Inter + JetBrains Mono, light theme). Content only.
+</footer>
+</body>
+</html>

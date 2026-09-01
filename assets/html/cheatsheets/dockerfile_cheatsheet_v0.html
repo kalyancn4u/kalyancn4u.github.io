@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dockerfile Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    /* zone colours – six instruction families */
+    --base:#64748b;    --base-bg:#f1f3f6;   /* FROM / inheritance */
+    --env:#d97706;     --env-bg:#fdf6ec;    /* ENV / ARG / WORKDIR / USER */
+    --files:#0891b2;   --files-bg:#ecf8fa;  /* COPY / ADD / VOLUME */
+    --run:#2563eb;     --run-bg:#eef3fd;    /* RUN / SHELL / ONBUILD */
+    --expose:#7c3aed;  --expose-bg:#f3eefd; /* EXPOSE / CMD / ENTRYPOINT / STOPSIGNAL */
+    --meta:#059669;    --meta-bg:#ecf7f2;   /* LABEL / HEALTHCHECK */
+    --danger:#dc2626;  --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans);color:var(--ink);background:var(--paper);line-height:1.5;-webkit-font-smoothing:antialiased}
+
+  /* ── header ─────────────────────────────────────── */
+  header{border-bottom:2px solid var(--ink);padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;max-width:1500px;margin:0 auto}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem}
+  h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:700;letter-spacing:-.02em;line-height:1;margin-bottom:.7rem}
+  h1 .df{font-family:var(--mono);color:var(--run)}
+  .lede{max-width:62ch;color:#3f444f;font-size:1.02rem}
+  .sources{font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-top:1rem;line-height:1.7}
+  .sources b{color:var(--ink);font-weight:500}
+  .legend{display:flex;flex-wrap:wrap;gap:.5rem .9rem;margin-top:1.2rem;font-family:var(--mono);font-size:.74rem}
+  .legend span{display:inline-flex;align-items:center;gap:.4rem}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .dot.base{background:var(--base)} .dot.env{background:var(--env)} .dot.files{background:var(--files)}
+  .dot.run{background:var(--run)}   .dot.expose{background:var(--expose)} .dot.meta{background:var(--meta)}
+  .dot.danger{background:var(--danger)}
+
+  /* ── flow diagram ────────────────────────────────── */
+  .flow-wrap{max-width:1500px;margin:0 auto;padding:2rem clamp(1rem,4vw,3rem) .5rem}
+  .flow-title{font-family:var(--mono);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+  .flow-svg{width:100%;height:auto;max-width:1140px;display:block;margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ── card grid ───────────────────────────────────── */
+  main{max-width:1500px;margin:0 auto;padding:1.5rem clamp(1rem,4vw,3rem) 4rem;column-gap:1.4rem}
+  @media(min-width:760px){main{column-count:2}}
+  @media(min-width:1200px){main{column-count:3}}
+  .card{break-inside:avoid;background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:1.4rem;overflow:hidden;box-shadow:0 1px 2px rgba(20,20,30,.03)}
+  .card-head{display:flex;align-items:baseline;gap:.6rem;padding:.85rem 1rem .7rem;border-bottom:1px solid var(--line)}
+  .card-num{font-family:var(--mono);font-size:.78rem;font-weight:700;color:#fff;background:var(--ink);border-radius:5px;padding:.12rem .42rem;letter-spacing:.02em}
+  .card-title{font-size:.96rem;font-weight:700;letter-spacing:-.01em}
+  .card-sub{font-size:.75rem;color:var(--muted);margin-left:auto;font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem;border-bottom:1px solid #f1eee8;border-left:3px solid transparent}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.base{border-left-color:var(--base)}
+  ul.cmds li.env{border-left-color:var(--env)}
+  ul.cmds li.files{border-left-color:var(--files)}
+  ul.cmds li.run{border-left-color:var(--run)}
+  ul.cmds li.expose{border-left-color:var(--expose)}
+  ul.cmds li.meta{border-left-color:var(--meta)}
+  ul.cmds li.danger{border-left-color:var(--danger);background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono);font-size:.79rem;font-weight:500;color:var(--ink);display:block;word-break:break-word}
+  code.cmd .arg{color:var(--expose);font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--run);font-weight:700}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem;color:#525761;margin-top:.18rem}
+  .star{color:var(--star);font-size:.7rem;font-weight:700;font-family:var(--mono);margin-left:.35rem;letter-spacing:.03em}
+  .badge-warn{color:var(--danger);font-size:.66rem;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;margin-left:.35rem}
+  .badge-new{color:var(--meta);font-size:.66rem;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;margin-left:.35rem}
+
+  /* ── diagrams section ────────────────────────────── */
+  .diagrams{max-width:1500px;margin:0 auto;padding:1rem clamp(1rem,4vw,3rem) 3rem}
+  .diagrams h2{font-size:1.4rem;font-weight:700;letter-spacing:-.01em;margin-bottom:.3rem;padding-top:1.5rem;border-top:2px solid var(--ink)}
+  .diagrams .sub{color:var(--muted);font-size:.9rem;margin-bottom:1.5rem}
+  .merge-grid{display:grid;gap:1.2rem;grid-template-columns:1fr}
+  @media(min-width:780px){.merge-grid{grid-template-columns:1fr 1fr}}
+  .merge-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem;font-family:var(--mono);margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem;color:var(--muted);margin-bottom:.7rem}
+  .bsvg{width:100%;height:auto;display:block}
+
+  /* ── code strip ──────────────────────────────────── */
+  .snippet-wrap{max-width:1500px;margin:0 auto;padding:1rem clamp(1rem,4vw,3rem) 3rem}
+  .snippet-wrap h2{font-size:1.4rem;font-weight:700;margin-bottom:.3rem;padding-top:1.5rem;border-top:2px solid var(--ink)}
+  .snippet-wrap .sub{color:var(--muted);font-size:.9rem;margin-bottom:1.2rem}
+  .snippet-grid{display:grid;gap:1.2rem;grid-template-columns:1fr}
+  @media(min-width:780px){.snippet-grid{grid-template-columns:1fr 1fr}}
+  pre.snippet{background:var(--ink);color:#e8e6e1;border-radius:10px;padding:1.2rem 1.4rem;font-family:var(--mono);font-size:.79rem;line-height:1.7;overflow-x:auto}
+  pre.snippet .c{color:#7d8590}
+  pre.snippet .kw{color:#67e8f9;font-weight:700}
+  pre.snippet .s{color:#a3e635}
+  pre.snippet .n{color:#fbbf24}
+
+  /* ── refs strips ─────────────────────────────────── */
+  .refs{max-width:1500px;margin:0 auto;padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;padding-top:1.5rem;border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink);color:#e8e6e1;border-radius:10px;padding:1.2rem 1.4rem;font-family:var(--mono);font-size:.82rem;display:grid;gap:.55rem;grid-template-columns:1fr}
+  @media(min-width:680px){.refs-inner{grid-template-columns:1fr 1fr}}
+  .refs-inner div{display:flex;gap:.7rem;align-items:baseline}
+  .refs-inner .k{color:#fbbf24;white-space:nowrap;font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{max-width:1500px;margin:0 auto;padding:2rem clamp(1rem,4vw,3rem) 3rem;border-top:1px solid var(--line);font-size:.76rem;color:var(--muted);font-family:var(--mono);line-height:1.7}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header>
+  <div class="eyebrow">Quick Reference · container image authoring</div>
+  <h1><span class="df">Dockerfile</span> cheat sheet</h1>
+  <p class="lede">A Dockerfile is a sequential recipe. <code style="font-family:var(--mono);font-size:.9em">docker build</code> reads it top to bottom and commits a new <b>read-only layer</b> for each instruction. Learn the six instruction families once and the syntax stops being a list to memorize.</p>
+  <div class="legend">
+    <span><i class="dot base"></i>base / inherit</span>
+    <span><i class="dot env"></i>env / config</span>
+    <span><i class="dot files"></i>filesystem</span>
+    <span><i class="dot run"></i>execution</span>
+    <span><i class="dot expose"></i>runtime cmd</span>
+    <span><i class="dot meta"></i>metadata</span>
+    <span><i class="dot danger"></i>avoid / caution</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked across: <b>docs.docker.com/reference/dockerfile</b> · <b>docs.docker.com/build/building/best-practices</b> · <b>devhints.io/dockerfile</b> · <b>Red Hat docker-cheatsheet-r4v2</b></p>
+</header>
+
+<!-- ═══════════════ FLOW DIAGRAM ═══════════════ -->
+<section class="flow-wrap">
+  <div class="flow-title">From source code to running container — the build pipeline</div>
+  <svg class="flow-svg" viewBox="0 0 1140 340" xmlns="http://www.w3.org/2000/svg"
+       role="img" aria-label="Diagram showing how a Dockerfile and source files enter docker build, produce stacked image layers, are tagged and pushed to a registry, then pulled and run as a container.">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="arrd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+      </marker>
+    </defs>
+
+    <!-- zone: build context -->
+    <rect x="10" y="60" width="205" height="220" rx="12" fill="#f8f7f5" stroke="#e7e3db" stroke-width="1.5"/>
+    <text x="112" y="87" text-anchor="middle" font-size="9.5" letter-spacing="2.2" fill="#94a3b8" font-family="JetBrains Mono,monospace">BUILD CONTEXT</text>
+    <rect x="28" y="100" width="170" height="40" rx="8" fill="#eef3fd" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="113" y="124" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24" font-family="JetBrains Mono,monospace">Dockerfile</text>
+    <rect x="28" y="152" width="170" height="40" rx="8" fill="#f1f3f6" stroke="#64748b" stroke-width="1.5"/>
+    <text x="113" y="168" text-anchor="middle" font-size="11" fill="#1a1d24" font-family="JetBrains Mono,monospace">source files</text>
+    <text x="113" y="183" text-anchor="middle" font-size="9.5" fill="#64748b" font-family="JetBrains Mono,monospace">(.dockerignore filters)</text>
+    <rect x="28" y="204" width="170" height="40" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+    <text x="113" y="228" text-anchor="middle" font-size="11" fill="#1a1d24" font-family="JetBrains Mono,monospace">.dockerignore</text>
+
+    <!-- arrow: context → build -->
+    <line x1="215" y1="170" x2="268" y2="170" stroke="#1a1d24" stroke-width="2" marker-end="url(#arr)"/>
+    <text x="241" y="162" text-anchor="middle" font-size="10.5" font-weight="700" fill="#2563eb" font-family="JetBrains Mono,monospace">docker build</text>
+
+    <!-- zone: image layers -->
+    <rect x="270" y="60" width="215" height="220" rx="12" fill="#f8f7f5" stroke="#e7e3db" stroke-width="1.5"/>
+    <text x="377" y="87" text-anchor="middle" font-size="9.5" letter-spacing="2.2" fill="#94a3b8" font-family="JetBrains Mono,monospace">IMAGE LAYERS</text>
+    <!-- stacked layers -->
+    <rect x="295" y="95"  width="170" height="24" rx="5" fill="#ecf8fa" stroke="#0891b2"/>
+    <text x="380" y="111" text-anchor="middle" font-size="10" fill="#1a1d24" font-family="JetBrains Mono,monospace">FROM ubuntu:24.04</text>
+    <rect x="295" y="121" width="170" height="24" rx="5" fill="#ecf8fa" stroke="#0891b2"/>
+    <text x="380" y="137" text-anchor="middle" font-size="10" fill="#1a1d24" font-family="JetBrains Mono,monospace">RUN apt-get install …</text>
+    <rect x="295" y="147" width="170" height="24" rx="5" fill="#ecf8fa" stroke="#0891b2"/>
+    <text x="380" y="163" text-anchor="middle" font-size="10" fill="#1a1d24" font-family="JetBrains Mono,monospace">COPY . /app</text>
+    <rect x="295" y="173" width="170" height="24" rx="5" fill="#ecf8fa" stroke="#0891b2"/>
+    <text x="380" y="189" text-anchor="middle" font-size="10" fill="#1a1d24" font-family="JetBrains Mono,monospace">EXPOSE 8080</text>
+    <rect x="295" y="199" width="170" height="24" rx="5" fill="#ecf8fa" stroke="#0891b2"/>
+    <text x="380" y="215" text-anchor="middle" font-size="10" fill="#1a1d24" font-family="JetBrains Mono,monospace">CMD ["node","app.js"]</text>
+    <text x="377" y="248" text-anchor="middle" font-size="9" fill="#0891b2" font-family="JetBrains Mono,monospace">← each line = one cached layer</text>
+    <!-- cache badge -->
+    <rect x="295" y="256" width="170" height="18" rx="4" fill="#fdf6ec" stroke="#d97706"/>
+    <text x="380" y="269" text-anchor="middle" font-size="9" fill="#b45309" font-family="JetBrains Mono,monospace">cache hit? reuse → faster build</text>
+
+    <!-- arrow: layers → tagged image -->
+    <line x1="485" y1="170" x2="538" y2="170" stroke="#1a1d24" stroke-width="2" marker-end="url(#arr)"/>
+    <text x="511" y="162" text-anchor="middle" font-size="10.5" font-weight="700" fill="#7c3aed" font-family="JetBrains Mono,monospace">docker tag</text>
+
+    <!-- zone: tagged image -->
+    <rect x="540" y="60" width="195" height="220" rx="12" fill="#f8f7f5" stroke="#e7e3db" stroke-width="1.5"/>
+    <text x="637" y="87" text-anchor="middle" font-size="9.5" letter-spacing="2.2" fill="#94a3b8" font-family="JetBrains Mono,monospace">TAGGED IMAGE</text>
+    <circle cx="637" cy="155" r="52" fill="#f3eefd" stroke="#7c3aed" stroke-width="2"/>
+    <text x="637" y="148" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24" font-family="JetBrains Mono,monospace">myapp</text>
+    <text x="637" y="165" text-anchor="middle" font-size="11" fill="#7c3aed" font-family="JetBrains Mono,monospace">:1.0</text>
+    <text x="637" y="240" text-anchor="middle" font-size="9.5" fill="#7c3aed" font-family="JetBrains Mono,monospace">name:tag immutable digest</text>
+
+    <!-- arrow: image → registry -->
+    <line x1="735" y1="140" x2="788" y2="120" stroke="#1a1d24" stroke-width="2" marker-end="url(#arr)"/>
+    <text x="762" y="123" text-anchor="middle" font-size="10" font-weight="700" fill="#4f46e5" font-family="JetBrains Mono,monospace">push</text>
+
+    <!-- arrow: image → container -->
+    <line x1="735" y1="195" x2="788" y2="230" stroke="#1a1d24" stroke-width="2" marker-end="url(#arr)"/>
+    <text x="766" y="230" text-anchor="middle" font-size="10" font-weight="700" fill="#d97706" font-family="JetBrains Mono,monospace">run</text>
+
+    <!-- zone: registry -->
+    <rect x="790" y="60" width="155" height="110" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+    <text x="867" y="87" text-anchor="middle" font-size="9.5" letter-spacing="2.2" fill="#4f46e5" font-family="JetBrains Mono,monospace">REGISTRY</text>
+    <text x="867" y="115" text-anchor="middle" font-size="11" fill="#1a1d24" font-family="JetBrains Mono,monospace">Docker Hub</text>
+    <text x="867" y="132" text-anchor="middle" font-size="9.5" fill="#64748b" font-family="JetBrains Mono,monospace">/ private registry</text>
+
+    <!-- zone: container -->
+    <rect x="790" y="185" width="155" height="95" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+    <text x="867" y="210" text-anchor="middle" font-size="9.5" letter-spacing="2.2" fill="#d97706" font-family="JetBrains Mono,monospace">CONTAINER</text>
+    <text x="867" y="235" text-anchor="middle" font-size="11" fill="#1a1d24" font-family="JetBrains Mono,monospace">writable layer</text>
+    <text x="867" y="252" text-anchor="middle" font-size="9.5" fill="#64748b" font-family="JetBrains Mono,monospace">+ image layers (ro)</text>
+
+    <!-- pull back arrow -->
+    <line x1="967" y1="115" x2="1040" y2="115" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrd)"/>
+    <text x="1003" y="108" text-anchor="middle" font-size="9.5" fill="#64748b" font-family="JetBrains Mono,monospace">pull</text>
+    <rect x="1042" y="92" width="92" height="45" rx="8" fill="#f1f3f6" stroke="#64748b" stroke-width="1.2"/>
+    <text x="1088" y="119" text-anchor="middle" font-size="10" fill="#1a1d24" font-family="JetBrains Mono,monospace">another host</text>
+  </svg>
+</section>
+
+<!-- ═══════════════ INSTRUCTION CARDS ═══════════════ -->
+<main>
+
+  <!-- 01 BASE IMAGE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Base Image</span><span class="card-sub">always first</span></div>
+    <ul class="cmds">
+      <li class="base"><code class="cmd"><span class="kw">FROM</span> <span class="arg">ubuntu:24.04</span></code><span class="star">★</span><div class="desc">Start from an official base. Always pin a tag — never rely on <code>latest</code> in production.</div></li>
+      <li class="base"><code class="cmd"><span class="kw">FROM</span> <span class="arg">scratch</span></code><div class="desc">Empty base — for ultra-minimal images (Go static binaries, etc.).</div></li>
+      <li class="base"><code class="cmd"><span class="kw">FROM</span> <span class="arg">node:22-alpine</span></code><span class="star">★</span><div class="desc">Alpine-based images are ~5 MB — prefer for small production layers.</div></li>
+      <li class="base"><code class="cmd"><span class="kw">FROM</span> <span class="arg">builder</span> <span class="flag">AS</span> <span class="arg">prod</span></code><span class="star">★</span><div class="desc">Multi-stage: inherit from a named earlier stage, not an external image.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 ENV & ARG -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Variables</span><span class="card-sub">ENV vs ARG</span></div>
+    <ul class="cmds">
+      <li class="env"><code class="cmd"><span class="kw">ENV</span> <span class="arg">PORT=8080</span></code><span class="star">★</span><div class="desc">Persists into the running container; available at both build-time <em>and</em> runtime.</div></li>
+      <li class="env"><code class="cmd"><span class="kw">ENV</span> <span class="arg">APP_HOME=/app \<br>&nbsp;&nbsp;&nbsp;&nbsp;NODE_ENV=production</span></code><div class="desc">Multi-var form — one layer for many variables.</div></li>
+      <li class="env"><code class="cmd"><span class="kw">ARG</span> <span class="arg">VERSION=1.0</span></code><span class="star">★</span><div class="desc">Build-time only — not visible in the final image. Override with <code>--build-arg</code>.</div></li>
+      <li class="env"><code class="cmd"><span class="kw">ARG</span> <span class="arg">SECRET</span></code><div class="desc">No default — must be supplied; never use ARG for sensitive values (they leak in <code>history</code>).</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">ENV</span> <span class="arg">SECRET=abc123</span></code><span class="badge-warn">avoid</span><div class="desc">Secrets in ENV persist in the image. Use BuildKit <code>--secret</code> instead.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 WORKDIR & USER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">WORKDIR &amp; USER</span><span class="card-sub">context &amp; security</span></div>
+    <ul class="cmds">
+      <li class="env"><code class="cmd"><span class="kw">WORKDIR</span> <span class="arg">/app</span></code><span class="star">★</span><div class="desc">Sets the CWD for all subsequent RUN / COPY / CMD / ENTRYPOINT. Created automatically if missing.</div></li>
+      <li class="env"><code class="cmd"><span class="kw">WORKDIR</span> <span class="arg">$APP_HOME</span></code><div class="desc">Env vars are expanded — pair with ENV for DRY path definitions.</div></li>
+      <li class="env"><code class="cmd"><span class="kw">USER</span> <span class="arg">appuser</span></code><span class="star">★</span><div class="desc">Drop privileges before CMD/ENTRYPOINT. Never run production containers as root.</div></li>
+      <li class="env"><code class="cmd"><span class="kw">USER</span> <span class="arg">1001:1001</span></code><div class="desc">UID:GID form — avoids relying on names that may not exist in the base.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">USER</span> <span class="arg">root</span></code><span class="badge-warn">avoid</span><div class="desc">Running as root greatly expands the attack surface if the container is compromised.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 RUN -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">RUN</span><span class="card-sub">build-time execution</span></div>
+    <ul class="cmds">
+      <li class="run"><code class="cmd"><span class="kw">RUN</span> <span class="arg">apt-get update &amp;&amp; apt-get install \<br>&nbsp;&nbsp;&nbsp;&nbsp;-y --no-install-recommends curl</span></code><span class="star">★</span><div class="desc">Chain with <code>&amp;&amp;</code> — one layer, one cache entry. Always clean up in the same RUN.</div></li>
+      <li class="run"><code class="cmd"><span class="kw">RUN</span> <span class="flag">--mount=type=cache</span> <span class="arg">--target=/root/.cache \<br>&nbsp;&nbsp;&nbsp;&nbsp;pip install -r requirements.txt</span></code><div class="desc">BuildKit cache mount — keeps pip/apt caches across builds without baking them in.</div></li>
+      <li class="run"><code class="cmd"><span class="kw">RUN</span> <span class="flag">--mount=type=secret,id=key</span> <span class="arg">\<br>&nbsp;&nbsp;&nbsp;&nbsp;cat /run/secrets/key</span></code><div class="desc">BuildKit secret mount — credential never stored in any layer.</div></li>
+      <li class="run"><code class="cmd"><span class="kw">RUN</span> <span class="arg">["executable", "param1"]</span></code><div class="desc">Exec form — avoids shell string interpolation; use when you don't need a shell.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">RUN</span> <span class="arg">apt-get update</span><br><span class="kw">RUN</span> <span class="arg">apt-get install curl</span></code><span class="badge-warn">avoid</span><div class="desc">Two separate RUNs create two layers; the first may be cached stale on the second build.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 COPY & ADD -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">COPY &amp; ADD</span><span class="card-sub">bring files in</span></div>
+    <ul class="cmds">
+      <li class="files"><code class="cmd"><span class="kw">COPY</span> <span class="arg">src/ /app/src/</span></code><span class="star">★</span><div class="desc">Copies host files into the image. Prefer COPY over ADD — intent is explicit.</div></li>
+      <li class="files"><code class="cmd"><span class="kw">COPY</span> <span class="flag">--chown=appuser:appgroup</span> <span class="arg">. /app</span></code><span class="star">★</span><div class="desc">Sets ownership in one step — avoids a separate <code>RUN chown</code> layer.</div></li>
+      <li class="files"><code class="cmd"><span class="kw">COPY</span> <span class="flag">--from=builder</span> <span class="arg">/app/dist /app/dist</span></code><span class="star">★</span><div class="desc">Multi-stage: pull artifacts from a named previous stage.</div></li>
+      <li class="files"><code class="cmd"><span class="kw">COPY</span> <span class="flag">--link</span> <span class="arg">package*.json /app/</span></code><div class="desc">BuildKit linked copy — more cacheable, order-independent layer.</div></li>
+      <li class="files"><code class="cmd"><span class="kw">ADD</span> <span class="arg">archive.tar.gz /app/</span></code><div class="desc">Auto-extracts local tarballs. Only use ADD for this — otherwise prefer COPY.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">ADD</span> <span class="arg">https://example.com/file /app/</span></code><span class="badge-warn">avoid</span><div class="desc">Remote URL in ADD is unpinned and uncached. Use <code>RUN curl -fsSL …</code> with a checksum instead.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 EXPOSE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">EXPOSE</span><span class="card-sub">document networking</span></div>
+    <ul class="cmds">
+      <li class="expose"><code class="cmd"><span class="kw">EXPOSE</span> <span class="arg">8080</span></code><span class="star">★</span><div class="desc">Declares that the container listens on port 8080/tcp. Documentation only — does not publish.</div></li>
+      <li class="expose"><code class="cmd"><span class="kw">EXPOSE</span> <span class="arg">8080/tcp</span> <span class="arg">8081/udp</span></code><div class="desc">Explicit protocol form. TCP is the default if omitted.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 CMD & ENTRYPOINT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">CMD &amp; ENTRYPOINT</span><span class="card-sub">what runs at start</span></div>
+    <ul class="cmds">
+      <li class="expose"><code class="cmd"><span class="kw">CMD</span> <span class="arg">["node", "server.js"]</span></code><span class="star">★</span><div class="desc">Default command — overridable by <code>docker run … &lt;cmd&gt;</code>. Exec form recommended.</div></li>
+      <li class="expose"><code class="cmd"><span class="kw">CMD</span> <span class="arg">["--port", "8080"]</span></code><div class="desc">When combined with ENTRYPOINT, CMD supplies default <em>arguments</em>.</div></li>
+      <li class="expose"><code class="cmd"><span class="kw">ENTRYPOINT</span> <span class="arg">["python", "app.py"]</span></code><span class="star">★</span><div class="desc">Fixed executable — not overridable without <code>--entrypoint</code>. Use for tool containers.</div></li>
+      <li class="expose"><code class="cmd"><span class="kw">ENTRYPOINT</span> <span class="arg">["/docker-entrypoint.sh"]</span></code><div class="desc">Init script pattern — handles setup, then <code>exec "$@"</code> to pass CMD through.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">CMD</span> <span class="arg">node server.js</span></code><span class="badge-warn">avoid</span><div class="desc">Shell form wraps command in <code>/bin/sh -c</code>; SIGTERM goes to the shell, not node — graceful shutdown breaks.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 VOLUME -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">VOLUME</span><span class="card-sub">persist data</span></div>
+    <ul class="cmds">
+      <li class="files"><code class="cmd"><span class="kw">VOLUME</span> <span class="arg">["/data"]</span></code><div class="desc">Declares a mount point. Docker creates an anonymous volume here at <code>docker run</code> time if no <code>-v</code> is given.</div></li>
+      <li class="files"><code class="cmd"><span class="kw">VOLUME</span> <span class="arg">/var/log /var/db</span></code><div class="desc">Multiple paths in one instruction.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">RUN</span> <span class="arg">echo data &gt; /data/file</span><br><span class="kw">VOLUME</span> <span class="arg">/data</span></code><span class="badge-warn">avoid</span><div class="desc">Writes <em>after</em> VOLUME are discarded at build time — declare VOLUME last, write files before it.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 SHELL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">SHELL</span><span class="card-sub">change the default shell</span></div>
+    <ul class="cmds">
+      <li class="run"><code class="cmd"><span class="kw">SHELL</span> <span class="arg">["/bin/bash", "-euo", "pipefail", "-c"]</span></code><span class="star">★</span><div class="desc">Enables strict mode for all subsequent shell-form RUN/CMD/ENTRYPOINT instructions — catches typos, pipe failures.</div></li>
+      <li class="run"><code class="cmd"><span class="kw">SHELL</span> <span class="arg">["powershell", "-Command"]</span></code><div class="desc">Windows containers — switch to PowerShell.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 LABEL & HEALTHCHECK -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">LABEL &amp; HEALTHCHECK</span><span class="card-sub">metadata</span></div>
+    <ul class="cmds">
+      <li class="meta"><code class="cmd"><span class="kw">LABEL</span> <span class="arg">maintainer="name@co.com"</span></code><div class="desc">Key-value metadata — queryable with <code>docker inspect</code>. Group all labels in one instruction.</div></li>
+      <li class="meta"><code class="cmd"><span class="kw">LABEL</span> <span class="arg">org.opencontainers.image.version="1.2"</span></code><div class="desc">OCI standard label keys — interoperable with tooling.</div></li>
+      <li class="meta"><code class="cmd"><span class="kw">HEALTHCHECK</span> <span class="flag">--interval=30s</span> <span class="flag">--timeout=5s</span> \<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="arg">CMD curl -f http://localhost/health</span></code><span class="star">★</span><div class="desc">Daemon polls this command; a non-zero exit marks the container <em>unhealthy</em>.</div></li>
+      <li class="meta"><code class="cmd"><span class="kw">HEALTHCHECK</span> <span class="arg">NONE</span></code><div class="desc">Disables an inherited HEALTHCHECK from the base image.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 ONBUILD & STOPSIGNAL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">ONBUILD &amp; STOPSIGNAL</span><span class="card-sub">advanced</span></div>
+    <ul class="cmds">
+      <li class="run"><code class="cmd"><span class="kw">ONBUILD</span> <span class="arg">COPY . /app</span></code><div class="desc">Deferred instruction — fires only when this image is used as a base (<code>FROM</code>) in a child build. Useful for base-image authors.</div></li>
+      <li class="expose"><code class="cmd"><span class="kw">STOPSIGNAL</span> <span class="arg">SIGQUIT</span></code><div class="desc">Overrides the signal sent to the container on <code>docker stop</code>. Default is SIGTERM.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 BUILD COMMANDS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Build CLI</span><span class="card-sub">invoke docker build</span></div>
+    <ul class="cmds">
+      <li class="run"><code class="cmd">docker build <span class="flag">-t</span> <span class="arg">name:tag</span> .</code><span class="star">★</span><div class="desc">Build with a tag, context = current directory.</div></li>
+      <li class="run"><code class="cmd">docker build <span class="flag">-f</span> <span class="arg">path/Dockerfile</span> .</code><div class="desc">Explicit Dockerfile path — useful in mono-repos.</div></li>
+      <li class="run"><code class="cmd">docker build <span class="flag">--no-cache</span> <span class="flag">-t</span> <span class="arg">name</span> .</code><div class="desc">Force a fresh build, ignoring all layer caches.</div></li>
+      <li class="run"><code class="cmd">docker build <span class="flag">--build-arg</span> <span class="arg">VER=2.0</span> .</code><span class="star">★</span><div class="desc">Override an ARG declared in the Dockerfile.</div></li>
+      <li class="run"><code class="cmd">docker build <span class="flag">--target</span> <span class="arg">builder</span> .</code><span class="star">★</span><div class="desc">Stop at a named multi-stage target — e.g. to run tests in CI.</div></li>
+      <li class="run"><code class="cmd">docker build <span class="flag">--platform</span> <span class="arg">linux/arm64</span> .</code><div class="desc">Cross-compile for a different CPU architecture (requires BuildKit).</div></li>
+      <li class="run"><code class="cmd">DOCKER_BUILDKIT=1 docker build …</code><div class="desc">Enable BuildKit explicitly (default in Docker ≥ 23).</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ═══════════════ CONCEPT DIAGRAMS ═══════════════ -->
+<section class="diagrams">
+  <h2>Four concepts worth visualising</h2>
+  <p class="sub">Layer cache, multi-stage, CMD vs ENTRYPOINT, and COPY vs ADD — the things that trip people up most.</p>
+  <div class="merge-grid">
+
+    <!-- Diagram 1: layer cache -->
+    <div class="merge-card">
+      <h3>Layer cache — order matters</h3>
+      <p>Each instruction is fingerprinted. A cache miss invalidates every layer below it. Put things that change least (dependencies) before things that change most (source code).</p>
+      <svg viewBox="0 0 390 222" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Layer cache diagram showing stable layers at bottom changing layers at top">
+        <defs>
+          <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+          </marker>
+        </defs>
+        <g font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">
+          <!-- anti-pattern: left -->
+          <text x="85" y="15" font-size="9.5" fill="#dc2626" font-weight="700">❌ changes bust cache early</text>
+          <rect x="10" y="22" width="150" height="24" rx="4" fill="#ecf8fa" stroke="#0891b2"/>
+          <text x="85" y="38" fill="#1a1d24">FROM node:22-alpine</text>
+          <rect x="10" y="48" width="150" height="24" rx="4" fill="#fdf0ef" stroke="#dc2626"/>
+          <text x="85" y="64" fill="#dc2626">COPY . /app   ← changes!</text>
+          <rect x="10" y="74" width="150" height="24" rx="4" fill="#fdf0ef" stroke="#dc2626" stroke-dasharray="3 2"/>
+          <text x="85" y="90" fill="#dc2626">RUN npm install ← re-runs!</text>
+          <rect x="10" y="100" width="150" height="24" rx="4" fill="#fdf0ef" stroke="#dc2626" stroke-dasharray="3 2"/>
+          <text x="85" y="116" fill="#dc2626">RUN npm run build ← re-runs!</text>
+          <text x="85" y="145" font-size="9" fill="#dc2626">every code change = full reinstall</text>
+
+          <!-- best pattern: right -->
+          <text x="300" y="15" font-size="9.5" fill="#059669" font-weight="700">✓ stable layers first</text>
+          <rect x="225" y="22" width="155" height="24" rx="4" fill="#ecf8fa" stroke="#0891b2"/>
+          <text x="302" y="38" fill="#1a1d24">FROM node:22-alpine</text>
+          <rect x="225" y="48" width="155" height="24" rx="4" fill="#ecf7f2" stroke="#059669"/>
+          <text x="302" y="64" fill="#1a1d24">COPY package*.json /app/</text>
+          <rect x="225" y="74" width="155" height="24" rx="4" fill="#ecf7f2" stroke="#059669"/>
+          <text x="302" y="90" fill="#1a1d24">RUN npm install   ← cached!</text>
+          <rect x="225" y="100" width="155" height="24" rx="4" fill="#fdf6ec" stroke="#d97706"/>
+          <text x="302" y="116" fill="#1a1d24">COPY . /app      ← changes</text>
+          <rect x="225" y="126" width="155" height="24" rx="4" fill="#fdf6ec" stroke="#d97706"/>
+          <text x="302" y="142" fill="#1a1d24">RUN npm run build</text>
+          <text x="302" y="170" font-size="9" fill="#059669">npm install reuses cache ✓</text>
+        </g>
+        <!-- rule label -->
+        <rect x="80" y="182" width="230" height="36" rx="6" fill="#f8f7f5" stroke="#e7e3db"/>
+        <text x="195" y="199" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1a1d24" font-family="JetBrains Mono, monospace">Rule: stable → changing</text>
+        <text x="195" y="213" text-anchor="middle" font-size="8.5" fill="#6b7280" font-family="JetBrains Mono, monospace">deps before source, seldom before often</text>
+      </svg>
+    </div>
+
+    <!-- Diagram 2: multi-stage -->
+    <div class="merge-card">
+      <h3>Multi-stage build</h3>
+      <p>Use one stage to compile/test and a lean second stage for the final image. Only the last stage ships — build tools and intermediate files stay behind.</p>
+      <svg viewBox="0 0 390 222" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Multi-stage build: builder stage produces artifacts, final stage copies only what it needs">
+        <defs>
+          <marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+          </marker>
+        </defs>
+        <g font-family="JetBrains Mono, monospace" font-size="9.8">
+          <!-- stage 1 box -->
+          <rect x="10" y="10" width="170" height="150" rx="8" fill="#eef3fd" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="95" y="30" text-anchor="middle" font-size="9.5" fill="#2563eb" letter-spacing="1.5">STAGE 1: builder</text>
+          <text x="95" y="52" text-anchor="middle" fill="#1a1d24">FROM golang:1.22 AS builder</text>
+          <text x="95" y="72" text-anchor="middle" fill="#64748b">WORKDIR /src</text>
+          <text x="95" y="90" text-anchor="middle" fill="#64748b">COPY . .</text>
+          <text x="95" y="108" text-anchor="middle" fill="#64748b">RUN go build -o app .</text>
+          <text x="95" y="133" text-anchor="middle" font-size="8.5" fill="#94a3b8">~900 MB (compiler + src)</text>
+          <text x="95" y="149" text-anchor="middle" font-size="8.5" fill="#dc2626">not shipped</text>
+
+          <!-- arrow -->
+          <line x1="180" y1="120" x2="210" y2="120" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#a4)"/>
+          <text x="195" y="110" text-anchor="middle" font-size="9" fill="#059669">COPY</text>
+          <text x="195" y="135" text-anchor="middle" font-size="8.5" fill="#059669">--from</text>
+
+          <!-- stage 2 box -->
+          <rect x="212" y="10" width="170" height="150" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+          <text x="297" y="30" text-anchor="middle" font-size="9.5" fill="#059669" letter-spacing="1.5">STAGE 2: final</text>
+          <text x="297" y="52" text-anchor="middle" fill="#1a1d24">FROM alpine:3.19</text>
+          <text x="297" y="72" text-anchor="middle" fill="#64748b">WORKDIR /app</text>
+          <text x="297" y="90" text-anchor="middle" fill="#059669">COPY --from=builder</text>
+          <text x="297" y="107" text-anchor="middle" fill="#059669">  /src/app /app/app</text>
+          <text x="297" y="126" text-anchor="middle" fill="#64748b">EXPOSE 8080</text>
+          <text x="297" y="144" text-anchor="middle" fill="#64748b">ENTRYPOINT ["./app"]</text>
+
+          <!-- size badge -->
+          <rect x="212" y="168" width="170" height="28" rx="6" fill="#1a1d24"/>
+          <text x="297" y="186" text-anchor="middle" font-size="10" fill="#a3e635">~12 MB final image ✓</text>
+
+          <!-- stage 1 size badge -->
+          <rect x="10" y="168" width="170" height="28" rx="6" fill="#f1f3f6" stroke="#e7e3db"/>
+          <text x="95" y="186" text-anchor="middle" font-size="9" fill="#64748b">discarded at push time</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Diagram 3: CMD vs ENTRYPOINT -->
+    <div class="merge-card">
+      <h3>CMD vs ENTRYPOINT</h3>
+      <p>Think of ENTRYPOINT as the "verb" and CMD as its default "arguments". <code>docker run img args</code> replaces CMD, but needs <code>--entrypoint</code> to replace ENTRYPOINT.</p>
+      <svg viewBox="0 0 390 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Table comparing CMD and ENTRYPOINT behaviour with and without docker run arguments">
+        <g font-family="JetBrains Mono, monospace" font-size="9.5">
+          <!-- table header -->
+          <rect x="10" y="10" width="370" height="24" rx="5" fill="#1a1d24"/>
+          <text x="85" y="26" text-anchor="middle" fill="#67e8f9">Dockerfile</text>
+          <text x="230" y="26" text-anchor="middle" fill="#67e8f9">docker run img …</text>
+          <text x="340" y="26" text-anchor="middle" fill="#67e8f9">runs as</text>
+          <!-- dividers -->
+          <line x1="145" y1="10" x2="145" y2="190" stroke="#e7e3db" stroke-width="1"/>
+          <line x1="280" y1="10" x2="280" y2="190" stroke="#e7e3db" stroke-width="1"/>
+          <!-- row 1 -->
+          <rect x="10" y="36" width="370" height="32" rx="0" fill="#eef3fd"/>
+          <text x="85" y="52" text-anchor="middle" fill="#2563eb">CMD ["node","app.js"]</text>
+          <text x="85" y="64" text-anchor="middle" fill="#64748b">(no ENTRYPOINT)</text>
+          <text x="230" y="58" text-anchor="middle" fill="#64748b">(no args)</text>
+          <text x="340" y="58" text-anchor="middle" fill="#059669">node app.js</text>
+          <!-- row 2 -->
+          <rect x="10" y="70" width="370" height="32" rx="0" fill="#f8f7f5"/>
+          <text x="85" y="86" text-anchor="middle" fill="#2563eb">CMD ["node","app.js"]</text>
+          <text x="230" y="86" text-anchor="middle" fill="#d97706">python other.py</text>
+          <text x="340" y="86" text-anchor="middle" fill="#d97706">python other.py</text>
+          <!-- row 3 -->
+          <rect x="10" y="104" width="370" height="32" rx="0" fill="#f3eefd"/>
+          <text x="85" y="117" text-anchor="middle" fill="#7c3aed">ENTRYPOINT ["node"]</text>
+          <text x="85" y="129" text-anchor="middle" fill="#7c3aed">CMD ["app.js"]</text>
+          <text x="230" y="123" text-anchor="middle" fill="#64748b">(no args)</text>
+          <text x="340" y="123" text-anchor="middle" fill="#059669">node app.js</text>
+          <!-- row 4 -->
+          <rect x="10" y="138" width="370" height="32" rx="0" fill="#f8f7f5"/>
+          <text x="85" y="148" text-anchor="middle" fill="#7c3aed">ENTRYPOINT ["node"]</text>
+          <text x="85" y="161" text-anchor="middle" fill="#7c3aed">CMD ["app.js"]</text>
+          <text x="230" y="154" text-anchor="middle" fill="#d97706">server.js</text>
+          <text x="340" y="154" text-anchor="middle" fill="#d97706">node server.js</text>
+          <!-- rule -->
+          <rect x="10" y="173" width="370" height="20" rx="4" fill="#fdf6ec"/>
+          <text x="195" y="187" text-anchor="middle" font-size="8.5" fill="#b45309">Always use exec form ["cmd"] — shell form routes SIGTERM to sh, not the process</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Diagram 4: COPY vs ADD -->
+    <div class="merge-card">
+      <h3>COPY vs ADD — the decision</h3>
+      <p>Use COPY for 95 % of cases. ADD's extra powers (auto-extract, remote URLs) are rarely needed and can be surprising.</p>
+      <svg viewBox="0 0 390 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Decision flow showing when to use COPY versus ADD">
+        <defs>
+          <marker id="a5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+          </marker>
+        </defs>
+        <g font-family="JetBrains Mono, monospace" font-size="9.5" text-anchor="middle">
+          <!-- start -->
+          <rect x="130" y="10" width="130" height="28" rx="6" fill="#1a1d24"/>
+          <text x="195" y="28" fill="#fff">Adding files to image?</text>
+          <!-- left branch: tar -->
+          <line x1="140" y1="38" x2="75" y2="68" stroke="#1a1d24" stroke-width="1.4" marker-end="url(#a5)"/>
+          <text x="95" y="60" fill="#7c3aed">local .tar.gz?</text>
+          <rect x="10" y="70" width="130" height="28" rx="6" fill="#f3eefd" stroke="#7c3aed"/>
+          <text x="75" y="88" fill="#7c3aed">ADD archive.tar /dst/</text>
+          <text x="75" y="110" font-size="8.5" fill="#64748b">auto-extracts — OK here</text>
+
+          <!-- right branch: normal files -->
+          <line x1="250" y1="38" x2="305" y2="68" stroke="#1a1d24" stroke-width="1.4" marker-end="url(#a5)"/>
+          <text x="285" y="60" fill="#059669">files / dirs?</text>
+          <rect x="250" y="70" width="130" height="28" rx="6" fill="#ecf7f2" stroke="#059669"/>
+          <text x="315" y="84" fill="#059669">COPY src /dst/</text>
+          <text x="315" y="98" fill="#059669">--chown= available</text>
+
+          <!-- remote url -->
+          <line x1="195" y1="38" x2="195" y2="128" stroke="#dc2626" stroke-width="1.4" stroke-dasharray="3 2" marker-end="url(#a5)"/>
+          <text x="215" y="90" fill="#dc2626">remote URL?</text>
+          <rect x="120" y="130" width="150" height="28" rx="6" fill="#fdf0ef" stroke="#dc2626"/>
+          <text x="195" y="144" fill="#dc2626">RUN curl -fsSL URL \</text>
+          <text x="195" y="156" fill="#dc2626">  | sha256sum …</text>
+          <text x="195" y="184" font-size="8.5" fill="#64748b">pinned + verified — not ADD</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════ MULTI-STAGE SNIPPET ═══════════════ -->
+<section class="snippet-wrap">
+  <h2>Multi-stage build template</h2>
+  <p class="sub">Two canonical patterns — Node.js with a separate build step, and a Python service with a cache mount.</p>
+  <div class="snippet-grid">
+
+<pre class="snippet"><span class="c"># ── Node.js: build then ship lean ──</span>
+<span class="kw">FROM</span> <span class="n">node:22-alpine</span> <span class="kw">AS</span> <span class="n">deps</span>
+<span class="kw">WORKDIR</span> /app
+<span class="kw">COPY</span> package*.json ./
+<span class="kw">RUN</span> npm ci --omit=dev
+
+<span class="kw">FROM</span> <span class="n">node:22-alpine</span> <span class="kw">AS</span> <span class="n">builder</span>
+<span class="kw">WORKDIR</span> /app
+<span class="kw">COPY</span> --from=deps /app/node_modules ./node_modules
+<span class="kw">COPY</span> . .
+<span class="kw">RUN</span> npm run build
+
+<span class="kw">FROM</span> <span class="n">node:22-alpine</span> <span class="kw">AS</span> <span class="n">final</span>
+<span class="kw">WORKDIR</span> /app
+<span class="kw">ENV</span> NODE_ENV=production
+<span class="kw">COPY</span> --from=builder /app/dist ./dist
+<span class="kw">COPY</span> --from=deps  /app/node_modules ./node_modules
+<span class="kw">USER</span> node
+<span class="kw">EXPOSE</span> 3000
+<span class="kw">CMD</span> [<span class="s">"node"</span>, <span class="s">"dist/server.js"</span>]</pre>
+
+<pre class="snippet"><span class="c"># ── Python: BuildKit cache mount ──</span>
+<span class="c"># syntax=docker/dockerfile:1</span>
+<span class="kw">FROM</span> <span class="n">python:3.12-slim</span> <span class="kw">AS</span> <span class="n">base</span>
+<span class="kw">WORKDIR</span> /app
+<span class="kw">ENV</span> PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+<span class="kw">FROM</span> <span class="n">base</span> <span class="kw">AS</span> <span class="n">builder</span>
+<span class="kw">COPY</span> requirements.txt .
+<span class="c"># cache pip downloads across builds</span>
+<span class="kw">RUN</span> --mount=type=cache,target=/root/.cache/pip \
+    pip install --prefix=/install -r requirements.txt
+
+<span class="kw">FROM</span> <span class="n">base</span> <span class="kw">AS</span> <span class="n">final</span>
+<span class="kw">COPY</span> --from=builder /install /usr/local
+<span class="kw">COPY</span> src/ ./src/
+<span class="kw">RUN</span> adduser --disabled-password appuser
+<span class="kw">USER</span> appuser
+<span class="kw">HEALTHCHECK</span> --interval=30s <span class="kw">CMD</span> \
+    python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+<span class="kw">CMD</span> [<span class="s">"python"</span>, <span class="s">"-m"</span>, <span class="s">"uvicorn"</span>, <span class="s">"src.main:app"</span>]</pre>
+
+  </div>
+</section>
+
+<!-- ═══════════════ BEST PRACTICES ═══════════════ -->
+<section class="refs">
+  <h2>Best practices</h2>
+  <div class="refs-inner">
+    <div><span class="k">pin base tags</span><span class="v">FROM node:22-alpine not node:latest — reproducibility</span></div>
+    <div><span class="k">one concern per CMD</span><span class="v">one process per container; supervisor is an anti-pattern</span></div>
+    <div><span class="k">chain RUN with &amp;&amp;</span><span class="v">merge update + install + clean into a single layer</span></div>
+    <div><span class="k">multi-stage builds</span><span class="v">keep compiler/build tools out of the shipped image</span></div>
+    <div><span class="k">COPY deps before src</span><span class="v">package.json / requirements.txt first → cache npm/pip</span></div>
+    <div><span class="k">non-root USER</span><span class="v">create a dedicated user; drop root before CMD</span></div>
+    <div><span class="k">exec form CMD/EP</span><span class="v">["cmd"] not cmd — PID 1 gets SIGTERM, graceful shutdown works</span></div>
+    <div><span class="k">.dockerignore</span><span class="v">exclude .git, node_modules, __pycache__, .env from context</span></div>
+    <div><span class="k">BUILDKIT secrets</span><span class="v">--mount=type=secret for tokens — never ENV or ARG for creds</span></div>
+    <div><span class="k">HEALTHCHECK always</span><span class="v">orchestrators (K8s, Swarm) need it to route traffic correctly</span></div>
+    <div><span class="k">minimal base</span><span class="v">alpine or distroless — smaller attack surface, faster pulls</span></div>
+    <div><span class="k">OCI labels</span><span class="v">org.opencontainers.image.* — version, revision, source for auditability</span></div>
+  </div>
+</section>
+
+<!-- ═══════════════ .DOCKERIGNORE STRIP ═══════════════ -->
+<section class="refs" style="padding-top:0">
+  <h2>.dockerignore quick ref</h2>
+  <div class="refs-inner">
+    <div><span class="k">.git/</span><span class="v">version history — irrelevant to the build, large</span></div>
+    <div><span class="k">node_modules/</span><span class="v">rebuilt inside the image via npm ci</span></div>
+    <div><span class="k">__pycache__/</span><span class="v">Python bytecode — regenerated at runtime</span></div>
+    <div><span class="k">*.env  .env*</span><span class="v">local secrets — must never bake into an image</span></div>
+    <div><span class="k">dist/  build/</span><span class="v">local build artefacts — replaced by the build stage</span></div>
+    <div><span class="k">*.md  docs/</span><span class="v">documentation — not needed at runtime</span></div>
+    <div><span class="k">tests/  *.test.*</span><span class="v">test files — run in a stage, don't ship them</span></div>
+    <div><span class="k">**/*.log</span><span class="v">log files — runtime writes go to stdout anyway</span></div>
+  </div>
+</section>
+
+<footer>
+  Dockerfile cheat sheet · synthesized from the official references of docs.docker.com/reference/dockerfile, docs.docker.com/build/building/best-practices, devhints.io/dockerfile, and the Red Hat docker-cheatsheet-r4v2.<br>
+  Instructions shown for Dockerfile syntax ≈ 1.x (docker/dockerfile:1) · BuildKit is the default builder since Docker Engine 23.
+</footer>
+
+</body>
+</html>

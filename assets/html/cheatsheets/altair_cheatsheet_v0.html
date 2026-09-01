@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Altair Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --imp:#64748b;    --imp-bg:#f1f3f6;    /* import / setup        */
+    --chart:#4f46e5;  --chart-bg:#eef0fd;  /* chart · compose · out */
+    --mark:#059669;   --mark-bg:#ecf7f2;   /* marks (core)          */
+    --enc:#d97706;    --enc-bg:#fdf6ec;    /* encodings (core)      */
+    --trans:#0d9488;  --trans-bg:#e9f6f4;  /* transforms / data     */
+    --int:#7c3aed;    --int-bg:#f4effe;    /* interaction / params  */
+    --danger:#dc2626; --danger-bg:#fdf0ef; /* deprecated / gotcha   */
+    --star:#b45309;
+    --vega:#4c78a8;   /* Vega default blue — the wordmark */
+    --gold:#d9a521;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .star{color:var(--gold); font-size:.82em; margin-right:.1em}
+  h1 .wm{font-family:var(--mono); color:var(--vega); letter-spacing:-.02em}
+  .lede{max-width:62ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.imp{background:var(--imp)} .dot.chart{background:var(--chart)}
+  .dot.mark{background:var(--mark)} .dot.enc{background:var(--enc)}
+  .dot.trans{background:var(--trans)} .dot.int{background:var(--int)}
+  .dot.danger{background:var(--danger)}
+  .legend .st{color:var(--star); font-weight:700}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- quickstart panel ---------- */
+  .qs{max-width:1500px; margin:0 auto; padding:1.4rem clamp(1rem,4vw,3rem) .5rem}
+  .qs-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.9rem;
+  }
+  .code-block{
+    background:var(--ink); border-radius:10px; padding:1.1rem 1.3rem;
+    overflow-x:auto; font-family:var(--mono); font-size:.82rem; line-height:1.75;
+    color:#e8e6e1;
+  }
+  .code-block .l{display:block; white-space:pre}
+  .code-block .note{color:#fbbf24; font-weight:700}
+  .kw{color:#c792ea} .fn{color:#82aaff} .mod{color:#5ccf9e}
+  .arg{color:#f78c6c} .str{color:#c3e88d} .num{color:#f5a623}
+  .cm{color:#7684a0; font-style:italic}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.imp{border-left-color:var(--imp)}
+  ul.cmds li.chart{border-left-color:var(--chart)}
+  ul.cmds li.mark{border-left-color:var(--mark)}
+  ul.cmds li.enc{border-left-color:var(--enc)}
+  ul.cmds li.trans{border-left-color:var(--trans)}
+  ul.cmds li.int{border-left-color:var(--int)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  li.plain{border-left-color:#cbd0d8}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.5;
+  }
+  code.cmd .a{color:var(--chart); font-weight:400}   /* argument / channel */
+  code.cmd .s{color:var(--mark)}                     /* string     */
+  code.cmd .m{color:var(--trans)}                    /* method/fn  */
+  code.cmd .n{color:var(--enc)}                      /* number     */
+  code.cmd .p{color:var(--muted)}                    /* punctuation/comment */
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.77rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f1eee8; padding:0 .25em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem; max-width:72ch}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#82aaff; font-size:.95em}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:var(--ink)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · declarative statistical visualization</div>
+  <h1><span class="star">&#10022;</span><span class="wm">altair</span> cheat sheet</h1>
+  <p class="lede">You don't draw a chart — you <b>declare</b> it. Bind <b>data</b> columns to visual <b>encoding channels</b> (x, y, color…), pick a <b>mark</b>, and Altair emits a <b>Vega-Lite JSON</b> spec that renders in the browser. Learn the grammar — data + mark + encoding — and a huge range of charts comes from one small vocabulary.</p>
+  <div class="legend">
+    <span><i class="dot imp"></i>import / setup</span>
+    <span><i class="dot chart"></i>chart · compose · output</span>
+    <span><i class="dot mark"></i>marks (core)</span>
+    <span><i class="dot enc"></i>encodings (core)</span>
+    <span><i class="dot trans"></i>transforms / data</span>
+    <span><i class="dot int"></i>interaction / params</span>
+    <span><i class="dot danger"></i>deprecated / gotcha</span>
+    <span><span class="st">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against Altair <b>6.2</b>: <b>altair-viz.github.io</b> (Getting Started + User Guide + API) · <b>vega.github.io/vega-lite</b> · <b>github.com/vega/altair</b> · <b>UW IDL viz-curriculum</b> · <b>Cheatography</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The method chain — and how Python becomes a picture</div>
+  <svg class="flow-svg" viewBox="0 0 1120 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram: an Altair chart is built by chaining Chart(data), a mark method, an encode() call, and refinements; the Python object is then serialized to a Vega-Lite JSON spec that the Vega runtime renders to SVG or canvas in the browser.">
+    <defs>
+      <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <text x="20" y="34" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">THE FLUENT API — ONE CHAIN, LEFT TO RIGHT</text>
+
+    <!-- chain boxes -->
+    <g>
+      <rect x="20"  y="48" width="210" height="96" rx="11" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="125" y="76" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">alt.Chart(df)</text>
+      <text x="125" y="99" text-anchor="middle" font-size="10.5" fill="#4f46e5">the DATA</text>
+      <text x="125" y="122" text-anchor="middle" font-size="9.5" fill="#6b7280">a tidy DataFrame</text>
+    </g>
+    <g>
+      <rect x="262" y="48" width="210" height="96" rx="11" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="367" y="76" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">.mark_bar()</text>
+      <text x="367" y="99" text-anchor="middle" font-size="10.5" fill="#059669">the MARK</text>
+      <text x="367" y="122" text-anchor="middle" font-size="9.5" fill="#6b7280">point · line · bar · area…</text>
+    </g>
+    <g>
+      <rect x="504" y="48" width="248" height="96" rx="11" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="628" y="76" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">.encode(x, y, color)</text>
+      <text x="628" y="99" text-anchor="middle" font-size="10.5" fill="#b45309">the ENCODINGS</text>
+      <text x="628" y="122" text-anchor="middle" font-size="9.5" fill="#6b7280">columns &#8594; visual channels</text>
+    </g>
+    <g>
+      <rect x="784" y="48" width="312" height="96" rx="11" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="940" y="76" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">.properties() .interactive() .save()</text>
+      <text x="940" y="99" text-anchor="middle" font-size="10.5" fill="#64748b">REFINE &amp; OUTPUT</text>
+      <text x="940" y="122" text-anchor="middle" font-size="9.5" fill="#6b7280">size · title · zoom · export</text>
+    </g>
+    <line x1="230" y1="96" x2="260" y2="96" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+    <line x1="472" y1="96" x2="502" y2="96" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+    <line x1="752" y1="96" x2="782" y2="96" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+
+    <!-- compile band -->
+    <text x="20" y="212" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">WHAT HAPPENS UNDER THE HOOD</text>
+    <g>
+      <rect x="20" y="228" width="250" height="112" rx="11" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+      <text x="145" y="258" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1d24">Altair · Python</text>
+      <text x="145" y="281" text-anchor="middle" font-size="10.5" fill="#4f46e5">the chart object</text>
+      <text x="145" y="305" text-anchor="middle" font-size="10" fill="#6b7280">.to_dict() / .to_json()</text>
+      <text x="145" y="323" text-anchor="middle" font-size="10" fill="#6b7280">builds the spec</text>
+    </g>
+    <g>
+      <rect x="330" y="240" width="220" height="88" rx="11" fill="#e9f6f4" stroke="#0d9488" stroke-width="2"/>
+      <text x="440" y="270" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">Vega-Lite spec</text>
+      <text x="440" y="292" text-anchor="middle" font-size="10.5" fill="#0d9488">a JSON document</text>
+      <text x="440" y="312" text-anchor="middle" font-size="9.5" fill="#6b7280">the grammar, serialized</text>
+    </g>
+    <g>
+      <rect x="610" y="240" width="170" height="88" rx="11" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="695" y="278" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">Vega runtime</text>
+      <text x="695" y="300" text-anchor="middle" font-size="9.5" fill="#64748b">compiles + binds data</text>
+    </g>
+    <g>
+      <rect x="840" y="240" width="256" height="88" rx="11" fill="#eef6fb" stroke="#4c78a8" stroke-width="2"/>
+      <text x="968" y="270" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">SVG / Canvas</text>
+      <text x="968" y="292" text-anchor="middle" font-size="10.5" fill="#4c78a8">rendered in the browser</text>
+      <text x="968" y="312" text-anchor="middle" font-size="9.5" fill="#6b7280">via vega-embed</text>
+    </g>
+    <line x1="270" y1="284" x2="328" y2="284" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+    <line x1="550" y1="284" x2="608" y2="284" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+    <line x1="780" y1="284" x2="838" y2="284" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+  </svg>
+</section>
+
+<!-- ============ QUICKSTART ============ -->
+<section class="qs">
+  <div class="qs-title">A complete chart in five lines</div>
+  <div class="code-block"><code><span class="l"><span class="kw">import</span> altair <span class="kw">as</span> alt</span><span class="l"><span class="kw">from</span> altair.datasets <span class="kw">import</span> data           <span class="note"># built-in sample data</span></span><span class="l"></span><span class="l">cars = data.<span class="fn">cars</span>()                            <span class="note"># a tidy pandas DataFrame</span></span><span class="l"></span><span class="l">alt.<span class="fn">Chart</span>(cars).<span class="fn">mark_point</span>().<span class="fn">encode</span>(     <span class="note"># data + mark + encoding</span></span><span class="l">    x=<span class="str">'Horsepower:Q'</span>,                       <span class="note"># :Q quantitative</span></span><span class="l">    y=<span class="str">'Miles_per_Gallon:Q'</span>,</span><span class="l">    color=<span class="str">'Origin:N'</span>,                       <span class="note"># :N nominal &#8594; distinct colours</span></span><span class="l">).<span class="fn">interactive</span>()                          <span class="note"># pan + zoom, then .save('c.html')</span></span></code></div>
+</section>
+
+<!-- ============ COMMAND CARDS ============ -->
+<main>
+
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Import</span><span class="card-sub">once per project</span></div>
+    <ul class="cmds">
+      <li class="imp"><code class="cmd"><span class="p">$</span> pip install altair vega_datasets</code><div class="desc">Core lib + sample datasets. Add <code>vl-convert-python</code> for PNG/SVG.</div></li>
+      <li class="imp"><code class="cmd">import altair as alt</code><span class="star">&#9733;</span><div class="desc">The universal alias.</div></li>
+      <li class="imp"><code class="cmd">import pandas as pd</code><div class="desc">Altair is built around tidy DataFrames.</div></li>
+      <li class="imp"><code class="cmd">from altair.datasets import data</code><div class="desc">Built-in samples: <code>data.cars()</code>, <code>data.stocks()</code>.</div></li>
+      <li class="imp"><code class="cmd">alt.renderers.enable<span class="p">(</span><span class="s">"..."</span><span class="p">)</span></code><div class="desc">Rarely needed — notebooks auto-render.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 CHART -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">The Chart Object</span><span class="card-sub">data in</span></div>
+    <ul class="cmds">
+      <li class="chart"><code class="cmd">alt.Chart<span class="p">(</span>df<span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Wrap a DataFrame — the start of every chart.</div></li>
+      <li class="chart"><code class="cmd">alt.Chart<span class="p">(</span><span class="s">"data.csv"</span><span class="p">)</span></code><div class="desc">A URL or path — data stays external (no row cap).</div></li>
+      <li class="chart"><code class="cmd">alt.Chart<span class="p">(</span>df<span class="p">)</span>.mark_point<span class="p">()</span>.encode<span class="p">(</span><span class="a">...</span><span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">The recipe: <b>data + mark + encoding</b>.</div></li>
+      <li class="chart"><code class="cmd">alt.Chart<span class="p">(</span>df, width=<span class="n">400</span>, height=<span class="n">300</span><span class="p">)</span></code><div class="desc">Size can be set at construction too.</div></li>
+      <li class="plain"><code class="cmd"><span class="p">data:</span> DataFrame · CSV/JSON URL · alt.Data</code><div class="desc">Must be <b>tidy</b> — one row per observation.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 MARKS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Marks</span><span class="card-sub">how points look</span></div>
+    <ul class="cmds">
+      <li class="mark"><code class="cmd">.mark_point<span class="p">()</span></code><span class="star">&#9733;</span><div class="desc">Scatter (open shapes); <code>mark_circle</code>/<code>mark_square</code> = filled.</div></li>
+      <li class="mark"><code class="cmd">.mark_line<span class="p">()</span></code><span class="star">&#9733;</span><div class="desc">Line; <code>mark_trail</code> varies width by a field.</div></li>
+      <li class="mark"><code class="cmd">.mark_bar<span class="p">()</span></code><span class="star">&#9733;</span><div class="desc">Bars &amp; histograms.</div></li>
+      <li class="mark"><code class="cmd">.mark_area<span class="p">()</span></code><div class="desc">Filled area; stack or overlap.</div></li>
+      <li class="mark"><code class="cmd">.mark_rect<span class="p">()</span></code><div class="desc">Heatmap cells / 2-D bins.</div></li>
+      <li class="mark"><code class="cmd">.mark_rule<span class="p">()</span> · .mark_tick<span class="p">()</span></code><div class="desc">Reference lines · 1-D strip plots.</div></li>
+      <li class="mark"><code class="cmd">.mark_text<span class="p">()</span> · .mark_arc<span class="p">()</span></code><div class="desc">Labels · pie &amp; donut wedges.</div></li>
+      <li class="mark"><code class="cmd">.mark_boxplot<span class="p">()</span> · .mark_geoshape<span class="p">()</span></code><div class="desc">Stats box · maps (also <code>errorband</code>/<code>errorbar</code>).</div></li>
+      <li class="mark"><code class="cmd">.mark_bar<span class="p">(</span>color=<span class="s">"steelblue"</span>, opacity=<span class="n">.7</span><span class="p">)</span></code><div class="desc">A <b>constant</b> style for every mark (not a column).</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 CHANNELS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Encoding Channels</span><span class="card-sub">columns &#8594; visuals</span></div>
+    <ul class="cmds">
+      <li class="enc"><code class="cmd">.encode<span class="p">(</span>x=<span class="s">"a"</span>, y=<span class="s">"b"</span><span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Position — the two you'll use most.</div></li>
+      <li class="enc"><code class="cmd">color=<span class="s">"c"</span></code><span class="star">&#9733;</span><div class="desc">Colour by a column; drives the legend.</div></li>
+      <li class="enc"><code class="cmd">size=<span class="s">"c"</span> · shape=<span class="s">"c"</span> · opacity=<span class="s">"c"</span></code><div class="desc">Bubble size · marker shape · transparency.</div></li>
+      <li class="enc"><code class="cmd">tooltip=<span class="p">[</span><span class="s">"a"</span>, <span class="s">"b"</span><span class="p">]</span></code><span class="star">&#9733;</span><div class="desc">Hover fields — instant interactivity.</div></li>
+      <li class="enc"><code class="cmd">theta=<span class="s">"v"</span> · text=<span class="s">"label"</span></code><div class="desc">Pie angle · text content.</div></li>
+      <li class="enc"><code class="cmd">detail=<span class="s">"id"</span> · order=<span class="s">"seq"</span></code><div class="desc">Group without a visual · draw/stack order.</div></li>
+      <li class="enc"><code class="cmd">column=<span class="s">"c"</span> · row=<span class="s">"c"</span></code><div class="desc">Split into a grid of small multiples.</div></li>
+      <li class="enc"><code class="cmd">x2=<span class="s">"a2"</span> · xOffset=<span class="s">"g"</span></code><div class="desc">Range ends (bars/areas) · grouped bars.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 TYPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Encoding Data Types</span><span class="card-sub">the 4 letters</span></div>
+    <ul class="cmds">
+      <li class="enc"><code class="cmd"><span class="s">":Q"</span> quantitative</code><span class="star">&#9733;</span><div class="desc">Continuous numbers &#8594; continuous axis.</div></li>
+      <li class="enc"><code class="cmd"><span class="s">":N"</span> nominal</code><span class="star">&#9733;</span><div class="desc">Unordered category &#8594; distinct colours.</div></li>
+      <li class="enc"><code class="cmd"><span class="s">":O"</span> ordinal</code><div class="desc">Ordered category &#8594; ordered scale.</div></li>
+      <li class="enc"><code class="cmd"><span class="s">":T"</span> temporal</code><span class="star">&#9733;</span><div class="desc">Dates/times &#8594; time axis. <code>:G</code> = geojson.</div></li>
+      <li class="enc"><code class="cmd">x=<span class="s">"a:Q"</span></code><span class="star">&#9733;</span><div class="desc">Shorthand string — <b>type drives everything</b>.</div></li>
+      <li class="enc"><code class="cmd">alt.X<span class="p">(</span><span class="s">"a"</span>, type=<span class="s">"quantitative"</span><span class="p">)</span></code><div class="desc">The verbose equivalent of <code>"a:Q"</code>.</div></li>
+      <li class="plain"><code class="cmd"><span class="p"># type is auto-inferred from the dtype</span></code><div class="desc">Spell it out when the guess is wrong.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 CHANNEL OPTIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Channel Options</span><span class="card-sub">alt.X, alt.Y, …</span></div>
+    <ul class="cmds">
+      <li class="enc"><code class="cmd">alt.X<span class="p">(</span><span class="s">"a:Q"</span>, scale=alt.Scale<span class="p">(</span>zero=False<span class="p">))</span></code><div class="desc">Don't force the axis to start at 0.</div></li>
+      <li class="enc"><code class="cmd">alt.Y<span class="p">(</span><span class="s">"b:N"</span>, sort=<span class="s">"-x"</span><span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Sort categories by another channel.</div></li>
+      <li class="enc"><code class="cmd">alt.X<span class="p">(</span><span class="s">"a:Q"</span><span class="p">)</span>.title<span class="p">(</span><span class="s">"Speed"</span><span class="p">)</span></code><div class="desc">Fluent per-channel title.</div></li>
+      <li class="enc"><code class="cmd">alt.Color<span class="p">(</span><span class="s">"c:N"</span>, scale=alt.Scale<span class="p">(</span>scheme=<span class="s">"viridis"</span><span class="p">))</span></code><div class="desc">Pick a colour scheme.</div></li>
+      <li class="enc"><code class="cmd">alt.Y<span class="p">(</span><span class="s">"v:Q"</span>, stack=<span class="s">"normalize"</span><span class="p">)</span></code><div class="desc">100% stacked; <code>stack=None</code> to overlap.</div></li>
+      <li class="enc"><code class="cmd">alt.Tooltip<span class="p">(</span><span class="s">"v:Q"</span>, format=<span class="s">".2f"</span><span class="p">)</span></code><div class="desc">Formatted hover value.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 AGGREGATION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Aggregation &amp; Binning</span><span class="card-sub">in the shorthand</span></div>
+    <ul class="cmds">
+      <li class="trans"><code class="cmd">y=<span class="s">"mean(v):Q"</span></code><span class="star">&#9733;</span><div class="desc">Aggregate right inside the field string.</div></li>
+      <li class="trans"><code class="cmd">y=<span class="s">"count():Q"</span></code><span class="star">&#9733;</span><div class="desc">Row count — no field needed.</div></li>
+      <li class="trans"><code class="cmd">y=<span class="s">"sum(v):Q"</span></code><div class="desc">Also <code>median</code>, <code>min</code>, <code>max</code>, <code>stdev</code>, <code>q1</code>.</div></li>
+      <li class="trans"><code class="cmd">alt.X<span class="p">(</span><span class="s">"v:Q"</span>, bin=True<span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Auto-bin for a histogram.</div></li>
+      <li class="trans"><code class="cmd">bin=alt.Bin<span class="p">(</span>maxbins=<span class="n">30</span><span class="p">)</span></code><div class="desc">Control the bin count / step.</div></li>
+      <li class="trans"><code class="cmd">alt.X<span class="p">(</span><span class="s">"date:T"</span>, timeUnit=<span class="s">"yearmonth"</span><span class="p">)</span></code><div class="desc">Bucket time (year, month, hours…).</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 TRANSFORMS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Data Transforms</span><span class="card-sub">reshape in-spec</span></div>
+    <ul class="cmds">
+      <li class="trans"><code class="cmd">.transform_filter<span class="p">(</span>alt.datum.v &gt; <span class="n">5</span><span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Keep matching rows; <code>alt.datum</code> = a row.</div></li>
+      <li class="trans"><code class="cmd">.transform_calculate<span class="p">(</span>z=<span class="s">"datum.x + datum.y"</span><span class="p">)</span></code><div class="desc">Derive a new field.</div></li>
+      <li class="trans"><code class="cmd">.transform_aggregate<span class="p">(</span>m=<span class="s">"mean(v)"</span>, groupby=<span class="p">[</span><span class="s">"c"</span><span class="p">])</span></code><div class="desc">Group-and-summarise.</div></li>
+      <li class="trans"><code class="cmd">.transform_window<span class="p">(</span>r=<span class="s">"rank()"</span>, sort=<span class="p">[</span><span class="a">..</span><span class="p">])</span></code><div class="desc">Running totals, ranks, moving averages.</div></li>
+      <li class="trans"><code class="cmd">.transform_fold<span class="p">(</span><span class="p">[</span><span class="s">"a"</span>,<span class="s">"b"</span><span class="p">]</span>, as_=<span class="p">[</span><span class="s">"key"</span>,<span class="s">"val"</span><span class="p">])</span></code><span class="star">&#9733;</span><div class="desc">Wide &#8594; long to tidy your data.</div></li>
+      <li class="trans"><code class="cmd">.transform_lookup<span class="p">(</span><span class="a">...</span><span class="p">)</span></code><div class="desc">Join fields from another dataset.</div></li>
+      <li class="trans"><code class="cmd">.transform_regression<span class="p">(</span><span class="s">"x"</span>, <span class="s">"y"</span><span class="p">)</span></code><div class="desc">Trend line; also <code>transform_density</code>, <code>_loess</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 SCALES/AXES/LEGENDS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Scales, Axes &amp; Legends</span><span class="card-sub">fine control</span></div>
+    <ul class="cmds">
+      <li class="enc"><code class="cmd">alt.Scale<span class="p">(</span>scheme=<span class="s">"category10"</span><span class="p">)</span></code><div class="desc">Named colour palette.</div></li>
+      <li class="enc"><code class="cmd">alt.Scale<span class="p">(</span>type=<span class="s">"log"</span><span class="p">)</span> · domain=<span class="p">[</span><span class="n">0</span>,<span class="n">100</span><span class="p">]</span></code><div class="desc">Log axis · fixed range.</div></li>
+      <li class="enc"><code class="cmd">alt.Axis<span class="p">(</span>format=<span class="s">"$,.0f"</span>, labelAngle=-<span class="n">45</span><span class="p">)</span></code><div class="desc">Tick format &amp; label rotation.</div></li>
+      <li class="enc"><code class="cmd">alt.Legend<span class="p">(</span>orient=<span class="s">"bottom"</span><span class="p">)</span></code><div class="desc">Move / restyle the legend.</div></li>
+      <li class="enc"><code class="cmd">alt.X<span class="p">(</span><span class="s">"a:Q"</span>, axis=None<span class="p">)</span></code><div class="desc">Hide an axis entirely.</div></li>
+      <li class="enc"><code class="cmd">alt.Color<span class="p">(</span><span class="s">"c:N"</span>, legend=None<span class="p">)</span></code><div class="desc">Drop the legend but keep the colours.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 PROPERTIES / CONFIG -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Properties &amp; Config</span><span class="card-sub">whole-chart looks</span></div>
+    <ul class="cmds">
+      <li class="chart"><code class="cmd">.properties<span class="p">(</span>width=<span class="n">400</span>, height=<span class="n">300</span><span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Set the drawing size.</div></li>
+      <li class="chart"><code class="cmd">.properties<span class="p">(</span>title=<span class="s">"My chart"</span><span class="p">)</span></code><div class="desc">A chart title.</div></li>
+      <li class="chart"><code class="cmd">.properties<span class="p">(</span>width=<span class="s">"container"</span><span class="p">)</span></code><div class="desc">Fill the parent element (responsive).</div></li>
+      <li class="chart"><code class="cmd">.configure_view<span class="p">(</span>strokeWidth=<span class="n">0</span><span class="p">)</span></code><div class="desc">Remove the outer border.</div></li>
+      <li class="chart"><code class="cmd">.configure_axis<span class="p">(</span>labelFontSize=<span class="n">12</span><span class="p">)</span></code><div class="desc">Global axis styling.</div></li>
+      <li class="chart"><code class="cmd">.configure_title<span class="p">(</span>anchor=<span class="s">"start"</span><span class="p">)</span></code><div class="desc">Left-align the title. <code>configure_*</code> = chart-wide.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 COMPOSITION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Composition</span><span class="card-sub">combine charts</span></div>
+    <ul class="cmds">
+      <li class="chart"><code class="cmd">c1 + c2</code><span class="star">&#9733;</span><div class="desc"><b>Layer</b> — overlay (e.g. line + points).</div></li>
+      <li class="chart"><code class="cmd">c1 | c2</code><span class="star">&#9733;</span><div class="desc"><b>hconcat</b> — side by side.</div></li>
+      <li class="chart"><code class="cmd">c1 &amp; c2</code><div class="desc"><b>vconcat</b> — stacked top to bottom.</div></li>
+      <li class="chart"><code class="cmd">alt.layer<span class="p">(</span>c1, c2<span class="p">)</span> · alt.hconcat<span class="p">(</span><span class="a">..</span><span class="p">)</span></code><div class="desc">Function forms of <code>+</code> / <code>|</code> / <code>&amp;</code>.</div></li>
+      <li class="chart"><code class="cmd">chart.facet<span class="p">(</span>column=<span class="s">"c:N"</span>, columns=<span class="n">3</span><span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Small multiples from one column.</div></li>
+      <li class="chart"><code class="cmd">chart.repeat<span class="p">(</span>column=<span class="p">[</span><span class="s">"a"</span>,<span class="s">"b"</span>,<span class="s">"c"</span><span class="p">])</span></code><div class="desc">Repeat a template across fields (SPLOM).</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 PARAMS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Parameters &amp; Selections</span><span class="card-sub">make it live</span></div>
+    <ul class="cmds">
+      <li class="int"><code class="cmd">sel = alt.selection_point<span class="p">()</span></code><span class="star">&#9733;</span><div class="desc">Click to select points.</div></li>
+      <li class="int"><code class="cmd">brush = alt.selection_interval<span class="p">()</span></code><span class="star">&#9733;</span><div class="desc">Drag a rectangle (brush).</div></li>
+      <li class="int"><code class="cmd">chart.add_params<span class="p">(</span>sel<span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Attach a param — <b>replaces</b> <code>add_selection</code>.</div></li>
+      <li class="int"><code class="cmd">alt.selection_point<span class="p">(</span>fields=<span class="p">[</span><span class="s">"Origin"</span><span class="p">]</span>, bind=<span class="s">"legend"</span><span class="p">)</span></code><div class="desc">Clickable, filtering legend.</div></li>
+      <li class="int"><code class="cmd">p = alt.param<span class="p">(</span>bind=alt.binding_range<span class="p">(</span>min=<span class="n">0</span>, max=<span class="n">10</span><span class="p">))</span></code><div class="desc">A slider bound to a variable.</div></li>
+      <li class="int"><code class="cmd">alt.selection_interval<span class="p">(</span>bind=<span class="s">"scales"</span><span class="p">)</span></code><div class="desc">Bind the brush to pan &amp; zoom.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 CONDITIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Conditions: when / then</span><span class="card-sub">react to state</span></div>
+    <ul class="cmds">
+      <li class="int"><code class="cmd">alt.when<span class="p">(</span>sel<span class="p">)</span>.then<span class="p">(</span><span class="s">"Origin:N"</span><span class="p">)</span>.otherwise<span class="p">(</span>alt.value<span class="p">(</span><span class="s">"lightgray"</span><span class="p">))</span></code><span class="star">&#9733;</span><div class="desc">Colour selected rows; grey the rest.</div></li>
+      <li class="int"><code class="cmd">color=alt.when<span class="p">(</span>brush<span class="p">)</span>.then<span class="p">(</span><span class="a">..</span><span class="p">)</span>.otherwise<span class="p">(</span><span class="a">..</span><span class="p">)</span></code><div class="desc">Drop it straight into <code>encode()</code>.</div></li>
+      <li class="int"><code class="cmd">alt.when<span class="p">(</span>alt.datum.v &gt; <span class="n">5</span><span class="p">)</span>.then<span class="p">(</span><span class="a">..</span><span class="p">)</span></code><div class="desc">Condition on a data predicate, not a selection.</div></li>
+      <li class="int"><code class="cmd">.when<span class="p">(</span>a<span class="p">)</span>.then<span class="p">(</span>x<span class="p">)</span>.when<span class="p">(</span>b<span class="p">)</span>.then<span class="p">(</span>y<span class="p">)</span></code><div class="desc">Chain multiple conditions.</div></li>
+      <li class="int"><code class="cmd">alt.value<span class="p">(</span><span class="s">"red"</span><span class="p">)</span></code><div class="desc">A literal constant (not a column reference).</div></li>
+      <li class="danger"><code class="cmd">alt.condition<span class="p">(</span>sel, a, b<span class="p">)</span></code><span class="badge-danger">older</span><div class="desc">Pre-5.5 style; <code>when/then</code> is preferred now.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 INTERACTIVITY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Interactivity Patterns</span><span class="card-sub">put it together</span></div>
+    <ul class="cmds">
+      <li class="int"><code class="cmd">chart.interactive<span class="p">()</span></code><span class="star">&#9733;</span><div class="desc">One-call pan + zoom.</div></li>
+      <li class="int"><code class="cmd">lower.transform_filter<span class="p">(</span>brush<span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Filter one chart by a brush in another.</div></li>
+      <li class="int"><code class="cmd">points.add_params<span class="p">(</span>brush<span class="p">)</span> <span class="p">+ shared data</span></code><div class="desc">Two charts, one param &#8594; linked brushing.</div></li>
+      <li class="int"><code class="cmd">bind=<span class="s">"legend"</span></code><div class="desc">Turn the legend into a filter control.</div></li>
+      <li class="plain"><code class="cmd"><span class="p"># selection &#8594; filter is the core idiom</span></code><div class="desc">Select in one view, drive another.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 THEMES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Themes</span><span class="card-sub">global styling</span></div>
+    <ul class="cmds">
+      <li class="chart"><code class="cmd">alt.theme.enable<span class="p">(</span><span class="s">"dark"</span><span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Apply to every chart in the session.</div></li>
+      <li class="chart"><code class="cmd">alt.theme.names<span class="p">()</span></code><div class="desc">List built-ins: <code>default</code>, <code>fivethirtyeight</code>, <code>ggplot2</code>, <code>vox</code>…</div></li>
+      <li class="chart"><code class="cmd">alt.theme.active</code><div class="desc">The name currently in effect.</div></li>
+      <li class="chart"><code class="cmd">@alt.theme.register<span class="p">(</span><span class="s">"my"</span>, enable=True<span class="p">)</span></code><div class="desc">Register a reusable custom theme.</div></li>
+      <li class="danger"><code class="cmd">alt.themes.enable<span class="p">(</span><span class="a">..</span><span class="p">)</span></code><span class="badge-danger">old</span><div class="desc">Pre-5.5 API — now <code>alt.theme</code> (singular).</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 SAVE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Save &amp; Publish</span><span class="card-sub">get it out</span></div>
+    <ul class="cmds">
+      <li class="chart"><code class="cmd">chart.save<span class="p">(</span><span class="s">"chart.html"</span><span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Standalone interactive HTML (needs no extras).</div></li>
+      <li class="chart"><code class="cmd">chart.save<span class="p">(</span><span class="s">"chart.png"</span><span class="p">)</span></code><div class="desc">Raster; needs <code>vl-convert-python</code>.</div></li>
+      <li class="chart"><code class="cmd">chart.save<span class="p">(</span><span class="s">"chart.svg"</span><span class="p">)</span></code><div class="desc">Vector; also <code>.pdf</code> via vl-convert.</div></li>
+      <li class="chart"><code class="cmd">chart.to_json<span class="p">()</span></code><span class="star">&#9733;</span><div class="desc">The Vega-Lite spec — the source of truth.</div></li>
+      <li class="chart"><code class="cmd">chart.to_dict<span class="p">()</span></code><div class="desc">Same spec as a Python dict.</div></li>
+      <li class="chart"><code class="cmd">chart.save<span class="p">(</span><span class="s">"c.html"</span>, inline=True<span class="p">)</span></code><div class="desc">Bundle the JS so it works offline.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 RECIPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Common Chart Recipes</span><span class="card-sub">copy &amp; adapt</span></div>
+    <ul class="cmds">
+      <li class="mark"><code class="cmd"><span class="p">scatter:</span> mark_point<span class="p">()</span>.encode<span class="p">(</span>x=<span class="s">"a:Q"</span>, y=<span class="s">"b:Q"</span><span class="p">)</span></code><div class="desc">Two quantitative fields.</div></li>
+      <li class="mark"><code class="cmd"><span class="p">bar:</span> mark_bar<span class="p">()</span>.encode<span class="p">(</span>x=<span class="s">"c:N"</span>, y=<span class="s">"sum(v):Q"</span><span class="p">)</span></code><div class="desc">Category vs aggregate.</div></li>
+      <li class="mark"><code class="cmd"><span class="p">line:</span> mark_line<span class="p">()</span>.encode<span class="p">(</span>x=<span class="s">"d:T"</span>, y=<span class="s">"v:Q"</span>, color=<span class="s">"s:N"</span><span class="p">)</span></code><div class="desc">Time series, one line per series.</div></li>
+      <li class="mark"><code class="cmd"><span class="p">histogram:</span> mark_bar<span class="p">()</span>.encode<span class="p">(</span>alt.X<span class="p">(</span><span class="s">"v:Q"</span>, bin=True<span class="p">)</span>, y=<span class="s">"count()"</span><span class="p">)</span></code><div class="desc">Binned + counted.</div></li>
+      <li class="mark"><code class="cmd"><span class="p">heatmap:</span> mark_rect<span class="p">()</span>.encode<span class="p">(</span>x=<span class="s">"a:O"</span>, y=<span class="s">"b:O"</span>, color=<span class="s">"mean(v):Q"</span><span class="p">)</span></code><div class="desc">Two categories + a colour value.</div></li>
+      <li class="mark"><code class="cmd"><span class="p">pie:</span> mark_arc<span class="p">()</span>.encode<span class="p">(</span>theta=<span class="s">"v:Q"</span>, color=<span class="s">"c:N"</span><span class="p">)</span></code><div class="desc">Angle by value; also <code>mark_boxplot</code> for stats.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 DATA / GOTCHAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Data &amp; Big-Data Tips</span><span class="card-sub">avoid the traps</span></div>
+    <ul class="cmds">
+      <li class="trans"><code class="cmd"><span class="p"># data must be tidy / long</span></code><span class="star">&#9733;</span><div class="desc">One row per observation; <code>transform_fold</code> to reshape.</div></li>
+      <li class="trans"><code class="cmd">alt.Chart<span class="p">(</span><span class="s">"data.csv"</span><span class="p">)</span></code><div class="desc">URL data isn't embedded &#8594; sidesteps the row cap.</div></li>
+      <li class="trans"><code class="cmd">alt.data_transformers.enable<span class="p">(</span><span class="s">"vegafusion"</span><span class="p">)</span></code><div class="desc">Handle large datasets efficiently.</div></li>
+      <li class="trans"><code class="cmd">alt.data_transformers.disable_max_rows<span class="p">()</span></code><div class="desc">Override the 5,000-row guard (embeds all rows).</div></li>
+      <li class="danger"><code class="cmd">MaxRowsError</code><span class="badge-danger">gotcha</span><div class="desc">Default cap is 5,000 rows — see the two lines above.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four ideas that make the grammar click</h2>
+  <p class="sub">The mental model Altair is built on — the three-part recipe, channels as a mapping from data to visuals, the shorthand string, and how small charts compose into big ones. Based on the Vega-Lite / Altair user-guide reference figures.</p>
+  <div class="merge-grid">
+
+    <!-- 1: data + mark + encoding = chart -->
+    <div class="merge-card">
+      <h3>data + mark + encoding = chart</h3>
+      <p>Three ingredients. Swap any one and you get a different chart from the same grammar.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A tidy data table plus a bar mark plus x and y encodings equals a bar chart.">
+        <g font-family="JetBrains Mono, monospace" font-size="10">
+          <!-- data -->
+          <rect x="6" y="34" width="78" height="82" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.5"/>
+          <text x="18" y="50" fill="#4f46e5" font-weight="700">a</text>
+          <text x="56" y="50" fill="#4f46e5" font-weight="700">b</text>
+          <line x1="12" y1="56" x2="78" y2="56" stroke="#c7ccf5"/>
+          <text x="18" y="72" fill="#3f444f">C</text><text x="56" y="72" fill="#3f444f">4</text>
+          <text x="18" y="89" fill="#3f444f">D</text><text x="56" y="89" fill="#3f444f">3</text>
+          <text x="18" y="106" fill="#3f444f">E</text><text x="56" y="106" fill="#3f444f">6</text>
+          <text x="12" y="24" fill="#6b7280">data</text>
+        </g>
+        <text x="96" y="82" font-size="18" fill="#1a1d24" font-family="JetBrains Mono, monospace">+</text>
+        <!-- mark -->
+        <g>
+          <text x="114" y="24" font-size="10" fill="#6b7280" font-family="JetBrains Mono, monospace">mark</text>
+          <rect x="116" y="70" width="12" height="40" fill="#059669" fill-opacity="0.6" stroke="#059669"/>
+          <rect x="132" y="55" width="12" height="55" fill="#059669" fill-opacity="0.6" stroke="#059669"/>
+          <text x="112" y="126" font-size="8.5" fill="#059669" font-family="JetBrains Mono, monospace">bar</text>
+        </g>
+        <text x="156" y="82" font-size="18" fill="#1a1d24" font-family="JetBrains Mono, monospace">+</text>
+        <!-- encoding -->
+        <g font-family="JetBrains Mono, monospace" font-size="9">
+          <text x="176" y="24" fill="#6b7280">encoding</text>
+          <text x="176" y="66" fill="#d97706">x = a:N</text>
+          <text x="176" y="84" fill="#d97706">y = b:Q</text>
+        </g>
+        <text x="250" y="82" font-size="18" fill="#1a1d24" font-family="JetBrains Mono, monospace">=</text>
+        <!-- chart -->
+        <g>
+          <text x="276" y="24" font-size="10" fill="#6b7280" font-family="JetBrains Mono, monospace">chart</text>
+          <line x1="276" y1="116" x2="392" y2="116" stroke="#1a1d24" stroke-width="1.5"/>
+          <line x1="276" y1="34" x2="276" y2="116" stroke="#1a1d24" stroke-width="1.5"/>
+          <rect x="292" y="80" width="20" height="36" fill="#059669" fill-opacity="0.6" stroke="#059669"/>
+          <rect x="326" y="64" width="20" height="52" fill="#059669" fill-opacity="0.6" stroke="#059669"/>
+          <rect x="360" y="48" width="20" height="68" fill="#059669" fill-opacity="0.6" stroke="#059669"/>
+          <text x="302" y="128" font-size="8" fill="#6b7280" font-family="JetBrains Mono, monospace">C</text>
+          <text x="336" y="128" font-size="8" fill="#6b7280" font-family="JetBrains Mono, monospace">D</text>
+          <text x="370" y="128" font-size="8" fill="#6b7280" font-family="JetBrains Mono, monospace">E</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- 2: channels map -->
+    <div class="merge-card">
+      <h3>channels: columns &#8594; visual properties</h3>
+      <p>Each <code>encode()</code> key wires one data column to one visual property. That mapping <em>is</em> the chart.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Data columns Horsepower, MPG, and Origin map through the x, y, and color channels onto a coloured scatter plot.">
+        <g font-family="JetBrains Mono, monospace" font-size="9">
+          <!-- columns -->
+          <text x="8" y="20" fill="#6b7280">columns</text>
+          <rect x="8" y="28" width="96" height="22" rx="4" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.2"/>
+          <text x="16" y="43" fill="#3f444f">Horsepower</text>
+          <rect x="8" y="60" width="96" height="22" rx="4" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.2"/>
+          <text x="16" y="75" fill="#3f444f">MPG</text>
+          <rect x="8" y="92" width="96" height="22" rx="4" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.2"/>
+          <text x="16" y="107" fill="#3f444f">Origin</text>
+          <!-- channels -->
+          <text x="150" y="20" fill="#6b7280">channels</text>
+          <rect x="150" y="28" width="60" height="22" rx="4" fill="#fdf6ec" stroke="#d97706" stroke-width="1.2"/>
+          <text x="172" y="43" fill="#b45309">x</text>
+          <rect x="150" y="60" width="60" height="22" rx="4" fill="#fdf6ec" stroke="#d97706" stroke-width="1.2"/>
+          <text x="172" y="75" fill="#b45309">y</text>
+          <rect x="150" y="92" width="60" height="22" rx="4" fill="#fdf6ec" stroke="#d97706" stroke-width="1.2"/>
+          <text x="164" y="107" fill="#b45309">color</text>
+          <!-- arrows cols->channels -->
+          <line x1="104" y1="39" x2="148" y2="39" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#ar2)"/>
+          <line x1="104" y1="71" x2="148" y2="71" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#ar2)"/>
+          <line x1="104" y1="103" x2="148" y2="103" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#ar2)"/>
+          <!-- plot -->
+          <line x1="256" y1="120" x2="392" y2="120" stroke="#1a1d24" stroke-width="1.3"/>
+          <line x1="256" y1="28" x2="256" y2="120" stroke="#1a1d24" stroke-width="1.3"/>
+          <circle cx="280" cy="96" r="5" fill="#4c78a8" fill-opacity="0.75"/>
+          <circle cx="312" cy="72" r="5" fill="#f58518" fill-opacity="0.8"/>
+          <circle cx="340" cy="52" r="5" fill="#54a24b" fill-opacity="0.8"/>
+          <circle cx="366" cy="84" r="5" fill="#4c78a8" fill-opacity="0.75"/>
+          <line x1="212" y1="60" x2="254" y2="90" stroke="#d97706" stroke-width="1.1" stroke-dasharray="3 2" marker-end="url(#ar2)"/>
+        </g>
+        <defs>
+          <marker id="ar2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+
+    <!-- 3: shorthand string -->
+    <div class="merge-card">
+      <h3>the shorthand string</h3>
+      <p>One field string packs three ideas. Learn to read it and most Altair code becomes obvious.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The shorthand 'mean(price):Q' breaks into aggregate 'mean', field 'price', and type ':Q' quantitative; the four types are Q, N, O, and T.">
+        <g font-family="JetBrains Mono, monospace">
+          <text x="60" y="46" font-size="16" fill="#059669" font-weight="700">"mean(price):Q"</text>
+          <!-- brackets -->
+          <text x="63" y="60" font-size="9" fill="#7c3aed">&#9472;&#9472;&#9472;&#9472;</text>
+          <text x="112" y="60" font-size="9" fill="#4f46e5">&#9472;&#9472;&#9472;&#9472;&#9472;</text>
+          <text x="176" y="60" font-size="9" fill="#d97706">&#9472;&#9472;</text>
+          <text x="55" y="74" font-size="8.5" fill="#7c3aed">aggregate</text>
+          <text x="108" y="74" font-size="8.5" fill="#4f46e5">field</text>
+          <text x="168" y="74" font-size="8.5" fill="#d97706">type</text>
+        </g>
+        <line x1="20" y1="90" x2="380" y2="90" stroke="#e7e3db"/>
+        <g font-family="JetBrains Mono, monospace" font-size="10">
+          <rect x="20" y="102" width="84" height="34" rx="5" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/>
+          <text x="32" y="118" fill="#b45309" font-weight="700">:Q</text><text x="32" y="131" fill="#6b7280" font-size="8">quantitative</text>
+          <rect x="112" y="102" width="84" height="34" rx="5" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/>
+          <text x="124" y="118" fill="#b45309" font-weight="700">:N</text><text x="124" y="131" fill="#6b7280" font-size="8">nominal</text>
+          <rect x="204" y="102" width="84" height="34" rx="5" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/>
+          <text x="216" y="118" fill="#b45309" font-weight="700">:O</text><text x="216" y="131" fill="#6b7280" font-size="8">ordinal</text>
+          <rect x="296" y="102" width="84" height="34" rx="5" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/>
+          <text x="308" y="118" fill="#b45309" font-weight="700">:T</text><text x="308" y="131" fill="#6b7280" font-size="8">temporal</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- 4: composition operators -->
+    <div class="merge-card">
+      <h3>composition operators</h3>
+      <p><code>+</code> stacks charts in the same frame; <code>|</code> and <code>&amp;</code> place whole charts beside or below each other.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three composition operators: plus overlays two charts as layers, pipe places two charts side by side, ampersand stacks two charts vertically.">
+        <g font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">
+          <!-- layer + -->
+          <text x="66" y="22" fill="#4f46e5" font-weight="700">c1 + c2</text>
+          <rect x="34" y="34" width="64" height="60" rx="5" fill="#fff" stroke="#4f46e5" stroke-width="1.4"/>
+          <polyline points="42,86 58,64 74,72 90,48" fill="none" stroke="#4c78a8" stroke-width="2"/>
+          <circle cx="42" cy="86" r="3" fill="#f58518"/><circle cx="58" cy="64" r="3" fill="#f58518"/>
+          <circle cx="74" cy="72" r="3" fill="#f58518"/><circle cx="90" cy="48" r="3" fill="#f58518"/>
+          <text x="66" y="110" fill="#6b7280" font-size="8.5">layer / overlay</text>
+          <!-- hconcat | -->
+          <text x="200" y="22" fill="#4f46e5" font-weight="700">c1 | c2</text>
+          <rect x="162" y="34" width="34" height="60" rx="5" fill="#fff" stroke="#4f46e5" stroke-width="1.4"/>
+          <rect x="204" y="34" width="34" height="60" rx="5" fill="#fff" stroke="#4f46e5" stroke-width="1.4"/>
+          <rect x="168" y="60" width="8" height="28" fill="#54a24b" fill-opacity="0.7"/>
+          <rect x="181" y="48" width="8" height="40" fill="#54a24b" fill-opacity="0.7"/>
+          <circle cx="214" cy="76" r="3" fill="#4c78a8"/><circle cx="223" cy="60" r="3" fill="#4c78a8"/><circle cx="231" cy="68" r="3" fill="#4c78a8"/>
+          <text x="200" y="110" fill="#6b7280" font-size="8.5">hconcat</text>
+          <!-- vconcat -->
+          <text x="332" y="22" fill="#4f46e5" font-weight="700">c1 &amp; c2</text>
+          <rect x="304" y="34" width="56" height="26" rx="5" fill="#fff" stroke="#4f46e5" stroke-width="1.4"/>
+          <rect x="304" y="66" width="56" height="26" rx="5" fill="#fff" stroke="#4f46e5" stroke-width="1.4"/>
+          <polyline points="310,54 322,44 334,50 352,40" fill="none" stroke="#4c78a8" stroke-width="1.6"/>
+          <rect x="312" y="74" width="7" height="14" fill="#54a24b" fill-opacity="0.7"/>
+          <rect x="323" y="70" width="7" height="18" fill="#54a24b" fill-opacity="0.7"/>
+          <rect x="334" y="78" width="7" height="10" fill="#54a24b" fill-opacity="0.7"/>
+          <text x="332" y="110" fill="#6b7280" font-size="8.5">vconcat</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">data must be tidy</span><span class="v">one row per observation; <code>transform_fold</code> reshapes wide&#8594;long</span></div>
+    <div><span class="k">:Q :N :O :T</span><span class="v">the type sets axis kind, colour scale &amp; sorting</span></div>
+    <div><span class="k">add_params, not add_selection</span><span class="v">renamed in Altair 5</span></div>
+    <div><span class="k">when / then / otherwise</span><span class="v">the modern replacement for <code>alt.condition()</code></span></div>
+    <div><span class="k">selection_point / _interval</span><span class="v">replaced <code>selection_single</code> / <code>selection_multi</code></span></div>
+    <div><span class="k">+ | &amp;</span><span class="v"><code>+</code> layer &nbsp;·&nbsp; <code>|</code> hconcat &nbsp;·&nbsp; <code>&amp;</code> vconcat</span></div>
+    <div><span class="k">MaxRowsError @ 5000</span><span class="v"><code>enable("vegafusion")</code> or <code>disable_max_rows()</code></span></div>
+    <div><span class="k">.save png/svg</span><span class="v">needs <code>vl-convert-python</code>; HTML needs nothing</span></div>
+    <div><span class="k">mark(color) &#8800; encode(color)</span><span class="v">a constant style vs a mapped column</span></div>
+    <div><span class="k">alt.value(x)</span><span class="v">a literal constant, never a column name</span></div>
+    <div><span class="k">alt.theme.enable()</span><span class="v">singular <code>theme</code> since 5.5 (was <code>themes</code>)</span></div>
+    <div><span class="k">to_json() escape hatch</span><span class="v">edit raw Vega-Lite when Altair lags a feature</span></div>
+  </div>
+</section>
+
+<footer>
+  Altair cheat sheet · synthesized from the official Vega-Altair 6.2 documentation (altair-viz.github.io — Getting Started, User Guide &amp; API), the Vega-Lite docs, github.com/vega/altair, and the UW Interactive Data Lab visualization curriculum.<br>
+  API shown for Altair &#8776; 6.x · prefer <code>alt.when().then().otherwise()</code>, <code>add_params()</code>, and <code>alt.theme.enable()</code> · Altair is a Python interface to Vega-Lite, so <code>to_json()</code> is always your escape hatch to the underlying grammar.
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dask Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b;    --setup-bg:#f1f3f6;
+    --build:#d97706;    --build-bg:#fdf6ec;
+    --transform:#059669;--transform-bg:#ecf7f2;
+    --execute:#4f46e5;  --execute-bg:#eef0fd;
+    --cluster:#7c3aed;  --cluster-bg:#f4effe;
+    --danger:#dc2626;   --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .dask{font-family:var(--mono); color:var(--transform)}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede code{font-family:var(--mono); font-size:.9em; background:#eef0fd; color:var(--execute); padding:.05em .3em; border-radius:4px}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)} .dot.build{background:var(--build)}
+  .dot.transform{background:var(--transform)} .dot.execute{background:var(--execute)}
+  .dot.cluster{background:var(--cluster)} .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.build{border-left-color:var(--build)}
+  ul.cmds li.transform{border-left-color:var(--transform)}
+  ul.cmds li.execute{border-left-color:var(--execute)}
+  ul.cmds li.cluster{border-left-color:var(--cluster)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.82rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .mod{color:var(--cluster); font-weight:700}
+  code.cmd .arg{color:var(--execute); font-weight:400}
+  code.cmd .kw{color:var(--star)}
+  code.cmd .cm{color:var(--muted); font-weight:400; font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  li.danger code.cmd .mod,li.danger code.cmd .arg,li.danger code.cmd .kw{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; color:var(--ink)}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-lazy{
+    color:var(--transform); font-size:.62rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.04em; margin-left:.35rem;
+    border:1px solid var(--transform); border-radius:4px; padding:0 .28rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#e8e6e1; background:#2b2f39; padding:0 .3em; border-radius:4px}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:var(--ink)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · parallel &amp; distributed computing in Python</div>
+  <h1><span class="dask">dask</span> cheat sheet</h1>
+  <p class="lede">Dask has three moving parts: a <b>collection</b> (a DataFrame, array, or bag split into many small pieces) records the operations you ask for into a lazy <b>task graph</b>, and a <b>scheduler</b> runs that graph in parallel. Nothing actually runs until you call <code>.compute()</code>. Learn that one loop and the whole API stops being a list to memorize.</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>setup / import</span>
+    <span><i class="dot build"></i>create / load</span>
+    <span><i class="dot transform"></i>transform (lazy)</span>
+    <span><i class="dot execute"></i>execute / trigger</span>
+    <span><i class="dot cluster"></i>cluster / scheduler</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>docs.dask.org</b> · <b>distributed.dask.org</b> · <b>ml.dask.org</b> · <b>Dask cheat sheet (dask/dask)</b> · <b>Anaconda</b> · <b>Coiled</b> · <b>Saturn Cloud</b> &nbsp;— Verified 2026-08-26 against Dask 2026.8 (CalVer)</p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The mental model · collection → lazy task graph → scheduler → result</div>
+  <svg class="flow-svg" viewBox="0 0 1120 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dask pipeline: your data becomes a partitioned collection, which records a lazy task graph, which a scheduler executes in parallel when you call compute, producing a concrete result. persist keeps the result in memory as a Dask object.">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="arrowv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+      </marker>
+    </defs>
+
+    <!-- boxes -->
+    <g>
+      <rect x="20"  y="132" width="180" height="112" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="110" y="176" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Your data</text>
+      <text x="110" y="196" text-anchor="middle" font-size="11" fill="#64748b">CSV · Parquet · arrays</text>
+      <text x="110" y="212" text-anchor="middle" font-size="11" fill="#64748b">plain Python code</text>
+    </g>
+    <g>
+      <rect x="240" y="132" width="180" height="112" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="330" y="170" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Collection</text>
+      <text x="330" y="190" text-anchor="middle" font-size="11" fill="#b45309">dataframe · array</text>
+      <text x="330" y="205" text-anchor="middle" font-size="11" fill="#b45309">bag · delayed</text>
+      <text x="330" y="224" text-anchor="middle" font-size="10" fill="#b45309">split into partitions</text>
+    </g>
+    <g>
+      <rect x="460" y="132" width="180" height="112" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="550" y="176" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Task Graph</text>
+      <text x="550" y="196" text-anchor="middle" font-size="11" fill="#059669">a lazy DAG of tasks</text>
+      <text x="550" y="212" text-anchor="middle" font-size="11" fill="#059669">.visualize()</text>
+    </g>
+    <g>
+      <rect x="680" y="132" width="196" height="112" rx="12" fill="#f4effe" stroke="#7c3aed" stroke-width="2"/>
+      <text x="778" y="170" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Scheduler</text>
+      <text x="778" y="190" text-anchor="middle" font-size="11" fill="#7c3aed">threads · processes</text>
+      <text x="778" y="205" text-anchor="middle" font-size="11" fill="#7c3aed">distributed Client()</text>
+      <text x="778" y="224" text-anchor="middle" font-size="10" fill="#7c3aed">runs tasks in parallel</text>
+    </g>
+    <g>
+      <rect x="916" y="132" width="184" height="112" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="1008" y="176" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Result</text>
+      <text x="1008" y="196" text-anchor="middle" font-size="11" fill="#4f46e5">pandas · numpy</text>
+      <text x="1008" y="212" text-anchor="middle" font-size="11" fill="#4f46e5">list · scalar</text>
+    </g>
+
+    <!-- forward arrows -->
+    <line x1="200" y1="188" x2="238" y2="188" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="219" y="120" text-anchor="middle" font-size="10.5" font-weight="700" fill="#d97706">read_csv</text>
+    <text x="219" y="132" text-anchor="middle" font-size="9" fill="#b45309">from_array</text>
+
+    <line x1="420" y1="188" x2="458" y2="188" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="439" y="120" text-anchor="middle" font-size="10.5" font-weight="700" fill="#059669">lazy ops</text>
+    <text x="439" y="132" text-anchor="middle" font-size="9" fill="#059669">groupby…</text>
+
+    <line x1="640" y1="188" x2="678" y2="188" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="659" y="122" text-anchor="middle" font-size="9.5" fill="#7c3aed">submit</text>
+
+    <line x1="876" y1="188" x2="914" y2="188" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="895" y="120" text-anchor="middle" font-size="10.5" font-weight="700" fill="#4f46e5">.compute()</text>
+    <text x="895" y="132" text-anchor="middle" font-size="9" fill="#4f46e5">materialize</text>
+
+    <!-- persist loopback -->
+    <path d="M778 244 L778 300 L330 300 L330 246" fill="none" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrowv)"/>
+    <text x="554" y="318" text-anchor="middle" font-size="10.5" font-weight="600" fill="#7c3aed">.persist()  —  run now, but keep the result in memory as a Dask object (not a concrete one)</text>
+
+    <!-- lazy / eager bracket -->
+    <line x1="20" y1="96" x2="876" y2="96" stroke="#059669" stroke-width="1.4"/>
+    <line x1="20" y1="92" x2="20" y2="100" stroke="#059669" stroke-width="1.4"/>
+    <line x1="876" y1="92" x2="876" y2="100" stroke="#059669" stroke-width="1.4"/>
+    <text x="448" y="86" text-anchor="middle" font-size="10.5" letter-spacing="2" fill="#059669">LAZY — nothing has run yet, only a graph is built</text>
+
+    <line x1="916" y1="96" x2="1100" y2="96" stroke="#4f46e5" stroke-width="1.4"/>
+    <line x1="916" y1="92" x2="916" y2="100" stroke="#4f46e5" stroke-width="1.4"/>
+    <line x1="1100" y1="92" x2="1100" y2="100" stroke="#4f46e5" stroke-width="1.4"/>
+    <text x="1008" y="86" text-anchor="middle" font-size="10.5" letter-spacing="1.5" fill="#4f46e5">EAGER</text>
+  </svg>
+</section>
+
+<!-- ============ COMMAND CARDS ============ -->
+<main>
+
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Import</span><span class="card-sub">once per environment</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">pip install <span class="arg">"dask[complete]"</span></code><span class="star">★</span><div class="desc">Full install — array/dataframe/bag + <code>distributed</code>.</div></li>
+      <li class="setup"><code class="cmd">conda install dask <span class="kw">-c</span> conda-forge</code><div class="desc">Same, via conda-forge.</div></li>
+      <li class="setup"><code class="cmd">import <span class="mod">dask.dataframe</span> as dd</code><span class="star">★</span><div class="desc">pandas at scale.</div></li>
+      <li class="setup"><code class="cmd">import <span class="mod">dask.array</span> as da</code><div class="desc">NumPy at scale.</div></li>
+      <li class="setup"><code class="cmd">import <span class="mod">dask.bag</span> as db</code><div class="desc">Messy / semi-structured data.</div></li>
+      <li class="setup"><code class="cmd">import <span class="mod">dask</span></code><div class="desc">For <code>delayed</code> &amp; <code>dask.compute</code>.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">dask</span>.__version__</code><div class="desc">CalVer, e.g. <code>'2026.8.0'</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 PICK A COLLECTION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">★</span><span class="card-title">Pick a Collection</span><span class="card-sub">which API do I want?</span></div>
+    <ul class="cmds">
+      <li class="build"><code class="cmd"><span class="mod">dask.dataframe</span></code><span class="star">★</span><div class="desc">Bigger-than-memory / many <b>pandas</b> frames.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">dask.array</span></code><span class="star">★</span><div class="desc">Large N-dimensional <b>NumPy</b> arrays.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">dask.bag</span></code><div class="desc">JSON/log/text objects — pre-DataFrame ETL.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">dask.delayed</span></code><span class="star">★</span><div class="desc">Wrap <b>arbitrary Python</b> into a custom graph.</div></li>
+      <li class="cluster"><code class="cmd"><span class="mod">distributed</span> futures</code><div class="desc">Real-time, eager tasks (needs a <code>Client</code>).</div></li>
+      <li class="cluster"><code class="cmd"><span class="mod">dask_ml</span></code><div class="desc">Scalable scikit-learn-style ML.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 DATAFRAME LOAD -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">DataFrame · Load &amp; Save</span><span class="card-sub">read with Dask</span></div>
+    <ul class="cmds">
+      <li class="build"><code class="cmd"><span class="mod">dd</span>.read_csv(<span class="arg">"data/*.csv"</span>)</code><span class="star">★</span><div class="desc">Many files → one lazy DataFrame (globs OK).</div></li>
+      <li class="build"><code class="cmd"><span class="mod">dd</span>.read_parquet(<span class="arg">"data/"</span>)</code><span class="star">★</span><div class="desc">Preferred format — columnar, splittable.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">dd</span>.read_parquet(p, <span class="kw">columns=</span><span class="arg">[...]</span>)</code><div class="desc">Column projection — reads far less.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">dd</span>.from_pandas(df, <span class="kw">npartitions=</span><span class="arg">8</span>)</code><div class="desc">Split an in-memory pandas frame.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">dd</span>.read_sql_table(<span class="arg">…</span>)</code><div class="desc">Pull from a database in parallel.</div></li>
+      <li class="build"><code class="cmd">ddf.to_parquet(<span class="arg">"out/"</span>)</code><span class="star">★</span><div class="desc">Write one Parquet file per partition.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 DATAFRAME TRANSFORM -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">DataFrame · Transform</span><span class="card-sub">pandas API, lazy</span></div>
+    <ul class="cmds">
+      <li class="transform"><code class="cmd">ddf[ddf.x &gt; <span class="arg">0</span>]</code><span class="star">★</span><span class="badge-lazy">lazy</span><div class="desc">Boolean row filter — same as pandas.</div></li>
+      <li class="transform"><code class="cmd">ddf.groupby(<span class="arg">"k"</span>).y.mean()</code><span class="star">★</span><div class="desc">Split-apply-combine across partitions.</div></li>
+      <li class="transform"><code class="cmd">ddf.assign(<span class="kw">z=</span>ddf.x + ddf.y)</code><div class="desc">Add a derived column.</div></li>
+      <li class="transform"><code class="cmd">ddf.merge(other, <span class="kw">on=</span><span class="arg">"id"</span>)</code><div class="desc">Join — a <b>shuffle</b> unless index-aligned.</div></li>
+      <li class="transform"><code class="cmd">ddf.x.value_counts()</code><div class="desc">Frequency table of a column.</div></li>
+      <li class="transform"><code class="cmd">ddf.map_partitions(<span class="arg">func</span>)</code><span class="star">★</span><div class="desc">Run a pandas function on <b>each</b> partition.</div></li>
+      <li class="transform"><code class="cmd">ddf.optimize() &nbsp;/ ddf.pprint()</code><span class="badge-lazy">query plan</span><div class="desc"><b>dask-expr</b> is the default engine (since 2024.3): column projection &amp; predicate pushdown run automatically. Inspect the optimized plan with <code>.optimize()</code>/<code>.pprint()</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 ARRAY CREATE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Array · Create</span><span class="card-sub">NumPy in chunks</span></div>
+    <ul class="cmds">
+      <li class="build"><code class="cmd"><span class="mod">da</span>.from_array(x, <span class="kw">chunks=</span><span class="arg">(1000,1000)</span>)</code><span class="star">★</span><div class="desc">Wrap a NumPy / HDF5 / Zarr array.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">da</span>.ones(<span class="arg">(10000,10000)</span>, <span class="kw">chunks=</span><span class="arg">1000</span>)</code><div class="desc"><code>ones</code>/<code>zeros</code>/<code>full</code>/<code>arange</code>, chunked.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">da</span>.random.random(<span class="arg">(10000,10000)</span>)</code><span class="star">★</span><div class="desc">Chunked random data for testing.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">da</span>.from_zarr(<span class="arg">"data.zarr"</span>)</code><div class="desc">Cloud-friendly, chunk-aligned reads.</div></li>
+      <li class="transform"><code class="cmd">x.chunks</code><div class="desc">Inspect the chunk grid (tuple of tuples).</div></li>
+      <li class="transform"><code class="cmd">x.rechunk(<span class="arg">(2000,2000)</span>)</code><div class="desc">Re-tile — may move data between chunks.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 ARRAY COMPUTE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Array · Operate</span><span class="card-sub">NumPy API, lazy</span></div>
+    <ul class="cmds">
+      <li class="transform"><code class="cmd">x + x.T</code><span class="star">★</span><span class="badge-lazy">lazy</span><div class="desc">Elementwise math &amp; broadcasting.</div></li>
+      <li class="transform"><code class="cmd">x.mean(<span class="kw">axis=</span><span class="arg">0</span>)</code><span class="star">★</span><div class="desc">Reductions along axes (<code>sum</code>, <code>std</code>…).</div></li>
+      <li class="transform"><code class="cmd">x @ y</code><div class="desc">Matrix multiply / dot product.</div></li>
+      <li class="transform"><code class="cmd"><span class="mod">da</span>.linalg.svd(x)</code><div class="desc">Parallel linear algebra, QR, etc.</div></li>
+      <li class="transform"><code class="cmd">x.map_blocks(<span class="arg">func</span>)</code><span class="star">★</span><div class="desc">Apply a NumPy function per chunk.</div></li>
+      <li class="transform"><code class="cmd"><span class="mod">da</span>.map_overlap(f, x, <span class="kw">depth=</span><span class="arg">1</span>)</code><div class="desc">Stencils — shares a halo of neighbor rows.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 BAG -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Bag · Messy Data</span><span class="card-sub">JSON, logs, objects</span></div>
+    <ul class="cmds">
+      <li class="build"><code class="cmd"><span class="mod">db</span>.read_text(<span class="arg">"*.json"</span>)</code><span class="star">★</span><div class="desc">Lines of text → a bag of strings.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">db</span>.from_sequence(seq, <span class="kw">npartitions=</span><span class="arg">4</span>)</code><div class="desc">Any Python iterable → a bag.</div></li>
+      <li class="transform"><code class="cmd">b.map(<span class="arg">json.loads</span>)</code><span class="star">★</span><div class="desc">Apply a function to every element.</div></li>
+      <li class="transform"><code class="cmd">b.filter(<span class="arg">lambda d: d["ok"]</span>)</code><div class="desc">Keep elements passing a predicate.</div></li>
+      <li class="transform"><code class="cmd">b.pluck(<span class="arg">"name"</span>)</code><div class="desc">Grab one field from each dict.</div></li>
+      <li class="transform"><code class="cmd">b.foldby(key, binop)</code><div class="desc">Streaming group-and-reduce.</div></li>
+      <li class="transform"><code class="cmd">b.to_dataframe()</code><span class="star">★</span><div class="desc">Hand cleaned records to a DataFrame.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 DELAYED -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Delayed · Any Code</span><span class="card-sub">custom task graphs</span></div>
+    <ul class="cmds">
+      <li class="build"><code class="cmd"><span class="kw">@dask.delayed</span></code><span class="star">★</span><span class="badge-lazy">lazy</span><div class="desc">Decorate a function so calls become tasks.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">dask</span>.delayed(func)(a, b)</code><div class="desc">Wrap a single call without decorating.</div></li>
+      <li class="build"><code class="cmd">total = <span class="mod">dask</span>.delayed(sum)(<span class="arg">parts</span>)</code><div class="desc">Chain delayed results into a graph.</div></li>
+      <li class="execute"><code class="cmd">total.compute()</code><span class="star">★</span><div class="desc">Run the whole graph in parallel.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm"># many delayed calls,</span></code><div class="desc"><b>Rule:</b> build lots of tasks, then <code>compute</code> once.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 EXECUTE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Trigger Execution</span><span class="card-sub">turn graph into data</span></div>
+    <ul class="cmds">
+      <li class="execute"><code class="cmd">x.compute()</code><span class="star">★</span><div class="desc">Run → concrete pandas / numpy / list.</div></li>
+      <li class="execute"><code class="cmd"><span class="mod">dask</span>.compute(a, b, c)</code><span class="star">★</span><div class="desc">Compute several at once — <b>shares</b> subresults.</div></li>
+      <li class="execute"><code class="cmd">x.persist()</code><span class="star">★</span><div class="desc">Run now, keep as a Dask object in memory.</div></li>
+      <li class="execute"><code class="cmd">x.compute(<span class="kw">scheduler=</span><span class="arg">"processes"</span>)</code><div class="desc">Override the scheduler for this call.</div></li>
+      <li class="execute"><code class="cmd">ddf.head()</code><div class="desc">Small peek — runs just the first partition.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 CLUSTER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Cluster &amp; Scheduler</span><span class="card-sub">the execution engine</span></div>
+    <ul class="cmds">
+      <li class="cluster"><code class="cmd">from <span class="mod">dask.distributed</span> import Client</code><span class="star">★</span><div class="desc">The "advanced" scheduler — local <i>or</i> remote.</div></li>
+      <li class="cluster"><code class="cmd">client = Client()</code><span class="star">★</span><div class="desc">Spin up a local cluster + dashboard.</div></li>
+      <li class="cluster"><code class="cmd">Client(<span class="kw">n_workers=</span><span class="arg">4</span>, <span class="kw">threads_per_worker=</span><span class="arg">2</span>)</code><div class="desc">Shape workers × threads explicitly.</div></li>
+      <li class="cluster"><code class="cmd">Client(<span class="arg">"tcp://scheduler:8786"</span>)</code><div class="desc">Connect to an existing cluster.</div></li>
+      <li class="cluster"><code class="cmd">client.dashboard_link</code><span class="star">★</span><div class="desc">Live diagnostics at <code>:8787</code>.</div></li>
+      <li class="cluster"><code class="cmd"><span class="mod">dask</span>.config.set(<span class="kw">scheduler=</span><span class="arg">"threads"</span>)</code><div class="desc"><code>threads</code> · <code>processes</code> · <code>synchronous</code>.</div></li>
+      <li class="cluster"><code class="cmd">client.close()</code><div class="desc">Shut the cluster down.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 FUTURES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Futures · Real-time</span><span class="card-sub">eager · needs Client</span></div>
+    <ul class="cmds">
+      <li class="cluster"><code class="cmd">fut = client.submit(func, x)</code><span class="star">★</span><div class="desc">Starts running <b>immediately</b> (not lazy).</div></li>
+      <li class="cluster"><code class="cmd">futs = client.map(func, <span class="arg">seq</span>)</code><div class="desc">One future per item.</div></li>
+      <li class="execute"><code class="cmd">fut.result()</code><div class="desc">Block until done, gather one result.</div></li>
+      <li class="execute"><code class="cmd">client.gather(futs)</code><span class="star">★</span><div class="desc">Collect many results back to the client.</div></li>
+      <li class="cluster"><code class="cmd">as_completed(futs)</code><div class="desc">Iterate results as each finishes.</div></li>
+      <li class="cluster"><code class="cmd">client.scatter(<span class="arg">data</span>)</code><div class="desc">Pre-place shared data onto workers.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 PARTITIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Partitions &amp; Chunks</span><span class="card-sub">the performance lever</span></div>
+    <ul class="cmds">
+      <li class="transform"><code class="cmd">ddf.npartitions</code><span class="star">★</span><div class="desc">How many pandas pieces make up the frame.</div></li>
+      <li class="transform"><code class="cmd">ddf.repartition(<span class="kw">partition_size=</span><span class="arg">"100MB"</span>)</code><span class="star">★</span><div class="desc">Retile toward the ~100 MB sweet spot.</div></li>
+      <li class="transform"><code class="cmd">ddf.repartition(<span class="kw">npartitions=</span><span class="arg">10</span>)</code><div class="desc">Fewer, fatter partitions after a big filter.</div></li>
+      <li class="transform"><code class="cmd">ddf.set_index(<span class="arg">"time"</span>)</code><div class="desc">Sorted index → fast <code>loc</code> &amp; joins (expensive).</div></li>
+      <li class="transform"><code class="cmd">ddf.divisions</code><div class="desc">The index bounds of each partition.</div></li>
+      <li class="transform"><code class="cmd">x.rechunk(<span class="arg">"auto"</span>)</code><div class="desc">Let Dask pick array chunk sizes.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 INSPECT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Inspect &amp; Diagnose</span><span class="card-sub">see what's happening</span></div>
+    <ul class="cmds">
+      <li class="execute"><code class="cmd">x.visualize()</code><span class="star">★</span><div class="desc">Draw the task graph (needs graphviz).</div></li>
+      <li class="execute"><code class="cmd">x.dask</code><div class="desc">The underlying HighLevelGraph.</div></li>
+      <li class="execute"><code class="cmd">from <span class="mod">dask.diagnostics</span> import ProgressBar</code><div class="desc">Progress bar for the local scheduler.</div></li>
+      <li class="execute"><code class="cmd">with ProgressBar(): x.compute()</code><div class="desc">Wrap a compute to watch it run.</div></li>
+      <li class="cluster"><code class="cmd">client.dashboard_link</code><span class="star">★</span><div class="desc">Task stream, memory, workers — live.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 GOTCHAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Gotchas</span><span class="card-sub">common anti-patterns</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">for i in …: x.compute()</code><span class="badge-danger">serial</span><div class="desc">Computes one at a time → <code>dask.compute(*xs)</code>.</div></li>
+      <li class="danger"><code class="cmd">da.from_array(np.load(f))</code><span class="badge-danger">embeds</span><div class="desc">Loads locally into the graph — read <i>with</i> Dask.</div></li>
+      <li class="danger"><code class="cmd">huge / tiny partitions</code><span class="badge-danger">OOM/overhead</span><div class="desc">Too big = crash; too small = slow. Aim ~100 MB.</div></li>
+      <li class="danger"><code class="cmd">ddf.set_index(…) <span class="cm"># in a loop</span></code><span class="badge-danger">shuffle</span><div class="desc">A costly reshuffle — do it once, then persist.</div></li>
+      <li class="danger"><code class="cmd">ddf.iloc[<span class="arg">5</span>]</code><span class="badge-danger">unsupported</span><div class="desc">No positional row indexing across partitions.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four ideas that make Dask click</h2>
+  <p class="sub">The distinctions that trip people up most — laziness, partitioning, compute vs persist, and choosing a scheduler. Based on the official Dask docs diagrams.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>lazy build, then one compute</h3>
+      <p>Every op just adds a node to the graph. Work happens only at <code>.compute()</code> — so batch your work and call it once.</p>
+      <svg viewBox="0 0 390 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Operations accumulate lazily into a task graph; calling compute at the end runs the whole graph in parallel.">
+        <g font-family="JetBrains Mono, monospace" font-size="10.5" text-anchor="middle">
+          <!-- lazy nodes -->
+          <circle cx="45" cy="45" r="12" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/><text x="45" y="49" fill="#059669">a</text>
+          <circle cx="45" cy="100" r="12" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/><text x="45" y="104" fill="#059669">b</text>
+          <circle cx="130" cy="72" r="12" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/><text x="130" y="76" fill="#059669">+</text>
+          <circle cx="215" cy="72" r="12" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/><text x="215" y="76" fill="#059669">×2</text>
+          <line x1="57" y1="49" x2="118" y2="68" stroke="#94a3b8" stroke-width="1.4"/>
+          <line x1="57" y1="96" x2="118" y2="76" stroke="#94a3b8" stroke-width="1.4"/>
+          <line x1="142" y1="72" x2="203" y2="72" stroke="#94a3b8" stroke-width="1.4"/>
+          <text x="130" y="128" fill="#64748b" font-size="9">graph grows · no work yet</text>
+          <!-- compute trigger -->
+          <line x1="227" y1="72" x2="290" y2="72" stroke="#4f46e5" stroke-width="2" marker-end="url(#arrow)"/>
+          <text x="258" y="62" fill="#4f46e5" font-size="9.5" font-weight="700">.compute()</text>
+          <rect x="300" y="55" width="72" height="34" rx="7" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.6"/>
+          <text x="336" y="76" fill="#4f46e5" font-weight="700">result</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>one Dask object = many small ones</h3>
+      <p>A DataFrame is a stack of <b>pandas</b> partitions; an array is a grid of <b>NumPy</b> chunks. Dask coordinates the pieces.</p>
+      <svg viewBox="0 0 390 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A Dask DataFrame is a vertical stack of pandas partitions; a Dask array is a grid of NumPy chunks.">
+        <g font-family="JetBrains Mono, monospace" font-size="9.5" text-anchor="middle">
+          <text x="88" y="18" fill="#1a1d24" font-size="10" font-weight="700">dask.dataframe</text>
+          <rect x="40" y="28" width="96" height="22" rx="3" fill="#fdf6ec" stroke="#d97706" stroke-width="1.4"/><text x="88" y="43" fill="#b45309">pandas · part 0</text>
+          <rect x="40" y="54" width="96" height="22" rx="3" fill="#fdf6ec" stroke="#d97706" stroke-width="1.4"/><text x="88" y="69" fill="#b45309">pandas · part 1</text>
+          <rect x="40" y="80" width="96" height="22" rx="3" fill="#fdf6ec" stroke="#d97706" stroke-width="1.4"/><text x="88" y="95" fill="#b45309">pandas · part 2</text>
+          <rect x="40" y="106" width="96" height="22" rx="3" fill="#fdf6ec" stroke="#d97706" stroke-width="1.4"/><text x="88" y="121" fill="#b45309">pandas · part 3</text>
+
+          <text x="300" y="18" fill="#1a1d24" font-size="10" font-weight="700">dask.array</text>
+          <rect x="250" y="30" width="45" height="45" rx="3" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/>
+          <rect x="297" y="30" width="45" height="45" rx="3" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/>
+          <rect x="250" y="77" width="45" height="45" rx="3" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/>
+          <rect x="297" y="77" width="45" height="45" rx="3" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/>
+          <text x="272" y="56" fill="#059669">np</text><text x="319" y="56" fill="#059669">np</text>
+          <text x="272" y="103" fill="#059669">np</text><text x="319" y="103" fill="#059669">np</text>
+          <text x="296" y="138" fill="#64748b" font-size="9">chunks</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>compute vs persist</h3>
+      <p><code>compute</code> pulls one concrete result back to your client. <code>persist</code> runs the graph but leaves results spread across worker memory as a Dask object.</p>
+      <svg viewBox="0 0 390 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="compute returns a single concrete object to the client; persist keeps computed partitions in worker memory as a Dask object.">
+        <g font-family="JetBrains Mono, monospace" font-size="9.5" text-anchor="middle">
+          <!-- compute -->
+          <text x="98" y="18" fill="#4f46e5" font-size="10" font-weight="700">.compute()</text>
+          <rect x="60" y="26" width="24" height="20" rx="3" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/>
+          <rect x="88" y="26" width="24" height="20" rx="3" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/>
+          <rect x="116" y="26" width="24" height="20" rx="3" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/>
+          <line x1="98" y1="52" x2="98" y2="78" stroke="#4f46e5" stroke-width="1.8" marker-end="url(#arrow)"/>
+          <rect x="66" y="84" width="66" height="34" rx="7" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.8"/>
+          <text x="99" y="98" fill="#4f46e5" font-weight="700">1 pandas</text>
+          <text x="99" y="110" fill="#4f46e5">on client</text>
+
+          <line x1="196" y1="30" x2="196" y2="126" stroke="#e7e3db" stroke-width="1.2"/>
+
+          <!-- persist -->
+          <text x="292" y="18" fill="#7c3aed" font-size="10" font-weight="700">.persist()</text>
+          <rect x="252" y="26" width="24" height="20" rx="3" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/>
+          <rect x="280" y="26" width="24" height="20" rx="3" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/>
+          <rect x="308" y="26" width="24" height="20" rx="3" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/>
+          <line x1="264" y1="52" x2="264" y2="76" stroke="#7c3aed" stroke-width="1.6" marker-end="url(#arrowv)"/>
+          <line x1="292" y1="52" x2="292" y2="76" stroke="#7c3aed" stroke-width="1.6" marker-end="url(#arrowv)"/>
+          <line x1="320" y1="52" x2="320" y2="76" stroke="#7c3aed" stroke-width="1.6" marker-end="url(#arrowv)"/>
+          <rect x="252" y="80" width="24" height="20" rx="3" fill="#f4effe" stroke="#7c3aed" stroke-width="1.4"/>
+          <rect x="280" y="80" width="24" height="20" rx="3" fill="#f4effe" stroke="#7c3aed" stroke-width="1.4"/>
+          <rect x="308" y="80" width="24" height="20" rx="3" fill="#f4effe" stroke="#7c3aed" stroke-width="1.4"/>
+          <text x="292" y="116" fill="#7c3aed">kept in worker RAM</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>which scheduler?</h3>
+      <p>Threads share memory (great for NumPy/pandas, which release the GIL). Processes suit text &amp; dicts. The distributed <code>Client</code> scales to many machines — and works on one.</p>
+      <svg viewBox="0 0 390 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Threaded scheduler for numeric work, process scheduler for text and dicts, distributed Client for clusters.">
+        <g font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">
+          <rect x="20" y="34" width="108" height="82" rx="8" fill="#f4effe" stroke="#7c3aed" stroke-width="1.6"/>
+          <text x="74" y="52" fill="#1a1d24" font-size="10" font-weight="700">threads</text>
+          <text x="74" y="70" fill="#7c3aed">shared memory</text>
+          <text x="74" y="86" fill="#64748b">NumPy · pandas</text>
+          <text x="74" y="100" fill="#64748b">GIL-releasing</text>
+
+          <rect x="141" y="34" width="108" height="82" rx="8" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+          <text x="195" y="52" fill="#1a1d24" font-size="10" font-weight="700">processes</text>
+          <text x="195" y="70" fill="#b45309">isolated memory</text>
+          <text x="195" y="86" fill="#64748b">text · lists</text>
+          <text x="195" y="100" fill="#64748b">pure-Python</text>
+
+          <rect x="262" y="34" width="108" height="82" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.6"/>
+          <text x="316" y="52" fill="#1a1d24" font-size="10" font-weight="700">Client()</text>
+          <text x="316" y="70" fill="#4f46e5">1 → 1000s cores</text>
+          <text x="316" y="86" fill="#64748b">dashboard :8787</text>
+          <text x="316" y="100" fill="#64748b">the "advanced" one</text>
+
+          <text x="195" y="134" fill="#64748b" font-size="9">default: threads (arrays/frames/delayed) · processes (bag)</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">lazy by default</span><span class="v">nothing runs until <code>.compute()</code></span></div>
+    <div><span class="k">compute ≠ persist</span><span class="v">compute → concrete on client; persist → Dask object in RAM</span></div>
+    <div><span class="k">~100 MB</span><span class="v">target size of each partition / chunk</span></div>
+    <div><span class="k">one compute</span><span class="v"><code>dask.compute(*xs)</code> — never compute in a loop</span></div>
+    <div><span class="k">threads vs processes</span><span class="v">threads for numeric; processes for text/dicts</span></div>
+    <div><span class="k">delayed ≠ futures</span><span class="v">delayed is lazy; futures are eager (need a Client)</span></div>
+    <div><span class="k">read with Dask</span><span class="v"><code>dd.read_csv</code> — don't pandas-read then hand it over</span></div>
+    <div><span class="k">set_index</span><span class="v">expensive shuffle — do it once, then <code>persist</code></span></div>
+    <div><span class="k">:8787</span><span class="v">the dashboard is your best debugging tool</span></div>
+    <div><span class="k">start small</span><span class="v">if pandas/NumPy already fit in RAM, skip Dask</span></div>
+  </div>
+</section>
+
+<footer>
+  Dask cheat sheet · synthesized from the official references at docs.dask.org, distributed.dask.org, ml.dask.org, the <code>dask/dask</code> cheat sheet, and community guides (Anaconda, Coiled, Saturn Cloud).<br>
+  Verified 2026-08-26 against Dask 2026.8 (CalVer <code>YYYY.MM.x</code>) · Python 3.10–3.14 · the query-optimizing DataFrame (<code>dask-expr</code>) is the default backend since 2024.3.
+</footer>
+
+</body>
+</html>
