@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WordCloud Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --imp:#64748b;    --imp-bg:#f1f3f6;    /* import / setup / CLI   */
+    --gen:#4f46e5;    --gen-bg:#eef0fd;    /* input · generate       */
+    --lay:#d97706;    --lay-bg:#fdf6ec;    /* canvas · font · mask   */
+    --col:#059669;    --col-bg:#ecf7f2;    /* colour                 */
+    --txt:#0d9488;    --txt-bg:#e9f6f4;    /* text processing        */
+    --out:#7c3aed;    --out-bg:#f4effe;    /* output · display       */
+    --danger:#dc2626; --danger-bg:#fdf0ef; /* deprecated / gotcha    */
+    --star:#b45309;
+    /* viridis anchors — the package's default colormap */
+    --v1:#440154; --v2:#3b528b; --v3:#21918c; --v4:#5ec962; --v5:#fde725;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .wm{font-family:var(--mono); letter-spacing:-.03em}
+  h1 .wm .w1{color:var(--v2)} h1 .wm .w2{color:var(--v3)}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.imp{background:var(--imp)} .dot.gen{background:var(--gen)}
+  .dot.lay{background:var(--lay)} .dot.col{background:var(--col)}
+  .dot.txt{background:var(--txt)} .dot.out{background:var(--out)}
+  .dot.danger{background:var(--danger)}
+  .legend .st{color:var(--star); font-weight:700}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- word-cloud showpiece ---------- */
+  .cloud-wrap{max-width:1500px; margin:0 auto; padding:.5rem clamp(1rem,4vw,3rem)}
+  .cloud-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .cloud-svg text{font-family:var(--sans); font-weight:700}
+  .cloud-cap{
+    text-align:center; font-family:var(--mono); font-size:.72rem; color:var(--muted);
+    margin-top:.4rem;
+  }
+
+  /* ---------- quickstart panel ---------- */
+  .qs{max-width:1500px; margin:0 auto; padding:1.4rem clamp(1rem,4vw,3rem) .5rem}
+  .qs-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.9rem;
+  }
+  .code-block{
+    background:var(--ink); border-radius:10px; padding:1.1rem 1.3rem;
+    overflow-x:auto; font-family:var(--mono); font-size:.82rem; line-height:1.75;
+    color:#e8e6e1;
+  }
+  .code-block .l{display:block; white-space:pre}
+  .code-block .note{color:#fbbf24; font-weight:700}
+  .kw{color:#c792ea} .fn{color:#82aaff} .mod{color:#5ccf9e}
+  .arg{color:#f78c6c} .str{color:#c3e88d} .num{color:#f5a623}
+  .cm{color:#7684a0; font-style:italic}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.imp{border-left-color:var(--imp)}
+  ul.cmds li.gen{border-left-color:var(--gen)}
+  ul.cmds li.lay{border-left-color:var(--lay)}
+  ul.cmds li.col{border-left-color:var(--col)}
+  ul.cmds li.txt{border-left-color:var(--txt)}
+  ul.cmds li.out{border-left-color:var(--out)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  li.plain{border-left-color:#cbd0d8}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.5;
+  }
+  code.cmd .a{color:var(--gen); font-weight:400}   /* argument   */
+  code.cmd .s{color:var(--col)}                    /* string     */
+  code.cmd .m{color:var(--out)}                    /* method/fn  */
+  code.cmd .n{color:var(--lay)}                    /* number     */
+  code.cmd .p{color:var(--muted)}                  /* punctuation/comment */
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.77rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f1eee8; padding:0 .25em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem; max-width:72ch}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#82aaff; font-size:.95em}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:var(--ink)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · a little word cloud generator</div>
+  <h1><span class="wm"><span class="w1">word</span><span class="w2">cloud</span></span> cheat sheet</h1>
+  <p class="lede">One class does it all. Feed <b>text</b> (or a <b>{word: count}</b> dict) to a <b>WordCloud</b>; it counts words, drops stopwords, then lays them out with <b>font size proportional to frequency</b>, colours them from a <b>colormap</b>, and hands back an image. Learn the pipeline and the two dozen constructor knobs, and you can shape almost anything.</p>
+  <div class="legend">
+    <span><i class="dot imp"></i>import / setup / CLI</span>
+    <span><i class="dot gen"></i>input &amp; generate</span>
+    <span><i class="dot lay"></i>canvas · font · mask</span>
+    <span><i class="dot col"></i>colour</span>
+    <span><i class="dot txt"></i>text processing</span>
+    <span><i class="dot out"></i>output &amp; display</span>
+    <span><i class="dot danger"></i>deprecated / gotcha</span>
+    <span><span class="st">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against wordcloud <b>1.9.x</b>: <b>amueller.github.io/word_cloud</b> (API Reference + Gallery) · <b>github.com/amueller/word_cloud</b> · <b>PyPI</b> · <b>python-course.eu</b> · <b>DataCamp</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The pipeline — from text to a coloured image</div>
+  <svg class="flow-svg" viewBox="0 0 1120 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pipeline: raw text is processed into word frequencies, which drive a layout that sizes each word by frequency, then a colormap or colour function colours them, producing an image saved to PNG, SVG, an array, or shown with matplotlib.">
+    <defs>
+      <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <!-- 1 TEXT -->
+    <g>
+      <rect x="12" y="70" width="150" height="92" rx="11" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="87" y="98" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">TEXT</text>
+      <text x="87" y="119" text-anchor="middle" font-size="9.5" fill="#4f46e5">a raw string</text>
+      <text x="87" y="136" text-anchor="middle" font-size="9" fill="#6b7280">…or a freq dict</text>
+    </g>
+    <!-- 2 PROCESS -->
+    <g>
+      <rect x="196" y="70" width="168" height="92" rx="11" fill="#e9f6f4" stroke="#0d9488" stroke-width="2"/>
+      <text x="280" y="94" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">process_text</text>
+      <text x="280" y="114" text-anchor="middle" font-size="9" fill="#0d9488">tokenize · stopwords</text>
+      <text x="280" y="129" text-anchor="middle" font-size="9" fill="#0d9488">bigrams · plurals</text>
+    </g>
+    <!-- 3 FREQ -->
+    <g>
+      <rect x="398" y="70" width="160" height="92" rx="11" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="478" y="94" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">FREQUENCIES</text>
+      <text x="478" y="114" text-anchor="middle" font-size="9.5" fill="#4f46e5">.words_</text>
+      <text x="478" y="130" text-anchor="middle" font-size="9" fill="#6b7280">{word: count}</text>
+    </g>
+    <!-- 4 LAYOUT -->
+    <g>
+      <rect x="592" y="70" width="168" height="92" rx="11" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="676" y="94" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">LAYOUT</text>
+      <text x="676" y="114" text-anchor="middle" font-size="9" fill="#b45309">font size &#8733; frequency</text>
+      <text x="676" y="130" text-anchor="middle" font-size="9" fill="#b45309">spiral pack, no overlap</text>
+    </g>
+    <!-- 5 COLOR -->
+    <g>
+      <rect x="794" y="70" width="150" height="92" rx="11" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="869" y="94" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">COLOUR</text>
+      <text x="869" y="114" text-anchor="middle" font-size="9" fill="#059669">colormap /</text>
+      <text x="869" y="129" text-anchor="middle" font-size="9" fill="#059669">color_func</text>
+    </g>
+    <!-- 6 IMAGE -->
+    <g>
+      <rect x="978" y="70" width="130" height="92" rx="11" fill="#f4effe" stroke="#7c3aed" stroke-width="2"/>
+      <text x="1043" y="94" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">IMAGE</text>
+      <text x="1043" y="114" text-anchor="middle" font-size="9" fill="#7c3aed">to_file · to_svg</text>
+      <text x="1043" y="129" text-anchor="middle" font-size="9" fill="#7c3aed">imshow</text>
+    </g>
+
+    <!-- arrows -->
+    <line x1="162" y1="116" x2="194" y2="116" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+    <line x1="364" y1="116" x2="396" y2="116" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+    <line x1="558" y1="116" x2="590" y2="116" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+    <line x1="760" y1="116" x2="792" y2="116" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+    <line x1="944" y1="116" x2="976" y2="116" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+
+    <!-- entry / exit labels -->
+    <text x="87" y="46" text-anchor="middle" font-size="9" fill="#94a3b8">.generate(text)</text>
+    <text x="478" y="46" text-anchor="middle" font-size="9" fill="#94a3b8">.generate_from_frequencies(d)</text>
+    <path d="M478,52 C478,58 478,62 478,68" stroke="#cbd0d8" stroke-width="1.4" fill="none" marker-end="url(#arw)"/>
+    <path d="M87,52 C87,58 87,62 87,68" stroke="#cbd0d8" stroke-width="1.4" fill="none" marker-end="url(#arw)"/>
+    <text x="676" y="192" text-anchor="middle" font-size="9" fill="#94a3b8">.recolor() re-runs COLOUR only &#8594; fast</text>
+    <path d="M869,164 C869,174 720,180 700,186" stroke="#cbd0d8" stroke-width="1.4" fill="none" marker-end="url(#arw)"/>
+  </svg>
+</section>
+
+<!-- ============ WORD-CLOUD SHOWPIECE ============ -->
+<section class="cloud-wrap">
+  <svg class="cloud-svg" viewBox="0 0 1120 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A word cloud made from this library's own key terms — WordCloud, frequency, colormap, mask, stopwords, layout and more — sized and coloured like real output in the viridis palette.">
+    <text x="300" y="118" font-size="62" fill="#39568c">WordCloud</text>
+    <text x="20" y="80" font-size="40" fill="#21918c">frequency</text>
+    <text x="640" y="150" font-size="38" fill="#3b528b">colormap</text>
+    <text x="600" y="70" font-size="30" fill="#5ec962">mask</text>
+    <text x="720" y="70" font-size="26" fill="#440154">stopwords</text>
+    <text x="20" y="140" font-size="34" fill="#31688e">layout</text>
+    <text x="200" y="170" font-size="24" fill="#26828e">collocations</text>
+    <text x="470" y="180" font-size="22" fill="#443983">generate</text>
+    <text x="840" y="120" font-size="30" fill="#1f9e89">recolor</text>
+    <text x="880" y="165" font-size="20" fill="#6ece58">to_file</text>
+    <text x="930" y="70" font-size="22" fill="#35b779">viridis</text>
+    <text x="180" y="40" font-size="20" fill="#443983">prefer_horizontal</text>
+    <text x="470" y="40" font-size="18" fill="#31688e">scale</text>
+    <text x="560" y="40" font-size="17" fill="#26828e">contour</text>
+    <text x="1000" y="120" font-size="18" fill="#3b528b">max_words</text>
+    <text x="820" y="196" font-size="15" fill="#440154">random_state</text>
+  </svg>
+  <p class="cloud-cap">&#9650; the same cheat sheet, rendered the way the library would — font size by importance, colours from <b>viridis</b></p>
+</section>
+
+<!-- ============ QUICKSTART ============ -->
+<section class="qs">
+  <div class="qs-title">From text to a saved image in six lines</div>
+  <div class="code-block"><code><span class="l"><span class="kw">from</span> wordcloud <span class="kw">import</span> WordCloud             <span class="note"># the one class you need</span></span><span class="l"><span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt</span><span class="l"></span><span class="l">text = <span class="fn">open</span>(<span class="str">"speech.txt"</span>).<span class="fn">read</span>()</span><span class="l"></span><span class="l">wc = <span class="fn">WordCloud</span>(width=<span class="num">800</span>, height=<span class="num">400</span>,          <span class="note"># configure in the constructor</span></span><span class="l">               background_color=<span class="str">"white"</span>,</span><span class="l">               colormap=<span class="str">"viridis"</span>).<span class="fn">generate</span>(text)   <span class="note"># count + layout in one call</span></span><span class="l"></span><span class="l">wc.<span class="fn">to_file</span>(<span class="str">"cloud.png"</span>)                       <span class="note"># save directly…</span></span><span class="l">plt.<span class="fn">imshow</span>(wc, interpolation=<span class="str">"bilinear"</span>); plt.<span class="fn">axis</span>(<span class="str">"off"</span>)   <span class="note"># …or show it</span></span></code></div>
+</section>
+
+<!-- ============ COMMAND CARDS ============ -->
+<main>
+
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Import</span><span class="card-sub">once per project</span></div>
+    <ul class="cmds">
+      <li class="imp"><code class="cmd"><span class="p">$</span> pip install wordcloud</code><span class="star">&#9733;</span><div class="desc">Pulls in <code>numpy</code>, <code>pillow</code> &amp; <code>matplotlib</code>.</div></li>
+      <li class="imp"><code class="cmd">from wordcloud import WordCloud</code><span class="star">&#9733;</span><div class="desc">Everything lives on this one class.</div></li>
+      <li class="imp"><code class="cmd">from wordcloud import STOPWORDS, ImageColorGenerator</code><div class="desc">Built-in stopword set &amp; image-based colouring.</div></li>
+      <li class="imp"><code class="cmd">import matplotlib.pyplot as plt</code><div class="desc">To display the result inline.</div></li>
+      <li class="imp"><code class="cmd">from PIL import Image; import numpy as np</code><div class="desc">Needed only when using a mask image.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 THREE WAYS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Three Ways to Build</span><span class="card-sub">the core</span></div>
+    <ul class="cmds">
+      <li class="gen"><code class="cmd">WordCloud<span class="p">()</span>.generate<span class="p">(</span>text<span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">From a raw string — counts words for you.</div></li>
+      <li class="gen"><code class="cmd">WordCloud<span class="p">()</span>.generate_from_frequencies<span class="p">(</span>freq<span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">From a <code>{word: count}</code> dict you already have.</div></li>
+      <li class="gen"><code class="cmd">wc = WordCloud<span class="p">(</span>width=<span class="n">800</span>, height=<span class="n">400</span>, background_color=<span class="s">"white"</span><span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Options go in the constructor, not the method.</div></li>
+      <li class="gen"><code class="cmd">wc.generate<span class="p">(</span>text<span class="p">)</span></code><div class="desc">Returns the <code>WordCloud</code> object (chainable).</div></li>
+      <li class="plain"><code class="cmd"><span class="p"># build once &#8594; recolor / export many times</span></code><div class="desc">Layout is the expensive step; reuse it.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 INPUT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Input &amp; Frequencies</span><span class="card-sub">what goes in</span></div>
+    <ul class="cmds">
+      <li class="gen"><code class="cmd">.generate<span class="p">(</span>text<span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Tokenize + count + lay out, all at once.</div></li>
+      <li class="gen"><code class="cmd">.generate_from_frequencies<span class="p">(</span>{<span class="s">"data"</span>: <span class="n">40</span>, <span class="s">"code"</span>: <span class="n">25</span>}<span class="p">)</span></code><div class="desc">Skip tokenizing — you supply the counts.</div></li>
+      <li class="gen"><code class="cmd">.process_text<span class="p">(</span>text<span class="p">)</span></code><div class="desc">Just the tokenizer &#8594; a frequency dict.</div></li>
+      <li class="gen"><code class="cmd">.fit_words<span class="p">(</span>freq<span class="p">)</span></code><div class="desc">Alias of <code>generate_from_frequencies</code>.</div></li>
+      <li class="gen"><code class="cmd">from collections import Counter</code><div class="desc"><code>Counter(words)</code> makes a ready freq dict.</div></li>
+      <li class="gen"><code class="cmd">df<span class="p">[</span><span class="s">"col"</span><span class="p">]</span>.value_counts<span class="p">()</span>.to_dict<span class="p">()</span></code><div class="desc">Pandas counts &#8594; feed straight in.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 CANVAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Canvas &amp; Background</span><span class="card-sub">the frame</span></div>
+    <ul class="cmds">
+      <li class="lay"><code class="cmd">width=<span class="n">800</span>, height=<span class="n">400</span></code><span class="star">&#9733;</span><div class="desc">Canvas size in px (default 400&#215;200).</div></li>
+      <li class="lay"><code class="cmd">background_color=<span class="s">"white"</span></code><span class="star">&#9733;</span><div class="desc">Default is <code>"black"</code>.</div></li>
+      <li class="lay"><code class="cmd">mode=<span class="s">"RGBA"</span>, background_color=None</code><div class="desc">Transparent background.</div></li>
+      <li class="lay"><code class="cmd">scale=<span class="n">2</span></code><div class="desc">Render bigger — faster than doubling width/height.</div></li>
+      <li class="lay"><code class="cmd">max_words=<span class="n">200</span></code><span class="star">&#9733;</span><div class="desc">Cap how many words appear.</div></li>
+      <li class="lay"><code class="cmd">margin=<span class="n">2</span></code><div class="desc">Pixels of space around each word.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 FONT SIZING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Font Sizing</span><span class="card-sub">the core mapping</span></div>
+    <ul class="cmds">
+      <li class="lay"><code class="cmd">relative_scaling=<span class="n">0.5</span></code><span class="star">&#9733;</span><div class="desc"><b>0</b> = size by rank · <b>1</b> = size &#8733; frequency · auto=0.5.</div></li>
+      <li class="lay"><code class="cmd">max_font_size=<span class="n">100</span></code><div class="desc">Cap the largest word (default: image height).</div></li>
+      <li class="lay"><code class="cmd">min_font_size=<span class="n">4</span></code><div class="desc">Stop once words get this small.</div></li>
+      <li class="lay"><code class="cmd">font_step=<span class="n">1</span></code><div class="desc">Bigger step = faster, coarser fit.</div></li>
+      <li class="lay"><code class="cmd">font_path=<span class="s">"path/to/font.ttf"</span></code><div class="desc">Any OTF/TTF; default is bundled DroidSansMono.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 LAYOUT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Layout &amp; Orientation</span><span class="card-sub">where words go</span></div>
+    <ul class="cmds">
+      <li class="lay"><code class="cmd">prefer_horizontal=<span class="n">0.9</span></code><span class="star">&#9733;</span><div class="desc">Fraction of words tried horizontally first.</div></li>
+      <li class="lay"><code class="cmd">prefer_horizontal=<span class="n">1.0</span></code><div class="desc">Keep every word horizontal.</div></li>
+      <li class="lay"><code class="cmd">random_state=<span class="n">42</span></code><span class="star">&#9733;</span><div class="desc">Fix the layout so it's reproducible.</div></li>
+      <li class="lay"><code class="cmd">repeat=True</code><div class="desc">Repeat words until the canvas fills.</div></li>
+      <li class="plain"><code class="cmd"><span class="p"># placement = spiral pack, largest first</span></code><div class="desc">Each word avoids the ones already placed.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 TEXT PROCESSING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Text Processing</span><span class="card-sub">tokenizing</span></div>
+    <ul class="cmds">
+      <li class="txt"><code class="cmd">collocations=True</code><span class="star">&#9733;</span><div class="desc">Keep bigrams like <code>"machine learning"</code> (default).</div></li>
+      <li class="txt"><code class="cmd">collocations=False</code><div class="desc">Turn off — avoids near-duplicate pairs.</div></li>
+      <li class="txt"><code class="cmd">collocation_threshold=<span class="n">30</span></code><div class="desc">Higher = fewer bigrams kept.</div></li>
+      <li class="txt"><code class="cmd">regexp=<span class="s">r"\w[\w']+"</span></code><div class="desc">Custom token pattern (the default shown).</div></li>
+      <li class="txt"><code class="cmd">normalize_plurals=True</code><div class="desc">Merge <code>"cat"</code>/<code>"cats"</code> (keeps the singular).</div></li>
+      <li class="txt"><code class="cmd">include_numbers=False</code><div class="desc">Drop pure numbers (set True to keep).</div></li>
+      <li class="txt"><code class="cmd">min_word_length=<span class="n">3</span></code><div class="desc">Ignore words shorter than this.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 STOPWORDS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Stopwords</span><span class="card-sub">what to drop</span></div>
+    <ul class="cmds">
+      <li class="txt"><code class="cmd">from wordcloud import STOPWORDS</code><span class="star">&#9733;</span><div class="desc">The built-in set (used when <code>stopwords=None</code>).</div></li>
+      <li class="txt"><code class="cmd">stopwords=STOPWORDS.union<span class="p">(</span>{<span class="s">"said"</span>, <span class="s">"one"</span>}<span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Extend the defaults with your own.</div></li>
+      <li class="txt"><code class="cmd">stopwords=set<span class="p">([</span><span class="s">"a"</span>, <span class="s">"the"</span>, <span class="s">"of"</span><span class="p">])</span></code><div class="desc">Replace the list entirely.</div></li>
+      <li class="danger"><code class="cmd">generate_from_frequencies<span class="p">(</span><span class="a">..</span><span class="p">)</span></code><span class="badge-danger">note</span><div class="desc">Ignores stopwords, collocations &amp; regexp.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 COLOR -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Colour &amp; Colormap</span><span class="card-sub">the palette</span></div>
+    <ul class="cmds">
+      <li class="col"><code class="cmd">colormap=<span class="s">"viridis"</span></code><span class="star">&#9733;</span><div class="desc">The default; any matplotlib colormap works.</div></li>
+      <li class="col"><code class="cmd">colormap=<span class="s">"magma"</span> · <span class="s">"tab10"</span> · <span class="s">"Blues"</span></code><div class="desc">Sequential, categorical, single-hue…</div></li>
+      <li class="col"><code class="cmd">random_state=<span class="n">1</span></code><div class="desc">Fix which colours get drawn.</div></li>
+      <li class="col"><code class="cmd">wc.recolor<span class="p">(</span>colormap=<span class="s">"plasma"</span><span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Re-colour without re-running layout (fast).</div></li>
+      <li class="col"><code class="cmd">wc.recolor<span class="p">(</span>random_state=<span class="n">3</span><span class="p">)</span></code><div class="desc">Same words, fresh colour draw.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 CUSTOM COLOR -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Custom Colour Functions</span><span class="card-sub">full control</span></div>
+    <ul class="cmds">
+      <li class="col"><code class="cmd">color_func=lambda *a, **k: <span class="s">"steelblue"</span></code><span class="star">&#9733;</span><div class="desc">One solid colour for every word.</div></li>
+      <li class="col"><code class="cmd">color_func=my_fn</code><div class="desc">Overrides <code>colormap</code> entirely.</div></li>
+      <li class="plain"><code class="cmd"><span class="p"># signature Vega gives your function:</span></code><div class="desc"><code>word, font_size, position, orientation, font_path, random_state</code></div></li>
+      <li class="col"><code class="cmd">from wordcloud import get_single_color_func</code><div class="desc">One hue, varied brightness per word.</div></li>
+      <li class="col"><code class="cmd">ImageColorGenerator<span class="p">(</span>img_array<span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Take each word's colour from a source image.</div></li>
+      <li class="col"><code class="cmd">wc.recolor<span class="p">(</span>color_func=ImageColorGenerator<span class="p">(</span>img<span class="p">))</span></code><div class="desc">The classic "colour from the mask" trick.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 MASKS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Masks &amp; Shapes</span><span class="card-sub">draw in a shape</span></div>
+    <ul class="cmds">
+      <li class="lay"><code class="cmd">mask = np.array<span class="p">(</span>Image.open<span class="p">(</span><span class="s">"shape.png"</span><span class="p">))</span></code><span class="star">&#9733;</span><div class="desc">Load a shape as a numpy array.</div></li>
+      <li class="lay"><code class="cmd">WordCloud<span class="p">(</span>mask=mask<span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Words fill the shape; <b>overrides width/height</b>.</div></li>
+      <li class="danger"><code class="cmd"><span class="p"># white (255) = masked OUT</span></code><span class="badge-danger">gotcha</span><div class="desc">Non-white pixels are where words may go.</div></li>
+      <li class="lay"><code class="cmd">contour_width=<span class="n">1</span>, contour_color=<span class="s">"steelblue"</span></code><div class="desc">Trace the mask's outline.</div></li>
+      <li class="lay"><code class="cmd">ImageColorGenerator<span class="p">(</span>mask<span class="p">)</span></code><div class="desc">Recolour words to match the mask image.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 OUTPUT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Output &amp; Export</span><span class="card-sub">get it out</span></div>
+    <ul class="cmds">
+      <li class="out"><code class="cmd">wc.to_file<span class="p">(</span><span class="s">"cloud.png"</span><span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Save straight to an image file.</div></li>
+      <li class="out"><code class="cmd">wc.to_image<span class="p">()</span></code><div class="desc">Return a PIL <code>Image</code>.</div></li>
+      <li class="out"><code class="cmd">wc.to_array<span class="p">()</span></code><div class="desc">Return a numpy array (H&#215;W&#215;3).</div></li>
+      <li class="out"><code class="cmd">wc.to_svg<span class="p">()</span></code><div class="desc">Scalable vector output.</div></li>
+      <li class="out"><code class="cmd">wc.to_svg<span class="p">(</span>embed_font=True<span class="p">)</span></code><div class="desc">Self-contained SVG (font baked in).</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 DISPLAY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Display with matplotlib</span><span class="card-sub">show it</span></div>
+    <ul class="cmds">
+      <li class="out"><code class="cmd">plt.imshow<span class="p">(</span>wc, interpolation=<span class="s">"bilinear"</span><span class="p">)</span></code><span class="star">&#9733;</span><div class="desc"><code>bilinear</code> smooths the rendered words.</div></li>
+      <li class="out"><code class="cmd">plt.axis<span class="p">(</span><span class="s">"off"</span><span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Hide the axes &amp; ticks.</div></li>
+      <li class="out"><code class="cmd">plt.figure<span class="p">(</span>figsize=<span class="p">(</span><span class="n">10</span>, <span class="n">5</span><span class="p">))</span></code><div class="desc">Set the display size before <code>imshow</code>.</div></li>
+      <li class="out"><code class="cmd">plt.savefig<span class="p">(</span><span class="s">"out.png"</span>, dpi=<span class="n">300</span>, bbox_inches=<span class="s">"tight"</span><span class="p">)</span></code><div class="desc">Save the figure (with any contour/title).</div></li>
+      <li class="out"><code class="cmd">plt.show<span class="p">()</span></code><div class="desc">Render it.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 CLI -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Command Line</span><span class="card-sub">no code needed</span></div>
+    <ul class="cmds">
+      <li class="imp"><code class="cmd"><span class="p">$</span> wordcloud_cli --text in.txt --imagefile out.png</code><span class="star">&#9733;</span><div class="desc">The whole thing from a shell.</div></li>
+      <li class="imp"><code class="cmd"><span class="p">$</span> wordcloud_cli --help</code><div class="desc">Flags mirror the constructor params.</div></li>
+      <li class="imp"><code class="cmd"><span class="p">$</span> pdftotext doc.pdf - | wordcloud_cli --imagefile wc.png</code><div class="desc">Pipe a PDF's text straight in.</div></li>
+      <li class="imp"><code class="cmd"><span class="p">$</span> ... --mask shape.png --contour_width <span class="n">1</span></code><div class="desc">Masks work from the CLI too.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 RECIPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Recipes &amp; Patterns</span><span class="card-sub">copy &amp; adapt</span></div>
+    <ul class="cmds">
+      <li class="gen"><code class="cmd"><span class="p">column:</span> .generate<span class="p">(</span><span class="s">" "</span>.join<span class="p">(</span>df<span class="p">[</span><span class="s">"text"</span><span class="p">]))</span></code><div class="desc">Join a text column into one string.</div></li>
+      <li class="gen"><code class="cmd"><span class="p">counts:</span> .generate_from_frequencies<span class="p">(</span>counter<span class="p">)</span></code><div class="desc">A <code>Counter</code> or value_counts dict.</div></li>
+      <li class="gen"><code class="cmd"><span class="p">transparent:</span> mode=<span class="s">"RGBA"</span>, background_color=None</code><div class="desc">PNG that drops onto any background.</div></li>
+      <li class="gen"><code class="cmd"><span class="p">single hue:</span> color_func=lambda *a,**k: <span class="s">"white"</span></code><div class="desc">On a dark background &#8594; clean monochrome.</div></li>
+      <li class="gen"><code class="cmd"><span class="p">shaped + coloured:</span> mask + ImageColorGenerator</code><div class="desc">Words in a shape, coloured by that image.</div></li>
+      <li class="gen"><code class="cmd"><span class="p">reproducible:</span> random_state=<span class="n">42</span></code><div class="desc">Same layout &amp; colours every run.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 INTROSPECT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Introspect &amp; Deps</span><span class="card-sub">under the hood</span></div>
+    <ul class="cmds">
+      <li class="txt"><code class="cmd">wc.words_</code><div class="desc"><code>{word: normalized_freq}</code> after generating.</div></li>
+      <li class="txt"><code class="cmd">wc.layout_</code><div class="desc">Per word: <code>(text, size, (x,y), orient, colour)</code>.</div></li>
+      <li class="txt"><code class="cmd">len<span class="p">(</span>wc.words_<span class="p">)</span></code><div class="desc">How many words were actually kept.</div></li>
+      <li class="txt"><code class="cmd">wc.generate<span class="p">(</span>t<span class="p">)</span> <span class="p">vs</span> wc.recolor<span class="p">()</span></code><div class="desc">Re-layout (slow) vs re-colour (fast).</div></li>
+      <li class="plain"><code class="cmd"><span class="p">deps:</span> numpy · pillow · matplotlib</code><div class="desc">Pulled in automatically by pip.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four ideas that decide how your cloud looks</h2>
+  <p class="sub">The mechanics behind the knobs — how frequency becomes font size, why mask colours confuse everyone, the three entry points, and the three ways to colour. Based on the official wordcloud API &amp; gallery.</p>
+  <div class="merge-grid">
+
+    <!-- 1: size ∝ frequency -->
+    <div class="merge-card">
+      <h3>font size &#8733; frequency</h3>
+      <p>The one rule of a word cloud. <code>relative_scaling</code> tunes how literally frequency maps to size.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Words drawn at sizes proportional to their counts: data at 40 is largest, then model, then code, then the at 5 is smallest. A slider shows relative_scaling from 0 rank to 1 frequency.">
+        <g font-family="Inter, sans-serif" font-weight="700">
+          <text x="14" y="52" font-size="34" fill="#39568c">data</text>
+          <text x="120" y="50" font-size="24" fill="#21918c">model</text>
+          <text x="230" y="48" font-size="17" fill="#5ec962">code</text>
+          <text x="300" y="46" font-size="11" fill="#443983">the</text>
+        </g>
+        <g font-family="JetBrains Mono, monospace" font-size="8.5" fill="#94a3b8">
+          <text x="14" y="66">40&#215;</text><text x="120" y="66">25&#215;</text><text x="230" y="62">12&#215;</text><text x="300" y="58">5&#215;</text>
+        </g>
+        <!-- relative_scaling slider -->
+        <line x1="40" y1="112" x2="360" y2="112" stroke="#e0ddd5" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="200" cy="112" r="7" fill="#d97706"/>
+        <text x="40" y="132" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#6b7280">0 · by rank</text>
+        <text x="176" y="99" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#b45309">relative_scaling</text>
+        <text x="300" y="132" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#6b7280">1 · &#8733; freq</text>
+      </svg>
+    </div>
+
+    <!-- 2: the mask rule -->
+    <div class="merge-card">
+      <h3>the mask rule (everyone trips here)</h3>
+      <p>Words fill the <b>non-white</b> pixels. <b>White (255) is masked out</b> — the opposite of what most people expect.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A mask image: a white background with a dark heart shape. Words are drawn only inside the dark heart, not on the white background.">
+        <!-- canvas -->
+        <rect x="8" y="14" width="180" height="124" rx="6" fill="#fff" stroke="#cbd0d8"/>
+        <text x="16" y="30" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#94a3b8">the mask</text>
+        <!-- heart shape (non-white region) -->
+        <path d="M98,124 C60,96 44,74 44,58 C44,44 55,36 66,36 C78,36 90,46 98,58 C106,46 118,36 130,36 C141,36 152,44 152,58 C152,74 136,96 98,124 Z" fill="#5b6b7c"/>
+        <text x="70" y="66" font-family="JetBrains Mono, monospace" font-size="8" fill="#fff">non-white</text>
+        <text x="66" y="78" font-family="JetBrains Mono, monospace" font-size="8" fill="#fff">= drawable</text>
+        <text x="150" y="30" font-family="JetBrains Mono, monospace" font-size="8" fill="#94a3b8" text-anchor="end">white = out</text>
+        <!-- arrow -->
+        <line x1="196" y1="76" x2="224" y2="76" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#mk)"/>
+        <!-- result -->
+        <rect x="232" y="14" width="160" height="124" rx="6" fill="#fff" stroke="#cbd0d8"/>
+        <path d="M312,126 C278,100 262,80 262,64 C262,51 272,44 282,44 C293,44 304,53 312,64 C320,53 331,44 342,44 C352,44 362,51 362,64 C362,80 346,100 312,126 Z" fill="none" stroke="#e7e3db"/>
+        <g font-family="Inter, sans-serif" font-weight="700" text-anchor="middle">
+          <text x="312" y="66" font-size="15" fill="#39568c">love</text>
+          <text x="290" y="82" font-size="10" fill="#21918c">words</text>
+          <text x="332" y="82" font-size="9" fill="#5ec962">here</text>
+          <text x="312" y="98" font-size="11" fill="#443983">only</text>
+        </g>
+        <defs>
+          <marker id="mk" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+
+    <!-- 3: three ways in -->
+    <div class="merge-card">
+      <h3>three ways in &#8594; one cloud</h3>
+      <p>Raw text, a ready-made frequency dict, or the tokenizer on its own — all converge on the same object.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three inputs — generate from text, generate_from_frequencies from a dict, and process_text then fit_words — all lead to one WordCloud object.">
+        <g font-family="JetBrains Mono, monospace" font-size="9">
+          <rect x="8" y="20" width="150" height="26" rx="5" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.2"/>
+          <text x="16" y="37" fill="#4f46e5">.generate(text)</text>
+          <rect x="8" y="62" width="180" height="26" rx="5" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.2"/>
+          <text x="16" y="79" fill="#4f46e5">.generate_from_frequencies</text>
+          <rect x="8" y="104" width="180" height="26" rx="5" fill="#e9f6f4" stroke="#0d9488" stroke-width="1.2"/>
+          <text x="16" y="121" fill="#0d9488">.process_text &#8594; fit_words</text>
+          <!-- converge -->
+          <path d="M158,33 C210,33 214,66 244,72" stroke="#94a3b8" stroke-width="1.3" fill="none" marker-end="url(#c3)"/>
+          <path d="M188,75 C214,75 220,74 244,74" stroke="#94a3b8" stroke-width="1.3" fill="none" marker-end="url(#c3)"/>
+          <path d="M188,117 C214,117 216,82 244,78" stroke="#94a3b8" stroke-width="1.3" fill="none" marker-end="url(#c3)"/>
+          <rect x="248" y="56" width="144" height="40" rx="8" fill="#fdf6ec" stroke="#d97706" stroke-width="1.8"/>
+          <text x="320" y="74" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">WordCloud</text>
+          <text x="320" y="88" text-anchor="middle" font-size="8" fill="#b45309">.words_ + layout_</text>
+        </g>
+        <defs>
+          <marker id="c3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+
+    <!-- 4: three ways to colour -->
+    <div class="merge-card">
+      <h3>three ways to colour</h3>
+      <p>A named colormap, your own function, or colours sampled from an image — later ones override earlier ones.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three colouring strategies: colormap draws from a viridis gradient, color_func returns a fixed colour, and ImageColorGenerator samples colours from a source image.">
+        <g font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">
+          <!-- colormap -->
+          <text x="66" y="24" fill="#059669" font-weight="700">colormap</text>
+          <rect x="26" y="34" width="80" height="18" rx="3" fill="url(#vir)"/>
+          <text x="46" y="70" font-size="15" fill="#440154" font-family="Inter" font-weight="700">wo</text>
+          <text x="72" y="70" font-size="15" fill="#21918c" font-family="Inter" font-weight="700">rd</text>
+          <text x="66" y="92" fill="#6b7280">"viridis" (default)</text>
+          <!-- color_func -->
+          <text x="200" y="24" fill="#059669" font-weight="700">color_func</text>
+          <rect x="168" y="34" width="64" height="18" rx="3" fill="#4c78a8"/>
+          <text x="200" y="70" font-size="15" fill="#4c78a8" font-family="Inter" font-weight="700">word</text>
+          <text x="200" y="92" fill="#6b7280">one colour / rule</text>
+          <!-- image -->
+          <text x="334" y="24" fill="#059669" font-weight="700">ImageColorGenerator</text>
+          <rect x="300" y="34" width="30" height="18" rx="3" fill="#c0504d"/>
+          <rect x="330" y="34" width="30" height="18" rx="3" fill="#4f81bd"/>
+          <text x="316" y="70" font-size="15" fill="#c0504d" font-family="Inter" font-weight="700">wo</text>
+          <text x="342" y="70" font-size="15" fill="#4f81bd" font-family="Inter" font-weight="700">rd</text>
+          <text x="330" y="92" fill="#6b7280">colours from an image</text>
+        </g>
+        <defs>
+          <linearGradient id="vir" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#440154"/><stop offset="0.4" stop-color="#3b528b"/>
+            <stop offset="0.6" stop-color="#21918c"/><stop offset="0.8" stop-color="#5ec962"/>
+            <stop offset="1" stop-color="#fde725"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">white in a mask = OUT</span><span class="v">non-white pixels are where words may be drawn</span></div>
+    <div><span class="k">mask overrides width/height</span><span class="v">the canvas takes the mask's shape</span></div>
+    <div><span class="k">transparent PNG</span><span class="v"><code>mode="RGBA"</code> + <code>background_color=None</code></span></div>
+    <div><span class="k">relative_scaling</span><span class="v"><code>0</code> = by rank · <code>1</code> = &#8733; frequency · auto 0.5</span></div>
+    <div><span class="k">collocations=True default</span><span class="v">bigrams appear; set False to avoid duplicates</span></div>
+    <div><span class="k">color_func &gt; colormap</span><span class="v">a colour function overrides the colormap</span></div>
+    <div><span class="k">defaults</span><span class="v">colormap <code>viridis</code> · background <code>black</code></span></div>
+    <div><span class="k">generate vs recolor</span><span class="v"><code>recolor()</code> skips layout — much faster</span></div>
+    <div><span class="k">from_frequencies ignores</span><span class="v">stopwords, collocations &amp; regexp don't apply</span></div>
+    <div><span class="k">scale beats big canvas</span><span class="v"><code>scale=2</code> renders large far faster</span></div>
+    <div><span class="k">smooth display</span><span class="v"><code>imshow(wc, interpolation="bilinear")</code> + <code>axis("off")</code></span></div>
+    <div><span class="k">plurals &amp; numbers</span><span class="v"><code>normalize_plurals</code> merges · <code>include_numbers</code> drops digits</span></div>
+  </div>
+</section>
+
+<footer>
+  WordCloud cheat sheet · synthesized from the official documentation at amueller.github.io/word_cloud (API Reference &amp; Gallery of Examples), github.com/amueller/word_cloud, and PyPI.<br>
+  All functionality lives on the single <code>WordCloud</code> class · the whole pipeline is text &#8594; frequencies &#8594; layout (size &#8733; frequency) &#8594; colour &#8594; image · reach for <code>recolor()</code> before re-running <code>generate()</code>, and remember white masks out.
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PyTorch · torchvision · torchaudio Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b;  --setup-bg:#f1f3f6;
+    --tensor:#d97706; --tensor-bg:#fdf6ec;
+    --nn:#059669;     --nn-bg:#ecf7f2;
+    --train:#4f46e5;  --train-bg:#eef0fd;
+    --perf:#7c3aed;   --perf-bg:#f4f0fd;
+    --dom:#0d9488;    --dom-bg:#ecf6f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --torch:#ee4c2c;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(1.8rem,4.6vw,3.1rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1.05; margin-bottom:.7rem; font-family:var(--mono);
+  }
+  h1 .py{color:var(--ink)}
+  h1 .tw{color:var(--torch)}
+  h1 .sub{font-size:.42em; color:var(--muted); font-weight:500; letter-spacing:0}
+  h1 .sub .v{color:var(--dom)}
+  h1 .sub .a{color:var(--perf)}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede b{font-weight:600}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)}   .dot.tensor{background:var(--tensor)}
+  .dot.nn{background:var(--nn)}         .dot.train{background:var(--train)}
+  .dot.perf{background:var(--perf)}     .dot.dom{background:var(--dom)}
+  .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1150px; display:block; margin:0 auto}
+  .flow-svg text{font-family:'JetBrains Mono',monospace}
+
+  /* ---------- quickstart panel ---------- */
+  .quick{max-width:1500px; margin:0 auto; padding:1.4rem clamp(1rem,4vw,3rem) 0}
+  .quick-inner{
+    background:var(--ink); border-radius:10px; padding:1.1rem 1.3rem;
+    font-family:var(--mono); font-size:.78rem; line-height:1.75; color:#e8e6e1;
+    overflow-x:auto; white-space:pre; margin:0; tab-size:2;
+  }
+  .quick-inner .cm{color:#7f8a9e}
+  .quick-inner .kw{color:#c792ea}
+  .quick-inner .fn{color:#82aaff}
+  .quick-inner .str{color:#7ddba0}
+  .quick-inner .num{color:#f7c667}
+  .quick-inner .mod{color:#ff8a65}
+  .quick-cap{
+    font-family:var(--mono); font-size:.72rem; color:var(--muted);
+    margin-top:.5rem; letter-spacing:.02em;
+  }
+
+  /* ---------- part headers ---------- */
+  .part-head{
+    max-width:1500px; margin:0 auto; padding:2.6rem clamp(1rem,4vw,3rem) .2rem;
+  }
+  .part-head .bar{
+    border-top:2px solid var(--ink); padding-top:1.1rem;
+    display:flex; align-items:baseline; gap:.8rem; flex-wrap:wrap;
+  }
+  .part-tag{
+    font-family:var(--mono); font-size:.7rem; font-weight:700; color:#fff;
+    padding:.2rem .5rem; border-radius:5px; letter-spacing:.08em;
+  }
+  .part-tag.i{background:var(--ink)}
+  .part-tag.ii{background:var(--dom)}
+  .part-tag.iii{background:var(--perf)}
+  .part-head h2{font-size:1.5rem; font-weight:700; letter-spacing:-.02em; font-family:var(--mono)}
+  .part-head h2 .accent{color:var(--torch)}
+  .part-head h2 .accent-v{color:var(--dom)}
+  .part-head h2 .accent-a{color:var(--perf)}
+  .part-head .note{
+    font-size:.82rem; color:var(--muted); margin-top:.45rem; max-width:78ch;
+  }
+  .part-head .note code{font-family:var(--mono); font-size:.94em; color:#3f444f}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.2rem clamp(1rem,4vw,3rem) 1rem;
+    column-gap:1.4rem; column-fill:balance;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  @media(min-width:1620px){ main{column-count:4} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em; flex:none;
+  }
+  .card-num.v{background:var(--dom)}
+  .card-num.a{background:var(--perf)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.tensor{border-left-color:var(--tensor)}
+  ul.cmds li.nn{border-left-color:var(--nn)}
+  ul.cmds li.train{border-left-color:var(--train)}
+  ul.cmds li.perf{border-left-color:var(--perf)}
+  ul.cmds li.dom{border-left-color:var(--dom)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.795rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.45;
+  }
+  code.cmd .mod{color:var(--dom)}
+  code.cmd .fn{color:var(--train)}
+  code.cmd .kw{color:#a626a4}
+  code.cmd .arg{color:var(--star)}
+  code.cmd .str{color:var(--nn)}
+  code.cmd .num{color:var(--tensor)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  li.danger code.cmd .mod,li.danger code.cmd .fn{color:var(--danger)}
+  .desc{font-size:.765rem; color:#525761; margin-top:.2rem}
+  .desc code{font-family:var(--mono); font-size:.94em; color:#3f444f}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge{
+    font-size:.62rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+    padding:.05rem .3rem; border-radius:4px; vertical-align:.06em;
+  }
+  .badge-danger{color:#fff; background:var(--danger)}
+  .badge-new{color:#fff; background:var(--perf)}
+  .badge-gone{color:var(--danger); border:1px solid var(--danger)}
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:'JetBrains Mono',monospace}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.8rem;
+    display:grid; gap:.6rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner .v code{color:#f8fafc}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:#3f444f}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · deep learning in Python · torch 2.13 (Jul 2026)</div>
+  <h1><span class="py">py</span><span class="tw">torch</span> <span class="sub">+ <span class="v">torchvision</span> · <span class="a">torchaudio</span></span></h1>
+  <p class="lede">One idea holds the whole library together: <b>a tensor remembers how it was made.</b> That record is the autograd graph, and <code>loss.backward()</code> simply walks it backwards to fill in <code>.grad</code>. Layers, optimizers, data loaders and the two domain packages are all conveniences built around that single mechanism.</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>setup &amp; inspect</span>
+    <span><i class="dot tensor"></i>tensors &amp; shapes</span>
+    <span><i class="dot nn"></i>autograd &amp; nn</span>
+    <span><i class="dot train"></i>data, optim, loop</span>
+    <span><i class="dot perf"></i>device, compile, deploy</span>
+    <span><i class="dot dom"></i>domain library</span>
+    <span><i class="dot danger"></i>gotcha / removed</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Cross-checked against: <b>docs.pytorch.org</b> (torch · vision · audio API refs) · <b>pytorch.org/blog</b> (2.13 release) · <b>github.com/pytorch</b> (release notes, audio#3902) · the official <b>PyTorch Cheat Sheet</b> tutorial · <b>learnpytorch.io</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The loop everything serves &nbsp;·&nbsp; and the three packages that feed it</div>
+  <svg class="flow-svg" viewBox="0 0 1120 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Top band: the PyTorch training loop from DataLoader through model forward, loss, backward and optimizer step, looping back via zero_grad. Bottom band: torchvision and torchaudio sitting on the torch core, with media input and output now handled by torchcodec.">
+    <defs>
+      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="ar-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+      </marker>
+    </defs>
+
+    <!-- ===== BAND A : the training loop ===== -->
+    <text x="30" y="26" font-size="10" letter-spacing="2.6" fill="#94a3b8">ONE TRAINING STEP</text>
+
+    <g>
+      <rect x="20" y="44" width="182" height="92" rx="11" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="111" y="72" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">DataLoader</text>
+      <text x="111" y="92" text-anchor="middle" font-size="10" fill="#4f46e5">batches a Dataset</text>
+      <text x="111" y="112" text-anchor="middle" font-size="10" fill="#4f46e5">for x, y in loader:</text>
+    </g>
+    <g>
+      <rect x="252" y="44" width="182" height="92" rx="11" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="343" y="72" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">model(x)</text>
+      <text x="343" y="92" text-anchor="middle" font-size="10" fill="#059669">nn.Module forward</text>
+      <text x="343" y="112" text-anchor="middle" font-size="10" fill="#059669">builds the graph</text>
+    </g>
+    <g>
+      <rect x="484" y="44" width="182" height="92" rx="11" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="575" y="72" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">loss_fn(pred, y)</text>
+      <text x="575" y="92" text-anchor="middle" font-size="10" fill="#059669">one scalar tensor</text>
+      <text x="575" y="112" text-anchor="middle" font-size="10" fill="#059669">the graph's root</text>
+    </g>
+    <g>
+      <rect x="716" y="44" width="182" height="92" rx="11" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="807" y="72" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">loss.backward()</text>
+      <text x="807" y="92" text-anchor="middle" font-size="10" fill="#b45309">walks the graph back</text>
+      <text x="807" y="112" text-anchor="middle" font-size="10" fill="#b45309">fills every .grad</text>
+    </g>
+    <g>
+      <rect x="948" y="44" width="152" height="92" rx="11" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="1024" y="72" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">opt.step()</text>
+      <text x="1024" y="92" text-anchor="middle" font-size="10" fill="#4f46e5">applies the grads</text>
+      <text x="1024" y="112" text-anchor="middle" font-size="10" fill="#4f46e5">to the parameters</text>
+    </g>
+
+    <line x1="202" y1="90" x2="250" y2="90" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <line x1="434" y1="90" x2="482" y2="90" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <line x1="666" y1="90" x2="714" y2="90" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <line x1="898" y1="90" x2="946" y2="90" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+
+    <!-- loopback -->
+    <path d="M1024 136 L1024 168 L111 168 L111 138" fill="none" stroke="#4f46e5" stroke-width="1.7" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+    <rect x="440" y="156" width="272" height="24" rx="6" fill="#fbfaf8"/>
+    <text x="576" y="173" text-anchor="middle" font-size="11.5" font-weight="700" fill="#4f46e5">opt.zero_grad()  &#8594;  next batch</text>
+
+    <!-- ===== BAND B : the package stack ===== -->
+    <line x1="20" y1="208" x2="1100" y2="208" stroke="#e7e3db" stroke-width="1"/>
+    <text x="30" y="236" font-size="10" letter-spacing="2.6" fill="#94a3b8">WHAT LIVES WHERE, IN 2026</text>
+
+    <g>
+      <rect x="20" y="252" width="300" height="86" rx="11" fill="#ecf6f5" stroke="#0d9488" stroke-width="2"/>
+      <text x="170" y="278" text-anchor="middle" font-size="14" font-weight="700" fill="#0d9488">torchvision</text>
+      <text x="170" y="298" text-anchor="middle" font-size="10" fill="#3f444f">transforms.v2 &#183; models + weights</text>
+      <text x="170" y="315" text-anchor="middle" font-size="10" fill="#3f444f">datasets &#183; ops &#183; image decode</text>
+      <text x="170" y="331" text-anchor="middle" font-size="9.5" fill="#94a3b8">images: still here</text>
+    </g>
+    <g>
+      <rect x="344" y="252" width="300" height="86" rx="11" fill="#f4f0fd" stroke="#7c3aed" stroke-width="2"/>
+      <text x="494" y="278" text-anchor="middle" font-size="14" font-weight="700" fill="#7c3aed">torchaudio</text>
+      <text x="494" y="298" text-anchor="middle" font-size="10" fill="#3f444f">transforms &#183; functional &#183; models</text>
+      <text x="494" y="315" text-anchor="middle" font-size="10" fill="#3f444f">pipelines &#183; datasets &#183; kaldi</text>
+      <text x="494" y="331" text-anchor="middle" font-size="9.5" fill="#94a3b8">maintenance phase since 2.9</text>
+    </g>
+    <g>
+      <rect x="720" y="252" width="380" height="86" rx="11" fill="#fdf0ef" stroke="#dc2626" stroke-width="2" stroke-dasharray="6 4"/>
+      <text x="910" y="278" text-anchor="middle" font-size="14" font-weight="700" fill="#dc2626">torchcodec</text>
+      <text x="910" y="298" text-anchor="middle" font-size="10" fill="#3f444f">audio + video decode / encode</text>
+      <text x="910" y="317" text-anchor="middle" font-size="10" fill="#dc2626">separate install &#183; not bundled</text>
+    </g>
+
+    <line x1="644" y1="284" x2="716" y2="284" stroke="#dc2626" stroke-width="1.7" stroke-dasharray="5 4" marker-end="url(#ar-red)"/>
+    <path d="M320 268 L340 268" stroke="#e7e3db" stroke-width="0"/>
+    <path d="M170 252 L170 240 L910 240 L910 250" fill="none" stroke="#dc2626" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#ar-red)"/>
+    <text x="540" y="234" text-anchor="middle" font-size="9.5" font-weight="700" fill="#dc2626">video I/O moved out (torchvision 0.26) &#183; audio I/O moved out (torchaudio 2.9)</text>
+
+    <g>
+      <rect x="20" y="356" width="1080" height="58" rx="11" fill="#1a1d24"/>
+      <text x="46" y="381" font-size="14" font-weight="700" fill="#ee4c2c">torch</text>
+      <text x="46" y="401" font-size="10" fill="#94a3b8">the core &#183; everything above is optional</text>
+      <text x="1074" y="381" text-anchor="end" font-size="11" fill="#e8e6e1">Tensor &#183; autograd &#183; nn &#183; optim &#183; utils.data &#183; compile &#183; distributed</text>
+      <text x="1074" y="401" text-anchor="end" font-size="10" fill="#7f8a9e">pin the triple: torch 2.13 &#183; torchvision 0.28 &#183; torchaudio 2.10 (audio no longer tracks torch)</text>
+    </g>
+  </svg>
+</section>
+
+<!-- ============ QUICKSTART ============ -->
+<section class="quick">
+  <pre class="quick-inner"><span class="cm"># the whole library in twelve lines</span>
+<span class="kw">import</span> <span class="mod">torch</span>, <span class="mod">torch.nn</span> <span class="kw">as</span> <span class="mod">nn</span>
+dev   = <span class="mod">torch</span>.<span class="fn">accelerator</span>.<span class="fn">current_accelerator</span>() <span class="kw">if</span> <span class="mod">torch</span>.<span class="fn">accelerator</span>.<span class="fn">is_available</span>() <span class="kw">else</span> <span class="str">"cpu"</span>
+model = <span class="mod">nn</span>.<span class="fn">Sequential</span>(<span class="mod">nn</span>.<span class="fn">Linear</span>(<span class="num">784</span>, <span class="num">128</span>), <span class="mod">nn</span>.<span class="fn">ReLU</span>(), <span class="mod">nn</span>.<span class="fn">Linear</span>(<span class="num">128</span>, <span class="num">10</span>)).<span class="fn">to</span>(dev)
+opt   = <span class="mod">torch</span>.<span class="mod">optim</span>.<span class="fn">AdamW</span>(model.<span class="fn">parameters</span>(), lr=<span class="num">1e-3</span>)
+lossf = <span class="mod">nn</span>.<span class="fn">CrossEntropyLoss</span>()          <span class="cm"># takes raw logits, not softmax</span>
+
+model.<span class="fn">train</span>()
+<span class="kw">for</span> x, y <span class="kw">in</span> loader:
+    x, y = x.<span class="fn">to</span>(dev), y.<span class="fn">to</span>(dev)
+    loss = lossf(model(x), y)      <span class="cm"># forward: the graph is recorded here</span>
+    opt.<span class="fn">zero_grad</span>()               <span class="cm"># grads ACCUMULATE — clear them first</span>
+    loss.<span class="fn">backward</span>()               <span class="cm"># backward: the graph is walked and freed</span>
+    opt.<span class="fn">step</span>()                    <span class="cm"># parameters move</span></pre>
+  <div class="quick-cap">Read this once and most of the reference below is just filling in the blanks.</div>
+</section>
+
+<!-- ============ PART I ============ -->
+<section class="part-head">
+  <div class="bar">
+    <span class="part-tag i">PART I</span>
+    <h2><span class="accent">torch</span> &nbsp;&#183;&nbsp; the core</h2>
+  </div>
+  <p class="note">Tensors, autograd, layers, optimizers, data and the runtime. Nothing here needs <code>torchvision</code> or <code>torchaudio</code> installed.</p>
+</section>
+
+<main>
+
+  <!-- 01 INSTALL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; verify</span><span class="card-sub">once per env</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">pip install torch torchvision torchaudio</code><span class="star">&#9733;</span><div class="desc">CPU-only default wheels on PyPI.</div></li>
+      <li class="setup"><code class="cmd">pip install torch <span class="arg">--index-url</span> <span class="str">https://download.pytorch.org/whl/cu128</span></code><div class="desc">CUDA build. Pick the tag from the selector on pytorch.org.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">torch</span>.<span class="fn">__version__</span></code><div class="desc">Prints e.g. <code>2.13.0+cu128</code> — build tag included.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">torch</span>.<span class="mod">cuda</span>.<span class="fn">is_available</span>()</code><div class="desc">Quick sanity check that the GPU build actually sees a device.</div></li>
+      <li class="setup"><code class="cmd">python -m torch.utils.collect_env</code><div class="desc">Full environment dump — paste this into bug reports.</div></li>
+      <li class="danger"><code class="cmd">torch / torchvision / torchaudio versions</code><span class="badge badge-danger">pin</span><div class="desc">The domain packages link against one exact torch build. Install all three together or you get import-time symbol errors.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">torch</span>.<span class="mod">cuda</span>.<span class="fn">device_count</span>() &#183; <span class="fn">get_device_name</span>(<span class="num">0</span>)</code><div class="desc">How many GPUs, and which ones.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">torch</span>.<span class="mod">backends</span>.<span class="mod">mps</span>.<span class="fn">is_available</span>()</code><div class="desc">Apple Silicon. 2.13 brings FlexAttention to MPS.</div></li>
+      <li class="perf"><code class="cmd">pip install torchcodec</code><span class="badge badge-new">required</span><div class="desc"><b>Separate package.</b> Every audio and video decode path now goes through it.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 IMPORTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">The import map</span><span class="card-sub">what lives where</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="kw">import</span> <span class="mod">torch</span></code><span class="star">&#9733;</span><div class="desc">Tensors, math, devices, <code>save</code>/<code>load</code>, <code>compile</code>.</div></li>
+      <li class="nn"><code class="cmd"><span class="kw">import</span> <span class="mod">torch.nn</span> <span class="kw">as</span> <span class="mod">nn</span></code><span class="star">&#9733;</span><div class="desc">Layer <i>classes</i> that hold parameters.</div></li>
+      <li class="nn"><code class="cmd"><span class="kw">import</span> <span class="mod">torch.nn.functional</span> <span class="kw">as</span> <span class="mod">F</span></code><div class="desc">The same ops as stateless <i>functions</i>.</div></li>
+      <li class="train"><code class="cmd"><span class="kw">import</span> <span class="mod">torch.optim</span> <span class="kw">as</span> <span class="mod">optim</span></code><div class="desc">SGD, Adam, AdamW + LR schedulers.</div></li>
+      <li class="train"><code class="cmd"><span class="kw">from</span> <span class="mod">torch.utils.data</span> <span class="kw">import</span> Dataset, DataLoader</code><span class="star">&#9733;</span><div class="desc">The two halves of every input pipeline.</div></li>
+      <li class="perf"><code class="cmd"><span class="kw">import</span> <span class="mod">torch.distributed</span> <span class="kw">as</span> <span class="mod">dist</span></code><div class="desc">Multi-GPU / multi-node collectives.</div></li>
+      <li class="dom"><code class="cmd"><span class="kw">from</span> <span class="mod">torchvision.transforms</span> <span class="kw">import</span> v2</code><div class="desc">Note the <code>v2</code> — see card V2.</div></li>
+      <li class="dom"><code class="cmd"><span class="kw">import</span> <span class="mod">torchaudio</span></code><div class="desc">Waveforms, spectrograms, ASR pipelines.</div></li>
+      <li class="tensor"><code class="cmd"><span class="kw">from</span> <span class="mod">torch</span> <span class="kw">import</span> Tensor</code><div class="desc">For type hints: <code>def f(x: Tensor) -&gt; Tensor:</code></div></li>
+      <li class="dom"><code class="cmd"><span class="kw">import</span> <span class="mod">torchvision.transforms.v2.functional</span> <span class="kw">as</span> <span class="mod">TF</span></code><div class="desc">Stateless versions when you need to apply the same op to two things.</div></li>
+      <li class="train"><code class="cmd"><span class="kw">from</span> <span class="mod">torch.utils.tensorboard</span> <span class="kw">import</span> SummaryWriter</code><div class="desc">Built in. <code>w.add_scalar("loss/train", v, step)</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 CREATE TENSORS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Create tensors</span><span class="card-sub">the only data type</span></div>
+    <ul class="cmds">
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">tensor</span>(data)</code><span class="star">&#9733;</span><div class="desc">From a list or ndarray. <b>Copies</b>, and infers the dtype.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">zeros</span>(<span class="num">2</span>, <span class="num">3</span>) &#183; <span class="fn">ones</span> &#183; <span class="fn">empty</span> &#183; <span class="fn">full</span></code><span class="star">&#9733;</span><div class="desc">Shape given as loose ints or a tuple.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">randn</span>(<span class="num">2</span>, <span class="num">3</span>) &#183; <span class="fn">rand</span> &#183; <span class="fn">randint</span></code><span class="star">&#9733;</span><div class="desc"><code>randn</code> is N(0,1); <code>rand</code> is uniform [0,1).</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">arange</span>(<span class="num">0</span>, <span class="num">10</span>, <span class="num">2</span>) &#183; <span class="fn">linspace</span>(<span class="num">0</span>, <span class="num">1</span>, <span class="num">5</span>)</code><div class="desc">Step-based vs count-based ranges.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">eye</span>(<span class="num">3</span>) &#183; <span class="mod">torch</span>.<span class="fn">from_numpy</span>(arr)</code><div class="desc"><code>from_numpy</code> <b>shares memory</b> with the ndarray.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">zeros_like</span>(x) &#183; <span class="fn">randn_like</span>(x)</code><div class="desc">Copies shape, dtype <i>and</i> device from <code>x</code>.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">clone</span>()</code><div class="desc">Deep copy that stays in the autograd graph. Add <code>.detach()</code> to leave it.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">torch</span>.<span class="fn">manual_seed</span>(<span class="num">0</span>)</code><div class="desc">Seeds all devices. Do it before you build the model.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">zeros</span>(<span class="num">2</span>, <span class="num">3</span>, device=dev, dtype=<span class="mod">torch</span>.float32)</code><span class="star">&#9733;</span><div class="desc"><b>Build it on the device.</b> Creating on CPU then <code>.to(dev)</code> allocates twice and copies.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">as_tensor</span>(arr)</code><div class="desc">Shares memory with the numpy array where it can. <code>torch.tensor</code> always copies.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">randperm</span>(n) &#183; <span class="fn">multinomial</span>(w, k)</code><div class="desc">Random permutation; weighted sampling without replacement.</div></li>
+      <li class="setup"><code class="cmd">g = <span class="mod">torch</span>.<span class="fn">Generator</span>().<span class="fn">manual_seed</span>(<span class="num">0</span>)</code><div class="desc">A local RNG. Pass <code>generator=g</code> to DataLoader and samplers so seeding survives workers.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 ATTRIBUTES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Attributes &amp; dtypes</span><span class="card-sub">read before you debug</span></div>
+    <ul class="cmds">
+      <li class="tensor"><code class="cmd">x.<span class="fn">shape</span> &#183; x.<span class="fn">ndim</span> &#183; x.<span class="fn">numel</span>()</code><span class="star">&#9733;</span><div class="desc">Dimensions, rank, total element count.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">dtype</span> &#183; x.<span class="fn">device</span> &#183; x.<span class="fn">requires_grad</span></code><span class="star">&#9733;</span><div class="desc">The three things wrong when a call fails.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">to</span>(<span class="mod">torch</span>.float32) &#183; x.<span class="fn">float</span>() &#183; x.<span class="fn">long</span>()</code><div class="desc">Cast. <code>.to()</code> is a no-op if it already matches.</div></li>
+      <li class="tensor"><code class="cmd">float32 &#183; float16 &#183; bfloat16</code><div class="desc">Default is float32. <code>bfloat16</code> keeps float32's exponent range — safer for training than float16.</div></li>
+      <li class="tensor"><code class="cmd">int64 &#183; bool &#183; uint8</code><div class="desc">Class labels must be <code>int64</code>; images arrive as <code>uint8</code>.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">item</span>()</code><div class="desc">One-element tensor &#8594; Python number. Forces a device sync.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">tolist</span>() &#183; x.<span class="fn">numpy</span>()</code><div class="desc"><code>.numpy()</code> needs CPU and no grad: <code>x.detach().cpu().numpy()</code>.</div></li>
+      <li class="danger"><code class="cmd">x.<span class="fn">is_contiguous</span>()</code><div class="desc">False after <code>permute</code>/<code>transpose</code> — and then <code>.view()</code> raises.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">element_size</span>() * x.<span class="fn">numel</span>()</code><div class="desc">Bytes held by the tensor &#8212; the fastest memory estimate you have.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">finfo</span>(<span class="mod">torch</span>.float16).max</code><div class="desc">Dtype limits. Handy when hunting an <code>inf</code> in half precision.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">stride</span>()</code><div class="desc">Step per dimension. A <code>permute</code> changes stride, not memory.</div></li>
+      <li class="danger"><code class="cmd">int tensor + float tensor</code><span class="badge badge-danger">quiet</span><div class="desc">Dtypes promote <b>silently</b>. An accidental float64 anywhere will quietly halve your throughput.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 SHAPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Shape surgery</span><span class="card-sub">where most bugs live</span></div>
+    <ul class="cmds">
+      <li class="tensor"><code class="cmd">x.<span class="fn">view</span>(<span class="num">2</span>, <span class="num">-1</span>)</code><span class="star">&#9733;</span><div class="desc">Free re-interpretation. Needs contiguous memory; <code>-1</code> is inferred.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">reshape</span>(<span class="num">2</span>, <span class="num">-1</span>)</code><span class="star">&#9733;</span><div class="desc">Same result, but copies if it has to. Use this when unsure.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">permute</span>(<span class="num">2</span>, <span class="num">0</span>, <span class="num">1</span>)</code><div class="desc">Reorder <i>all</i> dims — e.g. HWC &#8594; CHW.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">transpose</span>(<span class="num">0</span>, <span class="num">1</span>) &#183; x.<span class="fn">T</span></code><div class="desc">Swap exactly two dims.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">unsqueeze</span>(<span class="num">0</span>) &#183; x.<span class="fn">squeeze</span>()</code><div class="desc">Add / drop size-1 dims. <code>unsqueeze(0)</code> is how you fake a batch.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">flatten</span>(start_dim=<span class="num">1</span>)</code><div class="desc">Collapse everything after the batch dim — the CNN&#8594;Linear join.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">cat</span>([a, b], dim=<span class="num">0</span>)</code><span class="star">&#9733;</span><div class="desc">Joins along an existing dim. Rank unchanged.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">stack</span>([a, b], dim=<span class="num">0</span>)</code><span class="star">&#9733;</span><div class="desc">Creates a <i>new</i> dim. Rank +1. This is the pair people mix up.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">expand</span>(<span class="num">3</span>, <span class="num">-1</span>) &#183; x.<span class="fn">repeat</span>(<span class="num">3</span>, <span class="num">1</span>)</code><div class="desc"><code>expand</code> is a free view; <code>repeat</code> allocates.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">contiguous</span>()</code><div class="desc">The fix for "view size is not compatible…".</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">split</span>(x, <span class="num">2</span>, dim=<span class="num">0</span>) &#183; <span class="fn">chunk</span>(x, <span class="num">3</span>)</code><div class="desc"><code>split</code> takes a size, <code>chunk</code> takes a count.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">movedim</span>(<span class="num">1</span>, <span class="num">-1</span>)</code><div class="desc">Move one axis and leave the rest alone &#8212; clearer than spelling out a full permute.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">nn</span>.<span class="fn">Flatten</span>(<span class="num">1</span>) &#183; <span class="mod">nn</span>.<span class="fn">Unflatten</span>(<span class="num">1</span>, (C, H, W))</code><div class="desc">The layer forms, for use inside <code>nn.Sequential</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Broadcasting</span><span class="card-sub">the silent bug factory</span></div>
+    <ul class="cmds">
+      <li class="tensor"><code class="cmd">shapes align from the <b>right</b></code><span class="star">&#9733;</span><div class="desc">Trailing dims must be equal, or one of them 1, or absent. That one rule explains every broadcast.</div></li>
+      <li class="tensor"><code class="cmd">(<span class="num">3</span>,<span class="num">1</span>) + (<span class="num">1</span>,<span class="num">4</span>) &#8594; (<span class="num">3</span>,<span class="num">4</span>)</code><span class="star">&#9733;</span><div class="desc">Size-1 dims stretch. Nothing is copied until it has to be.</div></li>
+      <li class="tensor"><code class="cmd">(<span class="num">8</span>,<span class="num">3</span>,<span class="num">32</span>,<span class="num">32</span>) * (<span class="num">3</span>,<span class="num">1</span>,<span class="num">1</span>)</code><div class="desc">Per-channel scale on a batch of images. The classic normalize shape.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">broadcast_shapes</span>(a.shape, b.shape)</code><div class="desc">Ask before you multiply. Raises if they are incompatible.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">unsqueeze</span>(<span class="num">1</span>) * y</code><div class="desc">Be explicit about <i>where</i> the new axis goes rather than trusting alignment.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">sum</span>(dim=<span class="num">1</span>, keepdim=<span class="kw">True</span>)</code><div class="desc">Keeps rank so the result still broadcasts back against the original.</div></li>
+      <li class="danger"><code class="cmd">pred (N,<span class="num">1</span>) vs target (N,)</code><span class="star">&#9733;</span><span class="badge badge-danger">famous</span><div class="desc"><b>The expensive one.</b> These broadcast to (N,N), so your loss silently averages N&#178; pairs and trains on nonsense. Nothing raises.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 INDEXING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Index, slice, reduce</span><span class="card-sub">NumPy rules apply</span></div>
+    <ul class="cmds">
+      <li class="tensor"><code class="cmd">x[<span class="num">0</span>] &#183; x[:, <span class="num">1</span>] &#183; x[..., <span class="num">-1</span>]</code><span class="star">&#9733;</span><div class="desc">Basic slicing returns a <b>view</b>, not a copy.</div></li>
+      <li class="tensor"><code class="cmd">x[x &gt; <span class="num">0</span>]</code><div class="desc">Boolean mask &#8594; flat 1-D tensor of the matches.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">where</span>(cond, a, b)</code><div class="desc">Elementwise pick — differentiable, unlike a Python <code>if</code>.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">sum</span>(dim=<span class="num">1</span>) &#183; <span class="fn">mean</span> &#183; <span class="fn">std</span> &#183; <span class="fn">prod</span></code><span class="star">&#9733;</span><div class="desc">Named dim disappears unless <code>keepdim=True</code>.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">max</span>(dim=<span class="num">1</span>)</code><div class="desc">Returns <code>(values, indices)</code> — a named tuple, not a bare tensor.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">argmax</span>(dim=<span class="num">1</span>)</code><span class="star">&#9733;</span><div class="desc">Logits &#8594; predicted class. The classification one-liner.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">topk</span>(x, k=<span class="num">5</span>) &#183; <span class="fn">sort</span> &#183; <span class="fn">unique</span></code><div class="desc">Top-5 accuracy, ranking, vocabulary building.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">gather</span>(<span class="num">1</span>, idx) &#183; x.<span class="fn">scatter_</span>(<span class="num">1</span>, idx, v)</code><div class="desc">Pick / write per-row by index. Trailing <code>_</code> means in-place.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">nonzero</span>(x, as_tuple=<span class="kw">True</span>)</code><div class="desc">Indices where the condition holds; the tuple form indexes directly.</div></li>
+      <li class="nn"><code class="cmd">x.<span class="fn">masked_fill_</span>(mask, <span class="kw">float</span>(<span class="str">"-inf"</span>))</code><span class="star">&#9733;</span><div class="desc">How attention masks are applied &#8212; &#8722;inf before softmax becomes exactly 0 after.</div></li>
+      <li class="tensor"><code class="cmd">x.<span class="fn">any</span>(dim) &#183; x.<span class="fn">all</span>(dim) &#183; x.<span class="fn">count_nonzero</span>()</code><div class="desc">Boolean reductions.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">cumsum</span>(x, dim) &#183; <span class="fn">roll</span> &#183; <span class="fn">flip</span></code><div class="desc">Running totals, circular shift, reverse along an axis.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 MATH -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Math &amp; linear algebra</span><span class="card-sub">the actual compute</span></div>
+    <ul class="cmds">
+      <li class="tensor"><code class="cmd">a + b &#183; a * b &#183; a ** <span class="num">2</span></code><span class="star">&#9733;</span><div class="desc">Elementwise, with NumPy broadcasting.</div></li>
+      <li class="tensor"><code class="cmd">a @ b &#183; <span class="mod">torch</span>.<span class="fn">matmul</span>(a, b)</code><span class="star">&#9733;</span><div class="desc">Matrix multiply; batches over leading dims.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">einsum</span>(<span class="str">"bij,bjk-&gt;bik"</span>, a, b)</code><div class="desc">Names every axis. Worth learning for attention code.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">bmm</span>(a, b) &#183; <span class="fn">mv</span> &#183; <span class="fn">dot</span> &#183; <span class="fn">outer</span></code><div class="desc">Explicit batch-matrix, matrix-vector, vector forms.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">exp</span> &#183; <span class="fn">log</span> &#183; <span class="fn">sqrt</span> &#183; <span class="fn">abs</span> &#183; <span class="fn">clamp</span></code><div class="desc"><code>clamp(min=, max=)</code> is the standard gradient guard.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">F</span>.<span class="fn">softmax</span>(x, dim=<span class="num">-1</span>) &#183; <span class="mod">F</span>.<span class="fn">log_softmax</span></code><div class="desc">Always name the dim. <code>log_softmax</code> is the numerically stable one.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="mod">linalg</span>.<span class="fn">norm</span> &#183; <span class="fn">inv</span> &#183; <span class="fn">svd</span> &#183; <span class="fn">solve</span></code><div class="desc">The modern namespace — the bare <code>torch.svd</code> spellings are legacy.</div></li>
+      <li class="danger"><code class="cmd">a.<span class="fn">add_</span>(b)</code><span class="badge badge-danger">in-place</span><div class="desc">Trailing <code>_</code> mutates. Autograd will raise if the value was needed for backward.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">allclose</span>(a, b, atol=<span class="num">1e-6</span>)</code><span class="star">&#9733;</span><div class="desc">Compare floats <b>this way</b> in tests. <code>==</code> on floats will eventually embarrass you.</div></li>
+      <li class="danger"><code class="cmd"><span class="mod">torch</span>.<span class="fn">isnan</span>(x).<span class="fn">any</span>() &#183; <span class="fn">nan_to_num</span>(x)</code><span class="star">&#9733;</span><div class="desc">First thing to run when a loss goes to NaN. Check the inputs before blaming the model.</div></li>
+      <li class="nn"><code class="cmd">F.<span class="fn">normalize</span>(x, dim=<span class="num">-1</span>)</code><div class="desc">Unit-length rows. Then <code>a @ b.T</code> is cosine similarity.</div></li>
+      <li class="tensor"><code class="cmd"><span class="mod">torch</span>.<span class="fn">cdist</span>(a, b) &#183; <span class="fn">corrcoef</span></code><div class="desc">Pairwise distances; correlation matrix.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 DEVICE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Devices &amp; precision</span><span class="card-sub">cuda &#183; mps &#183; xpu &#183; cpu</span></div>
+    <ul class="cmds">
+      <li class="perf"><code class="cmd"><span class="mod">torch</span>.<span class="fn">accelerator</span>.<span class="fn">current_accelerator</span>()</code><span class="badge badge-new">modern</span><div class="desc">Device-agnostic: returns cuda / mps / xpu without an if-chain.</div></li>
+      <li class="perf"><code class="cmd"><span class="mod">torch</span>.<span class="fn">accelerator</span>.<span class="fn">is_available</span>()</code><div class="desc">Guard the call above; falls back to <code>"cpu"</code>.</div></li>
+      <li class="perf"><code class="cmd">x = x.<span class="fn">to</span>(dev) &#183; model.<span class="fn">to</span>(dev)</code><span class="star">&#9733;</span><div class="desc">Tensors return a copy; modules move <b>in place</b>. Don't write <code>model = model.to()</code> expecting otherwise.</div></li>
+      <li class="perf"><code class="cmd"><span class="kw">with</span> <span class="mod">torch</span>.<span class="fn">autocast</span>(dev, dtype=<span class="mod">torch</span>.bfloat16):</code><span class="star">&#9733;</span><div class="desc">Mixed precision. Wrap the forward + loss only.</div></li>
+      <li class="perf"><code class="cmd">scaler = <span class="mod">torch</span>.<span class="fn">GradScaler</span>()</code><div class="desc">Needed for float16, not for bfloat16.</div></li>
+      <li class="perf"><code class="cmd"><span class="mod">torch</span>.<span class="fn">set_float32_matmul_precision</span>(<span class="str">"high"</span>)</code><div class="desc">Enables TF32 matmuls on Ampere+. Near-free speedup.</div></li>
+      <li class="perf"><code class="cmd">x.<span class="fn">to</span>(dev, non_blocking=<span class="kw">True</span>)</code><div class="desc">Async copy — only helps with <code>pin_memory=True</code> loaders.</div></li>
+      <li class="perf"><code class="cmd"><span class="mod">torch</span>.<span class="mod">cuda</span>.<span class="fn">empty_cache</span>()</code><div class="desc">Returns cached blocks to the driver. Does not fix a real leak.</div></li>
+      <li class="danger"><code class="cmd">RuntimeError: expected all tensors on the same device</code><div class="desc">The single most common runtime error. Move <i>both</i> the batch and the model.</div></li>
+      <li class="perf"><code class="cmd"><span class="mod">torch</span>.<span class="mod">cuda</span>.<span class="fn">synchronize</span>()</code><span class="star">&#9733;</span><div class="desc"><b>CUDA calls are asynchronous.</b> Without this your timing measures how fast Python queued work, not how fast it ran.</div></li>
+      <li class="perf"><code class="cmd"><span class="mod">torch</span>.<span class="mod">cuda</span>.<span class="fn">max_memory_allocated</span>() / <span class="num">1e9</span></code><div class="desc">Peak GB. Pair with <code>reset_peak_memory_stats()</code> to measure one region.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 AUTOGRAD -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Autograd</span><span class="card-sub">the mechanism</span></div>
+    <ul class="cmds">
+      <li class="nn"><code class="cmd">x = <span class="mod">torch</span>.<span class="fn">tensor</span>(<span class="num">2.</span>, requires_grad=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Opt a leaf tensor into tracking. Model parameters do this for you.</div></li>
+      <li class="nn"><code class="cmd">loss.<span class="fn">backward</span>()</code><span class="star">&#9733;</span><div class="desc">Accumulates <code>d(loss)/d(param)</code> into every <code>.grad</code>. Loss must be a scalar.</div></li>
+      <li class="nn"><code class="cmd">x.<span class="fn">grad</span></code><div class="desc"><code>None</code> until the first backward. Only leaves keep it.</div></li>
+      <li class="nn"><code class="cmd"><span class="kw">with</span> <span class="mod">torch</span>.<span class="fn">no_grad</span>():</code><span class="star">&#9733;</span><div class="desc">Stop recording — for evaluation and manual parameter edits.</div></li>
+      <li class="nn"><code class="cmd"><span class="kw">with</span> <span class="mod">torch</span>.<span class="fn">inference_mode</span>():</code><span class="star">&#9733;</span><div class="desc">Stricter and faster than <code>no_grad</code>. Prefer it for pure inference.</div></li>
+      <li class="nn"><code class="cmd">x.<span class="fn">detach</span>()</code><div class="desc">Same data, cut out of the graph. The way to stop a gradient mid-network.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">torch</span>.<span class="mod">autograd</span>.<span class="fn">grad</span>(y, x)</code><div class="desc">Returns grads instead of writing <code>.grad</code> — for higher-order tricks.</div></li>
+      <li class="danger"><code class="cmd">loss.<span class="fn">backward</span>(retain_graph=<span class="kw">True</span>)</code><span class="badge badge-danger">rare</span><div class="desc">The graph is freed after backward. Only set this if you truly need a second pass — otherwise it silently leaks memory.</div></li>
+      <li class="danger"><code class="cmd"><span class="mod">torch</span>.<span class="mod">autograd</span>.<span class="fn">set_detect_anomaly</span>(<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Points at the <i>forward</i> op that produced a NaN gradient. Slow &#8212; switch on only while debugging.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">torch</span>.<span class="mod">func</span>.<span class="fn">grad</span>(f)(x) &#183; <span class="fn">vmap</span> &#183; <span class="fn">jacrev</span></code><div class="desc">Functional autograd: per-sample gradients, jacobians, batching without a loop.</div></li>
+      <li class="nn"><code class="cmd">total = <span class="mod">nn</span>.<span class="mod">utils</span>.<span class="fn">clip_grad_norm_</span>(params, <span class="num">1.0</span>)</code><div class="desc">It <b>returns</b> the pre-clip norm &#8212; log it. A spike there precedes most loss explosions.</div></li>
+      <li class="nn"><code class="cmd">t.<span class="fn">register_hook</span>(<span class="kw">lambda</span> g: <span class="fn">print</span>(g.<span class="fn">norm</span>()))</code><div class="desc">Inspect a gradient partway through the graph.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 nn.Module -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">nn.Module</span><span class="card-sub">every model is one</span></div>
+    <ul class="cmds">
+      <li class="nn"><code class="cmd"><span class="kw">class</span> Net(<span class="mod">nn</span>.Module):</code><span class="star">&#9733;</span><div class="desc">Subclass, then define <code>__init__</code> and <code>forward</code>. Never call <code>forward()</code> yourself — call <code>model(x)</code>.</div></li>
+      <li class="nn"><code class="cmd"><span class="kw">super</span>().<span class="fn">__init__</span>()</code><div class="desc">First line of <code>__init__</code>. Skip it and no parameter registers.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">Sequential</span>(layer, layer, ...)</code><span class="star">&#9733;</span><div class="desc">A model without a class, when the graph is a straight line.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">ModuleList</span>([...]) &#183; <span class="mod">nn</span>.<span class="fn">ModuleDict</span></code><div class="desc">Use these, not a plain Python list — a plain list hides the parameters.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">Parameter</span>(<span class="mod">torch</span>.<span class="fn">randn</span>(<span class="num">3</span>))</code><div class="desc">A tensor attribute that counts as a trainable weight.</div></li>
+      <li class="nn"><code class="cmd"><span class="kw">self</span>.<span class="fn">register_buffer</span>(<span class="str">"mask"</span>, t)</code><div class="desc">Moves with <code>.to()</code> and saves in the state dict, but is not trained.</div></li>
+      <li class="nn"><code class="cmd">model.<span class="fn">parameters</span>() &#183; model.<span class="fn">named_parameters</span>()</code><span class="star">&#9733;</span><div class="desc">What you hand the optimizer.</div></li>
+      <li class="nn"><code class="cmd"><span class="fn">sum</span>(p.<span class="fn">numel</span>() <span class="kw">for</span> p <span class="kw">in</span> model.<span class="fn">parameters</span>())</code><div class="desc">Parameter count in one line.</div></li>
+      <li class="nn"><code class="cmd">model.<span class="fn">apply</span>(init_fn) &#183; <span class="mod">nn</span>.<span class="mod">init</span>.<span class="fn">kaiming_normal_</span></code><div class="desc">Custom weight init, applied recursively.</div></li>
+      <li class="nn"><code class="cmd"><span class="kw">for</span> p <span class="kw">in</span> model.<span class="fn">parameters</span>(): p.<span class="fn">requires_grad_</span>(<span class="kw">False</span>)</code><span class="star">&#9733;</span><div class="desc">Freeze a backbone. Then unfreeze the head and hand <b>only</b> those params to the optimizer.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">Identity</span>()</code><div class="desc">Replace a head with a pass-through instead of deleting it &#8212; shapes downstream stay intact.</div></li>
+      <li class="nn"><code class="cmd">model.<span class="fn">register_forward_hook</span>(fn)</code><div class="desc">Grab intermediate activations without editing <code>forward</code>.</div></li>
+      <li class="nn"><code class="cmd">model.<span class="fn">named_modules</span>() &#183; model.<span class="fn">children</span>()</code><div class="desc">Walk the tree. <code>named_modules</code> recurses, <code>children</code> is one level.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 LAYERS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Layers</span><span class="card-sub">nn.* building blocks</span></div>
+    <ul class="cmds">
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">Linear</span>(in_f, out_f)</code><span class="star">&#9733;</span><div class="desc">Acts on the last dim only; leading dims pass through.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">Conv2d</span>(in_ch, out_ch, k, stride, padding)</code><span class="star">&#9733;</span><div class="desc">Expects <code>(N, C, H, W)</code>. <code>padding="same"</code> preserves size at stride 1.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">MaxPool2d</span>(<span class="num">2</span>) &#183; <span class="mod">nn</span>.<span class="fn">AdaptiveAvgPool2d</span>(<span class="num">1</span>)</code><div class="desc">The adaptive one fixes the output size for any input — how CNNs reach a Linear head.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">BatchNorm2d</span>(ch) &#183; <span class="mod">nn</span>.<span class="fn">LayerNorm</span>(shape)</code><span class="star">&#9733;</span><div class="desc">BatchNorm across the batch (CNNs); LayerNorm within a sample (transformers).</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">Dropout</span>(p=<span class="num">0.5</span>)</code><div class="desc">Active in <code>train()</code>, a no-op in <code>eval()</code>.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">Embedding</span>(num_emb, dim)</code><div class="desc">Integer ids &#8594; vectors. A lookup, not a matmul.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">MultiheadAttention</span>(dim, heads)</code><div class="desc">Pass <code>batch_first=True</code> unless you like <code>(L, N, E)</code>.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">TransformerEncoderLayer</span> &#183; <span class="fn">LSTM</span> &#183; <span class="fn">GRU</span></code><div class="desc">RNNs return <code>(output, hidden)</code>, not a bare tensor.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">F</span>.<span class="fn">scaled_dot_product_attention</span>(q, k, v)</code><span class="badge badge-new">fast</span><div class="desc">Fused attention kernel. <code>torch.nn.attention.flex_attention</code> handles custom masks — and as of 2.13 runs on Apple Silicon too.</div></li>
+      <li class="nn"><code class="cmd">out = (in + <span class="num">2</span>*pad &#8722; k) // stride + <span class="num">1</span></code><span class="star">&#9733;</span><div class="desc"><b>The conv size formula.</b> Memorise it and you stop guessing why a Linear layer rejects your flattened feature map.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">GroupNorm</span>(g, ch) &#183; <span class="mod">nn</span>.<span class="fn">RMSNorm</span>(dim)</code><span class="badge badge-new">modern</span><div class="desc">GroupNorm when batches are tiny; RMSNorm is the norm of choice in modern LLMs.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">ConvTranspose2d</span> &#183; <span class="mod">nn</span>.<span class="fn">Upsample</span>(scale_factor=<span class="num">2</span>)</code><div class="desc">Going back up in resolution. Upsample+Conv avoids checkerboard artefacts.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">Conv1d</span> &#183; <span class="fn">Conv3d</span> &#183; padding=<span class="str">"same"</span></code><div class="desc">1D for sequences and audio, 3D for volumes.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 LOSSES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Losses &amp; activations</span><span class="card-sub">pick by task</span></div>
+    <ul class="cmds">
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">CrossEntropyLoss</span>()</code><span class="star">&#9733;</span><div class="desc">Multi-class. Takes <b>raw logits</b> and <code>int64</code> targets — softmax is built in.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">BCEWithLogitsLoss</span>()</code><span class="star">&#9733;</span><div class="desc">Binary / multi-label. Also takes logits, and is stabler than <code>Sigmoid</code> + <code>BCELoss</code>.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">MSELoss</span>() &#183; <span class="mod">nn</span>.<span class="fn">L1Loss</span>() &#183; <span class="fn">SmoothL1Loss</span></code><span class="star">&#9733;</span><div class="desc">Regression. Smooth L1 (Huber) resists outliers.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">NLLLoss</span>() &#183; <span class="fn">KLDivLoss</span> &#183; <span class="fn">CTCLoss</span></code><div class="desc"><code>NLLLoss</code> expects <code>log_softmax</code> output; <code>CTCLoss</code> is the speech/OCR one.</div></li>
+      <li class="nn"><code class="cmd">loss_fn(pred, y, reduction=<span class="str">"none"</span>)</code><div class="desc">Per-sample losses — needed for weighting and focal variants.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">ReLU</span>() &#183; <span class="fn">GELU</span> &#183; <span class="fn">SiLU</span> &#183; <span class="fn">LeakyReLU</span></code><span class="star">&#9733;</span><div class="desc">GELU/SiLU are the transformer defaults; ReLU still fine for CNNs.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">Sigmoid</span>() &#183; <span class="fn">Tanh</span> &#183; <span class="fn">Softmax</span>(dim=<span class="num">-1</span>)</code><div class="desc">For <i>reading</i> probabilities at inference — not before a logits-based loss.</div></li>
+      <li class="danger"><code class="cmd"><span class="mod">nn</span>.<span class="fn">Softmax</span>() &#8594; <span class="mod">nn</span>.<span class="fn">CrossEntropyLoss</span>()</code><span class="badge badge-danger">wrong</span><div class="desc">Double softmax. Trains, converges badly, and nothing warns you.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">CrossEntropyLoss</span>(label_smoothing=<span class="num">0.1</span>)</code><span class="star">&#9733;</span><div class="desc">Nearly free accuracy on most classification tasks. Stops the model getting overconfident.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">CrossEntropyLoss</span>(weight=w, ignore_index=<span class="num">-100</span>)</code><span class="star">&#9733;</span><div class="desc">Class imbalance, and skipping pad tokens. <code>-100</code> is the conventional pad label.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">BCEWithLogitsLoss</span>(pos_weight=w)</code><div class="desc">Imbalance for binary and multi-label problems.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">nn</span>.<span class="fn">LinearCrossEntropyLoss</span>()</code><span class="badge badge-new">2.13</span><div class="desc">Fuses the final projection into the loss. Up to <b>4&#215; less peak memory</b> on large-vocabulary LM training.</div></li>
+      <li class="nn"><code class="cmd">F.<span class="fn">one_hot</span>(y, num_classes=n)</code><div class="desc">Rarely needed &#8212; CrossEntropyLoss wants class <i>indices</i>, not one-hot.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 OPTIM -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Optimizers &amp; schedules</span><span class="card-sub">torch.optim</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd">opt = <span class="mod">optim</span>.<span class="fn">AdamW</span>(model.<span class="fn">parameters</span>(), lr=<span class="num">1e-3</span>)</code><span class="star">&#9733;</span><div class="desc">The sane default. Decouples weight decay properly — prefer it to <code>Adam</code>.</div></li>
+      <li class="train"><code class="cmd"><span class="mod">optim</span>.<span class="fn">SGD</span>(params, lr=<span class="num">0.1</span>, momentum=<span class="num">0.9</span>)</code><div class="desc">Still the best final accuracy for vision, with a schedule.</div></li>
+      <li class="train"><code class="cmd">opt.<span class="fn">zero_grad</span>(set_to_none=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Default since 2.0 — frees memory as well as clearing.</div></li>
+      <li class="train"><code class="cmd">opt.<span class="fn">step</span>()</code><span class="star">&#9733;</span><div class="desc">Applies whatever is in <code>.grad</code> right now.</div></li>
+      <li class="train"><code class="cmd">opt = <span class="mod">optim</span>.<span class="fn">AdamW</span>([{<span class="str">"params"</span>: a, <span class="str">"lr"</span>: <span class="num">1e-4</span>}, ...])</code><div class="desc">Param groups: different LR for backbone vs head.</div></li>
+      <li class="train"><code class="cmd"><span class="mod">nn</span>.<span class="mod">utils</span>.<span class="fn">clip_grad_norm_</span>(params, <span class="num">1.0</span>)</code><div class="desc">Between <code>backward()</code> and <code>step()</code>. Standard for RNNs and LLMs.</div></li>
+      <li class="train"><code class="cmd"><span class="mod">optim</span>.<span class="mod">lr_scheduler</span>.<span class="fn">CosineAnnealingLR</span>(opt, T_max)</code><div class="desc">The common modern decay.</div></li>
+      <li class="train"><code class="cmd"><span class="fn">OneCycleLR</span> &#183; <span class="fn">StepLR</span> &#183; <span class="fn">ReduceLROnPlateau</span></code><div class="desc"><code>ReduceLROnPlateau</code> is the only one whose <code>step()</code> takes a metric.</div></li>
+      <li class="danger"><code class="cmd">sched.<span class="fn">step</span>()</code><span class="badge badge-danger">order</span><div class="desc">Call it <b>after</b> <code>opt.step()</code>, once per epoch (or per batch for OneCycle) — never before.</div></li>
+      <li class="train"><code class="cmd"><span class="mod">optim</span>.<span class="fn">AdamW</span>(params, lr=<span class="num">3e-4</span>, weight_decay=<span class="num">0.01</span>)</code><span class="star">&#9733;</span><div class="desc">AdamW decouples decay from the gradient &#8212; this is why you pick it over Adam.</div></li>
+      <li class="train"><code class="cmd">decay / no-decay param groups</code><div class="desc">Convention: no weight decay on biases and norm parameters. Split them into two groups.</div></li>
+      <li class="train"><code class="cmd"><span class="mod">optim</span>.<span class="fn">AdamW</span>(params, ..., fused=<span class="kw">True</span>)</code><span class="badge badge-new">fast</span><div class="desc">One fused CUDA kernel for the whole step. Free speed on GPU.</div></li>
+      <li class="train"><code class="cmd"><span class="fn">SequentialLR</span>(opt, [<span class="fn">LinearLR</span>(...), <span class="fn">CosineAnnealingLR</span>(...)], milestones=[warm])</code><span class="star">&#9733;</span><div class="desc">Warmup then decay, the standard modern schedule.</div></li>
+      <li class="train"><code class="cmd">sched.<span class="fn">get_last_lr</span>()[<span class="num">0</span>]</code><div class="desc">Log it every epoch. A schedule you cannot see is a schedule you cannot debug.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 DATA -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Dataset &amp; DataLoader</span><span class="card-sub">torch.utils.data</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd"><span class="kw">class</span> DS(Dataset): <span class="fn">__len__</span>, <span class="fn">__getitem__</span></code><span class="star">&#9733;</span><div class="desc">Those two methods are the entire contract. Return one sample, not a batch.</div></li>
+      <li class="train"><code class="cmd"><span class="fn">TensorDataset</span>(X, y)</code><div class="desc">Wraps tensors you already have in memory.</div></li>
+      <li class="train"><code class="cmd"><span class="fn">DataLoader</span>(ds, batch_size=<span class="num">32</span>, shuffle=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Shuffle the train split; never the validation split.</div></li>
+      <li class="train"><code class="cmd">num_workers=<span class="num">4</span>, pin_memory=<span class="kw">True</span></code><span class="star">&#9733;</span><div class="desc">The two flags that usually fix a GPU-starved loop.</div></li>
+      <li class="train"><code class="cmd">persistent_workers=<span class="kw">True</span>, prefetch_factor=<span class="num">2</span></code><div class="desc">Avoids re-spawning workers every epoch.</div></li>
+      <li class="train"><code class="cmd">drop_last=<span class="kw">True</span></code><div class="desc">Drops the ragged final batch — matters for BatchNorm.</div></li>
+      <li class="train"><code class="cmd">collate_fn=my_fn</code><div class="desc">Custom batching: padding variable-length text or audio.</div></li>
+      <li class="train"><code class="cmd"><span class="fn">random_split</span>(ds, [<span class="num">0.8</span>, <span class="num">0.2</span>]) &#183; <span class="fn">Subset</span> &#183; <span class="fn">ConcatDataset</span></code><div class="desc">Splitting and combining without touching disk.</div></li>
+      <li class="train"><code class="cmd"><span class="fn">WeightedRandomSampler</span>(w, n)</code><div class="desc">Class imbalance. Mutually exclusive with <code>shuffle=True</code>.</div></li>
+      <li class="train"><code class="cmd">DataLoader(ds, sampler=s, shuffle=<span class="kw">False</span>)</code><div class="desc"><code>sampler</code> and <code>shuffle</code> are mutually exclusive &#8212; passing both raises.</div></li>
+      <li class="train"><code class="cmd"><span class="kw">class</span> S(IterableDataset): __iter__</code><div class="desc">For streams with no length &#8212; shard by <code>get_worker_info()</code> or every worker yields the same data.</div></li>
+      <li class="train"><code class="cmd">DataLoader(..., generator=g, worker_init_fn=fn)</code><div class="desc">What actually makes a shuffled, multi-worker loader reproducible.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 TRAIN LOOP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">The training loop</span><span class="card-sub">no framework required</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd">model.<span class="fn">train</span>()</code><span class="star">&#9733;</span><div class="desc">Turns Dropout on and BatchNorm into batch-statistics mode. It does <b>not</b> enable gradients.</div></li>
+      <li class="train"><code class="cmd"><span class="kw">for</span> x, y <span class="kw">in</span> loader:</code><div class="desc">The DataLoader is a plain iterable; one pass = one epoch.</div></li>
+      <li class="train"><code class="cmd">pred = model(x); loss = loss_fn(pred, y)</code><span class="star">&#9733;</span><div class="desc">Forward. The graph is built here, fresh, every iteration.</div></li>
+      <li class="train"><code class="cmd">opt.<span class="fn">zero_grad</span>(); loss.<span class="fn">backward</span>(); opt.<span class="fn">step</span>()</code><span class="star">&#9733;</span><div class="desc">The three lines. Order matters; grads accumulate if you skip the first.</div></li>
+      <li class="train"><code class="cmd">running += loss.<span class="fn">item</span>() * x.<span class="fn">size</span>(<span class="num">0</span>)</code><div class="desc">Log the float, not the tensor — keeping the tensor keeps its whole graph alive.</div></li>
+      <li class="train"><code class="cmd">loss = loss / accum_steps</code><div class="desc">Gradient accumulation: skip <code>step()</code> for N-1 iterations to fake a bigger batch.</div></li>
+      <li class="train"><code class="cmd">model.<span class="fn">eval</span>()</code><div class="desc">The other half of the pair. Forgetting it is why validation accuracy looks wrong.</div></li>
+      <li class="train"><code class="cmd"><span class="kw">with</span> <span class="mod">torch</span>.<span class="fn">inference_mode</span>(): ...</code><div class="desc">Wrap the whole eval pass. Roughly halves memory.</div></li>
+      <li class="train"><code class="cmd">acc = (logits.<span class="fn">argmax</span>(<span class="num">1</span>) == y).<span class="fn">float</span>().<span class="fn">mean</span>()</code><div class="desc">Accuracy without a metrics library.</div></li>
+      <li class="train"><code class="cmd"><span class="kw">with</span> <span class="mod">torch</span>.<span class="fn">autocast</span>(dev, dtype=<span class="mod">torch</span>.bfloat16):</code><span class="star">&#9733;</span><div class="desc">Mixed precision, three lines. Forward inside the context; backward outside it.</div></li>
+      <li class="train"><code class="cmd">scaler.<span class="fn">scale</span>(loss).<span class="fn">backward</span>(); scaler.<span class="fn">step</span>(opt); scaler.<span class="fn">update</span>()</code><div class="desc">The float16 path only. bfloat16 has the range to skip the scaler entirely.</div></li>
+      <li class="train"><code class="cmd"><span class="kw">@</span><span class="mod">torch</span>.<span class="fn">inference_mode</span>() <span class="kw">def</span> <span class="fn">evaluate</span>(...)</code><span class="star">&#9733;</span><div class="desc">Decorate the whole eval function rather than remembering the <code>with</code> block.</div></li>
+      <li class="train"><code class="cmd"><span class="kw">if</span> val &lt; best: best = val; <span class="mod">torch</span>.<span class="fn">save</span>(...)</code><div class="desc">Track the best, not the last. The final epoch is rarely the best one.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 SAVE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Save, load, checkpoint</span><span class="card-sub">state dicts</span></div>
+    <ul class="cmds">
+      <li class="perf"><code class="cmd"><span class="mod">torch</span>.<span class="fn">save</span>(model.<span class="fn">state_dict</span>(), <span class="str">"m.pt"</span>)</code><span class="star">&#9733;</span><div class="desc">Save the weights, not the object. A pickled model breaks when your code moves.</div></li>
+      <li class="perf"><code class="cmd">model.<span class="fn">load_state_dict</span>(<span class="mod">torch</span>.<span class="fn">load</span>(<span class="str">"m.pt"</span>))</code><span class="star">&#9733;</span><div class="desc">Build the architecture first, then pour the weights in.</div></li>
+      <li class="perf"><code class="cmd"><span class="mod">torch</span>.<span class="fn">load</span>(p, weights_only=<span class="kw">True</span>)</code><span class="badge badge-new">default</span><div class="desc">The default since 2.6. It blocks arbitrary code execution — pass <code>False</code> only for files you trust.</div></li>
+      <li class="perf"><code class="cmd"><span class="mod">torch</span>.<span class="fn">load</span>(p, map_location=<span class="str">"cpu"</span>)</code><span class="star">&#9733;</span><div class="desc">Loads a GPU checkpoint on a CPU-only machine.</div></li>
+      <li class="perf"><code class="cmd"><span class="mod">torch</span>.<span class="fn">save</span>({<span class="str">"model"</span>: ..., <span class="str">"opt"</span>: ..., <span class="str">"epoch"</span>: e}, p)</code><div class="desc">A resumable checkpoint needs the optimizer state too.</div></li>
+      <li class="perf"><code class="cmd">model.<span class="fn">load_state_dict</span>(sd, strict=<span class="kw">False</span>)</code><div class="desc">Returns the missing / unexpected keys. Useful for partial transfer.</div></li>
+      <li class="danger"><code class="cmd">keys prefixed <span class="str">"module."</span></code><div class="desc">Saved from <code>DataParallel</code>/<code>DDP</code>. Strip the prefix or save <code>model.module.state_dict()</code>.</div></li>
+      <li class="danger"><code class="cmd">keys prefixed <span class="str">"_orig_mod."</span></code><span class="star">&#9733;</span><span class="badge badge-danger">compile</span><div class="desc"><b>The modern twin of the <code>module.</code> bug.</b> <code>torch.compile</code> wraps your model, so the saved keys gain a prefix. Save <code>model._orig_mod.state_dict()</code>, or strip it on load.</div></li>
+      <li class="perf"><code class="cmd"><span class="mod">torch</span>.<span class="fn">load</span>(p, mmap=<span class="kw">True</span>)</code><div class="desc">Memory-maps the file. Large checkpoints load without doubling RAM.</div></li>
+      <li class="perf"><code class="cmd">ckpt = {<span class="str">"model"</span>, <span class="str">"opt"</span>, <span class="str">"sched"</span>, <span class="str">"scaler"</span>, <span class="str">"epoch"</span>}</code><span class="star">&#9733;</span><div class="desc">A resumable checkpoint is all five. Saving only weights means restarting the schedule from zero.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 COMPILE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">torch.compile &amp; speed</span><span class="card-sub">the 2.x headline</span></div>
+    <ul class="cmds">
+      <li class="perf"><code class="cmd">model = <span class="mod">torch</span>.<span class="fn">compile</span>(model)</code><span class="star">&#9733;</span><div class="desc">Traces to a graph and fuses kernels. Usually a one-line speedup; keep it after <code>.to(dev)</code>.</div></li>
+      <li class="perf"><code class="cmd"><span class="mod">torch</span>.<span class="fn">compile</span>(model, mode=<span class="str">"max-autotune"</span>)</code><div class="desc">Slower to compile, faster to run. Also <code>"reduce-overhead"</code> for small models.</div></li>
+      <li class="perf"><code class="cmd"><span class="mod">torch</span>.<span class="fn">compile</span>(model, dynamic=<span class="kw">True</span>)</code><div class="desc">Avoids recompiling for every new sequence length.</div></li>
+      <li class="perf"><code class="cmd">TORCH_LOGS=<span class="str">"recompiles"</span> python train.py</code><div class="desc">Diagnose why compilation keeps re-triggering.</div></li>
+      <li class="perf"><code class="cmd">channels_last memory format</code><div class="desc"><code>model.to(memory_format=torch.channels_last)</code> — real gains for CNNs on tensor cores.</div></li>
+      <li class="perf"><code class="cmd"><span class="kw">with</span> <span class="mod">torch</span>.<span class="mod">profiler</span>.<span class="fn">profile</span>(...) <span class="kw">as</span> p:</code><div class="desc">Per-op timings, exportable to TensorBoard or Chrome trace.</div></li>
+      <li class="danger"><code class="cmd">graph breaks</code><div class="desc">Prints, <code>.item()</code>, and data-dependent Python control flow all split the graph and cost most of the win.</div></li>
+      <li class="perf"><code class="cmd"><span class="mod">torch</span>.<span class="fn">compile</span>(model, fullgraph=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Fail loudly on a graph break instead of quietly falling back to eager.</div></li>
+      <li class="perf"><code class="cmd"><span class="mod">torch</span>.<span class="mod">backends</span>.<span class="mod">cudnn</span>.benchmark = <span class="kw">True</span></code><div class="desc">Autotunes conv algorithms. A win for fixed input shapes, a loss for varying ones.</div></li>
+      <li class="perf"><code class="cmd">start = <span class="mod">torch</span>.<span class="mod">cuda</span>.<span class="fn">Event</span>(enable_timing=<span class="kw">True</span>)</code><div class="desc">The correct way to time GPU work. <code>time.time()</code> around async kernels measures nothing.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Memory &amp; OOM</span><span class="card-sub">when CUDA runs out</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">running_loss += loss</code><span class="star">&#9733;</span><span class="badge badge-danger">classic</span><div class="desc"><b>Reach for this first.</b> Accumulating the tensor keeps its whole autograd graph alive, so memory grows every step. Use <code>loss.item()</code> or <code>.detach()</code>.</div></li>
+      <li class="perf"><code class="cmd">loss = loss / accum; <span class="kw">if</span> (i+<span class="num">1</span>) % accum == <span class="num">0</span>: opt.<span class="fn">step</span>()</code><span class="star">&#9733;</span><div class="desc">Gradient accumulation. Large effective batch on a small card, for the price of time.</div></li>
+      <li class="perf"><code class="cmd"><span class="mod">torch</span>.<span class="mod">utils</span>.<span class="fn">checkpoint</span>.<span class="fn">checkpoint</span>(block, x)</code><span class="star">&#9733;</span><div class="desc">Discard activations and recompute them in the backward pass. Roughly 30% slower, dramatically smaller.</div></li>
+      <li class="perf"><code class="cmd"><span class="kw">with</span> <span class="mod">torch</span>.<span class="fn">autocast</span>(dev, dtype=<span class="mod">torch</span>.bfloat16):</code><div class="desc">Halves activation memory and usually speeds things up.</div></li>
+      <li class="perf"><code class="cmd">opt.<span class="fn">zero_grad</span>(set_to_none=<span class="kw">True</span>)</code><div class="desc">Frees the gradient tensors instead of filling them with zeros. Default since 2.0.</div></li>
+      <li class="perf"><code class="cmd"><span class="kw">del</span> logits, loss; <span class="mod">torch</span>.<span class="mod">cuda</span>.<span class="fn">empty_cache</span>()</code><div class="desc">Returns cached blocks to the driver. Helps fragmentation, not a true leak.</div></li>
+      <li class="perf"><code class="cmd">PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True</code><div class="desc">Environment-variable fix for &#8220;tried to allocate&#8221; errors when plenty of memory is free.</div></li>
+      <li class="perf"><code class="cmd"><span class="mod">torch</span>.<span class="mod">cuda</span>.<span class="fn">memory_summary</span>()</code><div class="desc">Where it all went, by allocation site.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 SCALE & SHIP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">20</span><span class="card-title">Scale out &amp; ship</span><span class="card-sub">multi-GPU &#183; export</span></div>
+    <ul class="cmds">
+      <li class="perf"><code class="cmd">torchrun --nproc_per_node=<span class="num">8</span> train.py</code><span class="star">&#9733;</span><div class="desc">The launcher. It sets <code>RANK</code>, <code>LOCAL_RANK</code>, <code>WORLD_SIZE</code> for you.</div></li>
+      <li class="perf"><code class="cmd">model = <span class="fn">DistributedDataParallel</span>(model)</code><span class="star">&#9733;</span><div class="desc">One process per GPU. Always prefer it to the older <code>DataParallel</code>.</div></li>
+      <li class="perf"><code class="cmd"><span class="fn">DistributedSampler</span>(ds)</code><div class="desc">Required with DDP, and you must call <code>set_epoch(e)</code> or every epoch shuffles identically.</div></li>
+      <li class="perf"><code class="cmd">FSDP2 &#183; fully_shard</code><div class="desc">Shards parameters, grads and optimizer state — for models too big for one card.</div></li>
+      <li class="perf"><code class="cmd">ep = <span class="mod">torch</span>.<span class="fn">export</span>.<span class="fn">export</span>(model, (x,))</code><span class="badge badge-new">modern</span><div class="desc">The current capture path, ahead of TorchScript.</div></li>
+      <li class="perf"><code class="cmd"><span class="mod">torch</span>.<span class="mod">onnx</span>.<span class="fn">export</span>(model, (x,), <span class="str">"m.onnx"</span>, dynamo=<span class="kw">True</span>)</code><div class="desc">ONNX for cross-runtime serving.</div></li>
+      <li class="danger"><code class="cmd"><span class="mod">torch</span>.<span class="mod">jit</span>.<span class="fn">script</span> &#183; <span class="mod">torch</span>.<span class="mod">jit</span>.<span class="fn">trace</span></code><span class="badge badge-gone">legacy</span><div class="desc">TorchScript still works but is no longer the recommended path — new code should use <code>torch.export</code>.</div></li>
+      <li class="perf"><code class="cmd">dist.<span class="fn">init_process_group</span>(<span class="str">"nccl"</span>) ... <span class="fn">destroy_process_group</span>()</code><span class="star">&#9733;</span><div class="desc">Open and close it. Skipping the teardown is how jobs hang at exit.</div></li>
+      <li class="perf"><code class="cmd">dist.<span class="fn">all_reduce</span>(t, op=dist.ReduceOp.SUM)</code><div class="desc">Aggregate metrics across ranks &#8212; otherwise every rank logs its own shard.</div></li>
+      <li class="perf"><code class="cmd"><span class="kw">if</span> dist.<span class="fn">get_rank</span>() == <span class="num">0</span>: <span class="mod">torch</span>.<span class="fn">save</span>(...)</code><span class="star">&#9733;</span><div class="desc">Guard saving and logging, or eight ranks race to write one file.</div></li>
+      <li class="perf"><code class="cmd">torchcomms</code><span class="badge badge-new">2.13</span><div class="desc">New distributed backend: better fault tolerance and debuggability on large clusters.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">21</span><span class="card-title">Debug &amp; reproduce</span><span class="card-sub">before you blame the model</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="fn">print</span>(x.shape, x.dtype, x.device)</code><span class="star">&#9733;</span><div class="desc"><b>The three questions.</b> Almost every runtime error in PyTorch is one of these three disagreeing.</div></li>
+      <li class="train"><code class="cmd">overfit a single batch first</code><span class="star">&#9733;</span><div class="desc">If the model cannot drive one batch to near-zero loss, the bug is in the model or the loss &#8212; not the data or the schedule.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">torch</span>.<span class="fn">manual_seed</span>(s); random.<span class="fn">seed</span>(s); np.random.<span class="fn">seed</span>(s)</code><span class="star">&#9733;</span><div class="desc">Three separate RNGs. Seeding one of them is the usual mistake.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">torch</span>.<span class="fn">use_deterministic_algorithms</span>(<span class="kw">True</span>)</code><div class="desc">Raises on any op with no deterministic implementation, rather than silently varying.</div></li>
+      <li class="setup"><code class="cmd">CUBLAS_WORKSPACE_CONFIG=:<span class="num">4096</span>:<span class="num">8</span></code><div class="desc">Required alongside the flag above, or CUDA matmuls still wander.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">assert</span> <span class="kw">not</span> <span class="mod">torch</span>.<span class="fn">isnan</span>(loss)</code><div class="desc">Fail on the step that broke, not three epochs later when everything is NaN.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">torch</span>.<span class="mod">autograd</span>.<span class="fn">set_detect_anomaly</span>(<span class="kw">True</span>)</code><div class="desc">Traces a NaN gradient back to the forward op that made it.</div></li>
+      <li class="danger"><code class="cmd">model.<span class="fn">eval</span>() forgotten</code><span class="star">&#9733;</span><div class="desc">Dropout stays on and BatchNorm keeps updating its statistics. Validation accuracy looks noisy and low for no visible reason.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ PART II ============ -->
+<section class="part-head">
+  <div class="bar">
+    <span class="part-tag ii">PART II</span>
+    <h2><span class="accent-v">torchvision</span> &nbsp;&#183;&nbsp; images</h2>
+  </div>
+  <p class="note">Datasets, augmentation, pretrained models and vision ops. Two things changed recently and most tutorials online have not caught up: transforms live in <code>transforms.v2</code>, and <b>video</b> decoding was removed in 0.26 — image decoding stays.</p>
+</section>
+
+<main>
+
+  <!-- V1 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num v">V1</span><span class="card-title">What's inside</span><span class="card-sub">six namespaces</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd"><span class="mod">torchvision</span>.<span class="mod">transforms</span>.<span class="mod">v2</span></code><span class="star">&#9733;</span><div class="desc">Augmentation for images, boxes, masks and video.</div></li>
+      <li class="dom"><code class="cmd"><span class="mod">torchvision</span>.<span class="mod">models</span></code><span class="star">&#9733;</span><div class="desc">Pretrained classification, detection, segmentation, video backbones.</div></li>
+      <li class="dom"><code class="cmd"><span class="mod">torchvision</span>.<span class="mod">datasets</span></code><div class="desc">CIFAR, MNIST, ImageNet, COCO, plus <code>ImageFolder</code>.</div></li>
+      <li class="dom"><code class="cmd"><span class="mod">torchvision</span>.<span class="mod">ops</span></code><div class="desc">Boxes, NMS, RoI pooling, focal loss.</div></li>
+      <li class="dom"><code class="cmd"><span class="mod">torchvision</span>.<span class="mod">io</span></code><div class="desc">Image decode / encode. Video was removed here.</div></li>
+      <li class="dom"><code class="cmd"><span class="mod">torchvision</span>.<span class="mod">tv_tensors</span></code><div class="desc">Tensor subclasses that tell v2 transforms what they're holding.</div></li>
+      <li class="dom"><code class="cmd"><span class="mod">torchvision</span>.<span class="mod">utils</span></code><div class="desc">Grids, saving, and drawing boxes / masks / keypoints.</div></li>
+      <li class="dom"><code class="cmd"><span class="mod">torchvision.models.feature_extraction</span></code><div class="desc">Pull named intermediate layers out of any model as a new module.</div></li>
+      <li class="dom"><code class="cmd"><span class="mod">torchvision.transforms.v2.functional</span></code><div class="desc">Stateless ops when you must apply the identical transform to image and mask.</div></li>
+    </ul>
+  </article>
+
+  <!-- V2 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num v">V2</span><span class="card-title">transforms v2 &#183; the pipeline</span><span class="card-sub">the canonical order</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd"><span class="kw">from</span> <span class="mod">torchvision.transforms</span> <span class="kw">import</span> v2</code><span class="star">&#9733;</span><div class="desc">Import <code>v2</code>, not <code>transforms</code>. Same names, faster, and it handles boxes and masks.</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="fn">Compose</span>([...])</code><span class="star">&#9733;</span><div class="desc">Chain them. Order is not cosmetic — see the four lines below.</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="fn">ToImage</span>()</code><div class="desc"><b>1.</b> PIL / ndarray &#8594; an <code>Image</code> tv_tensor. Replaces the old <code>ToTensor</code>.</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="fn">RandomResizedCrop</span>(<span class="num">224</span>, antialias=<span class="kw">True</span>)</code><div class="desc"><b>2.</b> Geometry and augmentation, while still cheap <code>uint8</code>.</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="fn">ToDtype</span>(<span class="mod">torch</span>.float32, scale=<span class="kw">True</span>)</code><div class="desc"><b>3.</b> <code>scale=True</code> maps [0,255] &#8594; [0,1]. Omit it and your images stay in the hundreds.</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="fn">Normalize</span>(mean=[...], std=[...])</code><div class="desc"><b>4.</b> Last. ImageNet stats: mean <code>.485 .456 .406</code>, std <code>.229 .224 .225</code>.</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="fn">Lambda</span>(fn) &#183; v2.<span class="fn">RandomApply</span>([...], p=<span class="num">0.3</span>)</code><div class="desc">Escape hatches for anything custom.</div></li>
+      <li class="danger"><code class="cmd">v2.<span class="fn">ToTensor</span>()</code><span class="badge badge-gone">retired</span><div class="desc">Did convert <i>and</i> rescale in one opaque step. Use <code>ToImage()</code> + <code>ToDtype(..., scale=True)</code>.</div></li>
+      <li class="dom"><code class="cmd">train pipeline &#8800; eval pipeline</code><span class="star">&#9733;</span><div class="desc"><b>Build two.</b> Random crops and flips belong to training only; eval gets Resize + CenterCrop and nothing stochastic.</div></li>
+      <li class="dom"><code class="cmd">geometry &#8594; ToImage &#8594; ToDtype &#8594; Normalize</code><span class="star">&#9733;</span><div class="desc">The order that works. Augment while cheap uint8, convert once, normalize last.</div></li>
+      <li class="dom"><code class="cmd">antialias=<span class="kw">True</span></code><div class="desc">The default in v2, and the reason v2 resizing matches PIL where v1 did not.</div></li>
+    </ul>
+  </article>
+
+  <!-- V3 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num v">V3</span><span class="card-title">Transforms worth knowing</span><span class="card-sub">geometry &#183; colour</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd">v2.<span class="fn">Resize</span>(<span class="num">256</span>) &#183; v2.<span class="fn">CenterCrop</span>(<span class="num">224</span>)</code><span class="star">&#9733;</span><div class="desc">The standard eval pair. A single int resizes the <i>shorter</i> side.</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="fn">RandomHorizontalFlip</span>(p=<span class="num">0.5</span>)</code><span class="star">&#9733;</span><div class="desc">Cheapest real augmentation there is. Wrong for text and digits.</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="fn">RandomRotation</span> &#183; <span class="fn">RandomAffine</span> &#183; <span class="fn">RandomPerspective</span></code><div class="desc">Geometric jitter; each takes a <code>fill</code> for the new corners.</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="fn">ColorJitter</span>(brightness=<span class="num">.4</span>, contrast=<span class="num">.4</span>)</code><div class="desc">Photometric jitter. Skip it when colour <i>is</i> the signal.</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="fn">RandAugment</span>() &#183; <span class="fn">TrivialAugmentWide</span>() &#183; <span class="fn">AutoAugment</span>()</code><span class="star">&#9733;</span><div class="desc">Learned policies. <code>TrivialAugmentWide</code> is parameter-free and a strong default.</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="fn">RandomErasing</span>(p=<span class="num">0.25</span>)</code><div class="desc">Cutout. Must come <i>after</i> <code>ToDtype</code>.</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="fn">CutMix</span>(num_classes=n) &#183; v2.<span class="fn">MixUp</span>(...)</code><div class="desc">Batch-level: apply after the DataLoader or inside <code>collate_fn</code>, not per sample.</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="mod">functional</span>.<span class="fn">rotate</span>(img, <span class="num">30</span>)</code><div class="desc">Functional forms, for applying identical params to an image and its mask.</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="fn">RandomCrop</span>(<span class="num">32</span>, padding=<span class="num">4</span>)</code><span class="star">&#9733;</span><div class="desc">The CIFAR standard, paired with a horizontal flip.</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="fn">GaussianBlur</span>(k) &#183; v2.<span class="fn">RandomGrayscale</span>(p) &#183; v2.<span class="fn">RandomSolarize</span></code><div class="desc">The self-supervised augmentation family (SimCLR, BYOL).</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="fn">RandomChoice</span>([...]) &#183; v2.<span class="fn">RandomOrder</span>([...])</code><div class="desc">Pick one at random, or shuffle the order each call.</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="fn">Resize</span>(s, interpolation=InterpolationMode.LANCZOS)</code><span class="badge badge-new">0.28</span><div class="desc">Lanczos resampling.</div></li>
+    </ul>
+  </article>
+
+  <!-- V4 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num v">V4</span><span class="card-title">TVTensors</span><span class="card-sub">detection &amp; segmentation</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd"><span class="kw">from</span> <span class="mod">torchvision</span> <span class="kw">import</span> tv_tensors</code><div class="desc">Tensor subclasses. Zero copy — they only add a label so v2 can dispatch.</div></li>
+      <li class="dom"><code class="cmd">tv_tensors.<span class="fn">Image</span>(t) &#183; tv_tensors.<span class="fn">Video</span>(t)</code><div class="desc">Plain tensors are treated as images anyway; wrap for clarity.</div></li>
+      <li class="dom"><code class="cmd">tv_tensors.<span class="fn">BoundingBoxes</span>(b, format=<span class="str">"XYXY"</span>, canvas_size=hw)</code><span class="star">&#9733;</span><div class="desc">This is what makes a flip move the boxes too.</div></li>
+      <li class="dom"><code class="cmd">tv_tensors.<span class="fn">Mask</span>(m)</code><div class="desc">Segmentation masks get nearest-neighbour interpolation automatically.</div></li>
+      <li class="dom"><code class="cmd">img, target = transform(img, target)</code><span class="star">&#9733;</span><div class="desc">v2 transforms take arbitrary structures — dicts, tuples, lists — and transform them together.</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="fn">SanitizeBoundingBoxes</span>()</code><div class="desc">Drops boxes a crop pushed off-canvas, and the matching labels and masks. Put it last.</div></li>
+      <li class="dom"><code class="cmd">v2.<span class="fn">ClampBoundingBoxes</span>() &#183; v2.<span class="fn">ConvertBoundingBoxFormat</span>(...)</code><div class="desc">Clip to the image, or switch XYXY / XYWH / CXCYWH.</div></li>
+      <li class="dom"><code class="cmd">tv_tensors.<span class="fn">wrap</span>(t, like=orig)</code><div class="desc">Re-wrap a plain tensor after an op that dropped the subclass.</div></li>
+      <li class="dom"><code class="cmd">plain tensors pass through untouched</code><span class="star">&#9733;</span><div class="desc">v2 transforms only apply geometry to things it recognises. That is exactly why the wrapper types exist.</div></li>
+      <li class="dom"><code class="cmd">tv_tensors.<span class="fn">KeyPoints</span>(pts, canvas_size=hw)</code><div class="desc">Landmarks and pose points, transformed in step with the image.</div></li>
+    </ul>
+  </article>
+
+  <!-- V5 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num v">V5</span><span class="card-title">Datasets</span><span class="card-sub">built in</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd">datasets.<span class="fn">ImageFolder</span>(root, transform=tf)</code><span class="star">&#9733;</span><div class="desc">One folder per class. The fastest way to train on your own images.</div></li>
+      <li class="dom"><code class="cmd">datasets.<span class="fn">CIFAR10</span>(root, train=<span class="kw">True</span>, download=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Same signature for MNIST, FashionMNIST, CIFAR100.</div></li>
+      <li class="dom"><code class="cmd">ds.classes &#183; ds.class_to_idx</code><div class="desc">Label names and the mapping — needed to read predictions back.</div></li>
+      <li class="dom"><code class="cmd">datasets.<span class="fn">CocoDetection</span> &#183; <span class="fn">VOCSegmentation</span> &#183; <span class="fn">ImageNet</span></code><div class="desc">Detection and segmentation sets; several need a manual download.</div></li>
+      <li class="dom"><code class="cmd"><span class="fn">wrap_dataset_for_transforms_v2</span>(ds)</code><div class="desc">Makes a built-in detection dataset emit tv_tensor targets.</div></li>
+      <li class="dom"><code class="cmd">datasets.<span class="fn">DatasetFolder</span>(root, loader, extensions)</code><div class="desc">ImageFolder generalised to any file type.</div></li>
+      <li class="dom"><code class="cmd">root/class_a/*.jpg &#183; root/class_b/*.jpg</code><span class="star">&#9733;</span><div class="desc">The layout <code>ImageFolder</code> expects. Directory names become the labels, sorted alphabetically.</div></li>
+      <li class="dom"><code class="cmd">datasets.<span class="fn">MNIST</span> &#183; <span class="fn">FashionMNIST</span> &#183; <span class="fn">Flowers102</span> &#183; <span class="fn">Food101</span></code><div class="desc">Small ones worth knowing for a quick sanity run.</div></li>
+      <li class="dom"><code class="cmd">video datasets now decode through TorchCodec</code><span class="badge badge-new">0.26</span><div class="desc">Migrated transparently when video I/O left torchvision. Your code did not change.</div></li>
+    </ul>
+  </article>
+
+  <!-- V6 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num v">V6</span><span class="card-title">Models &amp; weights</span><span class="card-sub">the enum API</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd"><span class="kw">from</span> <span class="mod">torchvision.models</span> <span class="kw">import</span> resnet50, ResNet50_Weights</code><span class="star">&#9733;</span><div class="desc">Every architecture ships a matching <code>*_Weights</code> enum.</div></li>
+      <li class="dom"><code class="cmd">resnet50(weights=ResNet50_Weights.DEFAULT)</code><span class="star">&#9733;</span><div class="desc">Best available checkpoint. Note it can change between releases — pin the explicit tag for reproducibility.</div></li>
+      <li class="dom"><code class="cmd">resnet50(weights=ResNet50_Weights.IMAGENET1K_V2)</code><div class="desc">Explicit and stable. Strings work too: <code>weights="IMAGENET1K_V2"</code>.</div></li>
+      <li class="dom"><code class="cmd">resnet50(weights=<span class="kw">None</span>)</code><div class="desc">Random init — the architecture only.</div></li>
+      <li class="dom"><code class="cmd">preprocess = weights.<span class="fn">transforms</span>()</code><span class="star">&#9733;</span><div class="desc">The <i>exact</i> preprocessing that checkpoint was trained with. Guessing it costs real accuracy.</div></li>
+      <li class="dom"><code class="cmd">weights.meta[<span class="str">"categories"</span>]</code><div class="desc">Class-index &#8594; human label, shipped with the weights.</div></li>
+      <li class="dom"><code class="cmd">models.<span class="fn">list_models</span>() &#183; models.<span class="fn">get_model</span>(<span class="str">"resnet50"</span>, weights=...)</code><div class="desc">Look up by string — handy for config-driven training.</div></li>
+      <li class="dom"><code class="cmd">model.fc = <span class="mod">nn</span>.<span class="fn">Linear</span>(model.fc.in_features, n)</code><span class="star">&#9733;</span><div class="desc">Transfer learning. The head is <code>.fc</code> on ResNet, <code>.classifier</code> on VGG/EfficientNet, <code>.heads</code> on ViT.</div></li>
+      <li class="danger"><code class="cmd">resnet50(pretrained=<span class="kw">True</span>)</code><span class="badge badge-gone">removed</span><div class="desc">Gone since 0.15. Every tutorial written before 2023 uses it — translate to <code>weights=</code>.</div></li>
+      <li class="dom"><code class="cmd"><span class="fn">create_feature_extractor</span>(m, {<span class="str">"layer4"</span>: <span class="str">"feat"</span>})</code><span class="star">&#9733;</span><div class="desc">Returns a module giving you named intermediate outputs. Far cleaner than hooks for embeddings.</div></li>
+      <li class="dom"><code class="cmd">weights.meta[<span class="str">"num_params"</span>] &#183; weights.meta[<span class="str">"_metrics"</span>]</code><div class="desc">Parameter count and reported accuracy, carried on the enum itself.</div></li>
+      <li class="dom"><code class="cmd">models.<span class="mod">detection</span> &#183; models.<span class="mod">segmentation</span> &#183; models.<span class="mod">video</span></code><div class="desc">The other model families &#8212; same <code>weights=</code> API throughout.</div></li>
+    </ul>
+  </article>
+
+  <!-- V7 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num v">V7</span><span class="card-title">ops &amp; utils</span><span class="card-sub">detection plumbing</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd">ops.<span class="fn">nms</span>(boxes, scores, iou_threshold)</code><span class="star">&#9733;</span><div class="desc">Returns kept <i>indices</i>, sorted by score. Boxes must be XYXY.</div></li>
+      <li class="dom"><code class="cmd">ops.<span class="fn">batched_nms</span>(boxes, scores, idxs, thr)</code><div class="desc">Per-class NMS — suppression never crosses categories.</div></li>
+      <li class="dom"><code class="cmd">ops.<span class="fn">box_iou</span>(a, b) &#183; ops.<span class="fn">generalized_box_iou</span></code><div class="desc">Pairwise N&#215;M IoU matrix.</div></li>
+      <li class="dom"><code class="cmd">ops.<span class="fn">box_convert</span>(b, <span class="str">"xywh"</span>, <span class="str">"xyxy"</span>) &#183; ops.<span class="fn">box_area</span></code><div class="desc">XYXY is the format every torchvision utility expects.</div></li>
+      <li class="dom"><code class="cmd">ops.<span class="fn">roi_align</span> &#183; ops.<span class="fn">MultiScaleRoIAlign</span></code><div class="desc">Crop features per box; the FPN version picks the level for you.</div></li>
+      <li class="dom"><code class="cmd">ops.<span class="fn">sigmoid_focal_loss</span>(logits, targets)</code><div class="desc">RetinaNet's answer to dense-detection class imbalance.</div></li>
+      <li class="dom"><code class="cmd">ops.<span class="fn">masks_to_boxes</span> &#183; ops.<span class="fn">remove_small_boxes</span></code><div class="desc">Segmentation &#8594; detection targets, and degenerate-box cleanup.</div></li>
+      <li class="dom"><code class="cmd">utils.<span class="fn">make_grid</span>(batch, nrow=<span class="num">8</span>) &#183; utils.<span class="fn">save_image</span></code><span class="star">&#9733;</span><div class="desc">Eyeball a batch in one line.</div></li>
+      <li class="dom"><code class="cmd">utils.<span class="fn">draw_bounding_boxes</span> &#183; <span class="fn">draw_segmentation_masks</span></code><span class="star">&#9733;</span><div class="desc">Annotates a <code>uint8</code> CHW tensor. Passing float images is the usual mistake.</div></li>
+      <li class="dom"><code class="cmd">ops.<span class="fn">Conv2dNormActivation</span> &#183; ops.<span class="fn">StochasticDepth</span></code><div class="desc">Building blocks lifted out of the torchvision model implementations.</div></li>
+      <li class="dom"><code class="cmd">ops.<span class="fn">complete_box_iou_loss</span> &#183; <span class="fn">distance_box_iou_loss</span></code><div class="desc">CIoU and DIoU regression losses for detection heads.</div></li>
+      <li class="dom"><code class="cmd">ops.<span class="fn">box_iou</span>(a, b) with rotated boxes</code><span class="badge badge-new">0.28</span><div class="desc">Rotated-box support.</div></li>
+    </ul>
+  </article>
+
+  <!-- V8 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num v">V8</span><span class="card-title">Image I/O</span><span class="card-sub">and where video went</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd">io.<span class="fn">decode_image</span>(<span class="str">"cat.jpg"</span>)</code><span class="star">&#9733;</span><div class="desc">File or byte tensor &#8594; <code>uint8</code> CHW tensor. Format-agnostic.</div></li>
+      <li class="dom"><code class="cmd">io.<span class="fn">read_image</span>(p, mode=io.ImageReadMode.RGB)</code><div class="desc">Force 3 channels — otherwise PNGs may arrive with an alpha band.</div></li>
+      <li class="dom"><code class="cmd">io.<span class="fn">write_jpeg</span>(t, p) &#183; io.<span class="fn">write_png</span>(t, p)</code><div class="desc">Encoders stay in torchvision.</div></li>
+      <li class="dom"><code class="cmd">io.<span class="fn">decode_jpeg</span>(data, device=<span class="str">"cuda"</span>)</code><div class="desc">nvJPEG GPU decode — worth it for large-batch pipelines.</div></li>
+      <li class="danger"><code class="cmd">io.<span class="fn">read_video</span> &#183; io.<span class="fn">write_video</span> &#183; io.<span class="fn">VideoReader</span></code><span class="badge badge-gone">removed</span><div class="desc">Deprecated in 0.22, <b>removed in 0.26</b>. Use <code>torchcodec.decoders.VideoDecoder</code>. The video datasets were migrated for you.</div></li>
+      <li class="dom"><code class="cmd">data = io.<span class="fn">read_file</span>(p); img = io.<span class="fn">decode_image</span>(data)</code><div class="desc">Split read from decode when the bytes come from S3 or a database rather than a path.</div></li>
+      <li class="dom"><code class="cmd">io.<span class="fn">encode_jpeg</span>(t, quality=<span class="num">90</span>)</code><div class="desc">Back to bytes without touching the filesystem.</div></li>
+      <li class="dom"><code class="cmd">TF.<span class="fn">to_pil_image</span>(t) &#183; TF.<span class="fn">pil_to_tensor</span>(img)</code><div class="desc">The PIL bridge, for when a library hands you the wrong one.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num v">V9</span><span class="card-title">Detection &amp; segmentation</span><span class="card-sub">the other two heads</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd">m = <span class="fn">fasterrcnn_resnet50_fpn_v2</span>(weights=W.DEFAULT); m.<span class="fn">eval</span>()</code><span class="star">&#9733;</span><div class="desc">Same weights enum as classification. The <code>_v2</code> variants are the better-trained ones.</div></li>
+      <li class="dom"><code class="cmd">preds = m([img1, img2])</code><span class="star">&#9733;</span><div class="desc"><b>List in, list out.</b> Detection models take a list of images of differing sizes, not a stacked batch.</div></li>
+      <li class="dom"><code class="cmd">preds[<span class="num">0</span>][<span class="str">"boxes"</span> | <span class="str">"labels"</span> | <span class="str">"scores"</span>]</code><div class="desc">Boxes are XYXY in pixels, already sorted by score.</div></li>
+      <li class="dom"><code class="cmd">keep = preds[<span class="num">0</span>][<span class="str">"scores"</span>] &gt; <span class="num">0.5</span></code><div class="desc">Nothing is thresholded for you &#8212; the raw output is full of low-confidence boxes.</div></li>
+      <li class="dom"><code class="cmd">m.<span class="fn">train</span>(); losses = m(imgs, targets); <span class="fn">sum</span>(losses.<span class="fn">values</span>())</code><span class="star">&#9733;</span><div class="desc">In train mode the same model returns a <b>dict of losses</b> instead of predictions. Sum them yourself.</div></li>
+      <li class="dom"><code class="cmd"><span class="fn">maskrcnn_resnet50_fpn_v2</span> &#8594; preds[<span class="num">0</span>][<span class="str">"masks"</span>]</code><div class="desc">Instance masks, shape (N,1,H,W), soft &#8212; threshold at 0.5.</div></li>
+      <li class="dom"><code class="cmd"><span class="fn">deeplabv3_resnet50</span>(...)[<span class="str">"out"</span>].<span class="fn">argmax</span>(<span class="num">1</span>)</code><div class="desc">Semantic segmentation returns a dict; take <code>"out"</code> and argmax over classes.</div></li>
+      <li class="dom"><code class="cmd">utils.<span class="fn">draw_bounding_boxes</span>(img_uint8, boxes, labels)</code><span class="star">&#9733;</span><div class="desc">Wants <b>uint8</b> input. Feeding it your normalized float tensor gives a black rectangle.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ PART III ============ -->
+<section class="part-head">
+  <div class="bar">
+    <span class="part-tag iii">PART III</span>
+    <h2><span class="accent-a">torchaudio</span> &nbsp;&#183;&nbsp; sound</h2>
+  </div>
+  <p class="note">Read this first: since <b>2.9</b> torchaudio is in a declared <b>maintenance phase</b>. Its strengths — <code>transforms</code>, <code>functional</code>, <code>models</code>, <code>pipelines</code>, <code>datasets</code>, <code>compliance.kaldi</code> — are staying. Decoding and encoding moved out to <b>TorchCodec</b>, and <code>torchaudio.io</code>, <code>torio</code> and <code>sox_effects</code> were deleted. Anything on the web that streams audio through <code>StreamReader</code> is now broken code.</p>
+</section>
+
+<main>
+
+  <!-- A1 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num a">A1</span><span class="card-title">What survived</span><span class="card-sub">the 2.9 cut</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd"><span class="mod">torchaudio</span>.<span class="mod">transforms</span></code><span class="star">&#9733;</span><div class="desc">Feature extraction as <code>nn.Module</code>s. The heart of the package.</div></li>
+      <li class="dom"><code class="cmd"><span class="mod">torchaudio</span>.<span class="mod">functional</span></code><span class="star">&#9733;</span><div class="desc">The same operations, stateless.</div></li>
+      <li class="dom"><code class="cmd"><span class="mod">torchaudio</span>.<span class="mod">pipelines</span></code><span class="star">&#9733;</span><div class="desc">Bundled model + weights + the exact preprocessing.</div></li>
+      <li class="dom"><code class="cmd"><span class="mod">torchaudio</span>.<span class="mod">models</span> &#183; .<span class="mod">models</span>.<span class="mod">decoder</span></code><div class="desc">Wav2Vec2, HuBERT, Conformer, Emformer RNN-T + CTC decoders.</div></li>
+      <li class="dom"><code class="cmd"><span class="mod">torchaudio</span>.<span class="mod">datasets</span> &#183; .<span class="mod">compliance</span>.<span class="mod">kaldi</span></code><div class="desc">LibriSpeech and friends; Kaldi-compatible fbank / MFCC.</div></li>
+      <li class="danger"><code class="cmd"><span class="mod">torchaudio</span>.<span class="mod">io</span> &#183; <span class="mod">torio</span> &#183; <span class="fn">StreamReader</span> &#183; <span class="fn">apply_effects_file</span></code><span class="badge badge-gone">removed</span><div class="desc">Deprecated in 2.8, deleted in 2.9. There is no shim.</div></li>
+      <li class="dom"><code class="cmd"><span class="fn">lfilter</span> &#183; <span class="fn">RNNTLoss</span> &#183; <span class="fn">forced_align</span> &#183; <span class="fn">overdrive</span></code><div class="desc">Slated for removal, then <b>kept</b> after user pushback. Safe to use.</div></li>
+      <li class="dom"><code class="cmd">lfilter &#183; overdrive now pure-Python</code><span class="badge badge-gone">C++ dropped</span><div class="desc">Kept after community pushback, but reimplemented without C++. Correct, and slower than they were.</div></li>
+      <li class="dom"><code class="cmd">goal: a Python-only library</code><div class="desc">The whole refactor exists to delete the C++ extension and shrink the dependency surface.</div></li>
+    </ul>
+  </article>
+
+  <!-- A2 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num a">A2</span><span class="card-title">Load &amp; save</span><span class="card-sub">now via TorchCodec</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd">waveform, sr = <span class="mod">torchaudio</span>.<span class="fn">load</span>(<span class="str">"a.wav"</span>)</code><span class="star">&#9733;</span><div class="desc">Still works — but it is now an alias for <code>load_with_torchcodec()</code>, so you need <code>torchcodec</code> installed.</div></li>
+      <li class="dom"><code class="cmd"><span class="mod">torchaudio</span>.<span class="fn">save</span>(<span class="str">"out.wav"</span>, waveform, sr)</code><div class="desc">Likewise an alias for <code>save_with_torchcodec()</code>.</div></li>
+      <li class="dom"><code class="cmd"><span class="kw">from</span> <span class="mod">torchcodec.decoders</span> <span class="kw">import</span> AudioDecoder</code><span class="badge badge-new">preferred</span><div class="desc">The native path the team recommends porting to.</div></li>
+      <li class="dom"><code class="cmd">pip install torchcodec</code><div class="desc">Separate package, not pulled in by torchaudio.</div></li>
+      <li class="dom"><code class="cmd">waveform.shape &#8594; (channel, time)</code><span class="star">&#9733;</span><div class="desc">Channel-first, float32 in [-1, 1]. librosa hands you <code>(time,)</code> — that mismatch causes silent shape bugs.</div></li>
+      <li class="dom"><code class="cmd">waveform.<span class="fn">mean</span>(dim=<span class="num">0</span>, keepdim=<span class="kw">True</span>)</code><div class="desc">Downmix stereo to mono.</div></li>
+      <li class="dom"><code class="cmd"><span class="mod">torchaudio</span>.<span class="fn">info</span>(path)</code><div class="desc">Sample rate, frames, channels &#8212; without decoding the file.</div></li>
+      <li class="dom"><code class="cmd"><span class="mod">torchaudio</span>.<span class="fn">load</span>(p, frame_offset=n, num_frames=k)</code><div class="desc">Read a slice. Essential once your clips are longer than memory.</div></li>
+      <li class="dom"><code class="cmd">AudioDecoder(p).<span class="fn">get_samples_played_in_range</span>(<span class="num">0</span>, <span class="num">5</span>)</code><div class="desc">The native TorchCodec call, addressed in <b>seconds</b> rather than frames.</div></li>
+    </ul>
+  </article>
+
+  <!-- A3 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num a">A3</span><span class="card-title">Spectrogram family</span><span class="card-sub">waveform &#8594; features</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd">T.<span class="fn">Spectrogram</span>(n_fft=<span class="num">400</span>, hop_length=<span class="kw">None</span>, power=<span class="num">2.0</span>)</code><span class="star">&#9733;</span><div class="desc">STFT magnitude. <code>power=2</code> energy, <code>1</code> amplitude, <code>None</code> keeps it complex.</div></li>
+      <li class="dom"><code class="cmd">T.<span class="fn">MelSpectrogram</span>(sample_rate=<span class="num">16000</span>, n_mels=<span class="num">128</span>)</code><span class="star">&#9733;</span><div class="desc">Literally <code>Spectrogram</code> then <code>MelScale</code>. The default input for most audio CNNs.</div></li>
+      <li class="dom"><code class="cmd">T.<span class="fn">MFCC</span>(sample_rate=<span class="num">16000</span>, n_mfcc=<span class="num">40</span>)</code><span class="star">&#9733;</span><div class="desc">DCT of the log-mel. Classic ASR features; pass <code>melkwargs=</code> to tune the mel stage.</div></li>
+      <li class="dom"><code class="cmd">T.<span class="fn">AmplitudeToDB</span>(stype=<span class="str">"power"</span>)</code><div class="desc">Log scaling. Match <code>stype</code> to the <code>power</code> you used, or the dB range is wrong.</div></li>
+      <li class="dom"><code class="cmd">T.<span class="fn">MelScale</span> &#183; T.<span class="fn">InverseMelScale</span> &#183; T.<span class="fn">LFCC</span></code><div class="desc">The stages on their own, plus the linear-filterbank cousin of MFCC.</div></li>
+      <li class="dom"><code class="cmd">T.<span class="fn">GriffinLim</span>() &#183; T.<span class="fn">InverseSpectrogram</span>()</code><div class="desc">Back to audio. Griffin-Lim guesses the discarded phase.</div></li>
+      <li class="dom"><code class="cmd">spec.shape &#8594; (channel, freq, time)</code><div class="desc"><code>freq = n_fft // 2 + 1</code>, or <code>n_mels</code> for a mel spectrogram.</div></li>
+      <li class="dom"><code class="cmd">frames = <span class="num">1</span> + samples // hop_length</code><span class="star">&#9733;</span><div class="desc"><b>Output width.</b> The one formula that tells you the time axis before you run anything.</div></li>
+      <li class="dom"><code class="cmd">n_fft sets resolution, hop_length sets overlap</code><span class="star">&#9733;</span><div class="desc">Bigger n_fft buys frequency detail and costs time detail. hop=n_fft//4 is the usual default.</div></li>
+      <li class="dom"><code class="cmd">T.<span class="fn">Spectrogram</span>(..., center=<span class="kw">True</span>, window_fn=<span class="mod">torch</span>.hann_window)</code><div class="desc">Padding and window. Change these and your features stop matching a pretrained model.</div></li>
+    </ul>
+  </article>
+
+  <!-- A4 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num a">A4</span><span class="card-title">Resample &amp; augment</span><span class="card-sub">SpecAugment</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd">T.<span class="fn">Resample</span>(orig_freq=<span class="num">44100</span>, new_freq=<span class="num">16000</span>)</code><span class="star">&#9733;</span><div class="desc">Build it <b>once</b> and reuse — it precomputes a kernel, so constructing it per sample is slow.</div></li>
+      <li class="dom"><code class="cmd">T.<span class="fn">FrequencyMasking</span>(freq_mask_param=<span class="num">80</span>)</code><span class="star">&#9733;</span><div class="desc">SpecAugment: blank out frequency bands. Operates on spectrograms, not waveforms.</div></li>
+      <li class="dom"><code class="cmd">T.<span class="fn">TimeMasking</span>(time_mask_param=<span class="num">80</span>)</code><div class="desc">The time-axis counterpart. The pair is the standard ASR augmentation.</div></li>
+      <li class="dom"><code class="cmd">T.<span class="fn">TimeStretch</span>(rate, fixed_rate=<span class="kw">True</span>)</code><div class="desc">Needs a <b>complex</b> spectrogram — set <code>power=None</code> upstream.</div></li>
+      <li class="dom"><code class="cmd">T.<span class="fn">PitchShift</span> &#183; T.<span class="fn">Fade</span> &#183; T.<span class="fn">Vol</span></code><div class="desc">Waveform-domain effects.</div></li>
+      <li class="dom"><code class="cmd">T.<span class="fn">Vad</span>() &#183; T.<span class="fn">SlidingWindowCmn</span>() &#183; T.<span class="fn">ComputeDeltas</span>()</code><div class="desc">Voice activity trimming, cepstral mean norm, delta features.</div></li>
+      <li class="dom"><code class="cmd"><span class="mod">nn</span>.<span class="fn">Sequential</span>(resample, spec, masking).<span class="fn">to</span>(dev)</code><span class="star">&#9733;</span><div class="desc">Transforms are Modules, so the whole feature pipeline runs on GPU and inside <code>torch.compile</code>.</div></li>
+      <li class="dom"><code class="cmd">resampler = T.<span class="fn">Resample</span>(...) once, reuse</code><span class="star">&#9733;</span><div class="desc"><b>Build it outside the loop.</b> The constructor precomputes a filter kernel; rebuilding per clip dominates your data pipeline.</div></li>
+      <li class="dom"><code class="cmd">T.<span class="fn">AddNoise</span>(waveform, noise, snr)</code><div class="desc">Additive noise at a target SNR &#8212; the most effective single augmentation for ASR robustness.</div></li>
+      <li class="dom"><code class="cmd">T.<span class="fn">SpeedPerturbation</span>(sr, [<span class="num">0.9</span>, <span class="num">1.0</span>, <span class="num">1.1</span>])</code><div class="desc">The Kaldi-style three-way speed augmentation.</div></li>
+    </ul>
+  </article>
+
+  <!-- A5 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num a">A5</span><span class="card-title">functional</span><span class="card-sub">stateless ops</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd"><span class="kw">import</span> <span class="mod">torchaudio.functional</span> <span class="kw">as</span> <span class="mod">F</span></code><div class="desc">Careful: the audio <code>F</code> shadows <code>torch.nn.functional</code> if you import both bare.</div></li>
+      <li class="dom"><code class="cmd">F.<span class="fn">resample</span>(w, orig, new)</code><div class="desc">One-shot version — fine for a single call, slow in a loop.</div></li>
+      <li class="dom"><code class="cmd">F.<span class="fn">amplitude_to_DB</span> &#183; F.<span class="fn">DB_to_amplitude</span></code><div class="desc">Scale conversions without constructing a Module.</div></li>
+      <li class="dom"><code class="cmd">F.<span class="fn">lfilter</span>(w, a_coeffs, b_coeffs)</code><div class="desc">Differentiable IIR filtering.</div></li>
+      <li class="dom"><code class="cmd">F.<span class="fn">lowpass_biquad</span> &#183; <span class="fn">highpass_biquad</span> &#183; <span class="fn">bandpass_biquad</span></code><div class="desc">Ready-made biquads for pre-emphasis and band limiting.</div></li>
+      <li class="dom"><code class="cmd">F.<span class="fn">forced_align</span>(log_probs, targets)</code><div class="desc">CTC alignment — audio to transcript, frame by frame.</div></li>
+      <li class="dom"><code class="cmd">F.<span class="fn">edit_distance</span>(seq1, seq2)</code><div class="desc">The building block for WER and CER.</div></li>
+      <li class="dom"><code class="cmd">F.<span class="fn">melscale_fbanks</span>(...)</code><div class="desc">The mel filterbank matrix itself, if you are building features by hand.</div></li>
+      <li class="dom"><code class="cmd">F.<span class="fn">preemphasis</span>(w) &#183; F.<span class="fn">deemphasis</span>(w)</code><div class="desc">Classic high-frequency tilt before feature extraction.</div></li>
+      <li class="dom"><code class="cmd">F.<span class="fn">add_noise</span>(w, n, snr) &#183; F.<span class="fn">loudness</span>(w, sr)</code><div class="desc">Functional noise mixing; ITU-R BS.1770 loudness for normalization.</div></li>
+    </ul>
+  </article>
+
+  <!-- A6 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num a">A6</span><span class="card-title">Pipelines &amp; models</span><span class="card-sub">pretrained speech</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd">bundle = <span class="mod">torchaudio</span>.<span class="mod">pipelines</span>.WAV2VEC2_ASR_BASE_960H</code><span class="star">&#9733;</span><div class="desc">Model + weights + labels + expected sample rate, in one object.</div></li>
+      <li class="dom"><code class="cmd">model = bundle.<span class="fn">get_model</span>()</code><span class="star">&#9733;</span><div class="desc">Downloads and instantiates, ready for <code>.to(dev)</code>.</div></li>
+      <li class="dom"><code class="cmd">bundle.sample_rate &#183; bundle.<span class="fn">get_labels</span>()</code><span class="star">&#9733;</span><div class="desc">Resample your audio to <code>bundle.sample_rate</code> first — usually 16&nbsp;kHz. Feeding 44.1&nbsp;kHz gives fluent nonsense.</div></li>
+      <li class="dom"><code class="cmd">emission, _ = model(waveform)</code><div class="desc">Frame-wise logits over the label set.</div></li>
+      <li class="dom"><code class="cmd">HUBERT_ASR_LARGE &#183; MMS_FA &#183; SQUIM_OBJECTIVE</code><div class="desc">Other bundles: ASR, forced alignment, speech quality.</div></li>
+      <li class="dom"><code class="cmd">models.decoder.<span class="fn">ctc_decoder</span>(...)</code><div class="desc">Beam search with an optional lexicon and language model.</div></li>
+      <li class="dom"><code class="cmd">models.<span class="fn">Wav2Vec2Model</span> &#183; <span class="fn">Conformer</span> &#183; <span class="fn">Emformer</span></code><div class="desc">The bare architectures, when you want to train your own.</div></li>
+      <li class="dom"><code class="cmd">feats, _ = model.<span class="fn">extract_features</span>(waveform)</code><span class="star">&#9733;</span><div class="desc">Per-layer representations instead of ASR logits &#8212; this is how Wav2Vec2 is used as an encoder.</div></li>
+      <li class="dom"><code class="cmd">bundle.<span class="fn">get_labels</span>()</code><div class="desc">The token alphabet, index-aligned with the emission columns. Blank is index 0.</div></li>
+    </ul>
+  </article>
+
+  <!-- A7 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num a">A7</span><span class="card-title">Datasets &amp; batching</span><span class="card-sub">ragged by nature</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd">datasets.<span class="fn">LIBRISPEECH</span>(root, url=<span class="str">"test-clean"</span>, download=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">The ASR default. Yields <code>(waveform, sr, transcript, ...)</code>.</div></li>
+      <li class="dom"><code class="cmd">datasets.<span class="fn">SPEECHCOMMANDS</span> &#183; <span class="fn">YESNO</span> &#183; <span class="fn">CMUARCTIC</span></code><div class="desc">Keyword spotting, a tiny smoke-test set, and TTS corpora.</div></li>
+      <li class="dom"><code class="cmd">collate_fn &#8594; <span class="mod">nn</span>.<span class="mod">utils</span>.<span class="mod">rnn</span>.<span class="fn">pad_sequence</span></code><span class="star">&#9733;</span><div class="desc">Clips have different lengths, so the default collate <b>will</b> fail. Pad and return the true lengths.</div></li>
+      <li class="dom"><code class="cmd">sorted-by-length bucketing</code><div class="desc">Group similar durations per batch — far less wasted padding compute.</div></li>
+      <li class="dom"><code class="cmd">compliance.kaldi.<span class="fn">fbank</span>(w) &#183; .<span class="fn">mfcc</span>(w)</code><div class="desc">Bit-compatible with Kaldi, for reproducing published recipes.</div></li>
+      <li class="dom"><code class="cmd"><span class="mod">nn</span>.<span class="mod">utils</span>.<span class="mod">rnn</span>.<span class="fn">pad_sequence</span>(seqs, batch_first=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Ragged audio into a rectangle. Keep the true lengths &#8212; you need them next.</div></li>
+      <li class="dom"><code class="cmd"><span class="fn">pack_padded_sequence</span>(x, lens, batch_first=<span class="kw">True</span>, enforce_sorted=<span class="kw">False</span>)</code><div class="desc">Stops RNNs from consuming your padding. <code>enforce_sorted=False</code> saves you sorting the batch.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num a">A8</span><span class="card-title">Speech to text, end to end</span><span class="card-sub">the whole path</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd">bundle = pipelines.WAV2VEC2_ASR_BASE_960H</code><span class="star">&#9733;</span><div class="desc">Weights, expected sample rate and label set travel together as one object.</div></li>
+      <li class="dom"><code class="cmd">model = bundle.<span class="fn">get_model</span>().<span class="fn">to</span>(dev); labels = bundle.<span class="fn">get_labels</span>()</code><div class="desc">Downloads and caches on first call.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">if</span> sr != bundle.sample_rate: w = F.<span class="fn">resample</span>(w, sr, bundle.sample_rate)</code><span class="star">&#9733;</span><span class="badge badge-danger">silent</span><div class="desc"><b>Never skip this.</b> A wrong sample rate raises no error &#8212; it just returns confident nonsense.</div></li>
+      <li class="dom"><code class="cmd"><span class="kw">with</span> <span class="mod">torch</span>.<span class="fn">inference_mode</span>(): emission, _ = model(w)</code><div class="desc">Shape (batch, time, vocab): a log-probability per token per frame.</div></li>
+      <li class="dom"><code class="cmd">ids = emission[<span class="num">0</span>].<span class="fn">argmax</span>(<span class="num">-1</span>)</code><div class="desc">Greedy CTC decoding, step one &#8212; best token per frame.</div></li>
+      <li class="dom"><code class="cmd">ids = <span class="mod">torch</span>.<span class="fn">unique_consecutive</span>(ids)</code><span class="star">&#9733;</span><div class="desc"><b>The CTC collapse.</b> Merge repeats, then drop the blank (index 0). Miss this and you get &#8220;hheelllloo&#8221;.</div></li>
+      <li class="dom"><code class="cmd"><span class="str">""</span>.<span class="fn">join</span>(labels[i] <span class="kw">for</span> i <span class="kw">in</span> ids <span class="kw">if</span> i != <span class="num">0</span>)</code><div class="desc">Indices back to characters. That is the transcript.</div></li>
+      <li class="dom"><code class="cmd">decoder = models.decoder.<span class="fn">ctc_decoder</span>(lexicon, tokens, lm=...)</code><div class="desc">Beam search with a language model when greedy is not accurate enough.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four pictures worth the whole reference</h2>
+  <p class="sub">The mechanism, the shapes, the package boundaries, and the audio feature chain.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>1 &#183; the autograd graph</h3>
+      <p>Forward builds the graph as a side effect. Backward walks the same edges in reverse, multiplying local derivatives.</p>
+      <svg viewBox="0 0 420 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A graph showing x and w feeding a multiply node, then a plus b node, then a loss node, with gradient arrows flowing back from loss to w and b.">
+        <defs><marker id="ar-d1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker></defs>
+        <g font-size="11" text-anchor="middle">
+          <circle cx="42" cy="46" r="17" fill="#fdf6ec" stroke="#d97706" stroke-width="1.8"/><text x="42" y="50" fill="#1a1d24">x</text>
+          <circle cx="42" cy="104" r="17" fill="#ecf7f2" stroke="#059669" stroke-width="1.8"/><text x="42" y="108" fill="#1a1d24">w</text>
+          <circle cx="152" cy="75" r="19" fill="#fff" stroke="#1a1d24" stroke-width="1.8"/><text x="152" y="80" fill="#1a1d24">&#215;</text>
+          <circle cx="262" cy="75" r="19" fill="#fff" stroke="#1a1d24" stroke-width="1.8"/><text x="262" y="80" fill="#1a1d24">+</text>
+          <circle cx="262" cy="140" r="17" fill="#ecf7f2" stroke="#059669" stroke-width="1.8"/><text x="262" y="144" fill="#1a1d24">b</text>
+          <circle cx="372" cy="75" r="21" fill="#1a1d24"/><text x="372" y="79" fill="#fff" font-size="10">loss</text>
+        </g>
+        <g stroke="#1a1d24" stroke-width="1.7" fill="none" marker-end="url(#ar-d1)">
+          <line x1="59" y1="52" x2="132" y2="68"/>
+          <line x1="59" y1="98" x2="132" y2="83"/>
+          <line x1="171" y1="75" x2="241" y2="75"/>
+          <line x1="262" y1="123" x2="262" y2="96"/>
+          <line x1="281" y1="75" x2="349" y2="75"/>
+        </g>
+        <path d="M372 96 L372 172 L42 172 L42 122" fill="none" stroke="#d97706" stroke-width="1.7" stroke-dasharray="5 4" marker-end="url(#ar-d1)"/>
+        <g font-size="9.5" fill="#b45309" text-anchor="middle">
+          <text x="207" y="186">loss.backward()  &#8594;  w.grad, b.grad</text>
+        </g>
+        <g font-size="9" fill="#94a3b8" text-anchor="middle">
+          <text x="152" y="26">recorded because requires_grad=True</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>2 &#183; the shape rosetta</h3>
+      <p>Half of all PyTorch errors are one of these four conventions used in the wrong place.</p>
+      <svg viewBox="0 0 420 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Four rows showing the standard tensor layouts: N by C by H by W for images, N by L by E for sequences, channel by time for waveforms, and channel by frequency by time for spectrograms.">
+        <g font-size="10.5">
+          <rect x="14" y="14" width="392" height="36" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/>
+          <text x="26" y="32" font-weight="700" fill="#1a1d24">(N, C, H, W)</text>
+          <text x="150" y="32" fill="#b45309">images &#183; Conv2d</text>
+          <text x="26" y="45" font-size="9" fill="#94a3b8">batch, channels, height, width &#8212; channels FIRST, unlike PIL/NumPy</text>
+
+          <rect x="14" y="58" width="392" height="36" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+          <text x="26" y="76" font-weight="700" fill="#1a1d24">(N, L, E)</text>
+          <text x="150" y="76" fill="#059669">sequences &#183; Transformer</text>
+          <text x="26" y="89" font-size="9" fill="#94a3b8">batch, length, embedding &#8212; only with batch_first=True</text>
+
+          <rect x="14" y="102" width="392" height="36" rx="7" fill="#f4f0fd" stroke="#7c3aed" stroke-width="1.5"/>
+          <text x="26" y="120" font-weight="700" fill="#1a1d24">(channel, time)</text>
+          <text x="150" y="120" fill="#7c3aed">waveform &#183; torchaudio.load</text>
+          <text x="26" y="133" font-size="9" fill="#94a3b8">no batch dim &#8212; librosa returns bare (time,)</text>
+
+          <rect x="14" y="146" width="392" height="36" rx="7" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.5"/>
+          <text x="26" y="164" font-weight="700" fill="#1a1d24">(channel, freq, time)</text>
+          <text x="200" y="164" fill="#4f46e5">spectrogram</text>
+          <text x="26" y="177" font-size="9" fill="#94a3b8">freq = n_fft//2 + 1, or n_mels after MelScale</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>3 &#183; who owns media I/O now</h3>
+      <p>Both domain packages were narrowed to their strengths. Decoding was consolidated into one place.</p>
+      <svg viewBox="0 0 420 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A before and after comparison showing video decoding leaving torchvision and audio decoding leaving torchaudio, both moving into torchcodec, while transforms and models stay.">
+        <defs><marker id="ar-red-d3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker></defs>
+        <g font-size="10">
+          <text x="14" y="18" font-size="9" letter-spacing="1.6" fill="#94a3b8">STAYS</text>
+          <rect x="14" y="26" width="180" height="60" rx="7" fill="#ecf6f5" stroke="#0d9488" stroke-width="1.6"/>
+          <text x="104" y="46" text-anchor="middle" font-weight="700" fill="#0d9488">torchvision</text>
+          <text x="104" y="62" text-anchor="middle" fill="#3f444f">transforms.v2 &#183; models</text>
+          <text x="104" y="76" text-anchor="middle" fill="#3f444f">datasets &#183; ops &#183; image I/O</text>
+
+          <rect x="14" y="96" width="180" height="60" rx="7" fill="#f4f0fd" stroke="#7c3aed" stroke-width="1.6"/>
+          <text x="104" y="116" text-anchor="middle" font-weight="700" fill="#7c3aed">torchaudio</text>
+          <text x="104" y="132" text-anchor="middle" fill="#3f444f">transforms &#183; functional</text>
+          <text x="104" y="146" text-anchor="middle" fill="#3f444f">models &#183; pipelines &#183; datasets</text>
+
+          <text x="240" y="18" font-size="9" letter-spacing="1.6" fill="#dc2626">MOVED OUT</text>
+          <rect x="240" y="26" width="166" height="130" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="6 4"/>
+          <text x="323" y="60" text-anchor="middle" font-weight="700" font-size="12" fill="#dc2626">torchcodec</text>
+          <text x="323" y="80" text-anchor="middle" fill="#3f444f">VideoDecoder</text>
+          <text x="323" y="95" text-anchor="middle" fill="#3f444f">AudioDecoder</text>
+          <text x="323" y="110" text-anchor="middle" fill="#3f444f">AudioEncoder</text>
+          <text x="323" y="132" text-anchor="middle" font-size="9" fill="#dc2626">pip install torchcodec</text>
+        </g>
+        <g stroke="#dc2626" stroke-width="1.6" stroke-dasharray="5 4" fill="none" marker-end="url(#ar-red-d3)">
+          <line x1="196" y1="56" x2="236" y2="70"/>
+          <line x1="196" y1="126" x2="236" y2="110"/>
+        </g>
+        <text x="212" y="180" text-anchor="middle" font-size="9" fill="#94a3b8">torchvision 0.26 removed read_video &#183; torchaudio 2.9 removed torchaudio.io</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>4 &#183; the audio feature chain</h3>
+      <p>Each named transform is just a prefix of this pipeline. Knowing where yours stops tells you its output shape.</p>
+      <svg viewBox="0 0 420 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A chain from waveform through STFT to spectrogram, then mel filterbank to mel spectrogram, then log and DCT to MFCC, with brackets showing which transform covers which portion.">
+        <defs><marker id="ar-d4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker></defs>
+        <path d="M16 44 q6 -20 12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0" fill="none" stroke="#7c3aed" stroke-width="1.6"/>
+        <text x="52" y="70" text-anchor="middle" font-size="9.5" fill="#7c3aed">waveform</text>
+        <text x="52" y="82" text-anchor="middle" font-size="8.5" fill="#94a3b8">(ch, time)</text>
+
+        <g>
+          <rect x="120" y="24" width="62" height="42" rx="5" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.5"/>
+          <g fill="#4f46e5" opacity="0.75">
+            <rect x="126" y="30" width="9" height="30"/><rect x="138" y="38" width="9" height="22"/>
+            <rect x="150" y="32" width="9" height="28"/><rect x="162" y="44" width="9" height="16"/>
+          </g>
+          <text x="151" y="80" text-anchor="middle" font-size="9.5" fill="#4f46e5">Spectrogram</text>
+          <text x="151" y="92" text-anchor="middle" font-size="8.5" fill="#94a3b8">(ch, n_fft//2+1, t)</text>
+        </g>
+        <g>
+          <rect x="222" y="24" width="62" height="42" rx="5" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+          <g fill="#059669" opacity="0.75">
+            <rect x="228" y="44" width="9" height="16"/><rect x="240" y="34" width="9" height="26"/>
+            <rect x="252" y="40" width="9" height="20"/><rect x="264" y="48" width="9" height="12"/>
+          </g>
+          <text x="253" y="80" text-anchor="middle" font-size="9.5" fill="#059669">MelSpectrogram</text>
+          <text x="253" y="92" text-anchor="middle" font-size="8.5" fill="#94a3b8">(ch, n_mels, t)</text>
+        </g>
+        <g>
+          <rect x="324" y="24" width="62" height="42" rx="5" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/>
+          <g fill="#d97706" opacity="0.75">
+            <rect x="330" y="30" width="9" height="12"/><rect x="342" y="46" width="9" height="14"/>
+            <rect x="354" y="36" width="9" height="10"/><rect x="366" y="50" width="9" height="10"/>
+          </g>
+          <text x="355" y="80" text-anchor="middle" font-size="9.5" fill="#b45309">MFCC</text>
+          <text x="355" y="92" text-anchor="middle" font-size="8.5" fill="#94a3b8">(ch, n_mfcc, t)</text>
+        </g>
+
+        <g stroke="#1a1d24" stroke-width="1.6" fill="none" marker-end="url(#ar-d4)">
+          <line x1="86" y1="45" x2="116" y2="45"/>
+          <line x1="188" y1="45" x2="218" y2="45"/>
+          <line x1="290" y1="45" x2="320" y2="45"/>
+        </g>
+        <g font-size="8.5" fill="#64748b" text-anchor="middle">
+          <text x="101" y="18">STFT</text>
+          <text x="203" y="18">mel filterbank</text>
+          <text x="305" y="18">log + DCT</text>
+        </g>
+
+        <path d="M120 112 L120 122 L284 122 L284 112" fill="none" stroke="#059669" stroke-width="1.3"/>
+        <text x="202" y="136" text-anchor="middle" font-size="9" fill="#059669">MelSpectrogram = Spectrogram &#8853; MelScale</text>
+        <path d="M120 148 L120 158 L386 158 L386 148" fill="none" stroke="#d97706" stroke-width="1.3"/>
+        <text x="253" y="172" text-anchor="middle" font-size="9" fill="#b45309">MFCC re-runs the whole chain &#8212; melkwargs= tunes the middle</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WORTH MEMORIZING ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">zero_grad first</span><span class="v">gradients <b>accumulate</b> &#8212; skipping it silently sums batches</span></div>
+    <div><span class="k">train() &#8800; grad on</span><span class="v">it only flips Dropout and BatchNorm; use <code>no_grad</code> to stop tracking</span></div>
+    <div><span class="k">no_grad vs inference_mode</span><span class="v">both stop recording; <code>inference_mode</code> is stricter and faster</span></div>
+    <div><span class="k">view vs reshape</span><span class="v"><code>view</code> needs contiguous memory, <code>reshape</code> copies when it must</span></div>
+    <div><span class="k">cat vs stack</span><span class="v"><code>cat</code> keeps the rank, <code>stack</code> adds a dimension</span></div>
+    <div><span class="k">losses take logits</span><span class="v"><code>CrossEntropyLoss</code> and <code>BCEWithLogitsLoss</code> apply the softmax/sigmoid themselves</span></div>
+    <div><span class="k">.item() syncs</span><span class="v">it stalls the GPU &#8212; keep it out of the inner loop</span></div>
+    <div><span class="k">backward frees the graph</span><span class="v">a second call needs <code>retain_graph=True</code>, which usually means a bug</span></div>
+    <div><span class="k">weights_only=True</span><span class="v">the <code>torch.load</code> default since 2.6 &#8212; unpickling arbitrary files is code execution</span></div>
+    <div><span class="k">weights=, not pretrained=</span><span class="v">and <code>weights.transforms()</code> gives the matching preprocessing</span></div>
+    <div><span class="k">ToImage + ToDtype</span><span class="v">the v2 replacement for <code>ToTensor</code>; <code>scale=True</code> is what divides by 255</span></div>
+    <div><span class="k">media I/O left</span><span class="v">torchvision video (0.26) and torchaudio I/O (2.9) both live in <code>torchcodec</code> now</span></div>
+    <div><span class="k">resample to bundle.sample_rate</span><span class="v">a pretrained speech model at the wrong rate fails quietly, not loudly</span></div>
+    <div><span class="k">broadcasting aligns right</span><span class="v">(N,1) against (N,) becomes (N,N) &#8212; the loss silently averages N&#178; pairs and nothing raises</span></div>
+    <div><span class="k">running += loss leaks</span><span class="v">accumulating the tensor keeps its graph alive; add <code>.item()</code></span></div>
+    <div><span class="k">_orig_mod. prefix</span><span class="v"><code>torch.compile</code> wraps the model, so compiled checkpoints will not load into an uncompiled one</span></div>
+    <div><span class="k">build tensors on the device</span><span class="v"><code>device=</code> at creation, rather than allocating on CPU and copying</span></div>
+    <div><span class="k">detection is list in, list out</span><span class="v">and in <code>train()</code> those models return a dict of losses, not predictions</span></div>
+    <div><span class="k">CTC needs collapsing</span><span class="v"><code>unique_consecutive</code>, then drop the blank &#8212; argmax alone is not a transcript</span></div>
+    <div><span class="k">pin the triple</span><span class="v">torch 2.13 pairs with torchvision 0.28, but torchaudio is 2.10 &#8212; audio stopped tracking torch's numbering when it froze</span></div>
+  </div>
+</section>
+
+<footer>
+  PyTorch cheat sheet &#183; verified against the official docs for <code>torch</code> 2.13 (released 8 Jul 2026), <code>torchvision</code> 0.28 and <code>torchaudio</code> in its post-2.9 maintenance form.<br>
+  Sources: docs.pytorch.org (torch / vision / audio API references) &#183; pytorch.org/blog PyTorch 2.13 release notes &#183; github.com/pytorch/vision and /audio release notes &#183; pytorch/audio issue #3902 &#183; docs.pytorch.org/torchcodec &#183; the official PyTorch Cheat Sheet tutorial &#183; learnpytorch.io.<br>
+  Where this sheet disagrees with an older cheat sheet, the difference is deliberate: <code>transforms.v2</code> over v1, <code>weights=</code> over <code>pretrained=</code>, <code>torch.export</code> over TorchScript, <code>inference_mode</code> over <code>no_grad</code>, and TorchCodec for all media decoding.
+</footer>
+
+</body>
+</html>

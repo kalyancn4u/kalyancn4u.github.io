@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seaborn Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b;  --setup-bg:#f1f3f6;
+    --plot:#d97706;   --plot-bg:#fdf6ec;
+    --axes:#059669;   --axes-bg:#ecf7f2;
+    --style:#4f46e5;  --style-bg:#eef0fd;
+    --layout:#7c3aed; --layout-bg:#f5f0fe;
+    --output:#0d9488; --output-bg:#e7f6f4;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .sns{font-family:var(--mono); color:var(--style)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)}  .dot.plot{background:var(--plot)}
+  .dot.axes{background:var(--axes)}    .dot.style{background:var(--style)}
+  .dot.layout{background:var(--layout)}.dot.output{background:var(--output)}
+  .dot.danger{background:var(--danger)}
+  .legend .st{color:var(--star); font-weight:700}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.plot{border-left-color:var(--plot)}
+  ul.cmds li.axes{border-left-color:var(--axes)}
+  ul.cmds li.style{border-left-color:var(--style)}
+  ul.cmds li.layout{border-left-color:var(--layout)}
+  ul.cmds li.output{border-left-color:var(--output)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.81rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .obj{color:var(--layout); font-weight:600}
+  code.cmd .arg{color:var(--style); font-weight:400}
+  code.cmd .kw{color:var(--star)}
+  code.cmd .cm{color:var(--muted); font-weight:400}
+  code.cmd .str{color:var(--axes)}
+  li.danger code.cmd{color:var(--danger)}
+  li.danger code.cmd .obj,li.danger code.cmd .arg,li.danger code.cmd .kw,li.danger code.cmd .str{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f1ea; padding:.03em .28em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-fig{
+    color:var(--layout); font-size:.63rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.04em; margin-left:.35rem;
+  }
+  .badge-ax{
+    color:var(--axes); font-size:.63rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.04em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem; max-width:70ch}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#f5f0e8; background:#2c313c; padding:.02em .3em; border-radius:3px}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:var(--ink)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · statistical data visualization in Python</div>
+  <h1><span class="sns">seaborn</span> cheat sheet</h1>
+  <p class="lede">Seaborn is <b>declarative</b>: you name the <b>roles</b> your columns play &mdash; <code>x</code>, <code>y</code>, <code>hue</code>, <code>col</code> &mdash; and it handles the drawing, the color mapping, and the statistics for you. Learn one distinction &mdash; <b>figure-level</b> functions (that build a whole <code>FacetGrid</code>) vs <b>axes-level</b> functions (that draw on one matplotlib <code>Axes</code>) &mdash; and the whole library falls into place.</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>setup / theme / data</span>
+    <span><i class="dot plot"></i>relational</span>
+    <span><i class="dot axes"></i>distributions</span>
+    <span><i class="dot style"></i>categorical</span>
+    <span><i class="dot layout"></i>grids · regression · matrix</span>
+    <span><i class="dot output"></i>objects · style · save</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="st">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked across: <b>seaborn.pydata.org</b> &middot; <b>introduction</b> &middot; <b>overview of plotting functions</b> &middot; <b>API reference</b> &middot; <b>objects-interface tutorial</b> &middot; <b>aesthetics &amp; FAQ</b> &middot; <b>KDnuggets</b> &middot; <b>Towards Data Science</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM : THE ORGANIZATION OF SEABORN ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The shape of the library &mdash; one dispatcher per module, over its axes-level drawers</div>
+  <svg class="flow-svg" viewBox="0 0 1120 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The organization of seaborn plotting functions: a tidy DataFrame feeds three modules. The relational module's figure-level relplot dispatches to scatterplot and lineplot; the distributions module's displot dispatches to histplot, kdeplot, ecdfplot and rugplot; the categorical module's catplot dispatches to stripplot, swarmplot, boxplot, violinplot, boxenplot, pointplot, barplot and countplot. Each figure-level function manages a FacetGrid. Separate functions jointplot, pairplot, lmplot, regplot, heatmap and clustermap sit outside the three-module scheme.">
+    <defs>
+      <marker id="lead" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/>
+      </marker>
+    </defs>
+
+    <!-- DATA source (top center) -->
+    <rect x="430" y="14" width="260" height="42" rx="8" fill="#f1f3f6" stroke="#64748b" stroke-width="1.8"/>
+    <text x="560" y="33" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1d24">tidy DataFrame &rarr; data=</text>
+    <text x="560" y="48" text-anchor="middle" font-size="9.5" fill="#64748b">roles: x · y · hue · size · style · col · row</text>
+
+    <!-- fan-out arrows to three modules -->
+    <line x1="500" y1="56" x2="200" y2="96" stroke="#6b7280" stroke-width="1.2" marker-end="url(#lead)"/>
+    <line x1="560" y1="56" x2="560" y2="96" stroke="#6b7280" stroke-width="1.2" marker-end="url(#lead)"/>
+    <line x1="620" y1="56" x2="930" y2="96" stroke="#6b7280" stroke-width="1.2" marker-end="url(#lead)"/>
+
+    <!-- ===== COLUMN 1 : RELATIONAL (amber) ===== -->
+    <text x="200" y="88" text-anchor="middle" font-size="10.5" font-weight="700" fill="#d97706" letter-spacing="0.06em">RELATIONAL</text>
+    <rect x="70" y="98" width="260" height="48" rx="8" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+    <text x="200" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">relplot(kind=…)</text>
+    <text x="200" y="137" text-anchor="middle" font-size="9.5" fill="#d97706">figure-level &rarr; FacetGrid</text>
+    <line x1="200" y1="146" x2="200" y2="182" stroke="#6b7280" stroke-width="1.3" marker-end="url(#lead)"/>
+    <rect x="90" y="182" width="220" height="70" rx="7" fill="#fff" stroke="#d97706" stroke-width="1.3"/>
+    <text x="200" y="200" text-anchor="middle" font-size="9" fill="#6b7280">axes-level &rarr; Axes</text>
+    <text x="200" y="221" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">scatterplot()</text>
+    <text x="200" y="240" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">lineplot()</text>
+
+    <!-- ===== COLUMN 2 : DISTRIBUTIONS (green) ===== -->
+    <text x="560" y="88" text-anchor="middle" font-size="10.5" font-weight="700" fill="#059669" letter-spacing="0.06em">DISTRIBUTIONS</text>
+    <rect x="430" y="98" width="260" height="48" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <text x="560" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">displot(kind=…)</text>
+    <text x="560" y="137" text-anchor="middle" font-size="9.5" fill="#059669">figure-level &rarr; FacetGrid</text>
+    <line x1="560" y1="146" x2="560" y2="182" stroke="#6b7280" stroke-width="1.3" marker-end="url(#lead)"/>
+    <rect x="450" y="182" width="220" height="110" rx="7" fill="#fff" stroke="#059669" stroke-width="1.3"/>
+    <text x="560" y="200" text-anchor="middle" font-size="9" fill="#6b7280">axes-level &rarr; Axes</text>
+    <text x="560" y="221" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">histplot()</text>
+    <text x="560" y="240" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">kdeplot()</text>
+    <text x="560" y="259" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">ecdfplot()</text>
+    <text x="560" y="278" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">rugplot()</text>
+
+    <!-- ===== COLUMN 3 : CATEGORICAL (indigo) ===== -->
+    <text x="930" y="88" text-anchor="middle" font-size="10.5" font-weight="700" fill="#4f46e5" letter-spacing="0.06em">CATEGORICAL</text>
+    <rect x="800" y="98" width="260" height="48" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+    <text x="930" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">catplot(kind=…)</text>
+    <text x="930" y="137" text-anchor="middle" font-size="9.5" fill="#4f46e5">figure-level &rarr; FacetGrid</text>
+    <line x1="930" y1="146" x2="930" y2="182" stroke="#6b7280" stroke-width="1.3" marker-end="url(#lead)"/>
+    <rect x="790" y="182" width="280" height="150" rx="7" fill="#fff" stroke="#4f46e5" stroke-width="1.3"/>
+    <text x="930" y="200" text-anchor="middle" font-size="9" fill="#6b7280">axes-level &rarr; Axes</text>
+    <text x="930" y="220" text-anchor="middle" font-size="10.5" fill="#1a1d24"><tspan font-weight="700">stripplot</tspan> · <tspan font-weight="700">swarmplot</tspan></text>
+    <text x="930" y="240" text-anchor="middle" font-size="10.5" fill="#6b7280">scatter</text>
+    <text x="930" y="261" text-anchor="middle" font-size="10.5" fill="#1a1d24"><tspan font-weight="700">boxplot</tspan> · <tspan font-weight="700">violinplot</tspan> · <tspan font-weight="700">boxenplot</tspan></text>
+    <text x="930" y="281" text-anchor="middle" font-size="10.5" fill="#6b7280">distribution</text>
+    <text x="930" y="302" text-anchor="middle" font-size="10.5" fill="#1a1d24"><tspan font-weight="700">pointplot</tspan> · <tspan font-weight="700">barplot</tspan> · <tspan font-weight="700">countplot</tspan></text>
+    <text x="930" y="322" text-anchor="middle" font-size="10.5" fill="#6b7280">estimate</text>
+
+    <!-- FacetGrid band note -->
+    <line x1="200" y1="252" x2="200" y2="356" stroke="#7c3aed" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#lead)"/>
+    <line x1="560" y1="292" x2="560" y2="356" stroke="#7c3aed" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#lead)"/>
+    <line x1="930" y1="332" x2="930" y2="356" stroke="#7c3aed" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#lead)"/>
+    <rect x="150" y="356" width="820" height="34" rx="8" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.6"/>
+    <text x="560" y="378" text-anchor="middle" font-size="11" font-weight="700" fill="#7c3aed">every figure-level function manages a FacetGrid &mdash; add col= / row= for free small-multiple panels</text>
+
+    <!-- Outside-the-scheme box -->
+    <rect x="150" y="404" width="820" height="50" rx="8" fill="#fff" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="5 3"/>
+    <text x="560" y="423" text-anchor="middle" font-size="10" fill="#6b7280">outside the 3-module scheme (multiple plot kinds at once):</text>
+    <text x="560" y="442" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">jointplot · pairplot &nbsp;·&nbsp; lmplot / regplot (regression) &nbsp;·&nbsp; heatmap / clustermap (matrix)</text>
+  </svg>
+</section>
+
+<!-- ============ CARD GRID ============ -->
+<main>
+
+  <!-- 01 SETUP & THEME -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Theme</span><span class="card-sub">import · style · scale</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="cm">import</span> seaborn <span class="cm">as</span> sns</code><span class="star">&#9733;</span><div class="desc">The one import you always write.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm">import</span> matplotlib.pyplot <span class="cm">as</span> plt</code><div class="desc">Still needed for <code>show</code>, <code>savefig</code>, fine-tuning.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm">import</span> seaborn.objects <span class="cm">as</span> so</code><div class="desc">The newer declarative "objects" interface (card 12).</div></li>
+      <li class="setup"><code class="cmd">sns.<span class="obj">set_theme</span>()</code><span class="star">&#9733;</span><div class="desc">Apply seaborn's look &mdash; call once, up top.</div></li>
+      <li class="setup"><code class="cmd">sns.<span class="obj">set_theme</span>(<span class="kw">style</span>=<span class="str">"whitegrid"</span>, <span class="kw">context</span>=<span class="str">"talk"</span>, <span class="kw">palette</span>=<span class="str">"deep"</span>)</code><span class="star">&#9733;</span><div class="desc">Look · sizing · colors in one call.</div></li>
+      <li class="setup"><code class="cmd">sns.<span class="obj">set_style</span>(<span class="str">"darkgrid"</span>)</code><div class="desc"><code>darkgrid</code>·<code>whitegrid</code>·<code>dark</code>·<code>white</code>·<code>ticks</code> (default <code>darkgrid</code>).</div></li>
+      <li class="setup"><code class="cmd">sns.<span class="obj">set_context</span>(<span class="str">"notebook"</span>)</code><div class="desc">Scale text/lines: <code>paper</code>·<code>notebook</code>·<code>talk</code>·<code>poster</code>.</div></li>
+      <li class="setup"><code class="cmd">sns.<span class="obj">despine</span>()</code><div class="desc">Remove the top &amp; right spines for a cleaner frame.</div></li>
+      <li class="setup"><code class="cmd">tips = sns.<span class="obj">load_dataset</span>(<span class="str">"tips"</span>)</code><span class="star">&#9733;</span><div class="desc">Built-in demo DataFrames: <code>penguins</code>, <code>iris</code>, <code>titanic</code>…</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 THE DATA MODEL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">The Data Model</span><span class="card-sub">roles, not coordinates</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="kw">data</span>=<span class="arg">df</span></code><span class="star">&#9733;</span><div class="desc">Pass a <b>tidy / long-form</b> DataFrame; refer to columns by name.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">x</span>=<span class="str">"total_bill"</span>, <span class="kw">y</span>=<span class="str">"tip"</span></code><span class="star">&#9733;</span><div class="desc">Map columns to the axes by <b>string name</b>.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">hue</span>=<span class="str">"sex"</span></code><span class="star">&#9733;</span><div class="desc">Color by a variable &mdash; auto legend. The workhorse channel.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">size</span>=<span class="str">"size"</span></code><div class="desc">Scale point/line size by a variable.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">style</span>=<span class="str">"smoker"</span></code><div class="desc">Vary marker shape / dash pattern by a variable.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">col</span>=<span class="str">"time"</span>, <span class="kw">row</span>=<span class="str">"day"</span></code><span class="star">&#9733;</span><div class="desc">Split into a grid of panels (facets) &mdash; figure-level only.</div></li>
+      <li class="setup"><code class="cmd">sns.<span class="obj">scatterplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="str">"a"</span>, <span class="kw">y</span>=<span class="str">"b"</span>, <span class="kw">hue</span>=<span class="str">"c"</span>)</code><div class="desc">The shape <i>every</i> seaborn function takes.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 RELATIONAL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Relational</span><span class="card-sub">relplot · numeric vs numeric</span></div>
+    <ul class="cmds">
+      <li class="plot"><code class="cmd">sns.<span class="obj">relplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">a</span>, <span class="kw">y</span>=<span class="arg">b</span>)</code><span class="star">&#9733;</span><span class="badge-fig">fig-level</span><div class="desc">Default <code>kind="scatter"</code>.</div></li>
+      <li class="plot"><code class="cmd">sns.<span class="obj">relplot</span>(<span class="cm">…</span>, <span class="kw">kind</span>=<span class="str">"line"</span>)</code><span class="star">&#9733;</span><div class="desc">Line plot; auto-aggregates &amp; draws a CI band.</div></li>
+      <li class="plot"><code class="cmd">sns.<span class="obj">scatterplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">a</span>, <span class="kw">y</span>=<span class="arg">b</span>)</code><span class="badge-ax">axes-level</span><div class="desc">Draws on the current Axes; returns it.</div></li>
+      <li class="plot"><code class="cmd">sns.<span class="obj">lineplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">a</span>, <span class="kw">y</span>=<span class="arg">b</span>)</code><span class="star">&#9733;</span><div class="desc">Averages repeated <code>x</code> and shades the CI.</div></li>
+      <li class="plot"><code class="cmd">sns.<span class="obj">relplot</span>(<span class="cm">…</span>, <span class="kw">hue</span>=<span class="arg">c</span>, <span class="kw">size</span>=<span class="arg">n</span>, <span class="kw">style</span>=<span class="arg">c</span>)</code><div class="desc">Layer several semantic channels at once.</div></li>
+      <li class="plot"><code class="cmd">sns.<span class="obj">relplot</span>(<span class="cm">…</span>, <span class="kw">col</span>=<span class="arg">c</span>, <span class="kw">row</span>=<span class="arg">c</span>)</code><div class="desc">Facet into a panel grid.</div></li>
+      <li class="plot"><code class="cmd">sns.<span class="obj">lineplot</span>(<span class="cm">…</span>, <span class="kw">errorbar</span>=<span class="str">"sd"</span>)</code><div class="desc">CI band by default; use <code>"sd"</code>, <code>None</code>, <code>("pi",95)</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 DISTRIBUTIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Distributions</span><span class="card-sub">displot · shape of the data</span></div>
+    <ul class="cmds">
+      <li class="axes"><code class="cmd">sns.<span class="obj">displot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">a</span>)</code><span class="star">&#9733;</span><span class="badge-fig">fig-level</span><div class="desc">Default <code>kind="hist"</code>.</div></li>
+      <li class="axes"><code class="cmd">sns.<span class="obj">histplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">a</span>, <span class="kw">bins</span>=<span class="arg">30</span>)</code><span class="star">&#9733;</span><div class="desc">Histogram; <code>binwidth=</code> also works.</div></li>
+      <li class="axes"><code class="cmd">sns.<span class="obj">histplot</span>(<span class="cm">…</span>, <span class="kw">kde</span>=<span class="arg">True</span>)</code><span class="star">&#9733;</span><div class="desc">Overlay a smooth density curve on the bars.</div></li>
+      <li class="axes"><code class="cmd">sns.<span class="obj">kdeplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">a</span>, <span class="kw">fill</span>=<span class="arg">True</span>)</code><span class="star">&#9733;</span><div class="desc">Smooth density estimate (use <code>fill</code>, not <code>shade</code>).</div></li>
+      <li class="axes"><code class="cmd">sns.<span class="obj">ecdfplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">a</span>)</code><div class="desc">Empirical cumulative distribution &mdash; no binning choice.</div></li>
+      <li class="axes"><code class="cmd">sns.<span class="obj">rugplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">a</span>)</code><div class="desc">Little ticks for each raw observation.</div></li>
+      <li class="axes"><code class="cmd">sns.<span class="obj">displot</span>(<span class="cm">…</span>, <span class="kw">multiple</span>=<span class="str">"stack"</span>)</code><div class="desc">With <code>hue</code>: <code>layer</code>·<code>stack</code>·<code>dodge</code>·<code>fill</code>.</div></li>
+      <li class="axes"><code class="cmd">sns.<span class="obj">histplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">a</span>, <span class="kw">y</span>=<span class="arg">b</span>)</code><div class="desc">Give <code>x</code> and <code>y</code> &rarr; a 2-D (bivariate) histogram.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 CATEGORICAL SCATTER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Categorical &middot; points</span><span class="card-sub">catplot · category vs number</span></div>
+    <ul class="cmds">
+      <li class="style"><code class="cmd">sns.<span class="obj">catplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">cat</span>, <span class="kw">y</span>=<span class="arg">num</span>)</code><span class="star">&#9733;</span><span class="badge-fig">fig-level</span><div class="desc">Default <code>kind="strip"</code>; the gateway to all categorical kinds.</div></li>
+      <li class="style"><code class="cmd">sns.<span class="obj">stripplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">cat</span>, <span class="kw">y</span>=<span class="arg">num</span>)</code><div class="desc">Jittered points, one strip per category.</div></li>
+      <li class="style"><code class="cmd">sns.<span class="obj">swarmplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">cat</span>, <span class="kw">y</span>=<span class="arg">num</span>)</code><div class="desc">Non-overlapping "beeswarm" &mdash; best for small n.</div></li>
+      <li class="style"><code class="cmd">sns.<span class="obj">catplot</span>(<span class="cm">…</span>, <span class="kw">kind</span>=<span class="str">"swarm"</span>)</code><div class="desc">Same drawer, reached via the dispatcher.</div></li>
+      <li class="style"><code class="cmd">sns.<span class="obj">stripplot</span>(<span class="cm">…</span>, <span class="kw">hue</span>=<span class="arg">c</span>, <span class="kw">dodge</span>=<span class="arg">True</span>)</code><div class="desc">Split each category by <code>hue</code> side-by-side.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 CATEGORICAL DISTRIBUTIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Categorical &middot; spread</span><span class="card-sub">box · violin · boxen</span></div>
+    <ul class="cmds">
+      <li class="style"><code class="cmd">sns.<span class="obj">boxplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">cat</span>, <span class="kw">y</span>=<span class="arg">num</span>)</code><span class="star">&#9733;</span><div class="desc">Quartiles + whiskers + outliers.</div></li>
+      <li class="style"><code class="cmd">sns.<span class="obj">violinplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">cat</span>, <span class="kw">y</span>=<span class="arg">num</span>)</code><span class="star">&#9733;</span><div class="desc">Box + a mirrored KDE density shape.</div></li>
+      <li class="style"><code class="cmd">sns.<span class="obj">violinplot</span>(<span class="cm">…</span>, <span class="kw">hue</span>=<span class="arg">c</span>, <span class="kw">split</span>=<span class="arg">True</span>)</code><div class="desc">Half-violin per <code>hue</code> level &mdash; compact comparison.</div></li>
+      <li class="style"><code class="cmd">sns.<span class="obj">boxenplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">cat</span>, <span class="kw">y</span>=<span class="arg">num</span>)</code><div class="desc">"Letter-value" box &mdash; shows tails better for large n.</div></li>
+      <li class="style"><code class="cmd">sns.<span class="obj">catplot</span>(<span class="cm">…</span>, <span class="kw">kind</span>=<span class="str">"box"</span>)</code><div class="desc">Any of these via <code>kind=</code> for free faceting.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 CATEGORICAL ESTIMATES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Categorical &middot; estimates</span><span class="card-sub">bar · count · point</span></div>
+    <ul class="cmds">
+      <li class="style"><code class="cmd">sns.<span class="obj">barplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">cat</span>, <span class="kw">y</span>=<span class="arg">num</span>)</code><span class="star">&#9733;</span><div class="desc">Bar of the <b>mean</b> (default) + CI &mdash; not a raw count.</div></li>
+      <li class="style"><code class="cmd">sns.<span class="obj">countplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">cat</span>)</code><span class="star">&#9733;</span><div class="desc">Bar of <b>row counts</b> per category (a histogram of a category).</div></li>
+      <li class="style"><code class="cmd">sns.<span class="obj">pointplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">cat</span>, <span class="kw">y</span>=<span class="arg">num</span>)</code><div class="desc">Point estimate + CI, joined &mdash; good for interactions.</div></li>
+      <li class="style"><code class="cmd">sns.<span class="obj">barplot</span>(<span class="cm">…</span>, <span class="kw">estimator</span>=<span class="str">"median"</span>, <span class="kw">errorbar</span>=<span class="str">"ci"</span>)</code><div class="desc">Swap the summary statistic and the error bar.</div></li>
+      <li class="style"><code class="cmd">sns.<span class="obj">barplot</span>(<span class="cm">…</span>, <span class="kw">hue</span>=<span class="arg">c</span>)</code><div class="desc">Grouped ("dodged") bars automatically.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 REGRESSION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Regression</span><span class="card-sub">fit a trend line</span></div>
+    <ul class="cmds">
+      <li class="layout"><code class="cmd">sns.<span class="obj">lmplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">a</span>, <span class="kw">y</span>=<span class="arg">b</span>)</code><span class="star">&#9733;</span><span class="badge-fig">fig-level</span><div class="desc">Scatter + linear fit + CI, with faceting.</div></li>
+      <li class="layout"><code class="cmd">sns.<span class="obj">regplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">a</span>, <span class="kw">y</span>=<span class="arg">b</span>)</code><span class="badge-ax">axes-level</span><div class="desc">Same fit on one Axes; composes into subplots.</div></li>
+      <li class="layout"><code class="cmd">sns.<span class="obj">lmplot</span>(<span class="cm">…</span>, <span class="kw">hue</span>=<span class="arg">c</span>, <span class="kw">col</span>=<span class="arg">c</span>)</code><div class="desc">A separate fit per group / per panel.</div></li>
+      <li class="layout"><code class="cmd">sns.<span class="obj">regplot</span>(<span class="cm">…</span>, <span class="kw">order</span>=<span class="arg">2</span>)</code><div class="desc">Polynomial fit of the given degree.</div></li>
+      <li class="layout"><code class="cmd">sns.<span class="obj">regplot</span>(<span class="cm">…</span>, <span class="kw">lowess</span>=<span class="arg">True</span>)</code><div class="desc">Non-parametric locally-weighted smoother.</div></li>
+      <li class="layout"><code class="cmd">sns.<span class="obj">regplot</span>(<span class="cm">…</span>, <span class="kw">logistic</span>=<span class="arg">True</span>)</code><div class="desc">Logistic fit for a 0/1 outcome.</div></li>
+      <li class="layout"><code class="cmd">sns.<span class="obj">residplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">a</span>, <span class="kw">y</span>=<span class="arg">b</span>)</code><div class="desc">Plot residuals to check whether a fit is appropriate.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 MATRIX -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Matrix plots</span><span class="card-sub">heatmap · clustermap</span></div>
+    <ul class="cmds">
+      <li class="layout"><code class="cmd">sns.<span class="obj">heatmap</span>(<span class="arg">df</span>.<span class="obj">corr</span>())</code><span class="star">&#9733;</span><div class="desc">Render a 2-D matrix as a grid of colored cells.</div></li>
+      <li class="layout"><code class="cmd">sns.<span class="obj">heatmap</span>(<span class="arg">m</span>, <span class="kw">annot</span>=<span class="arg">True</span>, <span class="kw">fmt</span>=<span class="str">".2f"</span>)</code><span class="star">&#9733;</span><div class="desc">Write each value inside its cell.</div></li>
+      <li class="layout"><code class="cmd">sns.<span class="obj">heatmap</span>(<span class="arg">m</span>, <span class="kw">cmap</span>=<span class="str">"vlag"</span>, <span class="kw">center</span>=<span class="arg">0</span>)</code><div class="desc">Diverging colormap centered on zero (great for corr).</div></li>
+      <li class="layout"><code class="cmd">sns.<span class="obj">clustermap</span>(<span class="arg">m</span>)</code><div class="desc">Heatmap + hierarchical-clustering dendrograms, reordered.</div></li>
+      <li class="layout"><code class="cmd">sns.<span class="obj">heatmap</span>(<span class="arg">m</span>, <span class="kw">linewidths</span>=<span class="arg">.5</span>, <span class="kw">cbar</span>=<span class="arg">False</span>)</code><div class="desc">Cell borders; hide the color bar.</div></li>
+      <li class="layout"><code class="cmd"><span class="arg">m</span> = <span class="arg">df</span>.<span class="obj">pivot</span>(<span class="kw">index</span>=<span class="arg">r</span>, <span class="kw">columns</span>=<span class="arg">c</span>, <span class="kw">values</span>=<span class="arg">v</span>)</code><div class="desc">Reshape long &rarr; wide first; heatmap needs a matrix.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 MULTI-PLOT GRIDS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Multi-plot grids</span><span class="card-sub">joint · pair · FacetGrid</span></div>
+    <ul class="cmds">
+      <li class="layout"><code class="cmd">sns.<span class="obj">pairplot</span>(<span class="arg">df</span>, <span class="kw">hue</span>=<span class="arg">c</span>)</code><span class="star">&#9733;</span><div class="desc">Every pairwise scatter + per-variable diagonals.</div></li>
+      <li class="layout"><code class="cmd">sns.<span class="obj">jointplot</span>(<span class="kw">data</span>=<span class="arg">df</span>, <span class="kw">x</span>=<span class="arg">a</span>, <span class="kw">y</span>=<span class="arg">b</span>, <span class="kw">kind</span>=<span class="str">"hex"</span>)</code><span class="star">&#9733;</span><div class="desc">Bivariate plot with marginal distributions.</div></li>
+      <li class="layout"><code class="cmd">sns.<span class="obj">jointplot</span>(<span class="cm">…</span>, <span class="kw">kind</span>=<span class="str">"reg"</span>)</code><div class="desc"><code>scatter</code>·<code>kde</code>·<code>hex</code>·<code>reg</code>·<code>hist</code>.</div></li>
+      <li class="layout"><code class="cmd">g = sns.<span class="obj">FacetGrid</span>(<span class="arg">df</span>, <span class="kw">col</span>=<span class="arg">c</span>, <span class="kw">row</span>=<span class="arg">c</span>)</code><div class="desc">Build an empty panel grid to draw onto.</div></li>
+      <li class="layout"><code class="cmd">g.<span class="obj">map_dataframe</span>(sns.<span class="obj">histplot</span>, <span class="str">"x"</span>)</code><div class="desc">Draw the same plot into every panel.</div></li>
+      <li class="layout"><code class="cmd">sns.<span class="obj">PairGrid</span>(<span class="arg">df</span>).<span class="obj">map_offdiag</span>(sns.<span class="obj">scatterplot</span>)</code><div class="desc">Full control: different plot on diagonal vs off-diagonal.</div></li>
+      <li class="layout"><code class="cmd">g.<span class="obj">add_legend</span>(); g.<span class="obj">set_axis_labels</span>(<span class="str">"x"</span>, <span class="str">"y"</span>)</code><div class="desc">Grid finishing touches.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 COLOR & PALETTES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Color &amp; palettes</span><span class="card-sub">the seaborn superpower</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">sns.<span class="obj">color_palette</span>(<span class="str">"deep"</span>)</code><span class="star">&#9733;</span><div class="desc">Qualitative: <code>deep</code>·<code>muted</code>·<code>pastel</code>·<code>bright</code>·<code>dark</code>·<code>colorblind</code>.</div></li>
+      <li class="setup"><code class="cmd">sns.<span class="obj">color_palette</span>(<span class="str">"husl"</span>, <span class="arg">8</span>)</code><div class="desc">Evenly-spaced distinct hues for n categories.</div></li>
+      <li class="setup"><code class="cmd">sns.<span class="obj">color_palette</span>(<span class="str">"crest"</span>, <span class="kw">as_cmap</span>=<span class="arg">True</span>)</code><div class="desc">Sequential (<code>crest</code>·<code>flare</code>·<code>rocket</code>·<code>mako</code>) for ordered data.</div></li>
+      <li class="setup"><code class="cmd">sns.<span class="obj">color_palette</span>(<span class="str">"vlag"</span>)</code><div class="desc">Diverging (<code>vlag</code>·<code>icefire</code>) for data centered on a midpoint.</div></li>
+      <li class="setup"><code class="cmd">sns.<span class="obj">scatterplot</span>(<span class="cm">…</span>, <span class="kw">hue</span>=<span class="arg">c</span>, <span class="kw">palette</span>=<span class="str">"Set2"</span>)</code><div class="desc">Any named palette, inline on the call.</div></li>
+      <li class="setup"><code class="cmd">sns.<span class="obj">set_palette</span>(<span class="str">"pastel"</span>)</code><div class="desc">Set the default color cycle globally.</div></li>
+      <li class="danger"><code class="cmd">palette=<span class="cm"> without </span>hue=<span class="cm"> &rarr; ignored</span></code><span class="badge-danger">note</span><div class="desc">A palette needs a <code>hue</code> assignment to have anything to color.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 OBJECTS INTERFACE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Objects interface</span><span class="card-sub">import seaborn.objects as so</span></div>
+    <ul class="cmds">
+      <li class="output"><code class="cmd">so.<span class="obj">Plot</span>(<span class="arg">df</span>, <span class="kw">x</span>=<span class="str">"a"</span>, <span class="kw">y</span>=<span class="str">"b"</span>)</code><span class="star">&#9733;</span><div class="desc">The declarative base object &mdash; a grammar of graphics.</div></li>
+      <li class="output"><code class="cmd">.<span class="obj">add</span>(so.<span class="obj">Dot</span>())</code><span class="star">&#9733;</span><div class="desc">A layer's <b>Mark</b>: <code>Dot</code>·<code>Line</code>·<code>Bar</code>·<code>Area</code>·<code>Band</code>·<code>Text</code>.</div></li>
+      <li class="output"><code class="cmd">.<span class="obj">add</span>(so.<span class="obj">Bar</span>(), so.<span class="obj">Agg</span>())</code><span class="star">&#9733;</span><div class="desc">Mark + <b>Stat</b>: <code>Agg</code>·<code>Est</code>·<code>Hist</code>·<code>KDE</code>·<code>Count</code>·<code>PolyFit</code>.</div></li>
+      <li class="output"><code class="cmd">.<span class="obj">add</span>(so.<span class="obj">Dot</span>(), so.<span class="obj">Dodge</span>(), so.<span class="obj">Jitter</span>())</code><div class="desc"><b>Move</b>: reposition &mdash; <code>Dodge</code>·<code>Jitter</code>·<code>Stack</code>·<code>Shift</code>.</div></li>
+      <li class="output"><code class="cmd">.<span class="obj">facet</span>(<span class="str">"c"</span>).<span class="obj">pair</span>(<span class="kw">x</span>=<span class="arg">[…]</span>)</code><div class="desc">Small multiples &amp; variable pairings, built in.</div></li>
+      <li class="output"><code class="cmd">.<span class="obj">scale</span>(<span class="kw">color</span>=<span class="str">"viridis"</span>)</code><div class="desc">Control how each data channel maps to a visual property.</div></li>
+      <li class="output"><code class="cmd">.<span class="obj">label</span>(<span class="cm">…</span>).<span class="obj">limit</span>(<span class="cm">…</span>).<span class="obj">theme</span>(<span class="cm">…</span>)</code><div class="desc">Declarative finishing methods, chainable.</div></li>
+      <li class="output"><code class="cmd">.<span class="obj">layout</span>(<span class="kw">size</span>=<span class="arg">(7,5)</span>).<span class="obj">save</span>(<span class="str">"f.svg"</span>)</code><div class="desc">Size, then <code>.save()</code> / <code>.show()</code> / <code>.on(ax)</code> to embed.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 STYLING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Styling the plot</span><span class="card-sub">reach the matplotlib layer</span></div>
+    <ul class="cmds">
+      <li class="output"><code class="cmd">ax = sns.<span class="obj">boxplot</span>(<span class="cm">…</span>)</code><span class="star">&#9733;</span><div class="desc">Axes-level returns a matplotlib <b>Axes</b> &mdash; use any of its methods.</div></li>
+      <li class="output"><code class="cmd">ax.<span class="obj">set</span>(<span class="kw">title</span>=<span class="str">"…"</span>, <span class="kw">xlabel</span>=<span class="str">"…"</span>, <span class="kw">ylim</span>=<span class="arg">(0,5)</span>)</code><span class="star">&#9733;</span><div class="desc">Batch matplotlib tweaks in one call.</div></li>
+      <li class="output"><code class="cmd">g = sns.<span class="obj">relplot</span>(<span class="cm">…</span>)</code><div class="desc">Figure-level returns a grid <code>g</code> (FacetGrid) &mdash; style via <code>g</code>.</div></li>
+      <li class="output"><code class="cmd">g.<span class="obj">set_axis_labels</span>(<span class="str">"x"</span>, <span class="str">"y"</span>)</code><div class="desc">Seaborn's own label setter for the whole grid.</div></li>
+      <li class="output"><code class="cmd">g.<span class="obj">set_titles</span>(<span class="str">"{col_name}"</span>)</code><div class="desc">Template each panel's title from the facet value.</div></li>
+      <li class="output"><code class="cmd">g.figure &nbsp;/&nbsp; g.axes</code><div class="desc">Reach the underlying matplotlib Figure / Axes array.</div></li>
+      <li class="output"><code class="cmd">sns.<span class="obj">relplot</span>(<span class="cm">…</span>, <span class="kw">height</span>=<span class="arg">4</span>, <span class="kw">aspect</span>=<span class="arg">1.5</span>)</code><span class="star">&#9733;</span><div class="desc">Size figure-level plots with <code>height</code>&times;<code>aspect</code>, <b>not</b> <code>figsize</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 SAVE & SHOW -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Save &amp; Show</span><span class="card-sub">get it out of the notebook</span></div>
+    <ul class="cmds">
+      <li class="output"><code class="cmd">plt.<span class="obj">show</span>()</code><span class="star">&#9733;</span><div class="desc">Render &mdash; automatic in notebooks, explicit in scripts.</div></li>
+      <li class="output"><code class="cmd">plt.<span class="obj">savefig</span>(<span class="str">"fig.png"</span>, <span class="kw">dpi</span>=<span class="arg">300</span>, <span class="kw">bbox_inches</span>=<span class="str">"tight"</span>)</code><span class="star">&#9733;</span><div class="desc">Export an axes-level plot; <code>tight</code> trims whitespace.</div></li>
+      <li class="output"><code class="cmd">g.<span class="obj">savefig</span>(<span class="str">"fig.png"</span>, <span class="kw">dpi</span>=<span class="arg">300</span>)</code><div class="desc">Save a figure-level grid (call on <code>g</code>, not <code>plt</code>).</div></li>
+      <li class="output"><code class="cmd">plot.<span class="obj">save</span>(<span class="str">"fig.svg"</span>, <span class="kw">bbox_inches</span>=<span class="str">"tight"</span>)</code><div class="desc">Objects-interface export.</div></li>
+      <li class="output"><code class="cmd"><span class="cm"># save BEFORE show</span></code><span class="badge-danger">order</span><div class="desc">Some backends clear the figure on <code>show()</code>. Use <code>.svg</code> for vectors.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 FIGURE VS AXES (KEY) -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Figure-level vs Axes-level</span><span class="card-sub">the one big idea &#9733;</span></div>
+    <ul class="cmds">
+      <li class="axes"><code class="cmd">scatterplot · histplot · boxplot · kdeplot · regplot</code><span class="star">&#9733;</span><span class="badge-ax">axes-level</span><div class="desc">Drop-in for matplotlib; draws on the current Axes via <code>gca()</code>.</div></li>
+      <li class="axes"><code class="cmd"><span class="cm">returns a matplotlib </span>Axes<span class="cm"> · accepts </span>ax=</code><span class="star">&#9733;</span><div class="desc">Compose it into your own <code>plt.subplots()</code> figure.</div></li>
+      <li class="layout"><code class="cmd">relplot · displot · catplot · lmplot</code><span class="star">&#9733;</span><span class="badge-fig">fig-level</span><div class="desc">One dispatcher per module; each builds its <b>own</b> figure.</div></li>
+      <li class="layout"><code class="cmd"><span class="cm">returns a </span>FacetGrid<span class="cm"> · ignores </span>ax=</code><span class="star">&#9733;</span><div class="desc">Legend sits outside; <code>col=</code>/<code>row=</code> faceting for free.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">kind</span>=<span class="str">"…"</span><span class="cm"> picks the axes-level drawer</span></code><div class="desc"><code>displot(kind="kde")</code> &#8801; <code>kdeplot()</code>.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm">explore &rarr; figure-level · compose &rarr; axes-level</span></code><span class="star">&#9733;</span><div class="desc">The practical rule of thumb.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 GOTCHAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Gotchas</span><span class="card-sub">the usual traps</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">sns.<span class="obj">relplot</span>(<span class="cm">…</span>, <span class="kw">ax</span>=<span class="arg">ax</span>)</code><span class="badge-danger">no-op</span><div class="desc">Figure-level ignores <code>ax=</code> &rarr; you get an extra blank figure.</div></li>
+      <li class="danger"><code class="cmd">plt.<span class="obj">subplots</span>(); sns.<span class="obj">displot</span>(<span class="cm">…</span>)</code><span class="badge-danger">blank</span><div class="desc">A figure-level call after making axes leaves the axes empty.</div></li>
+      <li class="danger"><code class="cmd">boxplot(x=<span class="arg">numeric</span>)</code><span class="badge-danger">indexed</span><div class="desc">Categorical plots force a 0-indexed category axis &mdash; even for numbers.</div></li>
+      <li class="danger"><code class="cmd">palette=<span class="cm"> with no </span>hue=</code><div class="desc">Does nothing &mdash; there's no variable to map colors to.</div></li>
+      <li class="danger"><code class="cmd">sns.<span class="obj">set_theme</span>()</code><div class="desc">Rewrites global matplotlib <code>rcParams</code> &mdash; affects <i>all</i> later plots.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">figsize</span>=<span class="cm"> on figure-level</span></code><div class="desc">Use <code>height</code> &amp; <code>aspect</code> instead; <code>figsize</code> is ignored.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">shade</span>=<span class="arg">True</span></code><span class="badge-danger">removed</span><div class="desc"><code>kdeplot(shade=)</code> is gone &mdash; use <code>fill=True</code>.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four ideas worth a picture</h2>
+  <p class="sub">The taxonomy above shows <i>what</i> exists. These show the four ideas that make seaborn feel effortless once they click: the two function levels, the data shape it wants, how columns become visuals, and the grammar of the objects interface.</p>
+
+  <div class="merge-grid">
+
+    <!-- D1 : FIGURE-LEVEL vs AXES-LEVEL -->
+    <div class="merge-card">
+      <h3>figure-level vs axes-level</h3>
+      <p>The same plot, in a different container. This one distinction explains most seaborn surprises.</p>
+      <svg viewBox="0 0 420 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Axes-level functions like histplot draw on a single matplotlib Axes, return that Axes and accept an ax argument. Figure-level functions like displot build their own FacetGrid of panels, return the grid and ignore ax.">
+        <!-- axes-level -->
+        <text x="16" y="20" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700" fill="#059669">axes-level</text>
+        <rect x="16" y="28" width="180" height="30" rx="5" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/>
+        <text x="106" y="47" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#1a1d24">sns.histplot(…)</text>
+        <line x1="106" y1="58" x2="106" y2="78" stroke="#6b7280" stroke-width="1.3" marker-end="url(#lead)"/>
+        <rect x="46" y="78" width="120" height="50" rx="5" fill="#fff" stroke="#059669" stroke-width="1.3"/>
+        <text x="106" y="99" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#059669">one Axes</text>
+        <text x="106" y="116" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b7280">legend inside</text>
+        <text x="106" y="150" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">returns Axes</text>
+        <text x="106" y="164" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#059669">accepts ax=</text>
+
+        <!-- divider -->
+        <line x1="210" y1="16" x2="210" y2="188" stroke="#e7e3db" stroke-width="1"/>
+
+        <!-- figure-level -->
+        <text x="228" y="20" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700" fill="#7c3aed">figure-level</text>
+        <rect x="228" y="28" width="180" height="30" rx="5" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.4"/>
+        <text x="318" y="47" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#1a1d24">sns.displot(…)</text>
+        <line x1="318" y1="58" x2="318" y2="78" stroke="#6b7280" stroke-width="1.3" marker-end="url(#lead)"/>
+        <!-- facetgrid of 2 panels -->
+        <rect x="240" y="78" width="156" height="50" rx="5" fill="#fff" stroke="#7c3aed" stroke-width="1.3" stroke-dasharray="4 3"/>
+        <rect x="248" y="86" width="64" height="34" rx="3" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1"/>
+        <rect x="324" y="86" width="64" height="34" rx="3" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1"/>
+        <text x="318" y="107" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#7c3aed">FacetGrid · col=</text>
+        <text x="318" y="150" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">returns FacetGrid</text>
+        <text x="318" y="164" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#dc2626">ignores ax=</text>
+
+        <text x="210" y="184" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#6b7280">kind= turns one into the other</text>
+      </svg>
+    </div>
+
+    <!-- D2 : LONG vs WIDE DATA -->
+    <div class="merge-card">
+      <h3>long-form vs wide-form data</h3>
+      <p>Seaborn is happiest with <b>tidy</b> data: one row per observation, one column per variable, referred to by name.</p>
+      <svg viewBox="0 0 420 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Long-form data has one row per observation with named columns day, bill, sex that map directly to x, y and hue. Wide-form data is a matrix that seaborn maps by its index and columns. Long-form is the happy path.">
+        <!-- long form -->
+        <text x="16" y="18" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700" fill="#059669">long-form (tidy)</text>
+        <g font-family="JetBrains Mono, monospace" font-size="8.5">
+          <rect x="16" y="26" width="188" height="88" rx="4" fill="#fff" stroke="#cbd5e1" stroke-width="1"/>
+          <line x1="16" y1="44" x2="204" y2="44" stroke="#cbd5e1"/>
+          <line x1="79" y1="26" x2="79" y2="114" stroke="#eef0fd"/>
+          <line x1="142" y1="26" x2="142" y2="114" stroke="#eef0fd"/>
+          <text x="20" y="39" fill="#4f46e5" font-weight="700">day</text>
+          <text x="83" y="39" fill="#d97706" font-weight="700">bill</text>
+          <text x="146" y="39" fill="#059669" font-weight="700">sex</text>
+          <text x="20" y="59" fill="#374151">Sun</text><text x="83" y="59" fill="#374151">16.9</text><text x="146" y="59" fill="#374151">F</text>
+          <text x="20" y="74" fill="#374151">Sun</text><text x="83" y="74" fill="#374151">10.3</text><text x="146" y="74" fill="#374151">M</text>
+          <text x="20" y="89" fill="#374151">Mon</text><text x="83" y="89" fill="#374151">21.0</text><text x="146" y="89" fill="#374151">M</text>
+          <text x="20" y="104" fill="#374151">Mon</text><text x="83" y="104" fill="#374151">23.7</text><text x="146" y="104" fill="#374151">F</text>
+        </g>
+        <text x="16" y="132" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#6b7280">x="bill", y="day", hue="sex"</text>
+        <text x="16" y="146" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#059669" font-weight="700">columns &rarr; roles, by name</text>
+
+        <!-- wide form -->
+        <text x="232" y="18" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700" fill="#64748b">wide-form (matrix)</text>
+        <g font-family="JetBrains Mono, monospace" font-size="8.5">
+          <rect x="232" y="26" width="172" height="88" rx="4" fill="#fff" stroke="#cbd5e1" stroke-width="1"/>
+          <line x1="232" y1="44" x2="404" y2="44" stroke="#cbd5e1"/>
+          <line x1="270" y1="26" x2="270" y2="114" stroke="#cbd5e1"/>
+          <text x="236" y="39" fill="#6b7280">&nbsp;</text>
+          <text x="284" y="39" fill="#64748b" font-weight="700">A</text>
+          <text x="330" y="39" fill="#64748b" font-weight="700">B</text>
+          <text x="376" y="39" fill="#64748b" font-weight="700">C</text>
+          <text x="236" y="59" fill="#64748b" font-weight="700">r1</text><text x="284" y="59" fill="#374151">3</text><text x="330" y="59" fill="#374151">7</text><text x="376" y="59" fill="#374151">2</text>
+          <text x="236" y="74" fill="#64748b" font-weight="700">r2</text><text x="284" y="74" fill="#374151">5</text><text x="330" y="74" fill="#374151">1</text><text x="376" y="74" fill="#374151">8</text>
+          <text x="236" y="89" fill="#64748b" font-weight="700">r3</text><text x="284" y="89" fill="#374151">4</text><text x="330" y="89" fill="#374151">6</text><text x="376" y="89" fill="#374151">9</text>
+          <text x="236" y="104" fill="#64748b" font-weight="700">r4</text><text x="284" y="104" fill="#374151">2</text><text x="330" y="104" fill="#374151">3</text><text x="376" y="104" fill="#374151">5</text>
+        </g>
+        <text x="232" y="132" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#6b7280">pass the frame; index &amp;</text>
+        <text x="232" y="146" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#6b7280">columns become the axes</text>
+
+        <text x="210" y="176" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#1a1d24">both work &mdash; but long-form unlocks hue / col / row</text>
+        <text x="210" y="196" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#94a3b8">reshape with df.melt() to go wide &rarr; long</text>
+      </svg>
+    </div>
+
+    <!-- D3 : SEMANTIC MAPPINGS -->
+    <div class="merge-card">
+      <h3>one column &rarr; many visual channels</h3>
+      <p>The declarative core: assign a variable to a <b>channel</b> and seaborn does the encoding &mdash; color, size, shape, or a whole panel.</p>
+      <svg viewBox="0 0 420 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A single data column can be mapped to hue for color, size for point size, style for marker shape, or col and row to split the data into separate panels.">
+        <!-- source column -->
+        <rect x="16" y="82" width="86" height="40" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.6"/>
+        <text x="59" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700" fill="#1a1d24">a column</text>
+        <text x="59" y="114" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#4f46e5">"species"</text>
+
+        <!-- fan out -->
+        <g stroke="#6b7280" stroke-width="1.2" fill="none">
+          <line x1="102" y1="92"  x2="176" y2="34"  marker-end="url(#lead)"/>
+          <line x1="102" y1="98"  x2="176" y2="80"  marker-end="url(#lead)"/>
+          <line x1="102" y1="106" x2="176" y2="128" marker-end="url(#lead)"/>
+          <line x1="102" y1="112" x2="176" y2="174" marker-end="url(#lead)"/>
+        </g>
+
+        <!-- hue -->
+        <text x="184" y="30" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700" fill="#1a1d24">hue=</text>
+        <text x="230" y="30" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b7280">color</text>
+        <rect x="270" y="22" width="16" height="12" rx="2" fill="#4c72b0"/>
+        <rect x="290" y="22" width="16" height="12" rx="2" fill="#dd8452"/>
+        <rect x="310" y="22" width="16" height="12" rx="2" fill="#55a868"/>
+
+        <!-- size -->
+        <text x="184" y="80" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700" fill="#1a1d24">size=</text>
+        <text x="230" y="80" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b7280">area</text>
+        <circle cx="274" cy="76" r="3" fill="#64748b"/>
+        <circle cx="292" cy="76" r="5.5" fill="#64748b"/>
+        <circle cx="314" cy="76" r="8" fill="#64748b"/>
+
+        <!-- style -->
+        <text x="184" y="128" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700" fill="#1a1d24">style=</text>
+        <text x="230" y="128" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b7280">marker</text>
+        <circle cx="274" cy="124" r="5" fill="none" stroke="#1a1d24" stroke-width="1.4"/>
+        <rect x="288" y="119" width="10" height="10" fill="none" stroke="#1a1d24" stroke-width="1.4"/>
+        <path d="M312,129 L317,119 L322,129 Z" fill="none" stroke="#1a1d24" stroke-width="1.4"/>
+
+        <!-- col/row -->
+        <text x="184" y="176" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700" fill="#7c3aed">col= / row=</text>
+        <text x="252" y="176" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b7280">panels</text>
+        <rect x="292" y="166" width="14" height="14" rx="2" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1"/>
+        <rect x="310" y="166" width="14" height="14" rx="2" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1"/>
+
+        <text x="210" y="202" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#94a3b8">you pick the channel; seaborn builds the legend</text>
+      </svg>
+    </div>
+
+    <!-- D4 : OBJECTS GRAMMAR -->
+    <div class="merge-card">
+      <h3>the objects grammar</h3>
+      <p>The <code>so</code> interface builds a plot as <b>layers</b>. Each layer is a Mark, plus an optional Stat and Move &mdash; composed, not configured.</p>
+      <svg viewBox="0 0 420 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="so.Plot with data and x and y forms the base. Each add call stacks a layer made of a Mark such as Bar, an optional Stat such as Agg that summarizes, and an optional Move such as Dodge that repositions.">
+        <!-- base -->
+        <rect x="120" y="16" width="180" height="34" rx="6" fill="#e7f6f4" stroke="#0d9488" stroke-width="1.6"/>
+        <text x="210" y="37" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#1a1d24">so.Plot(df, x, y)</text>
+        <line x1="210" y1="50" x2="210" y2="68" stroke="#6b7280" stroke-width="1.3" marker-end="url(#lead)"/>
+
+        <!-- layer 1 -->
+        <rect x="60" y="68" width="300" height="40" rx="6" fill="#fff" stroke="#0d9488" stroke-width="1.3"/>
+        <text x="74" y="84" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#6b7280">.add(</text>
+        <rect x="108" y="74" width="70" height="26" rx="4" fill="#e7f6f4" stroke="#0d9488" stroke-width="1"/>
+        <text x="143" y="87" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="700" fill="#0d9488">Bar()</text>
+        <text x="143" y="97" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#6b7280">Mark</text>
+        <rect x="186" y="74" width="70" height="26" rx="4" fill="#ecf7f2" stroke="#059669" stroke-width="1"/>
+        <text x="221" y="87" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="700" fill="#059669">Agg()</text>
+        <text x="221" y="97" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#6b7280">Stat</text>
+        <rect x="264" y="74" width="78" height="26" rx="4" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1"/>
+        <text x="303" y="87" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="700" fill="#7c3aed">Dodge()</text>
+        <text x="303" y="97" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#6b7280">Move</text>
+
+        <line x1="210" y1="108" x2="210" y2="124" stroke="#6b7280" stroke-width="1.3" marker-end="url(#lead)"/>
+        <!-- layer 2 -->
+        <rect x="90" y="124" width="240" height="30" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <text x="210" y="143" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#6b7280">.add( so.Text() )  &larr; another layer</text>
+
+        <line x1="210" y1="154" x2="210" y2="170" stroke="#6b7280" stroke-width="1.3" marker-end="url(#lead)"/>
+        <rect x="120" y="170" width="180" height="28" rx="6" fill="#1a1d24"/>
+        <text x="210" y="188" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="#f5f0e8">.scale().label().save()</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">fig-level vs axes-level</span><span class="v">own <code>FacetGrid</code> vs draws on one <code>Axes</code></span></div>
+    <div><span class="k">relplot·displot·catplot</span><span class="v">the 3 figure-level dispatchers, one per module</span></div>
+    <div><span class="k">kind=</span><span class="v">picks the axes-level drawer: <code>displot(kind="kde")</code>&#8801;<code>kdeplot()</code></span></div>
+    <div><span class="k">hue / size / style</span><span class="v">semantic channels &middot; <code>col</code>/<code>row</code> = facet panels</span></div>
+    <div><span class="k">data=</span><span class="v">tidy long-form DataFrame; name columns as strings</span></div>
+    <div><span class="k">set_theme()</span><span class="v">call once &mdash; it edits global matplotlib <code>rcParams</code></span></div>
+    <div><span class="k">palette needs hue</span><span class="v">no <code>hue=</code> &rarr; nothing to color</span></div>
+    <div><span class="k">height &amp; aspect</span><span class="v">size figure-level plots, <b>not</b> <code>figsize</code></span></div>
+    <div><span class="k">fill=True</span><span class="v">shade a KDE (the old <code>shade=</code> was removed)</span></div>
+    <div><span class="k">import …objects as so</span><span class="v">grammar-of-graphics: <code>Plot</code> + <code>add(Mark, Stat, Move)</code></span></div>
+  </div>
+</section>
+
+<footer>
+  Seaborn cheat sheet &middot; synthesized from the official references at seaborn.pydata.org (introduction, overview of plotting functions, API reference, objects-interface tutorial, aesthetics, FAQ) with cross-checks against KDnuggets and Towards Data Science.<br>
+  API shown for Seaborn &#8776; 0.13.2 (2026, built on matplotlib) &middot; figure-level functions (<code>relplot</code>/<code>displot</code>/<code>catplot</code>) are recommended for exploration; drop to axes-level functions to compose custom figures &middot; the <code>seaborn.objects</code> interface is stable for use but still marked experimental.
+</footer>
+
+</body>
+</html>

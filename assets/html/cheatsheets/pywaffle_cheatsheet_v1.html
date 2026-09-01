@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PyWaffle Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --imp:#64748b;    --imp-bg:#f1f3f6;    /* import / setup      */
+    --fig:#4f46e5;    --fig-bg:#eef0fd;    /* the Waffle class    */
+    --data:#059669;   --data-bg:#ecf7f2;   /* values &amp; grid       */
+    --block:#d97706;  --block-bg:#fdf6ec;  /* blocks &amp; layout     */
+    --icon:#7c3aed;   --icon-bg:#f4effe;   /* characters &amp; icons  */
+    --sty:#0d9488;    --sty-bg:#e9f6f4;    /* colour · legend · output */
+    --danger:#dc2626; --danger-bg:#fdf0ef; /* gotcha              */
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .wm{font-family:var(--mono); letter-spacing:-.03em}
+  /* Set2 — PyWaffle's own default colormap — across the eight letters */
+  h1 .wm .c0{color:#66c2a5} h1 .wm .c1{color:#fc8d62} h1 .wm .c2{color:#8da0cb}
+  h1 .wm .c3{color:#e78ac3} h1 .wm .c4{color:#a6d854} h1 .wm .c5{color:#d4bd1f}
+  h1 .wm .c6{color:#c9a678} h1 .wm .c7{color:#8f8f8f}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.imp{background:var(--imp)} .dot.fig{background:var(--fig)}
+  .dot.data{background:var(--data)} .dot.block{background:var(--block)}
+  .dot.icon{background:var(--icon)} .dot.sty{background:var(--sty)}
+  .dot.danger{background:var(--danger)}
+  .legend .st{color:var(--star); font-weight:700}
+
+  .flow-wrap{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem}
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  .qs{max-width:1500px; margin:0 auto; padding:1.4rem clamp(1rem,4vw,3rem) .5rem}
+  .qs-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.9rem;
+  }
+  .code-block{
+    background:var(--ink); border-radius:10px; padding:1.1rem 1.3rem;
+    overflow-x:auto; font-family:var(--mono); font-size:.82rem; line-height:1.75;
+    color:#e8e6e1;
+  }
+  .code-block .l{display:block; white-space:pre}
+  .code-block .note{color:#fbbf24; font-weight:700}
+  .kw{color:#c792ea} .fn{color:#82aaff} .mod{color:#5ccf9e}
+  .arg{color:#f78c6c} .str{color:#c3e88d} .num{color:#f5a623}
+  .cm{color:#7684a0; font-style:italic}
+
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem; column-fill:balance;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.imp{border-left-color:var(--imp)}
+  ul.cmds li.fig{border-left-color:var(--fig)}
+  ul.cmds li.data{border-left-color:var(--data)}
+  ul.cmds li.block{border-left-color:var(--block)}
+  ul.cmds li.icon{border-left-color:var(--icon)}
+  ul.cmds li.sty{border-left-color:var(--sty)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  li.plain{border-left-color:#cbd0d8}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.5;
+  }
+  code.cmd .a{color:var(--fig); font-weight:400}
+  code.cmd .s{color:var(--data)}
+  code.cmd .m{color:var(--sty)}
+  code.cmd .n{color:var(--block)}
+  code.cmd .p{color:var(--muted)}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.77rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f1eee8; padding:0 .25em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  .diagrams{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem}
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem; max-width:72ch}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#82aaff; font-size:.95em}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:var(--ink)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · waffle &amp; pictogram charts</div>
+  <h1><span class="wm"><span class="c0">p</span><span class="c1">y</span><span class="c2">w</span><span class="c3">a</span><span class="c4">f</span><span class="c5">f</span><span class="c6">l</span><span class="c7">e</span></span> cheat sheet</h1>
+  <p class="lede">The unusual part first: PyWaffle gives you a Matplotlib <b>Figure class</b>, not a plotting function. You call <code>plt.figure(FigureClass=Waffle, ...)</code> and every waffle option rides along as a keyword. It counts out <b>one block per unit</b> on a <code>rows</code> &#215; <code>columns</code> grid — and those blocks can be squares, Unicode characters, or Font Awesome icons.</p>
+  <div class="legend">
+    <span><i class="dot imp"></i>import / setup</span>
+    <span><i class="dot fig"></i>the Waffle class</span>
+    <span><i class="dot data"></i>values &amp; grid</span>
+    <span><i class="dot block"></i>blocks &amp; layout</span>
+    <span><i class="dot icon"></i>characters &amp; icons</span>
+    <span><i class="dot sty"></i>colour · legend · output</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="st">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against PyWaffle <b>1.1.1</b> (gyli; current, re-verified 2026-08-28): <b>pywaffle.readthedocs.io</b> (full API Reference + Examples, fetched) · <b>github.com/gyli/PyWaffle</b> · <b>PyPI</b> · <b>python-charts.com</b> · <b>python-graph-gallery.com</b></p>
+</header>
+
+<section class="flow-wrap">
+  <div class="flow-title">One figure call — values become blocks</div>
+  <svg class="flow-svg" viewBox="0 0 1120 366" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram: values and a rows-by-columns grid are passed to plt.figure with FigureClass=Waffle; values are scaled and rounded into block counts, blocks are drawn as squares, characters or icons, and a normal Matplotlib Figure comes back. A second band shows that FigureClass and figsize belong to pyplot while every other keyword belongs to Waffle, and that Waffle.make_waffle draws into an existing Axes.">
+    <defs>
+      <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <text x="20" y="30" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">FROM NUMBERS TO BLOCKS</text>
+
+    <g>
+      <rect x="14" y="44" width="238" height="94" rx="11" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="133" y="73" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">1 · values + grid</text>
+      <text x="133" y="95" text-anchor="middle" font-size="9.5" fill="#059669">list · dict · Series</text>
+      <text x="133" y="112" text-anchor="middle" font-size="9.5" fill="#059669">rows and/or columns</text>
+    </g>
+    <g>
+      <rect x="294" y="44" width="238" height="94" rx="11" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="413" y="73" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">2 · scale &amp; round</text>
+      <text x="413" y="95" text-anchor="middle" font-size="9.5" fill="#059669">values &#8594; block counts</text>
+      <text x="413" y="112" text-anchor="middle" font-size="9.5" fill="#6b7280">rounding_rule</text>
+    </g>
+    <g>
+      <rect x="574" y="44" width="238" height="94" rx="11" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="693" y="73" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">3 · draw blocks</text>
+      <text x="693" y="95" text-anchor="middle" font-size="9.5" fill="#b45309">square · character · icon</text>
+      <text x="693" y="112" text-anchor="middle" font-size="9.5" fill="#6b7280">location &#183; direction &#183; style</text>
+    </g>
+    <g>
+      <rect x="854" y="44" width="252" height="94" rx="11" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="980" y="73" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">4 · a Figure</text>
+      <text x="980" y="95" text-anchor="middle" font-size="9.5" fill="#4f46e5">a normal matplotlib Figure</text>
+      <text x="980" y="112" text-anchor="middle" font-size="9.5" fill="#6b7280">savefig &#183; show &#183; style it</text>
+    </g>
+    <line x1="252" y1="91" x2="292" y2="91" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+    <line x1="532" y1="91" x2="572" y2="91" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+    <line x1="812" y1="91" x2="852" y2="91" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+
+    <text x="20" y="192" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">THE UNUSUAL PART — A FIGURE CLASS, NOT A FUNCTION</text>
+
+    <g>
+      <rect x="14" y="208" width="640" height="72" rx="10" fill="#1a1d24"/>
+      <text x="34" y="238" font-size="13" fill="#e8e6e1">fig = plt.<tspan fill="#82aaff">figure</tspan>(<tspan fill="#c792ea">FigureClass</tspan>=<tspan fill="#5ccf9e">Waffle</tspan>, <tspan fill="#c792ea">rows</tspan>=<tspan fill="#f5a623">5</tspan>, <tspan fill="#c792ea">values</tspan>=data, ...)</text>
+      <text x="34" y="264" font-size="9" fill="#7684a0">FigureClass &amp; figsize belong to pyplot &#183; every other keyword belongs to Waffle</text>
+    </g>
+    <line x1="654" y1="244" x2="694" y2="244" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+    <g>
+      <rect x="700" y="208" width="406" height="72" rx="10" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="903" y="238" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">a matplotlib Figure object</text>
+      <text x="903" y="262" text-anchor="middle" font-size="9.5" fill="#6b7280">everything you already know still applies</text>
+    </g>
+    <text x="20" y="312" font-size="9.5" fill="#94a3b8">Drawing into an Axes you already have?  <tspan fill="#4f46e5">Waffle.make_waffle(ax=ax, rows=5, values=[48, 46, 6])</tspan></text>
+    <text x="20" y="332" font-size="9.5" fill="#94a3b8">Multiple waffles in one figure?  <tspan fill="#4f46e5">plots={311: {...}, 312: {...}}</tspan> &#8212; each subplot inherits the parent's parameters.</text>
+  </svg>
+</section>
+
+<section class="qs">
+  <div class="qs-title">A pictogram chart in one call</div>
+  <div class="code-block"><code><span class="l"><span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt</span><span class="l"><span class="kw">from</span> pywaffle <span class="kw">import</span> Waffle</span><span class="l"></span><span class="l">data = {<span class="str">"Car"</span>: <span class="num">58</span>, <span class="str">"Pickup"</span>: <span class="num">21</span>, <span class="str">"Truck"</span>: <span class="num">11</span>, <span class="str">"Motorcycle"</span>: <span class="num">7</span>}</span><span class="l"></span><span class="l">fig = plt.<span class="fn">figure</span>(</span><span class="l">    FigureClass=Waffle,                       <span class="note"># a Figure CLASS, not a function</span></span><span class="l">    rows=<span class="num">5</span>,                                   <span class="note"># only one of rows/columns &#8594; no scaling</span></span><span class="l">    values=data,                              <span class="note"># dict keys become legend labels</span></span><span class="l">    colors=[<span class="str">"#c1d82f"</span>, <span class="str">"#00a4e4"</span>, <span class="str">"#fbb034"</span>, <span class="str">"#6a737b"</span>],</span><span class="l">    icons=[<span class="str">"car-side"</span>, <span class="str">"truck-pickup"</span>, <span class="str">"truck"</span>, <span class="str">"motorcycle"</span>],  <span class="note"># Font Awesome</span></span><span class="l">    font_size=<span class="num">12</span>, icon_legend=<span class="kw">True</span>,</span><span class="l">    legend={<span class="str">"loc"</span>: <span class="str">"upper left"</span>, <span class="str">"bbox_to_anchor"</span>: (<span class="num">1</span>, <span class="num">1</span>)},  <span class="note"># a dict!</span></span><span class="l">    figsize=(<span class="num">8</span>, <span class="num">4</span>),                           <span class="note"># figsize is pyplot's</span></span><span class="l">)</span><span class="l">fig.<span class="fn">savefig</span>(<span class="str">"waffle.png"</span>, bbox_inches=<span class="str">"tight"</span>)</span></code></div>
+</section>
+
+<main>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Import</span><span class="card-sub">once per project</span></div>
+    <ul class="cmds">
+      <li class="imp"><code class="cmd"><span class="p">$</span> pip install pywaffle</code><div class="desc">Python 3.5+ and Matplotlib; Font Awesome ships bundled.</div></li>
+      <li class="imp"><code class="cmd">from pywaffle import Waffle</code><span class="star">&#9733;</span><div class="desc">Imports the <b>Figure class</b> &#8212; that's the whole package.</div></li>
+      <li class="imp"><code class="cmd">import matplotlib.pyplot as plt</code><span class="star">&#9733;</span><div class="desc">You always go through <code>plt.figure()</code>.</div></li>
+      <li class="imp"><code class="cmd">import pandas as pd</code><div class="desc">A Series works directly as <code>values</code>.</div></li>
+      <li class="plain"><code class="cmd"><span class="p"># MIT licensed, by Guangyang Li</span></code><div class="desc">Docs: pywaffle.readthedocs.io</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">The Waffle Figure Class</span><span class="card-sub">the mental model</span></div>
+    <ul class="cmds">
+      <li class="fig"><code class="cmd">fig = plt.figure<span class="p">(</span>FigureClass=Waffle, <span class="a">...</span><span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">A Figure <b>class</b>, not a plotting function.</div></li>
+      <li class="fig"><code class="cmd"><span class="p"># FigureClass &amp; figsize &#8594; pyplot</span></code><div class="desc">Every other keyword belongs to <code>Waffle</code>.</div></li>
+      <li class="fig"><code class="cmd">Waffle.make_waffle<span class="p">(</span>ax=ax, rows=<span class="n">5</span>, values=[<span class="n">48</span>,<span class="n">46</span>,<span class="n">6</span>]<span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Draw into an Axes you already have.</div></li>
+      <li class="fig"><code class="cmd">Waffle.fig_args</code><div class="desc">Every Waffle argument with its default.</div></li>
+      <li class="danger"><code class="cmd">pywaffle.waffle<span class="p">(</span><span class="a">...</span><span class="p">)</span></code><span class="badge-danger">no such thing</span><div class="desc">There is no plotting function &#8212; only the class.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Values</span><span class="card-sub">what to count</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">values=[<span class="n">30</span>, <span class="n">16</span>, <span class="n">4</span>]</code><span class="star">&#9733;</span><div class="desc">A plain list &#8212; one entry per category.</div></li>
+      <li class="data"><code class="cmd">values={<span class="s">"Cat1"</span>: <span class="n">30</span>, <span class="s">"Cat2"</span>: <span class="n">16</span>}</code><span class="star">&#9733;</span><div class="desc">A dict &#8212; keys become the legend labels automatically.</div></li>
+      <li class="data"><code class="cmd">values=df[<span class="s">"sales"</span>]</code><div class="desc">A pandas Series works too.</div></li>
+      <li class="data"><code class="cmd">labels=[<span class="s">"Car (58%)"</span>, <span class="s">"Truck (11%)"</span>]</code><span class="star">&#9733;</span><div class="desc">Explicit names; a dict's keys override this.</div></li>
+      <li class="danger"><code class="cmd"><span class="p"># DataFrame index is NOT used as labels</span></code><span class="badge-danger">gotcha</span><div class="desc">Unlike a dict &#8212; pass <code>labels=</code> yourself.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">The Grid: rows &amp; columns</span><span class="card-sub">the key rule</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">rows=<span class="n">5</span></code><span class="star">&#9733;</span><div class="desc">At least one of <code>rows</code>/<code>columns</code> is <b>required</b>.</div></li>
+      <li class="data"><code class="cmd">rows=<span class="n">5</span></code><span class="star">&#9733;</span><div class="desc">Only one given &#8594; the other is computed; values used as <b>absolute</b> block counts.</div></li>
+      <li class="data"><code class="cmd">rows=<span class="n">5</span>, columns=<span class="n">10</span></code><span class="star">&#9733;</span><div class="desc">Both given &#8594; grid fixed at 50 blocks; values are <b>scaled</b> to fit.</div></li>
+      <li class="data"><code class="cmd">rows=<span class="n">10</span>, columns=<span class="n">10</span></code><div class="desc">100 blocks &#8594; each block reads as exactly 1%.</div></li>
+      <li class="danger"><code class="cmd"><span class="p"># both set = your numbers get rescaled</span></code><span class="badge-danger">gotcha</span><div class="desc">Give only one if you want exact counts.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Scaling &amp; Rounding</span><span class="card-sub">values &#8594; blocks</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">rounding_rule=<span class="s">"nearest"</span></code><div class="desc">The default &#8212; round-half-to-even.</div></li>
+      <li class="data"><code class="cmd">rounding_rule=<span class="s">"floor"</span></code><span class="star">&#9733;</span><div class="desc">The docs' pick: the <b>most consistent</b> rule.</div></li>
+      <li class="data"><code class="cmd">rounding_rule=<span class="s">"ceil"</span></code><div class="desc">Rounds up.</div></li>
+      <li class="data"><code class="cmd"><span class="p"># [48, 46, 6] on 5x10 &#8594; 24, 23, 3</span></code><div class="desc">Scaled to the 50-block grid.</div></li>
+      <li class="danger"><code class="cmd"><span class="p"># nearest / ceil can overflow the grid</span></code><span class="badge-danger">gotcha</span><div class="desc">The last category's blocks may be cut off &#8212; use <code>floor</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Colours &amp; Colormaps</span><span class="card-sub">the palette</span></div>
+    <ul class="cmds">
+      <li class="sty"><code class="cmd">colors=[<span class="s">"#c1d82f"</span>, <span class="s">"#00a4e4"</span>, <span class="s">"#fbb034"</span>]</code><span class="star">&#9733;</span><div class="desc">One colour per category; length must match <code>values</code>.</div></li>
+      <li class="sty"><code class="cmd">cmap_name=<span class="s">"Set2"</span></code><span class="star">&#9733;</span><div class="desc">The default palette when <code>colors</code> is omitted.</div></li>
+      <li class="sty"><code class="cmd">cmap_name=<span class="s">"tab10"</span> &#183; <span class="s">"Dark2"</span> &#183; <span class="s">"Paired"</span></code><div class="desc">Also Pastel1/2, Accent, Set1/3, tab20, tab20b, tab20c.</div></li>
+      <li class="danger"><code class="cmd">cmap_name=<span class="s">"viridis"</span></code><span class="badge-danger">won't work</span><div class="desc"><b>Only qualitative</b> colormaps are supported &#8212; sequential ones don't work.</div></li>
+      <li class="sty"><code class="cmd">fig.set_facecolor<span class="p">(</span><span class="s">"#DDDDDD"</span><span class="p">)</span></code><div class="desc">Background of the whole figure.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Legend</span><span class="card-sub">pass a dict</span></div>
+    <ul class="cmds">
+      <li class="sty"><code class="cmd">legend={<span class="s">"loc"</span>: <span class="s">"upper left"</span>, <span class="s">"bbox_to_anchor"</span>: (<span class="n">1</span>, <span class="n">1</span>)}</code><span class="star">&#9733;</span><div class="desc">Any <code>plt.legend</code> parameter, in a dict.</div></li>
+      <li class="sty"><code class="cmd">legend={<span class="s">"ncol"</span>: <span class="n">4</span>, <span class="s">"framealpha"</span>: <span class="n">0</span>}</code><div class="desc">Horizontal, frameless legend under the chart.</div></li>
+      <li class="icon"><code class="cmd">icon_legend=True</code><span class="star">&#9733;</span><div class="desc">Show the icon in the legend instead of a colour bar.</div></li>
+      <li class="sty"><code class="cmd"><span class="p"># dict values &#8594; labels for free</span></code><div class="desc">No <code>labels=</code> needed.</div></li>
+      <li class="danger"><code class="cmd">legend_loc=<span class="s">"upper left"</span></code><span class="badge-danger">wrong</span><div class="desc"><code>legend</code> takes a <b>dict</b>, not loose keywords.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Title &amp; Text</span><span class="card-sub">also a dict</span></div>
+    <ul class="cmds">
+      <li class="sty"><code class="cmd">title={<span class="s">"label"</span>: <span class="s">"Vehicle Sales"</span>, <span class="s">"loc"</span>: <span class="s">"left"</span>}</code><span class="star">&#9733;</span><div class="desc">Any <code>set_title</code> parameter, in a dict.</div></li>
+      <li class="sty"><code class="cmd">title={<span class="s">"label"</span>: <span class="s">"..."</span>, <span class="s">"size"</span>: <span class="n">15</span>}</code><div class="desc">Font size and alignment inline.</div></li>
+      <li class="sty"><code class="cmd">title={<span class="s">"fontdict"</span>: {<span class="s">"fontsize"</span>: <span class="n">20</span>}}</code><div class="desc">Full font control.</div></li>
+      <li class="sty"><code class="cmd">fig.text<span class="p">(</span><span class="n">0.5</span>, <span class="n">0.02</span>, <span class="s">"source: ..."</span><span class="p">)</span></code><div class="desc">It's a Matplotlib Figure &#8212; annotate freely.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Block Shape &amp; Spacing</span><span class="card-sub">tile geometry</span></div>
+    <ul class="cmds">
+      <li class="block"><code class="cmd">block_aspect_ratio=<span class="n">1</span></code><span class="star">&#9733;</span><div class="desc">Width &#247; height. Default 1 &#8594; squares.</div></li>
+      <li class="block"><code class="cmd">block_aspect_ratio=<span class="n">1.618</span></code><div class="desc">Wider than tall.</div></li>
+      <li class="block"><code class="cmd">interval_ratio_x=<span class="n">0.2</span></code><span class="star">&#9733;</span><div class="desc">Horizontal gap as a ratio of block width.</div></li>
+      <li class="block"><code class="cmd">interval_ratio_y=<span class="n">0.2</span></code><div class="desc">Vertical gap as a ratio of block height.</div></li>
+      <li class="danger"><code class="cmd"><span class="p"># all three ignored when using icons</span></code><span class="badge-danger">gotcha</span><div class="desc">Icons size themselves &#8212; use <code>font_size</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Location, Direction &amp; Arranging</span><span class="card-sub">fill order</span></div>
+    <ul class="cmds">
+      <li class="block"><code class="cmd">starting_location=<span class="s">"SW"</span></code><span class="star">&#9733;</span><div class="desc">Default &#8212; lower-left. Also NW, NE, SE.</div></li>
+      <li class="block"><code class="cmd">vertical=False</code><span class="star">&#9733;</span><div class="desc">Default &#8212; fills column by column.</div></li>
+      <li class="block"><code class="cmd">vertical=True</code><div class="desc">Fills row by row instead.</div></li>
+      <li class="block"><code class="cmd">block_arranging_style=<span class="s">"normal"</span></code><span class="star">&#9733;</span><div class="desc">Default &#8212; a new category starts where the last ended.</div></li>
+      <li class="block"><code class="cmd">block_arranging_style=<span class="s">"snake"</span></code><div class="desc">Alternating direction each line.</div></li>
+      <li class="block"><code class="cmd">block_arranging_style=<span class="s">"new-line"</span></code><div class="desc">Each category starts on a fresh line.</div></li>
+      <li class="danger"><code class="cmd"><span class="p"># new-line needs only ONE of rows/columns</span></code><span class="badge-danger">limit</span><div class="desc">Plus <code>vertical</code> matching the axis you set.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Characters &amp; Icons</span><span class="card-sub">pictogram charts</span></div>
+    <ul class="cmds">
+      <li class="icon"><code class="cmd">characters=<span class="s">"&#11044;"</span></code><span class="star">&#9733;</span><div class="desc">Any Unicode character instead of a rectangle.</div></li>
+      <li class="icon"><code class="cmd">characters=[<span class="s">"&#9679;"</span>, <span class="s">"&#9632;"</span>, <span class="s">"&#9650;"</span>]</code><div class="desc">One per category &#8212; length must match <code>values</code>.</div></li>
+      <li class="icon"><code class="cmd">icons=<span class="s">"star"</span></code><span class="star">&#9733;</span><div class="desc">A Font Awesome name &#8212; same icon for every category.</div></li>
+      <li class="icon"><code class="cmd">icons=[<span class="s">"car-side"</span>, <span class="s">"truck"</span>, <span class="s">"motorcycle"</span>]</code><span class="star">&#9733;</span><div class="desc">Search names at fontawesome.com/search.</div></li>
+      <li class="icon"><code class="cmd">icon_style=<span class="s">"solid"</span></code><div class="desc">Default; also <code>"regular"</code> and <code>"brands"</code>.</div></li>
+      <li class="icon"><code class="cmd">font_size=<span class="n">12</span></code><span class="star">&#9733;</span><div class="desc">Size of characters/icons; default follows block size.</div></li>
+      <li class="icon"><code class="cmd">font_file=<span class="s">"/path/to/font.ttf"</span></code><div class="desc">A custom <code>.ttf</code>/<code>.otf</code> for characters.</div></li>
+      <li class="danger"><code class="cmd">icon_size=<span class="n">12</span></code><span class="badge-danger">deprecated</span><div class="desc">Use <code>font_size</code> instead.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Multiple Waffles</span><span class="card-sub">plots=</span></div>
+    <ul class="cmds">
+      <li class="fig"><code class="cmd">plots={<span class="n">311</span>: {<span class="a">...</span>}, <span class="n">312</span>: {<span class="a">...</span>}, <span class="n">313</span>: {<span class="a">...</span>}}</code><span class="star">&#9733;</span><div class="desc">Three stacked subplots, each its own waffle.</div></li>
+      <li class="fig"><code class="cmd">plots={(<span class="n">3</span>,<span class="n">1</span>,<span class="n">1</span>): {<span class="a">...</span>}}</code><div class="desc">Tuple form: rows, columns, index.</div></li>
+      <li class="fig"><code class="cmd"><span class="p"># subplots inherit parent parameters</span></code><span class="star">&#9733;</span><div class="desc">Set <code>colors</code>/<code>rows</code> once at the top level.</div></li>
+      <li class="fig"><code class="cmd">plots={<span class="n">311</span>: {<span class="s">"values"</span>: v1, <span class="s">"title"</span>: {<span class="s">"label"</span>: <span class="s">"2023"</span>}}}</code><div class="desc">Override per subplot as needed.</div></li>
+      <li class="danger"><code class="cmd"><span class="p"># 3-digit form needs all digits &lt; 10</span></code><span class="badge-danger">note</span><div class="desc">Use the tuple form beyond 9.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Figure, Anchor &amp; Output</span><span class="card-sub">it's Matplotlib</span></div>
+    <ul class="cmds">
+      <li class="sty"><code class="cmd">figsize=(<span class="n">8</span>, <span class="n">4</span>)</code><span class="star">&#9733;</span><div class="desc">A pyplot parameter, passed in the same call.</div></li>
+      <li class="sty"><code class="cmd">plot_anchor=<span class="s">"W"</span></code><div class="desc">Default alignment; also C, N, S, E, NW, NE, SW, SE.</div></li>
+      <li class="sty"><code class="cmd">tight=True</code><div class="desc">Default &#8212; calls <code>tight_layout</code> when drawing.</div></li>
+      <li class="danger"><code class="cmd">tight=False</code><span class="badge-danger">fixes warning</span><div class="desc">Silences the harmless <em>"Axes not compatible with tight_layout"</em> warning.</div></li>
+      <li class="sty"><code class="cmd">fig.savefig<span class="p">(</span><span class="s">"waffle.png"</span>, bbox_inches=<span class="s">"tight"</span><span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Save it like any figure.</div></li>
+      <li class="sty"><code class="cmd">plt.show<span class="p">()</span></code><div class="desc">Display interactively.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Recipes</span><span class="card-sub">copy &amp; adapt</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd"><span class="p">basic:</span> FigureClass=Waffle, rows=<span class="n">5</span>, values=[<span class="n">30</span>,<span class="n">16</span>,<span class="n">4</span>]</code><div class="desc">The smallest useful call.</div></li>
+      <li class="data"><code class="cmd"><span class="p">percent:</span> rows=<span class="n">10</span>, columns=<span class="n">10</span>, values=data</code><div class="desc">100 blocks &#8594; one block per percent.</div></li>
+      <li class="icon"><code class="cmd"><span class="p">pictogram:</span> icons=<span class="s">"child"</span>, font_size=<span class="n">18</span>, icon_legend=True</code><div class="desc">Icons instead of squares.</div></li>
+      <li class="data"><code class="cmd"><span class="p">labels with %:</span> labels=[f<span class="s">"{k} ({v}%)"</span> for k,v in data.items<span class="p">()]</span></code><div class="desc">Percentages in the legend.</div></li>
+      <li class="block"><code class="cmd"><span class="p">waffle bar:</span> rows=<span class="n">1</span>, block_arranging_style=<span class="s">"new-line"</span></code><div class="desc">A single-row stacked bar of blocks.</div></li>
+      <li class="fig"><code class="cmd"><span class="p">grid:</span> plots={<span class="n">221</span>:{<span class="a">..</span>}, <span class="n">222</span>:{<span class="a">..</span>}, <span class="n">223</span>:{<span class="a">..</span>}, <span class="n">224</span>:{<span class="a">..</span>}}</code><div class="desc">Small multiples of waffles.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<section class="diagrams">
+  <h2>Four ideas that explain the chart</h2>
+  <p class="sub">What a block actually represents, the one rule that decides whether your numbers get rescaled, how categories flow across the grid, and the three things a block can be drawn as. The grids below are laid out in PyWaffle's real fill order.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>one block = one unit</h3>
+      <p>The docs' canonical example: <code>rows=5, columns=10, values=[30, 16, 4]</code> &#8212; exactly 50 blocks, filled column by column from the lower-left.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A five-row by ten-column waffle grid of fifty blocks: thirty in the first colour, sixteen in the second and four in the third, filled column by column starting from the lower-left corner.">
+        <g transform="translate(82,14)">
+          <rect x="0" y="96" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="0" y="72" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="0" y="48" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="0" y="24" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="0" y="0" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="24" y="96" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="24" y="72" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="24" y="48" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="24" y="24" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="24" y="0" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="48" y="96" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="48" y="72" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="48" y="48" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="48" y="24" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="48" y="0" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="72" y="96" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="72" y="72" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="72" y="48" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="72" y="24" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="72" y="0" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="96" y="96" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="96" y="72" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="96" y="48" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="96" y="24" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="96" y="0" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="120" y="96" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="120" y="72" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="120" y="48" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="120" y="24" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="120" y="0" width="20" height="20" rx="2" fill="#66c2a5"/>
+          <rect x="144" y="96" width="20" height="20" rx="2" fill="#fc8d62"/>
+          <rect x="144" y="72" width="20" height="20" rx="2" fill="#fc8d62"/>
+          <rect x="144" y="48" width="20" height="20" rx="2" fill="#fc8d62"/>
+          <rect x="144" y="24" width="20" height="20" rx="2" fill="#fc8d62"/>
+          <rect x="144" y="0" width="20" height="20" rx="2" fill="#fc8d62"/>
+          <rect x="168" y="96" width="20" height="20" rx="2" fill="#fc8d62"/>
+          <rect x="168" y="72" width="20" height="20" rx="2" fill="#fc8d62"/>
+          <rect x="168" y="48" width="20" height="20" rx="2" fill="#fc8d62"/>
+          <rect x="168" y="24" width="20" height="20" rx="2" fill="#fc8d62"/>
+          <rect x="168" y="0" width="20" height="20" rx="2" fill="#fc8d62"/>
+          <rect x="192" y="96" width="20" height="20" rx="2" fill="#fc8d62"/>
+          <rect x="192" y="72" width="20" height="20" rx="2" fill="#fc8d62"/>
+          <rect x="192" y="48" width="20" height="20" rx="2" fill="#fc8d62"/>
+          <rect x="192" y="24" width="20" height="20" rx="2" fill="#fc8d62"/>
+          <rect x="192" y="0" width="20" height="20" rx="2" fill="#fc8d62"/>
+          <rect x="216" y="96" width="20" height="20" rx="2" fill="#fc8d62"/>
+          <rect x="216" y="72" width="20" height="20" rx="2" fill="#8da0cb"/>
+          <rect x="216" y="48" width="20" height="20" rx="2" fill="#8da0cb"/>
+          <rect x="216" y="24" width="20" height="20" rx="2" fill="#8da0cb"/>
+          <rect x="216" y="0" width="20" height="20" rx="2" fill="#8da0cb"/>
+        </g>
+        <text x="200" y="146" text-anchor="middle" font-size="8.5" font-family="JetBrains Mono, monospace" fill="#94a3b8">30 + 16 + 4 = 50 blocks &#183; starting_location="SW" &#183; vertical=False</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>absolute vs scaled</h3>
+      <p>Pass <b>one</b> of rows/columns and your values are block counts. Pass <b>both</b> and the grid is fixed, so values get scaled to fit it.</p>
+      <svg viewBox="0 0 400 170" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Left: with only rows=5 given, values ten, seven and nine produce twenty-six blocks exactly. Right: with rows=5 and columns=10 both given, the grid is fixed at fifty blocks and values forty-eight, forty-six and six are scaled to twenty-four, twenty-three and three.">
+        <g transform="translate(28,40)">
+          <rect x="0" y="64" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="0" y="48" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="0" y="32" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="0" y="16" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="0" y="0" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="16" y="64" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="16" y="48" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="16" y="32" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="16" y="16" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="16" y="0" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="32" y="64" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="32" y="48" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="32" y="32" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="32" y="16" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="32" y="0" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="48" y="64" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="48" y="48" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="48" y="32" width="13" height="13" rx="2" fill="#8da0cb"/>
+          <rect x="48" y="16" width="13" height="13" rx="2" fill="#8da0cb"/>
+          <rect x="48" y="0" width="13" height="13" rx="2" fill="#8da0cb"/>
+          <rect x="64" y="64" width="13" height="13" rx="2" fill="#8da0cb"/>
+          <rect x="64" y="48" width="13" height="13" rx="2" fill="#8da0cb"/>
+          <rect x="64" y="32" width="13" height="13" rx="2" fill="#8da0cb"/>
+          <rect x="64" y="16" width="13" height="13" rx="2" fill="#8da0cb"/>
+          <rect x="64" y="0" width="13" height="13" rx="2" fill="#8da0cb"/>
+          <rect x="80" y="64" width="13" height="13" rx="2" fill="#8da0cb"/>
+        </g>
+        <g transform="translate(205,40)">
+          <rect x="0" y="64" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="0" y="48" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="0" y="32" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="0" y="16" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="0" y="0" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="16" y="64" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="16" y="48" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="16" y="32" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="16" y="16" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="16" y="0" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="32" y="64" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="32" y="48" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="32" y="32" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="32" y="16" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="32" y="0" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="48" y="64" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="48" y="48" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="48" y="32" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="48" y="16" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="48" y="0" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="64" y="64" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="64" y="48" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="64" y="32" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="64" y="16" width="13" height="13" rx="2" fill="#66c2a5"/>
+          <rect x="64" y="0" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="80" y="64" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="80" y="48" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="80" y="32" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="80" y="16" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="80" y="0" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="96" y="64" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="96" y="48" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="96" y="32" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="96" y="16" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="96" y="0" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="112" y="64" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="112" y="48" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="112" y="32" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="112" y="16" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="112" y="0" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="128" y="64" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="128" y="48" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="128" y="32" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="128" y="16" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="128" y="0" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="144" y="64" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="144" y="48" width="13" height="13" rx="2" fill="#fc8d62"/>
+          <rect x="144" y="32" width="13" height="13" rx="2" fill="#8da0cb"/>
+          <rect x="144" y="16" width="13" height="13" rx="2" fill="#8da0cb"/>
+          <rect x="144" y="0" width="13" height="13" rx="2" fill="#8da0cb"/>
+        </g>
+        <g font-family="JetBrains Mono, monospace" text-anchor="middle">
+          <text x="74" y="22" font-size="9.5" fill="#059669" font-weight="700">rows=5 only</text>
+          <text x="74" y="34" font-size="8" fill="#6b7280">values [10, 7, 9]</text>
+          <text x="74" y="140" font-size="8.5" fill="#94a3b8">= 26 blocks, exact</text>
+          <text x="283" y="22" font-size="9.5" fill="#d97706" font-weight="700">rows=5, columns=10</text>
+          <text x="283" y="34" font-size="8" fill="#6b7280">values [48, 46, 6]</text>
+          <text x="283" y="140" font-size="8.5" fill="#94a3b8">scaled &#8594; 24, 23, 3 = 50</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>block_arranging_style</h3>
+      <p>Where each new category begins. Same two categories (7 then 5 blocks) on the same grid, three different styles.</p>
+      <svg viewBox="0 0 400 120" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three small grids comparing arranging styles. Normal: the second category starts immediately where the first ended. Snake: the fill direction reverses on alternate lines. New-line: the second category starts on a fresh line, leaving the remainder of the previous line empty.">
+        <g transform="translate(0,30)">
+          <rect x="16" y="36" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="34" y="36" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="52" y="36" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="70" y="36" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="88" y="36" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="16" y="18" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="34" y="18" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="52" y="18" width="14" height="14" rx="2" fill="#fc8d62"/>
+          <rect x="70" y="18" width="14" height="14" rx="2" fill="#fc8d62"/>
+          <rect x="88" y="18" width="14" height="14" rx="2" fill="#fc8d62"/>
+          <rect x="16" y="0" width="14" height="14" rx="2" fill="#fc8d62"/>
+          <rect x="34" y="0" width="14" height="14" rx="2" fill="#fc8d62"/>
+          <rect x="157" y="36" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="175" y="36" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="193" y="36" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="211" y="36" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="229" y="36" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="229" y="18" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="211" y="18" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="193" y="18" width="14" height="14" rx="2" fill="#fc8d62"/>
+          <rect x="175" y="18" width="14" height="14" rx="2" fill="#fc8d62"/>
+          <rect x="157" y="18" width="14" height="14" rx="2" fill="#fc8d62"/>
+          <rect x="157" y="0" width="14" height="14" rx="2" fill="#fc8d62"/>
+          <rect x="175" y="0" width="14" height="14" rx="2" fill="#fc8d62"/>
+          <rect x="298" y="36" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="316" y="36" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="334" y="36" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="352" y="36" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="370" y="36" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="298" y="18" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="316" y="18" width="14" height="14" rx="2" fill="#66c2a5"/>
+          <rect x="298" y="0" width="14" height="14" rx="2" fill="#fc8d62"/>
+          <rect x="316" y="0" width="14" height="14" rx="2" fill="#fc8d62"/>
+          <rect x="334" y="0" width="14" height="14" rx="2" fill="#fc8d62"/>
+          <rect x="352" y="0" width="14" height="14" rx="2" fill="#fc8d62"/>
+          <rect x="370" y="0" width="14" height="14" rx="2" fill="#fc8d62"/>
+        </g>
+        <g font-family="JetBrains Mono, monospace" text-anchor="middle">
+          <text x="59" y="20" font-size="9" fill="#1a1d24" font-weight="700">normal</text>
+          <text x="200" y="20" font-size="9" fill="#1a1d24" font-weight="700">snake</text>
+          <text x="341" y="20" font-size="9" fill="#1a1d24" font-weight="700">new-line</text>
+          <text x="59" y="100" font-size="7.5" fill="#94a3b8">continues in place</text>
+          <text x="200" y="100" font-size="7.5" fill="#94a3b8">direction alternates</text>
+          <text x="341" y="100" font-size="7.5" fill="#94a3b8">starts a fresh line</text>
+          <text x="200" y="116" font-size="7.5" fill="#cbd0d8">note the gap new-line leaves behind</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>three things a block can be</h3>
+      <p>The same counts drawn as rectangles (default), as a Unicode character, or as a Font Awesome icon &#8212; a pictogram chart.</p>
+      <svg viewBox="0 0 400 140" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three panels showing the same blocks drawn as squares by default, as filled circle characters, and as Font Awesome star icons.">
+        <g>
+          <rect x="18" y="46" width="16" height="16" rx="2" fill="#66c2a5"/><rect x="38" y="46" width="16" height="16" rx="2" fill="#66c2a5"/><rect x="58" y="46" width="16" height="16" rx="2" fill="#66c2a5"/>
+          <rect x="18" y="66" width="16" height="16" rx="2" fill="#66c2a5"/><rect x="38" y="66" width="16" height="16" rx="2" fill="#fc8d62"/><rect x="58" y="66" width="16" height="16" rx="2" fill="#fc8d62"/>
+          <text x="46" y="32" text-anchor="middle" font-size="9" font-family="JetBrains Mono, monospace" fill="#1a1d24" font-weight="700">default</text>
+          <text x="46" y="104" text-anchor="middle" font-size="7.5" font-family="JetBrains Mono, monospace" fill="#94a3b8">rectangles</text>
+        </g>
+        <g fill="#66c2a5" font-size="17" font-family="JetBrains Mono, monospace">
+          <text x="150" y="60">&#11044;</text><text x="172" y="60">&#11044;</text><text x="194" y="60">&#11044;</text>
+          <text x="150" y="80">&#11044;</text><text x="172" y="80" fill="#fc8d62">&#11044;</text><text x="194" y="80" fill="#fc8d62">&#11044;</text>
+          <text x="178" y="32" text-anchor="middle" font-size="9" fill="#1a1d24" font-weight="700">characters</text>
+          <text x="178" y="104" text-anchor="middle" font-size="7.5" fill="#94a3b8">characters="&#11044;"</text>
+        </g>
+        <g>
+          <g fill="#66c2a5">
+            <path d="M288,46 l2.9,5.9 6.5,0.9 -4.7,4.6 1.1,6.5 -5.8,-3.1 -5.8,3.1 1.1,-6.5 -4.7,-4.6 6.5,-0.9 z"/>
+            <path d="M310,46 l2.9,5.9 6.5,0.9 -4.7,4.6 1.1,6.5 -5.8,-3.1 -5.8,3.1 1.1,-6.5 -4.7,-4.6 6.5,-0.9 z"/>
+            <path d="M332,46 l2.9,5.9 6.5,0.9 -4.7,4.6 1.1,6.5 -5.8,-3.1 -5.8,3.1 1.1,-6.5 -4.7,-4.6 6.5,-0.9 z"/>
+            <path d="M288,68 l2.9,5.9 6.5,0.9 -4.7,4.6 1.1,6.5 -5.8,-3.1 -5.8,3.1 1.1,-6.5 -4.7,-4.6 6.5,-0.9 z"/>
+          </g>
+          <g fill="#fc8d62">
+            <path d="M310,68 l2.9,5.9 6.5,0.9 -4.7,4.6 1.1,6.5 -5.8,-3.1 -5.8,3.1 1.1,-6.5 -4.7,-4.6 6.5,-0.9 z"/>
+            <path d="M332,68 l2.9,5.9 6.5,0.9 -4.7,4.6 1.1,6.5 -5.8,-3.1 -5.8,3.1 1.1,-6.5 -4.7,-4.6 6.5,-0.9 z"/>
+          </g>
+          <text x="310" y="32" text-anchor="middle" font-size="9" font-family="JetBrains Mono, monospace" fill="#1a1d24" font-weight="700">icons</text>
+          <text x="310" y="104" text-anchor="middle" font-size="7.5" font-family="JetBrains Mono, monospace" fill="#94a3b8">icons="star"</text>
+        </g>
+        <text x="200" y="128" text-anchor="middle" font-size="8" font-family="JetBrains Mono, monospace" fill="#cbd0d8">icons ignore block_aspect_ratio and interval_ratio_x / _y</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">FigureClass=Waffle</span><span class="v">a Figure class passed to <code>plt.figure</code> &#8212; not a plotting function</span></div>
+    <div><span class="k">rows and/or columns</span><span class="v">at least one is required</span></div>
+    <div><span class="k">one given</span><span class="v">values are absolute block counts &#8212; no scaling</span></div>
+    <div><span class="k">both given</span><span class="v">grid is fixed and your values get <b>scaled</b> to fit</span></div>
+    <div><span class="k">rounding_rule</span><span class="v"><code>floor</code> is the most consistent; nearest/ceil can overflow</span></div>
+    <div><span class="k">qualitative colormaps only</span><span class="v">Set2 default &#8212; sequential ones don't work</span></div>
+    <div><span class="k">legend, title, tight</span><span class="v">all take <b>dicts</b>, not loose keywords</span></div>
+    <div><span class="k">dict values</span><span class="v">keys become labels; a DataFrame's index does not</span></div>
+    <div><span class="k">starting_location</span><span class="v">default <code>SW</code> &#8212; lower-left, column by column</span></div>
+    <div><span class="k">icons ignore spacing</span><span class="v">block_aspect_ratio &amp; interval_ratio_* do nothing; use font_size</span></div>
+    <div><span class="k">icon_size deprecated</span><span class="v">use <code>font_size</code></span></div>
+    <div><span class="k">make_waffle &amp; plots</span><span class="v">draw into an existing Axes, or many waffles in one figure</span></div>
+  </div>
+</section>
+
+<footer>
+  PyWaffle cheat sheet &#183; synthesized from the official documentation at pywaffle.readthedocs.io (API Reference and Examples, fetched in full) plus github.com/gyli/PyWaffle, PyPI, and the python-charts / python-graph-gallery waffle guides.<br>
+  PyWaffle is MIT-licensed, by Guangyang Li &#183; the entire API is the <code>Waffle</code> Figure class plus <code>Waffle.make_waffle(ax=...)</code> &#8212; everything else is Matplotlib.
+</footer>
+
+</body>
+</html>

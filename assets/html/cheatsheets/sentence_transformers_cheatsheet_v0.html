@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentence Transformers (SBERT) Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">SBERT &middot; embeddings / semantic search / RAG / reranking &middot; verified against sentence-transformers 5.x (2026)</div>
+  <h1><span class="mono">sentence-transformers</span> cheat sheet</h1>
+  <p class="lede"><b>Sentence Transformers</b> (SBERT) computes dense, sparse and reranking embeddings for text (and, in v5, images/audio/video) &mdash; the backbone of semantic search, retrieval, RAG and clustering. Three model families: <b>SentenceTransformer</b> (bi-encoder, dense vectors), <b>CrossEncoder</b> (reranker, scores a pair), and <b>SparseEncoder</b> (learned sparse/lexical vectors, new in v5). Each has a matching Trainer. This sheet targets <b>v5.x</b>.</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>load &amp; encode</span>
+    <span><i class="dot c2"></i>search / retrieval</span>
+    <span><i class="dot c3"></i>reranking (CrossEncoder)</span>
+    <span><i class="dot c4"></i>sparse (SparseEncoder)</span>
+    <span><i class="dot c5"></i>training</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-08-24 against the official docs at <b>sbert.net</b> (Sentence Transformers 5.x) and the <b>huggingface/sentence-transformers</b> repo. Built on &#127760; Transformers; embedding models are pulled from the Hugging Face Hub.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub">Start with load &amp; encode, then pick your task: dense search, reranking, or sparse retrieval &mdash; each with a training section.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Embed</h3>
+      <ol class="toc-list">
+        <li><a href="#install">1 &middot; Install &amp; load a model</a></li>
+        <li><a href="#encode">2 &middot; encode() &amp; similarity()</a></li>
+        <li><a href="#querydoc">3 &middot; encode_query / encode_document</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">Search</h3>
+      <ol class="toc-list">
+        <li><a href="#search">4 &middot; Semantic search &amp; util</a></li>
+        <li><a href="#optimize">5 &middot; Prompts &amp; quantized embeddings</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Rerank &amp; sparse</h3>
+      <ol class="toc-list">
+        <li><a href="#crossencoder">6 &middot; CrossEncoder — reranking</a></li>
+        <li><a href="#sparse">7 &middot; SparseEncoder (v5)</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">Train</h3>
+      <ol class="toc-list">
+        <li><a href="#train">8 &middot; SentenceTransformerTrainer</a></li>
+        <li><a href="#losses">9 &middot; Losses &amp; data format</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Reference</h3>
+      <ol class="toc-list">
+        <li><a href="#gotchas">10 &middot; Gotchas</a></li>
+        <li><a href="#worth">Worth memorizing</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-embed"><h2 style="color:var(--c1)">Embed</h2><p class="sub">Load a bi-encoder and turn text into vectors.</p></div>
+<main>
+  <article class="card" id="install">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Install &amp; load a model</span><span class="card-sub">v5.x</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">pip install <span class="str">"sentence-transformers"</span></code><span class="star">&#9733;</span><div class="desc">Pulls in Transformers + PyTorch. Add <code>[train]</code> extras for the training stack.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">from</span> sentence_transformers <span class="kw">import</span> SentenceTransformer
+model = SentenceTransformer(<span class="str">"all-MiniLM-L6-v2"</span>)</code><span class="star">&#9733;</span><div class="desc">Small, fast, 384-dim &mdash; the classic default. Bigger/better: <code>all-mpnet-base-v2</code>, <code>BAAI/bge-*</code>, <code>Qwen/Qwen3-Embedding-*</code>.</div></li>
+      <li class="c1"><code class="cmd">SentenceTransformer(id, device=<span class="str">"cuda"</span>, model_kwargs={<span class="str">"dtype"</span>:<span class="str">"auto"</span>})</code><div class="desc">Choose device/precision; <code>truncate_dim=</code> for Matryoshka models, <code>backend="onnx"/"openvino"</code> for fast CPU inference.</div></li>
+      <li class="c1"><code class="cmd">model.get_sentence_embedding_dimension() &middot; model.max_seq_length</code><div class="desc">Inspect vector size and the token limit (inputs longer than this are truncated).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="encode">
+    <div class="card-head"><span class="card-num n1">2</span><span class="card-title">encode() &amp; similarity()</span><span class="card-sub">text &rarr; vectors</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">emb = model.encode([<span class="str">"a sentence"</span>, <span class="str">"another"</span>])</code><span class="star">&#9733;</span><div class="desc">Returns an <code>(n, dim)</code> numpy array (or a torch tensor with <code>convert_to_tensor=True</code>). Batched &amp; parallelized internally.</div></li>
+      <li class="c1"><code class="cmd">model.encode(texts, normalize_embeddings=<span class="kw">True</span>, batch_size=64,
+    show_progress_bar=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Normalize to unit length so cosine == dot product. Tune <code>batch_size</code> for throughput.</div></li>
+      <li class="c2"><code class="cmd">scores = model.similarity(emb1, emb2) <span class="cm"># (n1, n2) matrix</span></code><span class="star">&#9733;</span><div class="desc">Uses the model's configured metric (cosine by default). <code>similarity_pairwise</code> for row-aligned pairs.</div></li>
+      <li class="c2"><code class="cmd">model.similarity_fn_name <span class="cm"># "cosine" | "dot" | "euclidean" | "manhattan"</span></code><div class="desc">Set at load via <code>similarity_fn_name=</code>; controls both <code>similarity()</code> and search defaults.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="querydoc">
+    <div class="card-head"><span class="card-num n1">3</span><span class="card-title">encode_query / encode_document</span><span class="card-sub">asymmetric search</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">corpus_emb = model.encode_document(corpus)</code><span class="star">&#9733;</span><div class="desc">Encode the corpus <b>once</b>, keep the tensor as your index. Applies the model's document prompt if it has one.</div></li>
+      <li class="c1"><code class="cmd">q_emb = model.encode_query(<span class="str">"my question"</span>)</code><span class="star">&#9733;</span><div class="desc">Encode each incoming query with the query prompt. Query/document methods (v5) replace manually prepending prompts.</div></li>
+      <li class="c2"><code class="cmd">model.similarity(q_emb, corpus_emb)</code><div class="desc">Then rank the corpus for the query &mdash; the core of a retrieval pipeline.</div></li>
+      <li class="danger"><code class="cmd">match query &amp; doc encoders</code><span class="badge-warn">gotcha</span><div class="desc">Use the <em>same</em> model for both sides. Many retrieval models are asymmetric &mdash; skipping query/document prompts silently hurts recall.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-search"><h2 style="color:var(--c2)">Search &amp; Retrieval</h2><p class="sub">Rank a corpus against queries, and shrink/speed up the index.</p></div>
+<main>
+  <article class="card" id="search">
+    <div class="card-head"><span class="card-num n2">4</span><span class="card-title">Semantic search &amp; util</span><span class="card-sub">top-k</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd"><span class="kw">from</span> sentence_transformers <span class="kw">import</span> util
+hits = util.semantic_search(q_emb, corpus_emb, top_k=5)</code><span class="star">&#9733;</span><div class="desc">Cosine top-k in one call; returns a list (per query) of <code>{"corpus_id", "score"}</code>. Good up to ~1M docs in memory.</div></li>
+      <li class="c2"><code class="cmd">util.cos_sim(a, b) &middot; util.dot_score(a, b)</code><div class="desc">Raw score matrices when you need custom filtering/thresholds before the top-k sort.</div></li>
+      <li class="c2"><code class="cmd">util.paraphrase_mining(model, sentences)</code><div class="desc">Find the most similar pairs within one big list &mdash; dedup / near-duplicate detection.</div></li>
+      <li class="danger"><code class="cmd">scale &rarr; a real vector DB</code><span class="badge-warn">note</span><div class="desc">Beyond ~1M vectors, push embeddings into FAISS / pgvector / Qdrant / Milvus for ANN search instead of brute force.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="optimize">
+    <div class="card-head"><span class="card-num n2">5</span><span class="card-title">Prompts &amp; quantized embeddings</span><span class="card-sub">smaller / faster</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">model.encode(text, prompt_name=<span class="str">"query"</span>)</code><div class="desc">Apply a named prompt from the model's config, or <code>prompt="query: "</code> to prepend a raw string (many E5/BGE models require this).</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">from</span> sentence_transformers.quantization <span class="kw">import</span> quantize_embeddings
+q = quantize_embeddings(emb, precision=<span class="str">"int8"</span>)</code><span class="star">&#9733;</span><div class="desc">Shrink vectors to <code>int8</code> (4&times;) or <code>binary</code> (32&times;) for cheaper storage/search with small accuracy loss.</div></li>
+      <li class="c2"><code class="cmd">SentenceTransformer(id, truncate_dim=256)</code><div class="desc">Matryoshka models let you truncate the vector to fewer dims for speed &mdash; only if the model was trained for it.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-rerank"><h2 style="color:var(--c3)">Rerank &amp; Sparse</h2><p class="sub">Two more model types: cross-encoders for precise reranking, sparse encoders for lexical retrieval.</p></div>
+<main>
+  <article class="card" id="crossencoder">
+    <div class="card-head"><span class="card-num n3">6</span><span class="card-title">CrossEncoder &mdash; reranking</span><span class="card-sub">precise, slower</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="kw">from</span> sentence_transformers <span class="kw">import</span> CrossEncoder
+ce = CrossEncoder(<span class="str">"cross-encoder/ms-marco-MiniLM-L6-v2"</span>)</code><span class="star">&#9733;</span><div class="desc">Scores a (query, doc) <b>pair</b> jointly &mdash; far more accurate than bi-encoder cosine, but can't pre-index.</div></li>
+      <li class="c3"><code class="cmd">ce.predict([(<span class="str">"query"</span>, <span class="str">"passage A"</span>), (<span class="str">"query"</span>, <span class="str">"passage B"</span>)])</code><div class="desc">Returns a relevance score per pair.</div></li>
+      <li class="c3"><code class="cmd">ce.rank(<span class="str">"query"</span>, list_of_docs, top_k=5)</code><span class="star">&#9733;</span><div class="desc">The retrieve-then-rerank pattern: bi-encoder fetches ~100 candidates, CrossEncoder reorders the top few.</div></li>
+      <li class="c3"><code class="cmd">CrossEncoder(id) <span class="cm"># v5: multimodal + generative rerankers (LogitScore)</span></code><div class="desc">v5 modularized CrossEncoder for text/image/audio/video and generative reranking.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="sparse">
+    <div class="card-head"><span class="card-num n4">7</span><span class="card-title">SparseEncoder</span><span class="card-sub">new in v5</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="kw">from</span> sentence_transformers <span class="kw">import</span> SparseEncoder
+se = SparseEncoder(<span class="str">"naver/splade-v3"</span>)</code><span class="star">&#9733;</span><div class="desc">Learned <b>sparse</b> (lexical) vectors &mdash; interpretable, keyword-aware, great for hybrid search alongside dense retrieval.</div></li>
+      <li class="c4"><code class="cmd">emb = se.encode_document(corpus) <span class="cm"># sparse tensors</span></code><div class="desc">Same encode/query/document API as the dense model, but outputs sparse vectors.</div></li>
+      <li class="c4"><code class="cmd">se.similarity(q, d) &middot; util.semantic_search(...)</code><div class="desc">Combine dense + sparse scores for hybrid retrieval; trained via <code>SparseEncoderTrainer</code>.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-train"><h2 style="color:var(--c5)">Train / Fine-tune</h2><p class="sub">All three families share a Transformers-style Trainer. Fine-tuning on in-domain pairs is the biggest quality lever.</p></div>
+<main>
+  <article class="card" id="train">
+    <div class="card-head"><span class="card-num n5">8</span><span class="card-title">SentenceTransformerTrainer</span><span class="card-sub">the loop</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="kw">from</span> sentence_transformers <span class="kw">import</span> (SentenceTransformerTrainer,
+    SentenceTransformerTrainingArguments)</code><span class="star">&#9733;</span><div class="desc">Mirrors the &#127760; Transformers Trainer API (v4+ refactor). CrossEncoder/SparseEncoder have their own Trainer classes.</div></li>
+      <li class="c5"><code class="cmd">trainer = SentenceTransformerTrainer(model=model, args=args,
+    train_dataset=ds, loss=loss)
+trainer.train()</code><span class="star">&#9733;</span><div class="desc">Provide a dataset, a loss, and args (batch size, epochs, lr). Multi-GPU via <code>accelerate</code>.</div></li>
+      <li class="c5"><code class="cmd">args = SentenceTransformerTrainingArguments(output_dir=<span class="str">"out"</span>,
+    num_train_epochs=1, per_device_train_batch_size=64,
+    batch_sampler=<span class="str">"no_duplicates"</span>)</code><div class="desc"><code>no_duplicates</code> sampler matters for in-batch-negative losses. <code>eval_strategy</code>, warmup, fp16/bf16 as usual.</div></li>
+      <li class="c5"><code class="cmd">model.save_pretrained(<span class="str">"out/"</span>) &middot; model.push_to_hub(<span class="str">"me/model"</span>)</code><div class="desc">Save + share the fine-tuned embedder.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="losses">
+    <div class="card-head"><span class="card-num n5">9</span><span class="card-title">Losses &amp; data format</span><span class="card-sub">match them up</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="kw">from</span> sentence_transformers.losses <span class="kw">import</span> MultipleNegativesRankingLoss
+loss = MultipleNegativesRankingLoss(model)</code><span class="star">&#9733;</span><div class="desc">The workhorse for retrieval: needs (anchor, positive) pairs (or triplets); other rows in the batch are the negatives.</div></li>
+      <li class="c5"><code class="cmd">CoSENTLoss &middot; ContrastiveLoss &middot; TripletLoss &middot; SoftmaxLoss</code><div class="desc">Pick by data: labeled similarity scores &rarr; CoSENT; (a,pos,neg) triplets &rarr; Triplet; NLI-style &rarr; Softmax.</div></li>
+      <li class="c5"><code class="cmd">Dataset columns == loss inputs</code><span class="star">&#9733;</span><div class="desc">A &#127760; <code>datasets</code> Dataset whose <b>column order</b> matches the loss (e.g. <code>anchor, positive</code>); a <code>label</code>/<code>score</code> column when the loss needs one.</div></li>
+      <li class="danger"><code class="cmd">wrong loss for your data</code><span class="badge-warn">gotcha</span><div class="desc">The #1 fine-tuning mistake: mismatched loss &amp; dataset shape. Check the loss's docstring for the exact expected columns.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-ref"><h2 style="color:var(--danger)">Gotchas</h2><p class="sub">The traps that quietly wreck retrieval quality.</p></div>
+<main>
+  <article class="card" id="gotchas">
+    <div class="card-head"><span class="card-num">!</span><span class="card-title">Common gotchas</span><span class="card-sub">read before shipping</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">normalize before cosine/dot</code><div class="desc">If you compare with dot product, set <code>normalize_embeddings=True</code> &mdash; otherwise magnitude skews scores. Cosine is scale-invariant either way.</div></li>
+      <li class="danger"><code class="cmd">max_seq_length truncation</code><div class="desc">Long documents are silently cut at the token limit. Chunk long text before encoding for retrieval.</div></li>
+      <li class="danger"><code class="cmd">forgetting E5/BGE prompts</code><div class="desc">Models like E5/BGE expect <code>"query: "</code> / <code>"passage: "</code> prefixes &mdash; use <code>encode_query</code>/<code>encode_document</code> or accuracy tanks.</div></li>
+      <li class="danger"><code class="cmd">bi-encoder recall vs cross-encoder precision</code><div class="desc">Don't rerank everything with a CrossEncoder (too slow). Retrieve with the bi-encoder, rerank only the top candidates.</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs" id="worth">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">3 model types</span><span class="v">SentenceTransformer (dense), CrossEncoder (rerank), SparseEncoder (lexical, v5)</span></div>
+    <div><span class="k">encode corpus once</span><span class="v">encode_document to build the index, encode_query per request</span></div>
+    <div><span class="k">retrieve then rerank</span><span class="v">bi-encoder fetches ~100, CrossEncoder reorders the top few</span></div>
+    <div><span class="k">semantic_search = cos_sim + top-k</span><span class="v">brute force is fine to ~1M; beyond that use FAISS/pgvector/Qdrant</span></div>
+    <div><span class="k">use the model's prompts</span><span class="v">E5/BGE need query/passage prefixes; encode_query/document handle it</span></div>
+    <div><span class="k">quantize to int8/binary</span><span class="v">4&ndash;32&times; smaller vectors for cheap storage &amp; search</span></div>
+    <div><span class="k">loss must match data shape</span><span class="v">MultipleNegativesRankingLoss wants (anchor, positive) pairs</span></div>
+    <div><span class="k">fine-tune on in-domain pairs</span><span class="v">the single biggest quality win for your own corpus</span></div>
+  </div>
+</section>
+
+<footer>
+  sentence-transformers (SBERT) cheat sheet (sentence_transformers_cheatsheet v0).<br>
+  Verified 2026-08-24 against <b>sbert.net</b> and the huggingface/sentence-transformers repo, targeting <b>v5.x</b> (SentenceTransformer / CrossEncoder / SparseEncoder + their Trainers). Built on Transformers; models come from the Hugging Face Hub. Model cards specify required prompts &amp; the intended similarity metric &mdash; always check them.<br>
+  Design system = shared cheat-sheet tokens (Inter + JetBrains Mono, light theme). Content only.
+</footer>
+</body>
+</html>

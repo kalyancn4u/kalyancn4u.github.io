@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TensorBoard &#183; Quick Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b;  --setup-bg:#f1f3f6;
+    --tensor:#d97706; --tensor-bg:#fdf6ec;
+    --nn:#059669;     --nn-bg:#ecf7f2;
+    --train:#4f46e5;  --train-bg:#eef0fd;
+    --perf:#7c3aed;   --perf-bg:#f4f0fd;
+    --dom:#0d9488;    --dom-bg:#ecf6f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --tb:#ff6f00;   --torchc:#ee4c2c;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(1.8rem,4.6vw,3.1rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1.05; margin-bottom:.7rem; font-family:var(--mono);
+  }
+  h1 .py{color:var(--ink)}
+  h1 .tw{color:var(--tb)}
+  h1 .sub{font-size:.42em; color:var(--muted); font-weight:500; letter-spacing:0}
+  h1 .sub .v{color:var(--dom)}
+  h1 .sub .a{color:var(--perf)}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede b{font-weight:600}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)}   .dot.tensor{background:var(--tensor)}
+  .dot.nn{background:var(--nn)}         .dot.train{background:var(--train)}
+  .dot.perf{background:var(--perf)}     .dot.dom{background:var(--dom)}
+  .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1150px; display:block; margin:0 auto}
+  .flow-svg text{font-family:'JetBrains Mono',monospace}
+
+  /* ---------- quickstart panel ---------- */
+  .quick{max-width:1500px; margin:0 auto; padding:1.4rem clamp(1rem,4vw,3rem) 0}
+  .quick-inner{
+    background:var(--ink); border-radius:10px; padding:1.1rem 1.3rem;
+    font-family:var(--mono); font-size:.78rem; line-height:1.75; color:#e8e6e1;
+    overflow-x:auto; white-space:pre; margin:0; tab-size:2;
+  }
+  .quick-inner .cm{color:#7f8a9e}
+  .quick-inner .kw{color:#c792ea}
+  .quick-inner .fn{color:#82aaff}
+  .quick-inner .str{color:#7ddba0}
+  .quick-inner .num{color:#f7c667}
+  .quick-inner .mod{color:#ff8a65}
+  .quick-cap{
+    font-family:var(--mono); font-size:.72rem; color:var(--muted);
+    margin-top:.5rem; letter-spacing:.02em;
+  }
+
+  /* ---------- part headers ---------- */
+  .part-head{
+    max-width:1500px; margin:0 auto; padding:2.6rem clamp(1rem,4vw,3rem) .2rem;
+  }
+  .part-head .bar{
+    border-top:2px solid var(--ink); padding-top:1.1rem;
+    display:flex; align-items:baseline; gap:.8rem; flex-wrap:wrap;
+  }
+  .part-tag{
+    font-family:var(--mono); font-size:.7rem; font-weight:700; color:#fff;
+    padding:.2rem .5rem; border-radius:5px; letter-spacing:.08em;
+  }
+  .part-tag.i{background:var(--ink)}
+  .part-tag.ii{background:var(--dom)}
+  .part-tag.iii{background:var(--perf)}
+  .part-head h2{font-size:1.5rem; font-weight:700; letter-spacing:-.02em; font-family:var(--mono)}
+  .part-head h2 .accent{color:var(--tb)}
+  .part-head h2 .accent-v{color:var(--dom)}
+  .part-head h2 .accent-a{color:var(--perf)}
+  .part-head .note{
+    font-size:.82rem; color:var(--muted); margin-top:.45rem; max-width:78ch;
+  }
+  .part-head .note code{font-family:var(--mono); font-size:.94em; color:#3f444f}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.2rem clamp(1rem,4vw,3rem) 1rem;
+    column-gap:1.4rem; column-fill:balance;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  @media(min-width:1620px){ main{column-count:4} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em; flex:none;
+  }
+  .card-num.v{background:var(--dom)}
+  .card-num.a{background:var(--perf)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.tensor{border-left-color:var(--tensor)}
+  ul.cmds li.nn{border-left-color:var(--nn)}
+  ul.cmds li.train{border-left-color:var(--train)}
+  ul.cmds li.perf{border-left-color:var(--perf)}
+  ul.cmds li.dom{border-left-color:var(--dom)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.795rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.45;
+  }
+  code.cmd .mod{color:var(--dom)}
+  code.cmd .fn{color:var(--train)}
+  code.cmd .kw{color:#a626a4}
+  code.cmd .arg{color:var(--star)}
+  code.cmd .str{color:var(--nn)}
+  code.cmd .num{color:var(--tensor)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  li.danger code.cmd .mod,li.danger code.cmd .fn{color:var(--danger)}
+  .desc{font-size:.765rem; color:#525761; margin-top:.2rem}
+  .desc code{font-family:var(--mono); font-size:.94em; color:#3f444f}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge{
+    font-size:.62rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+    padding:.05rem .3rem; border-radius:4px; vertical-align:.06em;
+  }
+  .badge-danger{color:#fff; background:var(--danger)}
+  .badge-new{color:#fff; background:var(--perf)}
+  .badge-gone{color:var(--danger); border:1px solid var(--danger)}
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:'JetBrains Mono',monospace}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.8rem;
+    display:grid; gap:.6rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner .v code{color:#f8fafc}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:#3f444f}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference &#183; experiment visualization in Python &#183; TensorBoard 2.21 (Jun 2026)</div>
+  <h1><span class="py">tensor</span><span class="tw">board</span>
+    <span class="sub">tf.summary &#183; <span class="v">Keras</span> &#183; <span class="a">PyTorch</span></span></h1>
+  <div class="lede"><b>Nothing in TensorBoard is live.</b> Your code appends records to <i>event files</i> in a log directory; TensorBoard is a web server that polls that directory and redraws whatever it finds. The blank dashboard, the duplicated run, the plot that stopped updating &#8212; every one of them is a question about those files, not about the UI.</div>
+  <div class="legend">
+    <span><i class="dot setup"></i>install &amp; launch</span>
+    <span><i class="dot tensor"></i>log dir &amp; runs</span>
+    <span><i class="dot nn"></i>tf.summary</span>
+    <span><i class="dot train"></i>framework integration</span>
+    <span><i class="dot dom"></i>dashboards &amp; UI</span>
+    <span><i class="dot perf"></i>plugins &amp; tooling</span>
+    <span><i class="dot danger"></i>gotcha / removed</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <div class="sources"><b>Cross-checked against:</b> tensorflow.org/tensorboard (guide + API) &#183; github.com/tensorflow/tensorboard (RELEASE.md, flags) &#183; pytorch.org/docs (torch.utils.tensorboard) &#183; openxla.org/xprof &#183; pypi.org (tensorboard 2.21.0, Jun 2026)</div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">Where the numbers actually go</div>
+  <svg class="flow-svg" viewBox="0 0 1120 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram showing training code writing event files into a log directory, which a TensorBoard server polls and serves to a browser">
+    <defs>
+      <marker id="tb-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker>
+      <marker id="tb-ar-mut" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker>
+      <marker id="tb-ar-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+    </defs>
+
+    <!-- BAND A -->
+    <text x="16" y="20" font-size="11" font-family="monospace" fill="#6b7280" letter-spacing="1.5">A &#183; ONE DIRECTION ONLY &#8212; NOTHING IS PUSHED BACK</text>
+
+    <rect x="16" y="34" width="196" height="58" rx="7" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.5"/>
+    <text x="114" y="55" text-anchor="middle" font-size="12" font-family="monospace" fill="#4f46e5" font-weight="700">your training code</text>
+    <text x="114" y="72" text-anchor="middle" font-size="10" fill="#5b6472">tf.summary &#183; Keras callback</text>
+    <text x="114" y="85" text-anchor="middle" font-size="10" fill="#5b6472">torch SummaryWriter</text>
+
+    <line x1="216" y1="63" x2="256" y2="63" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#tb-ar)"/>
+    <text x="236" y="55" text-anchor="middle" font-size="9" font-family="monospace" fill="#6b7280">write</text>
+
+    <rect x="260" y="34" width="200" height="58" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+    <text x="360" y="55" text-anchor="middle" font-size="12" font-family="monospace" fill="#059669" font-weight="700">buffer</text>
+    <text x="360" y="72" text-anchor="middle" font-size="10" fill="#5b6472">max_queue &#183; flush_millis</text>
+    <text x="360" y="85" text-anchor="middle" font-size="10" fill="#dc2626">unflushed = invisible</text>
+
+    <line x1="464" y1="63" x2="504" y2="63" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#tb-ar)"/>
+    <text x="484" y="55" text-anchor="middle" font-size="9" font-family="monospace" fill="#6b7280">flush</text>
+
+    <rect x="508" y="34" width="230" height="58" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+    <text x="623" y="55" text-anchor="middle" font-size="12" font-family="monospace" fill="#d97706" font-weight="700">event files on disk</text>
+    <text x="623" y="72" text-anchor="middle" font-size="9.5" font-family="monospace" fill="#5b6472">events.out.tfevents.&#8230;</text>
+    <text x="623" y="85" text-anchor="middle" font-size="10" fill="#5b6472">append-only, per run</text>
+
+    <line x1="742" y1="63" x2="782" y2="63" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#tb-ar)"/>
+    <text x="762" y="55" text-anchor="middle" font-size="9" font-family="monospace" fill="#6b7280">poll</text>
+
+    <rect x="786" y="34" width="152" height="58" rx="7" fill="#ecf6f5" stroke="#0d9488" stroke-width="1.5"/>
+    <text x="862" y="55" text-anchor="middle" font-size="12" font-family="monospace" fill="#0d9488" font-weight="700">tensorboard</text>
+    <text x="862" y="72" text-anchor="middle" font-size="10" fill="#5b6472">--logdir logs</text>
+    <text x="862" y="85" text-anchor="middle" font-size="10" fill="#5b6472">reload every 5s</text>
+
+    <line x1="942" y1="63" x2="972" y2="63" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#tb-ar)"/>
+
+    <rect x="976" y="34" width="128" height="58" rx="7" fill="#f1f3f6" stroke="#64748b" stroke-width="1.5"/>
+    <text x="1040" y="58" text-anchor="middle" font-size="11.5" font-family="monospace" fill="#64748b" font-weight="700">browser</text>
+    <text x="1040" y="76" text-anchor="middle" font-size="10" fill="#5b6472">localhost:6006</text>
+
+    <!-- BAND B : logdir tree -->
+    <text x="16" y="126" font-size="11" font-family="monospace" fill="#6b7280" letter-spacing="1.5">B &#183; ONE SUBDIRECTORY = ONE RUN = ONE LINE ON THE CHART</text>
+
+    <rect x="16" y="138" width="470" height="128" rx="8" fill="#fdfcfa" stroke="#e7e3db" stroke-width="1.5"/>
+    <text x="34" y="160" font-size="11" font-family="monospace" fill="#d97706" font-weight="700">logs/</text>
+    <text x="52" y="178" font-size="11" font-family="monospace" fill="#1a1d24">&#9492;&#9472; fit/</text>
+    <text x="76" y="196" font-size="11" font-family="monospace" fill="#1a1d24">&#9500;&#9472; 20260719-093000/</text>
+    <text x="100" y="214" font-size="11" font-family="monospace" fill="#4f46e5">&#9500;&#9472; train/&nbsp;&nbsp;&nbsp;&nbsp;&#8592; run "fit/20260719-093000/train"</text>
+    <text x="100" y="232" font-size="11" font-family="monospace" fill="#0d9488">&#9492;&#9472; validation/&nbsp;&#8592; a second, separate run</text>
+    <text x="76" y="250" font-size="11" font-family="monospace" fill="#6b7280">&#9492;&#9472; 20260719-101500/&nbsp;&#8592; yesterday's attempt, still shown</text>
+
+    <text x="500" y="160" font-size="11" font-family="monospace" fill="#1a1d24" font-weight="700">--logdir logs</text>
+    <text x="500" y="177" font-size="10" fill="#5b6472">point at the PARENT, not at a run</text>
+    <text x="500" y="197" font-size="11" font-family="monospace" fill="#1a1d24" font-weight="700">the run name is the relative path</text>
+    <text x="500" y="214" font-size="10" fill="#5b6472">so directory naming is chart naming &#8212; design it</text>
+    <text x="500" y="234" font-size="11" font-family="monospace" fill="#dc2626" font-weight="700">two writers into one directory</text>
+    <text x="500" y="251" font-size="10" fill="#dc2626">interleaves the steps and zigzags the line</text>
+
+    <!-- BAND C : who writes -->
+    <text x="16" y="300" font-size="11" font-family="monospace" fill="#6b7280" letter-spacing="1.5">C &#183; THREE WRITERS, ONE FILE FORMAT &#8212; AND ONE THAT LEFT</text>
+
+    <rect x="16" y="314" width="176" height="46" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/>
+    <text x="104" y="333" text-anchor="middle" font-size="11" font-family="monospace" fill="#059669" font-weight="700">tf.summary</text>
+    <text x="104" y="350" text-anchor="middle" font-size="9.5" fill="#5b6472">the native API</text>
+
+    <rect x="16" y="366" width="176" height="46" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.4"/>
+    <text x="104" y="385" text-anchor="middle" font-size="11" font-family="monospace" fill="#4f46e5" font-weight="700">keras.callbacks</text>
+    <text x="104" y="402" text-anchor="middle" font-size="9.5" fill="#5b6472">TensorBoard(log_dir=...)</text>
+
+    <rect x="204" y="340" width="176" height="46" rx="6" fill="#fdf0ef" stroke="#ee4c2c" stroke-width="1.4"/>
+    <text x="292" y="359" text-anchor="middle" font-size="11" font-family="monospace" fill="#ee4c2c" font-weight="700">SummaryWriter</text>
+    <text x="292" y="376" text-anchor="middle" font-size="9.5" fill="#5b6472">torch.utils.tensorboard</text>
+
+    <line x1="384" y1="363" x2="430" y2="363" stroke="#6b7280" stroke-width="1.4" marker-end="url(#tb-ar-mut)"/>
+    <line x1="196" y1="337" x2="240" y2="352" stroke="#6b7280" stroke-width="1.2" marker-end="url(#tb-ar-mut)"/>
+    <line x1="196" y1="389" x2="240" y2="374" stroke="#6b7280" stroke-width="1.2" marker-end="url(#tb-ar-mut)"/>
+
+    <rect x="434" y="336" width="196" height="54" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+    <text x="532" y="357" text-anchor="middle" font-size="11.5" font-family="monospace" fill="#d97706" font-weight="700">the same event file</text>
+    <text x="532" y="374" text-anchor="middle" font-size="9.5" fill="#5b6472">TensorBoard needs no TensorFlow</text>
+
+    <rect x="700" y="308" width="240" height="106" rx="8" fill="#faf9f7" stroke="#9aa2ae" stroke-width="1.6" stroke-dasharray="6 4"/>
+    <text x="820" y="330" text-anchor="middle" font-size="11.5" font-family="monospace" fill="#6b7280" font-weight="700">the Profile tab</text>
+    <text x="820" y="349" text-anchor="middle" font-size="10" fill="#6b7280">tensorboard_plugin_profile</text>
+    <text x="820" y="366" text-anchor="middle" font-size="11" font-family="monospace" fill="#7c3aed" font-weight="700">&#8594; renamed XProf</text>
+    <text x="820" y="383" text-anchor="middle" font-size="9.5" fill="#5b6472">moved to OpenXLA &#183; pip install xprof</text>
+    <text x="820" y="400" text-anchor="middle" font-size="9.5" fill="#5b6472">JAX &#183; PyTorch/XLA &#183; TF &#183; runs standalone</text>
+
+    <line x1="644" y1="363" x2="694" y2="363" stroke="#dc2626" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#tb-ar-red)"/>
+    <text x="669" y="355" text-anchor="middle" font-size="9" font-family="monospace" fill="#dc2626">left</text>
+  </svg>
+</section>
+
+<!-- ============ QUICKSTART ============ -->
+<section class="quick">
+  <pre class="quick-inner"><span class="cm"># --- write (TensorFlow / Keras) -------------------------------</span>
+<span class="kw">import</span> <span class="mod">tensorflow</span> <span class="kw">as</span> <span class="mod">tf</span>, <span class="mod">keras</span>, datetime
+logdir = <span class="str">"logs/fit/"</span> + datetime.datetime.<span class="fn">now</span>().<span class="fn">strftime</span>(<span class="str">"%Y%m%d-%H%M%S"</span>)
+cb = <span class="mod">keras</span>.<span class="mod">callbacks</span>.<span class="fn">TensorBoard</span>(log_dir=logdir, histogram_freq=<span class="num">1</span>)
+model.<span class="fn">fit</span>(ds, epochs=<span class="num">10</span>, validation_data=val, callbacks=[cb])
+
+<span class="cm"># --- write (PyTorch) ------------------------------------------</span>
+<span class="kw">from</span> <span class="mod">torch.utils.tensorboard</span> <span class="kw">import</span> <span class="mod">SummaryWriter</span>
+w = <span class="fn">SummaryWriter</span>(<span class="str">"runs/exp1"</span>)
+w.<span class="fn">add_scalar</span>(<span class="str">"loss/train"</span>, loss.<span class="fn">item</span>(), global_step)   <span class="cm"># step is required</span>
+w.<span class="fn">close</span>()                                              <span class="cm"># or nothing appears</span>
+
+<span class="cm"># --- read -----------------------------------------------------</span>
+tensorboard --logdir logs --port <span class="num">6006</span>          <span class="cm"># parent dir, not a run</span></pre>
+  <div class="quick-cap">Write, flush, point at the parent directory. The rest of this sheet is detail.</div>
+</section>
+
+<!-- ============ PART I ============ -->
+<section class="part-head">
+  <div class="bar">
+    <span class="part-tag i">PART I</span>
+    <h2><span class="accent">the tool</span> &nbsp;&#183;&nbsp; launching and reading</h2>
+  </div>
+  <div class="note">TensorBoard is a <b>reader</b>. It has no opinion about how the files got there and no dependency on TensorFlow &#8212; <code>pip install tensorboard</code> alone is enough to visualise runs written by PyTorch, JAX or anything else that emits the event format. Since TF 2.21 it is no longer installed with TensorFlow.</div>
+</section>
+
+<main>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; launch</span><span class="card-sub">sixty seconds</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">pip install tensorboard</code><span class="star">&#9733;</span><span class="badge badge-new">TF 2.21</span><div class="desc"><b>No longer bundled with TensorFlow</b> as of TF 2.21 &#8212; install it yourself.</div></li>
+      <li class="setup"><code class="cmd">tensorboard --logdir logs</code><span class="star">&#9733;</span><div class="desc">Serves on <code>localhost:6006</code>. Leave it running; it re-reads the directory as you train.</div></li>
+      <li class="setup"><code class="cmd">tensorboard --logdir logs --port <span class="num">6007</span></code><div class="desc">When 6006 is taken, which it usually is.</div></li>
+      <li class="setup"><code class="cmd">it does not need TensorFlow</code><div class="desc">A pure reader of the event format. PyTorch- and JAX-only environments are fine.</div></li>
+      <li class="setup"><code class="cmd">python -m tensorboard.main --logdir logs</code><div class="desc">When the console script is not on PATH.</div></li>
+      <li class="setup"><code class="cmd">pip install tensorboard-data-server</code><div class="desc">Enables <code>--load_fast=true</code>, a much faster loader for large directories.</div></li>
+      <li class="setup"><code class="cmd">tensorboard --version_tb</code><div class="desc">Current release is <b>2.21.0</b> (Jun 2026), Python 3.9+.</div></li>
+      <li class="danger"><code class="cmd">the tab says &#8220;No dashboards are active&#8221;</code><span class="star">&#9733;</span><div class="desc">Almost never a broken install. It means no data of that type was found &#8212; wrong <code>--logdir</code>, or nothing flushed yet.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">The log directory</span><span class="card-sub">the only real concept</span></div>
+    <ul class="cmds">
+      <li class="tensor"><code class="cmd">one subdirectory = one run</code><span class="star">&#9733;</span><div class="desc">And one run = one line per tag on every chart. Internalise this and the UI stops surprising you.</div></li>
+      <li class="tensor"><code class="cmd">logs/fit/&lt;timestamp&gt;/train &#183; /validation</code><span class="star">&#9733;</span><div class="desc">The conventional layout. Two writers, two runs, two colours, compared automatically.</div></li>
+      <li class="tensor"><code class="cmd">events.out.tfevents.&lt;time&gt;.&lt;host&gt;.&lt;pid&gt;.v2</code><div class="desc">The file itself &#8212; append-only, one per writer.</div></li>
+      <li class="tensor"><code class="cmd">--logdir points at the <b>parent</b></code><div class="desc">Point it at a single run and you lose every comparison.</div></li>
+      <li class="tensor"><code class="cmd">the run name is the relative path</code><div class="desc">So directory naming <i>is</i> chart naming. Name deliberately: <code>lr0.001_bs32/</code> beats <code>run7/</code>.</div></li>
+      <li class="tensor"><code class="cmd">--logdir_spec baseline:./a,tuned:./b</code><div class="desc">Explicit names for directories that are not siblings. Disables some features &#8212; prefer a common parent.</div></li>
+      <li class="tensor"><code class="cmd">gs://bucket/logs &#183; s3://bucket/logs</code><div class="desc">Cloud paths work directly, given credentials.</div></li>
+      <li class="danger"><code class="cmd">re-running into the same directory</code><span class="star">&#9733;</span><span class="badge badge-danger">classic</span><div class="desc">The old events stay. Steps restart at zero and the line zigzags backwards. Use a fresh timestamped directory.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Flags that matter</span><span class="card-sub">the CLI</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">--bind_all</code><span class="star">&#9733;</span><div class="desc">Listen on every interface so another machine can reach it. Off by default, deliberately.</div></li>
+      <li class="setup"><code class="cmd">--host <span class="num">0.0.0.0</span> --port <span class="num">6006</span></code><div class="desc">The explicit form of the same thing.</div></li>
+      <li class="setup"><code class="cmd">--reload_interval <span class="num">5</span></code><span class="star">&#9733;</span><div class="desc">Seconds between directory scans. <code>0</code> loads once and never refreshes.</div></li>
+      <li class="setup"><code class="cmd">--samples_per_plugin scalars=<span class="num">2000</span>,images=<span class="num">100</span></code><span class="star">&#9733;</span><span class="badge badge-danger">surprising</span><div class="desc"><b>TensorBoard downsamples by default</b> &#8212; roughly 1000 scalar points per tag. Your chart is a sample, not the data.</div></li>
+      <li class="setup"><code class="cmd">--load_fast=true</code><div class="desc">The Rust data server. Much faster on big directories; needs <code>tensorboard-data-server</code>.</div></li>
+      <li class="setup"><code class="cmd">--path_prefix /tb</code><div class="desc">For serving behind nginx or a Jupyter proxy.</div></li>
+      <li class="setup"><code class="cmd">--reload_multifile=true</code><div class="desc">Reads every event file in a run, not just the newest &#8212; needed for multi-worker jobs.</div></li>
+      <li class="setup"><code class="cmd">--purge_orphaned_data=false</code><div class="desc">Keeps data written after a restart instead of discarding it.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Notebooks &amp; Colab</span><span class="card-sub">inline</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">%load_ext tensorboard</code><span class="star">&#9733;</span><div class="desc">Once per kernel.</div></li>
+      <li class="setup"><code class="cmd">%tensorboard --logdir logs</code><span class="star">&#9733;</span><div class="desc">Renders inline in the notebook. Same flags as the CLI.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">from</span> <span class="mod">tensorboard</span> <span class="kw">import</span> notebook; notebook.<span class="fn">list</span>()</code><div class="desc">Which instances are already running.</div></li>
+      <li class="setup"><code class="cmd">notebook.<span class="fn">display</span>(port=<span class="num">6006</span>, height=<span class="num">800</span>)</code><div class="desc">Re-show an existing instance rather than starting another.</div></li>
+      <li class="setup"><code class="cmd">!rm -rf ./logs/</code><div class="desc"><b>Clear before re-running a demo cell</b>, or old runs pile up in the selector.</div></li>
+      <li class="danger"><code class="cmd">several %tensorboard calls</code><div class="desc">Each may start a new server on a new port. Reuse with <code>notebook.display</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Remote &amp; shared</span><span class="card-sub">off your laptop</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">ssh -L <span class="num">6006</span>:localhost:<span class="num">6006</span> user@host</code><span class="star">&#9733;</span><div class="desc"><b>The safe default.</b> Run TensorBoard on the remote box, tunnel the port, browse locally.</div></li>
+      <li class="setup"><code class="cmd">tensorboard --logdir logs --bind_all</code><div class="desc">Exposes it on the network. Convenient, and unauthenticated &#8212; know your network.</div></li>
+      <li class="danger"><code class="cmd">TensorBoard has no authentication</code><span class="star">&#9733;</span><span class="badge badge-danger">security</span><div class="desc">Anyone who can reach the port sees your runs. Never <code>--bind_all</code> on a public host.</div></li>
+      <li class="setup"><code class="cmd">docker run -p <span class="num">6006</span>:<span class="num">6006</span> -v $PWD/logs:/logs</code><div class="desc">Mount the directory; run the server inside.</div></li>
+      <li class="setup"><code class="cmd">VS Code forwards the port automatically</code><div class="desc">Launch it in the integrated terminal over SSH and click the link.</div></li>
+      <li class="setup"><code class="cmd">rsync -a host:logs/ ./logs/</code><div class="desc">Or just copy the event files down and read them locally.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">The dashboards</span><span class="card-sub">what each tab is</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd">Time Series</code><span class="star">&#9733;</span><div class="desc"><b>The default since 2.10.</b> Scalars, histograms and images together, with per-card pinning and regex filters.</div></li>
+      <li class="dom"><code class="cmd">Scalars</code><div class="desc">The older, simpler chart view. Still there, still fine.</div></li>
+      <li class="dom"><code class="cmd">Graphs</code><div class="desc">The model as a computation graph. Op-level and conceptual views.</div></li>
+      <li class="dom"><code class="cmd">Distributions &#183; Histograms</code><div class="desc">Two renderings of the same weight-over-time data.</div></li>
+      <li class="dom"><code class="cmd">Images &#183; Audio &#183; Text</code><div class="desc">Any media you logged, with a step slider.</div></li>
+      <li class="dom"><code class="cmd">HParams &#183; Projector &#183; PR Curves &#183; Mesh</code><div class="desc">The plugin dashboards &#8212; Part III.</div></li>
+      <li class="dom"><code class="cmd">tabs appear only when data exists</code><span class="star">&#9733;</span><div class="desc">A missing tab means a missing summary type, not a broken TensorBoard.</div></li>
+      <li class="dom"><code class="cmd">the inactive-plugin dropdown</code><div class="desc">Top right &#8212; lists what is hidden and why.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Reading a chart</span><span class="card-sub">the controls</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd">smoothing slider</code><span class="star">&#9733;</span><div class="desc">An exponential moving average. The faint line is the truth; the bold one is the smoothing.</div></li>
+      <li class="dom"><code class="cmd">STEP &#183; RELATIVE &#183; WALL</code><span class="star">&#9733;</span><div class="desc"><b>Three x-axes.</b> Step for comparing training progress, relative for comparing speed, wall for debugging a schedule.</div></li>
+      <li class="dom"><code class="cmd">tag names group by slash</code><div class="desc"><code>loss/train</code> and <code>loss/val</code> land in one collapsible <b>loss</b> group.</div></li>
+      <li class="dom"><code class="cmd">tooltip sorting: nearest &#183; descending</code><div class="desc">Under settings. &#8220;Nearest&#8221; is far more readable with many runs.</div></li>
+      <li class="dom"><code class="cmd">log scale on y</code><div class="desc">The toggle under each chart. Essential for a loss that spans orders of magnitude.</div></li>
+      <li class="dom"><code class="cmd">ignore outliers in chart scaling</code><div class="desc">On by default, which can hide a genuine spike. Worth turning off when hunting one.</div></li>
+      <li class="dom"><code class="cmd">pin a card</code><div class="desc">Pinned cards float to the top of Time Series &#8212; your custom dashboard.</div></li>
+      <li class="danger"><code class="cmd">smoothing distorts the ends</code><span class="star">&#9733;</span><div class="desc">The EMA has no history at the start and no future at the end. Never read a final value off a smoothed curve.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Comparing runs</span><span class="card-sub">the actual job</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd">the run selector regex</code><span class="star">&#9733;</span><div class="desc">Filters by run name. This is why directory naming matters.</div></li>
+      <li class="dom"><code class="cmd">toggle runs on and off</code><div class="desc">Click a name to isolate it; colours stay stable so charts remain comparable.</div></li>
+      <li class="dom"><code class="cmd">the tag filter box</code><span class="star">&#9733;</span><div class="desc">A regex over tag names &#8212; <code>^loss</code> to see only losses.</div></li>
+      <li class="dom"><code class="cmd">write hyperparameters into the run name</code><div class="desc"><code>lr0.001_bs32_adamw/</code> makes the legend self-documenting without the HParams plugin.</div></li>
+      <li class="dom"><code class="cmd">Show data download links</code><div class="desc">Adds CSV and JSON export under every chart.</div></li>
+      <li class="dom"><code class="cmd">one writer per condition</code><div class="desc">Train and validation as separate runs is what makes the two curves overlay correctly.</div></li>
+      <li class="danger"><code class="cmd">comparing runs with different step semantics</code><span class="star">&#9733;</span><div class="desc">Per-batch steps against per-epoch steps produces a meaningless chart. Fix the step, not the axis.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Graphs</span><span class="card-sub">the model, drawn</span></div>
+    <ul class="cmds">
+      <li class="dom"><code class="cmd">write_graph=<span class="kw">True</span> in the Keras callback</code><span class="star">&#9733;</span><div class="desc">On by default. Costs disk on large models.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">tf</span>.<span class="mod">summary</span>.<span class="fn">trace_on</span>(graph=<span class="kw">True</span>) &#8230; <span class="fn">trace_export</span>(name, step)</code><span class="star">&#9733;</span><div class="desc">How you capture the graph of an arbitrary <code>@tf.function</code>.</div></li>
+      <li class="dom"><code class="cmd">Op-level vs Conceptual</code><div class="desc">Op-level is what actually runs; conceptual is the Keras layer structure you wrote.</div></li>
+      <li class="train"><code class="cmd">writer.<span class="fn">add_graph</span>(model, example_input)</code><div class="desc">The PyTorch route &#8212; it traces the model with that batch.</div></li>
+      <li class="dom"><code class="cmd">colour by structure or by device</code><div class="desc">The device view is how you confirm ops landed on the GPU.</div></li>
+      <li class="danger"><code class="cmd">the graph plugin is Keras 2 era</code><span class="badge badge-danger">Keras 3</span><div class="desc">With Keras 3 the graph may be sparse or missing. The dashboards for scalars and images are unaffected.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Images, audio, text</span><span class="card-sub">non-scalar logging</span></div>
+    <ul class="cmds">
+      <li class="nn"><code class="cmd"><span class="mod">tf</span>.<span class="mod">summary</span>.<span class="fn">image</span>(name, tensor, step=i, max_outputs=<span class="num">3</span>)</code><span class="star">&#9733;</span><div class="desc">Needs a <b>4-D</b> tensor <code>(N, H, W, C)</code>. A single image must be reshaped first.</div></li>
+      <li class="train"><code class="cmd">writer.<span class="fn">add_image</span>(tag, img, step)</code><span class="star">&#9733;</span><span class="badge badge-danger">layout</span><div class="desc"><b>PyTorch is CHW</b>, not HWC. <code>add_images</code> takes NCHW.</div></li>
+      <li class="train"><code class="cmd">writer.<span class="fn">add_figure</span>(tag, matplotlib_fig, step)</code><div class="desc">The easiest way to log a confusion matrix or any custom plot.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">tf</span>.<span class="mod">summary</span>.<span class="fn">text</span>(name, md_string, step=i)</code><div class="desc">Rendered as Markdown &#8212; good for config dumps and sample generations.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">tf</span>.<span class="mod">summary</span>.<span class="fn">audio</span>(name, tensor, sample_rate, step)</code><div class="desc">Shape <code>(batch, frames, channels)</code>, float in [-1, 1].</div></li>
+      <li class="dom"><code class="cmd">the step slider</code><div class="desc">Every media dashboard has one. It is how you watch generated samples improve.</div></li>
+      <li class="danger"><code class="cmd">logging images every step</code><span class="star">&#9733;</span><div class="desc">The fastest way to fill a disk. Log every N steps, and cap <code>max_outputs</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Histograms &amp; distributions</span><span class="card-sub">watching the weights</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd">histogram_freq=<span class="num">1</span> in the Keras callback</code><span class="star">&#9733;</span><div class="desc"><b>Off by default.</b> Nothing appears in these tabs until you set it.</div></li>
+      <li class="train"><code class="cmd">writer.<span class="fn">add_histogram</span>(name, param, step)</code><span class="star">&#9733;</span><div class="desc">The PyTorch equivalent &#8212; loop over <code>model.named_parameters()</code>.</div></li>
+      <li class="dom"><code class="cmd">OVERLAY vs OFFSET</code><div class="desc">Overlay stacks the curves for comparison; offset gives the classic ridgeline over time.</div></li>
+      <li class="dom"><code class="cmd">Distributions = the same data as percentiles</code><div class="desc">Bands showing where the bulk of the weights sit. Easier to read at a glance than the histogram.</div></li>
+      <li class="dom"><code class="cmd">what you are looking for</code><div class="desc">A distribution that collapses to zero (dead units) or widens without bound (divergence).</div></li>
+      <li class="danger"><code class="cmd">histograms are expensive</code><div class="desc">They serialise every weight at every logged epoch. Turn them on to diagnose, off to train.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Housekeeping</span><span class="card-sub">disk and staleness</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">a fresh timestamped directory per run</code><span class="star">&#9733;</span><div class="desc">The single habit that prevents most TensorBoard confusion.</div></li>
+      <li class="setup"><code class="cmd">du -sh logs/*</code><div class="desc">Find the run that is eating the disk. It is almost always images or histograms.</div></li>
+      <li class="danger"><code class="cmd">the chart stopped updating</code><span class="star">&#9733;</span><div class="desc">Check, in order: the writer was flushed, the process is alive, <code>--reload_interval</code>, then the browser cache.</div></li>
+      <li class="setup"><code class="cmd">hard-refresh the browser</code><div class="desc">TensorBoard caches aggressively. Ctrl-Shift-R resolves a surprising number of &#8220;bugs&#8221;.</div></li>
+      <li class="setup"><code class="cmd">kill stale servers</code><div class="desc"><code>lsof -i :6006</code>, or <code>pkill -f tensorboard</code> when ports pile up.</div></li>
+      <li class="setup"><code class="cmd">keep event files, delete checkpoints</code><div class="desc">Event files are small and are your experiment record. Checkpoints are what fill the disk.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ PART II ============ -->
+<section class="part-head">
+  <div class="bar">
+    <span class="part-tag ii">PART II</span>
+    <h2><span class="accent-v">writing events</span> &nbsp;&#183;&nbsp; from your code</h2>
+  </div>
+  <div class="note">Three APIs, one file format. <code>tf.summary</code> is the native one, the Keras callback wraps it, and PyTorch ships its own writer producing identical files. Whichever you use, the same two rules apply: <b>every record needs an explicit step</b>, and <b>nothing is visible until it is flushed</b>.</div>
+</section>
+
+<main>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num v">W1</span><span class="card-title">tf.summary &#183; the writer</span><span class="card-sub">open, write, flush</span></div>
+    <ul class="cmds">
+      <li class="nn"><code class="cmd">writer = <span class="mod">tf</span>.<span class="mod">summary</span>.<span class="fn">create_file_writer</span>(<span class="str">"logs/train"</span>)</code><span class="star">&#9733;</span><div class="desc">One writer per run directory. Create it once, outside the loop.</div></li>
+      <li class="nn"><code class="cmd"><span class="kw">with</span> writer.<span class="fn">as_default</span>():</code><span class="star">&#9733;</span><div class="desc">Sets the ambient writer. Every <code>tf.summary.*</code> call inside goes to it.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">tf</span>.<span class="mod">summary</span>.<span class="fn">scalar</span>(<span class="str">"loss"</span>, value, step=i)</code><span class="star">&#9733;</span><div class="desc"><b><code>step</code> is not optional.</b> Omit it and you get an error, not a default.</div></li>
+      <li class="nn"><code class="cmd">writer.<span class="fn">flush</span>()</code><span class="badge badge-danger">#1</span><div class="desc"><b>Forces the buffer to disk.</b> The single most common reason a dashboard is empty.</div></li>
+      <li class="nn"><code class="cmd"><span class="fn">create_file_writer</span>(dir, max_queue=<span class="num">10</span>, flush_millis=<span class="num">120000</span>)</code><div class="desc">The buffer thresholds. The default two-minute flush is why short scripts appear to log nothing.</div></li>
+      <li class="nn"><code class="cmd">writer.<span class="fn">close</span>()</code><div class="desc">Flushes and releases the file. A <code>with</code> block does it for you.</div></li>
+      <li class="nn"><code class="cmd">two writers, two runs</code><div class="desc"><code>logs/train</code> and <code>logs/val</code> &#8212; that is how you get two curves on one chart.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num v">W2</span><span class="card-title">tf.summary &#183; what you can log</span><span class="card-sub">the record types</span></div>
+    <ul class="cmds">
+      <li class="nn"><code class="cmd"><span class="mod">tf</span>.<span class="mod">summary</span>.<span class="fn">scalar</span>(name, value, step)</code><span class="star">&#9733;</span><div class="desc">Anything reducible to one number.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">tf</span>.<span class="mod">summary</span>.<span class="fn">image</span>(name, tensor4d, step, max_outputs=<span class="num">3</span>)</code><span class="star">&#9733;</span><div class="desc">Four dimensions, always. <code>tf.expand_dims</code> a single image first.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">tf</span>.<span class="mod">summary</span>.<span class="fn">histogram</span>(name, tensor, step, buckets=<span class="num">30</span>)</code><div class="desc">Weight and activation distributions.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">tf</span>.<span class="mod">summary</span>.<span class="fn">text</span>(name, markdown, step)</code><div class="desc">Config, prompts, generated samples.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">tf</span>.<span class="mod">summary</span>.<span class="fn">audio</span>(name, tensor, sample_rate, step)</code><div class="desc">Waveforms with an inline player.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">tf</span>.<span class="mod">summary</span>.<span class="fn">graph</span>(func.<span class="fn">get_concrete_function</span>().graph)</code><div class="desc">Explicit graph export.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">tf</span>.<span class="mod">summary</span>.<span class="fn">write</span>(tag, tensor, step)</code><div class="desc">The raw escape hatch when no typed helper fits.</div></li>
+      <li class="nn"><code class="cmd">name the tag with slashes</code><span class="star">&#9733;</span><div class="desc"><code>"loss/train"</code>, <code>"grad_norm/layer1"</code> &#8212; grouping is free and makes the UI navigable.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num v">W3</span><span class="card-title">Steps &amp; conditional logging</span><span class="card-sub">controlling volume</span></div>
+    <ul class="cmds">
+      <li class="nn"><code class="cmd"><span class="mod">tf</span>.<span class="mod">summary</span>.<span class="mod">experimental</span>.<span class="fn">set_step</span>(i)</code><span class="star">&#9733;</span><div class="desc">Set it once per iteration and drop <code>step=</code> from every call.</div></li>
+      <li class="nn"><code class="cmd"><span class="kw">with</span> <span class="mod">tf</span>.<span class="mod">summary</span>.<span class="fn">record_if</span>(<span class="kw">lambda</span>: step % <span class="num">100</span> == <span class="num">0</span>):</code><span class="star">&#9733;</span><div class="desc"><b>Log every hundredth step</b> without an <code>if</code> around every call &#8212; and it works inside a traced function.</div></li>
+      <li class="nn"><code class="cmd">the default writer is thread-local</code><div class="desc">A writer set in one thread is invisible in another. Multi-worker code must set it per worker.</div></li>
+      <li class="nn"><code class="cmd">inside @<span class="mod">tf</span>.<span class="fn">function</span>, step must be a tensor</code><div class="desc">Pass <code>tf.cast(optimizer.iterations, tf.int64)</code> rather than a Python int.</div></li>
+      <li class="nn"><code class="cmd"><span class="kw">with</span> <span class="mod">tf</span>.<span class="fn">name_scope</span>(<span class="str">"train"</span>):</code><div class="desc">Prefixes every tag written inside it.</div></li>
+      <li class="danger"><code class="cmd">logging every step of a fast loop</code><div class="desc">The event file outgrows the checkpoints, and TensorBoard downsamples it away anyway.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num v">W4</span><span class="card-title">The Keras callback</span><span class="card-sub">the one-liner</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd"><span class="mod">keras</span>.<span class="mod">callbacks</span>.<span class="fn">TensorBoard</span>(log_dir=logdir)</code><span class="star">&#9733;</span><div class="desc">Writes loss and every compiled metric, for train and validation, as two runs.</div></li>
+      <li class="train"><code class="cmd">log_dir=<span class="str">"logs/fit/"</span> + <span class="fn">strftime</span>(<span class="str">"%Y%m%d-%H%M%S"</span>)</code><span class="star">&#9733;</span><div class="desc"><b>The timestamp habit.</b> Without it every run lands on top of the last.</div></li>
+      <li class="train"><code class="cmd">histogram_freq=<span class="num">1</span></code><div class="desc">Enables the Histograms and Distributions tabs. Zero (the default) leaves them empty.</div></li>
+      <li class="train"><code class="cmd">update_freq=<span class="str">"epoch"</span> | <span class="str">"batch"</span> | <span class="num">100</span></code><div class="desc">Per epoch is the sane default; a number means every N batches.</div></li>
+      <li class="train"><code class="cmd">write_graph=<span class="kw">True</span> &#183; write_images=<span class="kw">False</span></code><div class="desc">Graph on by default; weight images off.</div></li>
+      <li class="train"><code class="cmd">profile_batch=(<span class="num">10</span>, <span class="num">20</span>)</code><div class="desc">Captures a profile over those steps &#8212; needs XProf installed. See P4.</div></li>
+      <li class="train"><code class="cmd">embeddings_freq=<span class="num">1</span></code><div class="desc">Populates the Projector from your embedding layers.</div></li>
+      <li class="danger"><code class="cmd">extra metrics need extra logging</code><span class="star">&#9733;</span><div class="desc">The callback only sees what <code>compile(metrics=...)</code> produced. Anything else you write yourself.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num v">W5</span><span class="card-title">Custom loops</span><span class="card-sub">doing it by hand</span></div>
+    <ul class="cmds">
+      <li class="nn"><code class="cmd">train_w, val_w = <span class="fn">create_file_writer</span>(d+<span class="str">"/train"</span>), <span class="fn">create_file_writer</span>(d+<span class="str">"/val"</span>)</code><span class="star">&#9733;</span><div class="desc">Two writers up front. This is the whole trick.</div></li>
+      <li class="train"><code class="cmd">metric.<span class="fn">result</span>() &#8594; log &#8594; metric.<span class="fn">reset_state</span>()</code><span class="star">&#9733;</span><div class="desc">Log the epoch aggregate, then reset. Forgetting the reset averages across all of training.</div></li>
+      <li class="nn"><code class="cmd">log the learning rate too</code><div class="desc"><code>optimizer.learning_rate</code> &#8212; a schedule that is not doing what you think is a common silent bug.</div></li>
+      <li class="nn"><code class="cmd">log gradient norms</code><div class="desc"><code>tf.linalg.global_norm(grads)</code> tells you about instability long before the loss does.</div></li>
+      <li class="nn"><code class="cmd">writer.<span class="fn">flush</span>() at epoch end</code><div class="desc">Cheap, and makes the dashboard track your run in real time.</div></li>
+      <li class="nn"><code class="cmd">log a sample of predictions as images</code><div class="desc">The fastest way to notice that your labels are misaligned.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num v">W6</span><span class="card-title">PyTorch &#183; SummaryWriter</span><span class="card-sub">the other native writer</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd"><span class="kw">from</span> <span class="mod">torch.utils.tensorboard</span> <span class="kw">import</span> <span class="mod">SummaryWriter</span></code><span class="star">&#9733;</span><div class="desc">Ships with PyTorch. Still requires the <code>tensorboard</code> package to be installed.</div></li>
+      <li class="train"><code class="cmd">w = <span class="fn">SummaryWriter</span>(<span class="str">"runs/exp1"</span>)</code><span class="star">&#9733;</span><div class="desc">No argument gives <code>runs/&lt;timestamp&gt;_&lt;hostname&gt;</code> &#8212; unique, and unreadable in a legend.</div></li>
+      <li class="train"><code class="cmd">w.<span class="fn">add_scalar</span>(<span class="str">"loss/train"</span>, value, global_step)</code><span class="star">&#9733;</span><div class="desc">Value must be a Python number or a scalar tensor &#8212; call <code>.item()</code>.</div></li>
+      <li class="train"><code class="cmd">w.<span class="fn">add_scalars</span>(<span class="str">"loss"</span>, {<span class="str">"train"</span>: a, <span class="str">"val"</span>: b}, step)</code><div class="desc">Convenient, but it writes hidden sub-runs. Two writers is the cleaner pattern.</div></li>
+      <li class="train"><code class="cmd">w.<span class="fn">flush</span>() &#183; w.<span class="fn">close</span>()</code><div class="desc"><b>Close it.</b> A script that exits without closing frequently loses its last records.</div></li>
+      <li class="train"><code class="cmd"><span class="kw">with</span> <span class="fn">SummaryWriter</span>(dir) <span class="kw">as</span> w:</code><div class="desc">Context manager, so the close cannot be forgotten.</div></li>
+      <li class="train"><code class="cmd">comment=<span class="str">"_lr0.001"</span></code><div class="desc">Appended to the auto-generated directory name.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num v">W7</span><span class="card-title">PyTorch &#183; the rest of add_*</span><span class="card-sub">beyond scalars</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd">w.<span class="fn">add_image</span>(tag, img_chw, step)</code><span class="star">&#9733;</span><span class="badge badge-danger">layout</span><div class="desc"><b>CHW.</b> Pass HWC and you get a garbled image with no error.</div></li>
+      <li class="train"><code class="cmd">w.<span class="fn">add_images</span>(tag, batch_nchw, step)</code><div class="desc">A batch at once; or build a grid with <code>torchvision.utils.make_grid</code>.</div></li>
+      <li class="train"><code class="cmd">w.<span class="fn">add_figure</span>(tag, fig, step)</code><span class="star">&#9733;</span><div class="desc">Any matplotlib figure &#8212; confusion matrices, attention maps.</div></li>
+      <li class="train"><code class="cmd">w.<span class="fn">add_histogram</span>(name, param, step)</code><span class="star">&#9733;</span><div class="desc">Loop <code>model.named_parameters()</code> and log weights and gradients.</div></li>
+      <li class="train"><code class="cmd">w.<span class="fn">add_graph</span>(model, example_batch)</code><div class="desc">Traces the model. Fails on genuinely dynamic control flow.</div></li>
+      <li class="train"><code class="cmd">w.<span class="fn">add_embedding</span>(mat, metadata=labels, label_img=imgs)</code><div class="desc">Populates the Projector with almost no ceremony.</div></li>
+      <li class="train"><code class="cmd">w.<span class="fn">add_hparams</span>({...}, {...})</code><div class="desc">Writes a nested run. See P1 for the caveat.</div></li>
+      <li class="train"><code class="cmd">w.<span class="fn">add_pr_curve</span> &#183; <span class="fn">add_text</span> &#183; <span class="fn">add_audio</span> &#183; <span class="fn">add_video</span> &#183; <span class="fn">add_mesh</span></code><div class="desc">The long tail, all with the same signature shape.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num v">W8</span><span class="card-title">Other frameworks</span><span class="card-sub">it is just event files</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd">Lightning: <span class="mod">TensorBoardLogger</span>(save_dir) + self.<span class="fn">log</span>()</code><span class="star">&#9733;</span><div class="desc">Logger plus <code>self.log("val_loss", v)</code> and the rest is handled.</div></li>
+      <li class="train"><code class="cmd">Transformers: report_to=<span class="str">"tensorboard"</span>, logging_dir=</code><span class="star">&#9733;</span><div class="desc">Set both in <code>TrainingArguments</code>; also <code>logging_steps</code>.</div></li>
+      <li class="train"><code class="cmd">pip install tensorboardX</code><div class="desc">An independent writer predating the official one. Still maintained (2.6.5), useful outside PyTorch.</div></li>
+      <li class="train"><code class="cmd">JAX / Flax</code><div class="desc">Either <code>tensorboardX</code>, or <code>tf.summary</code> if TensorFlow happens to be installed.</div></li>
+      <li class="train"><code class="cmd">scikit-learn, XGBoost, anything</code><div class="desc">Nothing stops you opening a writer and logging your own numbers.</div></li>
+      <li class="danger"><code class="cmd">two libraries writing one directory</code><div class="desc">Duplicate tags and interleaved steps. One writer owns one directory.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ PART III ============ -->
+<section class="part-head">
+  <div class="bar">
+    <span class="part-tag iii">PART III</span>
+    <h2><span class="accent-a">plugins</span> &nbsp;&#183;&nbsp; past the loss curve</h2>
+  </div>
+  <div class="note">The dashboards that need their own API, plus the two things worth knowing about the ecosystem: <b>the profiler has left</b> &#8212; <code>tensorboard_plugin_profile</code> is now <b>XProf</b> under OpenXLA, installable and runnable on its own &#8212; and <b>TensorBoard.dev has been shut down</b>, so sharing runs means self-hosting or a third-party service.</div>
+</section>
+
+<main>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num a">P1</span><span class="card-title">HParams</span><span class="card-sub">which settings won</span></div>
+    <ul class="cmds">
+      <li class="perf"><code class="cmd"><span class="kw">from</span> <span class="mod">tensorboard.plugins.hparams</span> <span class="kw">import</span> api <span class="kw">as</span> hp</code><span class="star">&#9733;</span><div class="desc">The plugin ships with TensorBoard &#8212; no extra install.</div></li>
+      <li class="perf"><code class="cmd">HP_LR = <span class="mod">hp</span>.<span class="fn">HParam</span>(<span class="str">"lr"</span>, <span class="mod">hp</span>.<span class="fn">Discrete</span>([<span class="num">1e-3</span>, <span class="num">1e-4</span>]))</code><span class="star">&#9733;</span><div class="desc">Declare the search space. <code>RealInterval</code> and <code>IntInterval</code> also exist.</div></li>
+      <li class="perf"><code class="cmd"><span class="kw">with</span> writer.<span class="fn">as_default</span>(): <span class="mod">hp</span>.<span class="fn">hparams</span>({HP_LR: <span class="num">1e-3</span>})</code><div class="desc"><b>Written once per run</b>, into that run's own directory, before training starts.</div></li>
+      <li class="perf"><code class="cmd">one directory per trial</code><div class="desc"><code>logs/hparam/run-0</code>, <code>run-1</code>&#8230; The plugin joins the config to the metrics by run.</div></li>
+      <li class="perf"><code class="cmd"><span class="mod">hp</span>.<span class="fn">KerasCallback</span>(logdir, hparams)</code><div class="desc">Pass it alongside the TensorBoard callback and the wiring is done.</div></li>
+      <li class="perf"><code class="cmd">TABLE VIEW &#183; PARALLEL COORDINATES &#183; SCATTER</code><div class="desc">Three views. Parallel coordinates is the one that actually shows interactions.</div></li>
+      <li class="perf"><code class="cmd">filter and sort by metric in the UI</code><div class="desc">Sort by <code>val_accuracy</code>, then read the columns that co-vary.</div></li>
+      <li class="danger"><code class="cmd">PyTorch <span class="fn">add_hparams</span> writes a nested run</code><span class="star">&#9733;</span><div class="desc">It creates a sub-directory, so the same metrics can appear twice. Log hparams to their own writer if it bothers you.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num a">P2</span><span class="card-title">Embedding Projector</span><span class="card-sub">high-dimensional space</span></div>
+    <ul class="cmds">
+      <li class="perf"><code class="cmd">w.<span class="fn">add_embedding</span>(mat, metadata=labels, label_img=thumbs)</code><span class="star">&#9733;</span><div class="desc"><b>By far the easiest route</b>, even if the rest of your stack is TensorFlow.</div></li>
+      <li class="perf"><code class="cmd"><span class="kw">from</span> <span class="mod">tensorboard.plugins</span> <span class="kw">import</span> projector</code><div class="desc">The TF route: write a checkpoint, a metadata file and a config.</div></li>
+      <li class="perf"><code class="cmd">metadata.tsv &#8212; one label per line</code><span class="star">&#9733;</span><div class="desc"><b>Row order must match the embedding matrix exactly.</b> A header is required only when there are two or more columns.</div></li>
+      <li class="perf"><code class="cmd">projector.<span class="fn">ProjectorConfig</span>() &#8594; <span class="fn">visualize_embeddings</span>(logdir, config)</code><div class="desc">Writes <code>projector_config.pbtxt</code> next to the checkpoint.</div></li>
+      <li class="perf"><code class="cmd">PCA &#183; t-SNE &#183; UMAP in the browser</code><span class="star">&#9733;</span><div class="desc">Computed client-side, live. t-SNE animates as it converges.</div></li>
+      <li class="perf"><code class="cmd">sprite images</code><div class="desc">One packed image grid lets you see thumbnails instead of dots.</div></li>
+      <li class="danger"><code class="cmd">tens of thousands of points</code><div class="desc">The projector slows to a crawl. Subsample before you write.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num a">P3</span><span class="card-title">PR curves &amp; custom scalars</span><span class="card-sub">the quieter plugins</span></div>
+    <ul class="cmds">
+      <li class="perf"><code class="cmd">w.<span class="fn">add_pr_curve</span>(tag, labels, predictions, step)</code><span class="star">&#9733;</span><div class="desc">Precision-recall across thresholds, with a slider over training steps.</div></li>
+      <li class="perf"><code class="cmd">the threshold slider</code><div class="desc">Lets you pick an operating point visually rather than guessing.</div></li>
+      <li class="perf"><code class="cmd"><span class="mod">tensorboard.plugins.custom_scalar</span>.summary</code><div class="desc">Define a layout: which tags share a chart, and margin plots for confidence bands.</div></li>
+      <li class="perf"><code class="cmd">margin plots</code><span class="star">&#9733;</span><div class="desc">Lower, middle and upper tags drawn as a shaded band &#8212; the way to show variance across seeds.</div></li>
+      <li class="perf"><code class="cmd">the layout is written once</code><div class="desc">A single summary at step 0 configures the whole dashboard.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num a">P4</span><span class="card-title">XProf &#183; the profiler</span><span class="card-sub">it left TensorBoard</span></div>
+    <ul class="cmds">
+      <li class="perf"><code class="cmd">pip install xprof</code><span class="star">&#9733;</span><span class="badge badge-new">renamed</span><div class="desc"><b>Formerly <code>tensorboard_plugin_profile</code>.</b> Renamed XProf, moved under OpenXLA, and now released on its own cadence.</div></li>
+      <li class="perf"><code class="cmd">JAX &#183; PyTorch/XLA &#183; TensorFlow, equally</code><span class="star">&#9733;</span><div class="desc">No longer a TensorFlow-first tool. That is the point of the move.</div></li>
+      <li class="perf"><code class="cmd">it also runs standalone</code><div class="desc">TensorBoard is now just a container for it &#8212; same UI either way, pointed at the same directory.</div></li>
+      <li class="perf"><code class="cmd">install it and a Profile tab appears</code><div class="desc">No configuration. Absent tab means absent package.</div></li>
+      <li class="train"><code class="cmd">profile_batch=(<span class="num">10</span>, <span class="num">20</span>) in the Keras callback</code><div class="desc">The easiest capture. Profile a few steps in the middle, never the first.</div></li>
+      <li class="nn"><code class="cmd"><span class="mod">tf</span>.<span class="mod">profiler</span>.<span class="mod">experimental</span>.<span class="fn">start</span>(logdir) &#8230; <span class="fn">stop</span>()</code><div class="desc">Manual capture around any region of code.</div></li>
+      <li class="perf"><code class="cmd">logdir/plugins/profile/&lt;session&gt;/*.xplane.pb</code><div class="desc">The layout XProf expects. Each session becomes an entry in the dropdown.</div></li>
+      <li class="perf"><code class="cmd">Trace Viewer &#183; Input Pipeline &#183; Memory &#183; HLO op profile</code><div class="desc">Gaps in the GPU timeline mean the input pipeline is starving it.</div></li>
+      <li class="danger"><code class="cmd">it needs internet for Google Charts</code><span class="star">&#9733;</span><span class="badge badge-danger">offline</span><div class="desc">Fully offline or behind a strict firewall, some charts and tables silently fail to render.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num a">P5</span><span class="card-title">Reading the data back</span><span class="card-sub">out of the UI</span></div>
+    <ul class="cmds">
+      <li class="perf"><code class="cmd">pip install tbparse &#8594; <span class="fn">SummaryReader</span>(logdir).scalars</code><span class="star">&#9733;</span><div class="desc"><b>Straight to a pandas DataFrame</b>, across every run. The pragmatic choice for a paper table.</div></li>
+      <li class="perf"><code class="cmd"><span class="kw">from</span> <span class="mod">tensorboard.backend.event_processing.event_accumulator</span> <span class="kw">import</span> EventAccumulator</code><span class="star">&#9733;</span><div class="desc">The official reader, bundled with TensorBoard.</div></li>
+      <li class="perf"><code class="cmd">ea = <span class="fn">EventAccumulator</span>(path); ea.<span class="fn">Reload</span>(); ea.<span class="fn">Tags</span>()</code><div class="desc"><b><code>Reload()</code> is mandatory</b> &#8212; without it every accessor returns empty.</div></li>
+      <li class="perf"><code class="cmd">ea.<span class="fn">Scalars</span>(<span class="str">"loss/train"</span>) &#8594; [(wall_time, step, value)&#8230;]</code><div class="desc">Named tuples, ready for a DataFrame.</div></li>
+      <li class="perf"><code class="cmd">size_guidance={&#8230;: <span class="num">0</span>}</code><div class="desc">Load everything instead of the default in-memory downsample.</div></li>
+      <li class="perf"><code class="cmd">Show data download links &#8594; CSV / JSON</code><div class="desc">For one chart, the UI export is faster than any script.</div></li>
+      <li class="danger"><code class="cmd">the chart is downsampled, the file is not</code><span class="star">&#9733;</span><div class="desc">If you scrape the UI you get roughly a thousand points. Read the event file for the full series.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num a">P6</span><span class="card-title">The remaining tabs</span><span class="card-sub">Mesh, Debugger, What-If</span></div>
+    <ul class="cmds">
+      <li class="perf"><code class="cmd">Mesh</code><div class="desc">3-D point clouds and meshes. <code>add_mesh</code> in PyTorch, <code>mesh_summary</code> in TF.</div></li>
+      <li class="perf"><code class="cmd">Debugger V2</code><span class="star">&#9733;</span><div class="desc">Traces NaNs and infinities back to the originating op. Enable with <code>tf.debugging.experimental.enable_dump_debug_info</code>.</div></li>
+      <li class="perf"><code class="cmd">What-If Tool &#183; Fairness Indicators</code><div class="desc">Model-probing plugins, installed separately. Largely superseded by standalone tooling.</div></li>
+      <li class="perf"><code class="cmd">writing your own plugin</code><div class="desc">A Python backend plus a frontend bundle. Rare, and documented in the TensorBoard repo.</div></li>
+      <li class="perf"><code class="cmd">the inactive-plugin list</code><span class="star">&#9733;</span><div class="desc">Top-right dropdown &#8212; the definitive answer to &#8220;why is that tab missing&#8221;.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num a">P7</span><span class="card-title">What is gone, and what else</span><span class="card-sub">the honest ending</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">TensorBoard.dev &#8212; shut down</code><span class="star">&#9733;</span><span class="badge badge-gone">dead</span><div class="desc">The free hosted sharing service is dead. <code>tensorboard dev upload</code> now fails immediately without contacting anything.</div></li>
+      <li class="danger"><code class="cmd">uploaded experiments are not retrievable</code><div class="desc">Any tutorial ending in a <code>tensorboard.dev</code> link is showing you a dead end.</div></li>
+      <li class="perf"><code class="cmd">sharing now means self-hosting</code><span class="star">&#9733;</span><div class="desc">Run it on a VM behind your own auth, or export the numbers and publish those.</div></li>
+      <li class="perf"><code class="cmd">Weights &amp; Biases &#183; MLflow &#183; Aim &#183; Neptune &#183; ClearML</code><div class="desc">The hosted alternatives, all with run comparison, artifacts and teams.</div></li>
+      <li class="perf"><code class="cmd">most of them also read TensorBoard files</code><div class="desc">Migration is usually pointing the tool at your existing <code>logs/</code>.</div></li>
+      <li class="perf"><code class="cmd">when TensorBoard is still the right answer</code><div class="desc">Local, offline, free, no account, no upload, and already installed. For a single machine it is hard to beat.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four pictures worth the whole reference</h2>
+  <p class="sub">Where runs come from, the three x-axes, what smoothing really does, and why the dashboard is empty.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>1 &#183; directories become runs</h3>
+      <p>TensorBoard walks the tree below <code>--logdir</code>. Every directory containing event files becomes one run, named by its path relative to the root &#8212; which is why folder naming is chart naming.</p>
+      <svg viewBox="0 0 420 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A log directory tree on the left mapping to coloured run entries in the TensorBoard run selector on the right.">
+        <defs><marker id="ar-b1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+        <g font-size="10">
+          <text x="12" y="16" font-family="monospace" font-size="10" fill="#6b7280">on disk</text>
+          <text x="12" y="38" font-family="monospace" font-size="10.5" fill="#d97706" font-weight="700">logs/</text>
+          <text x="26" y="56" font-family="monospace" font-size="10">&#9492;&#9472; fit/</text>
+          <text x="42" y="74" font-family="monospace" font-size="10">&#9500;&#9472; base/</text>
+          <text x="58" y="92" font-family="monospace" font-size="10" fill="#4f46e5">&#9500;&#9472; train/</text>
+          <text x="58" y="110" font-family="monospace" font-size="10" fill="#0d9488">&#9492;&#9472; validation/</text>
+          <text x="42" y="128" font-family="monospace" font-size="10">&#9492;&#9472; tuned/</text>
+          <text x="58" y="146" font-family="monospace" font-size="10" fill="#7c3aed">&#9500;&#9472; train/</text>
+          <text x="58" y="164" font-family="monospace" font-size="10" fill="#d97706">&#9492;&#9472; validation/</text>
+
+          <line x1="180" y1="100" x2="216" y2="100" stroke="#6b7280" stroke-width="1.4" marker-end="url(#ar-b1)"/>
+          <text x="198" y="92" text-anchor="middle" font-size="9" font-family="monospace" fill="#6b7280">scan</text>
+
+          <text x="228" y="16" font-family="monospace" font-size="10" fill="#6b7280">run selector</text>
+          <rect x="228" y="76" width="180" height="16" rx="3" fill="#eef0fd" stroke="#4f46e5"/>
+          <text x="234" y="88" font-family="monospace" font-size="8.5" fill="#4f46e5">fit/base/train</text>
+          <rect x="228" y="96" width="180" height="16" rx="3" fill="#ecf6f5" stroke="#0d9488"/>
+          <text x="234" y="108" font-family="monospace" font-size="8.5" fill="#0d9488">fit/base/validation</text>
+          <rect x="228" y="116" width="180" height="16" rx="3" fill="#f4f0fd" stroke="#7c3aed"/>
+          <text x="234" y="128" font-family="monospace" font-size="8.5" fill="#7c3aed">fit/tuned/train</text>
+          <rect x="228" y="136" width="180" height="16" rx="3" fill="#fdf6ec" stroke="#d97706"/>
+          <text x="234" y="148" font-family="monospace" font-size="8.5" fill="#d97706">fit/tuned/validation</text>
+          <text x="228" y="170" font-size="9" fill="#5b6472">four runs, four colours, one chart</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>2 &#183; the three x-axes</h3>
+      <p>The same two runs, plotted three ways. Step compares learning; relative compares speed; wall reveals the gap where the job was queued.</p>
+      <svg viewBox="0 0 420 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three small charts showing the same two runs plotted against step, relative time and wall clock time.">
+        <g font-size="9">
+          <text x="12" y="14" font-family="monospace" font-size="9.5" fill="#1a1d24" font-weight="700">STEP</text>
+          <line x1="12" y1="70" x2="128" y2="70" stroke="#9aa2ae"/><line x1="12" y1="24" x2="12" y2="70" stroke="#9aa2ae"/>
+          <path d="M 14 30 C 40 46, 70 60, 126 64" fill="none" stroke="#4f46e5" stroke-width="1.8"/>
+          <path d="M 14 34 C 40 54, 70 63, 126 67" fill="none" stroke="#0d9488" stroke-width="1.8"/>
+          <text x="70" y="84" text-anchor="middle" font-size="8.5" fill="#5b6472">both end at step 1000</text>
+          <text x="70" y="95" text-anchor="middle" font-size="8.5" fill="#059669">compare learning</text>
+
+          <text x="152" y="14" font-family="monospace" font-size="9.5" fill="#1a1d24" font-weight="700">RELATIVE</text>
+          <line x1="152" y1="70" x2="268" y2="70" stroke="#9aa2ae"/><line x1="152" y1="24" x2="152" y2="70" stroke="#9aa2ae"/>
+          <path d="M 154 30 C 176 46, 196 60, 232 64" fill="none" stroke="#4f46e5" stroke-width="1.8"/>
+          <path d="M 154 34 C 186 54, 226 63, 266 67" fill="none" stroke="#0d9488" stroke-width="1.8"/>
+          <text x="210" y="84" text-anchor="middle" font-size="8.5" fill="#5b6472">teal took longer</text>
+          <text x="210" y="95" text-anchor="middle" font-size="8.5" fill="#059669">compare speed</text>
+
+          <text x="292" y="14" font-family="monospace" font-size="9.5" fill="#1a1d24" font-weight="700">WALL</text>
+          <line x1="292" y1="70" x2="408" y2="70" stroke="#9aa2ae"/><line x1="292" y1="24" x2="292" y2="70" stroke="#9aa2ae"/>
+          <path d="M 294 30 C 306 46, 318 60, 330 64" fill="none" stroke="#4f46e5" stroke-width="1.8"/>
+          <path d="M 370 34 C 384 54, 396 63, 406 67" fill="none" stroke="#0d9488" stroke-width="1.8"/>
+          <line x1="332" y1="24" x2="332" y2="70" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 2"/>
+          <line x1="368" y1="24" x2="368" y2="70" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 2"/>
+          <text x="350" y="20" text-anchor="middle" font-size="8" fill="#dc2626">queued</text>
+          <text x="350" y="84" text-anchor="middle" font-size="8.5" fill="#5b6472">real clock time</text>
+          <text x="350" y="95" text-anchor="middle" font-size="8.5" fill="#059669">find the stall</text>
+
+          <text x="12" y="128" font-size="9.5" fill="#1a1d24" font-weight="700">Step is the default, and the right one almost always.</text>
+          <text x="12" y="144" font-size="9" fill="#5b6472">Relative answers &#8220;which configuration trains faster in wall-clock terms&#8221;.</text>
+          <text x="12" y="158" font-size="9" fill="#5b6472">Wall answers &#8220;where did the afternoon go&#8221; &#8212; queueing, checkpointing, a stalled loader.</text>
+          <text x="12" y="176" font-size="9" fill="#dc2626">Two runs logging at different step semantics cannot be compared on any of them.</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>3 &#183; what smoothing does</h3>
+      <p>The slider applies an exponential moving average and draws the raw series faintly behind it. It is a reading aid, not data &#8212; and at both ends it is wrong.</p>
+      <svg viewBox="0 0 420 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A noisy raw curve drawn faintly with a smoothed exponential moving average line over it, with the biased start and lagging end marked.">
+        <g font-size="9">
+          <line x1="20" y1="120" x2="400" y2="120" stroke="#9aa2ae"/>
+          <line x1="20" y1="20" x2="20" y2="120" stroke="#9aa2ae"/>
+          <polyline points="24,32 40,58 56,38 72,64 88,46 104,72 120,54 136,80 152,62 168,86 184,70 200,92 216,76 232,96 248,82 264,100 280,86 296,104 312,90 328,106 344,94 360,108 376,96 392,110"
+                    fill="none" stroke="#4f46e5" stroke-width="1" opacity="0.35"/>
+          <path d="M 24 38 C 90 58, 150 76, 220 90 C 290 102, 340 106, 392 106" fill="none" stroke="#4f46e5" stroke-width="2.4"/>
+          <rect x="20" y="20" width="46" height="100" fill="#dc2626" opacity="0.07"/>
+          <text x="43" y="16" text-anchor="middle" font-size="8.5" fill="#dc2626">biased start</text>
+          <rect x="352" y="20" width="48" height="100" fill="#dc2626" opacity="0.07"/>
+          <text x="376" y="16" text-anchor="middle" font-size="8.5" fill="#dc2626">lags the end</text>
+          <text x="200" y="136" text-anchor="middle" font-size="9" fill="#5b6472">faint = the values you logged &#183; bold = the moving average</text>
+          <text x="20" y="156" font-size="9" fill="#1a1d24" font-weight="700">smoothing 0 shows the truth. 0.6 is a readable default. 0.99 can invent a trend.</text>
+          <text x="20" y="174" font-size="9" fill="#dc2626">Never quote a final metric off the bold line &#8212; read it from the raw series or your logs.</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>4 &#183; why the dashboard is empty</h3>
+      <p>Records sit in a buffer until <code>max_queue</code> fills, <code>flush_millis</code> elapses, or you flush. A short script can finish, exit, and leave everything unwritten.</p>
+      <svg viewBox="0 0 420 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A comparison of a script that exits without flushing leaving an empty file, versus one that flushes and produces data.">
+        <defs><marker id="ar-b4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+        <g font-size="9">
+          <text x="12" y="14" font-family="monospace" font-size="9.5" fill="#dc2626" font-weight="700">NO FLUSH</text>
+          <rect x="12" y="22" width="86" height="30" rx="4" fill="#eef0fd" stroke="#4f46e5"/>
+          <text x="55" y="41" text-anchor="middle" font-size="8.5">add_scalar &#215; 500</text>
+          <line x1="100" y1="37" x2="126" y2="37" stroke="#6b7280" stroke-width="1.2" marker-end="url(#ar-b4)"/>
+          <rect x="130" y="22" width="80" height="30" rx="4" fill="#ecf7f2" stroke="#059669"/>
+          <text x="170" y="41" text-anchor="middle" font-size="8.5">buffer (in RAM)</text>
+          <line x1="212" y1="37" x2="238" y2="37" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="3 2"/>
+          <text x="252" y="34" font-size="8.5" fill="#dc2626">process exits</text>
+          <text x="252" y="46" font-size="8.5" fill="#dc2626">buffer discarded</text>
+          <rect x="344" y="22" width="62" height="30" rx="4" fill="#fdf0ef" stroke="#dc2626"/>
+          <text x="375" y="41" text-anchor="middle" font-size="8.5" fill="#dc2626">0 bytes</text>
+
+          <line x1="12" y1="70" x2="408" y2="70" stroke="#e7e3db"/>
+
+          <text x="12" y="90" font-family="monospace" font-size="9.5" fill="#059669" font-weight="700">FLUSHED</text>
+          <rect x="12" y="98" width="86" height="30" rx="4" fill="#eef0fd" stroke="#4f46e5"/>
+          <text x="55" y="117" text-anchor="middle" font-size="8.5">add_scalar &#215; 500</text>
+          <line x1="100" y1="113" x2="126" y2="113" stroke="#6b7280" stroke-width="1.2" marker-end="url(#ar-b4)"/>
+          <rect x="130" y="98" width="80" height="30" rx="4" fill="#ecf7f2" stroke="#059669"/>
+          <text x="170" y="117" text-anchor="middle" font-size="8.5">buffer (in RAM)</text>
+          <line x1="212" y1="113" x2="238" y2="113" stroke="#059669" stroke-width="1.4" marker-end="url(#ar-b4)"/>
+          <text x="256" y="110" font-size="8.5" fill="#059669">w.close()</text>
+          <text x="256" y="122" font-size="8.5" fill="#059669">or w.flush()</text>
+          <rect x="330" y="98" width="76" height="30" rx="4" fill="#fdf6ec" stroke="#d97706"/>
+          <text x="368" y="117" text-anchor="middle" font-size="8.5" fill="#d97706">event file</text>
+
+          <text x="12" y="152" font-size="9" fill="#1a1d24" font-weight="700">Default flush_millis is 120000 &#8212; two minutes. Shorter scripts never reach it.</text>
+          <text x="12" y="170" font-size="9" fill="#5b6472">Fixes: close the writer, use a with-block, flush each epoch, or lower flush_millis.</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ MEMORIZE ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">one directory = one run</span><span class="v">and the run name is its path relative to <code>--logdir</code></span></div>
+    <div><span class="k">--logdir is the parent</span><span class="v">point it at a single run and you lose every comparison</span></div>
+    <div><span class="k">step is required</span><span class="v">every summary call takes an explicit step &#8212; there is no implicit counter</span></div>
+    <div><span class="k">flush or it never existed</span><span class="v">default <code>flush_millis</code> is two minutes; short scripts exit first</span></div>
+    <div><span class="k">close the writer</span><span class="v">or use a with-block &#8212; the commonest cause of a missing last epoch</span></div>
+    <div><span class="k">no TensorFlow needed</span><span class="v"><code>pip install tensorboard</code> alone reads PyTorch and JAX runs</span></div>
+    <div><span class="k">not bundled with TF anymore</span><span class="v">since TF 2.21 you install TensorBoard yourself</span></div>
+    <div><span class="k">slashes group tags</span><span class="v"><code>loss/train</code> and <code>loss/val</code> collapse into one <b>loss</b> section</span></div>
+    <div><span class="k">charts are downsampled</span><span class="v">~1000 points per tag; raise it with <code>--samples_per_plugin</code></span></div>
+    <div><span class="k">smoothing is an EMA</span><span class="v">a reading aid that is biased at the start and lags at the end</span></div>
+    <div><span class="k">three x-axes</span><span class="v">step for learning, relative for speed, wall for stalls</span></div>
+    <div><span class="k">PyTorch images are CHW</span><span class="v"><code>add_image</code> CHW, <code>add_images</code> NCHW &#8212; wrong layout fails silently</span></div>
+    <div><span class="k">histogram_freq defaults to 0</span><span class="v">so the Histograms and Distributions tabs stay empty until you set it</span></div>
+    <div><span class="k">fresh timestamped dir per run</span><span class="v">re-running into the same one makes the step axis zigzag backwards</span></div>
+    <div><span class="k">reload_interval is 5s</span><span class="v">a stale chart is usually that, the flush, or the browser cache</span></div>
+    <div><span class="k">missing tab = missing data</span><span class="v">check the inactive-plugin dropdown before suspecting the install</span></div>
+    <div><span class="k">no authentication at all</span><span class="v">whoever reaches the port sees everything &#8212; think before <code>--bind_all</code></span></div>
+    <div><span class="k">the profiler is now XProf</span><span class="v"><code>pip install xprof</code>; moved to OpenXLA, covers JAX and PyTorch/XLA too</span></div>
+    <div><span class="k">TensorBoard.dev is dead</span><span class="v">the upload subcommand errors immediately; sharing means self-hosting</span></div>
+    <div><span class="k">read files, not the UI</span><span class="v"><code>tbparse</code> or <code>EventAccumulator</code> (call <code>Reload()</code>) for the full series</span></div>
+  </div>
+</section>
+
+<footer>
+  Built against <b>TensorBoard 2.21.0</b> (29 Jun 2026), <b>TensorFlow 2.21</b> and <b>PyTorch 2.13</b>; profiler content reflects the move of <code>tensorboard_plugin_profile</code> to <b>XProf</b> under OpenXLA.
+  Sources: <code>tensorflow.org/tensorboard</code> (get_started, summaries, hyperparameter_tuning, graphs, image_summaries) &#183; <code>github.com/tensorflow/tensorboard</code> (README, RELEASE.md, flag reference) &#183; <code>pytorch.org/docs/stable/tensorboard.html</code> &#183; <code>openxla.org/xprof</code> &#183; <code>docs.jax.dev</code> profiling &#183; <code>pypi.org</code>.
+  Version numbers move quickly here &#8212; check the release notes before pinning anything.
+</footer>
+
+</body>
+</html>

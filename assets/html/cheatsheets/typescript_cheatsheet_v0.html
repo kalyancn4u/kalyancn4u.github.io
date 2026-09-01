@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TypeScript Cheat Sheet &#183; the type layer over ES2024</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --tool:#64748b;  --tool-bg:#f1f3f6;
+    --val:#d97706;   --val-bg:#fdf6ec;
+    --shape:#059669; --shape-bg:#ecf7f2;
+    --fn:#4f46e5;    --fn-bg:#eef0fd;
+    --oop:#0d9488;   --oop-bg:#ecf7f5;
+    --adv:#7c3aed;   --adv-bg:#f3effc;
+    --danger:#dc2626;--danger-bg:#fdf0ef;
+    --star:#b45309;  --tsblue:#3178c6;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;}
+
+  /* header */
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.7rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem; display:flex; align-items:center; gap:.55rem; flex-wrap:wrap;}
+  h1 .ts{font-family:var(--mono); font-weight:700; font-size:.82em; color:#fff;
+    background:var(--tsblue); border-radius:8px; padding:.06em .34em; letter-spacing:.01em;}
+  h1 .word{color:var(--tsblue); font-family:var(--mono); font-weight:700;}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .lede code{font-family:var(--mono); font-size:.9em; background:#eef0f3; padding:.05em .3em; border-radius:4px}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.tool{background:var(--tool)} .dot.val{background:var(--val)}
+  .dot.shape{background:var(--shape)} .dot.fn{background:var(--fn)}
+  .dot.oop{background:var(--oop)} .dot.adv{background:var(--adv)}
+  .dot.danger{background:var(--danger)}
+
+  /* hero flow */
+  .flow-wrap{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;}
+  .flow-title{font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;}
+  .flow-svg{width:100%; height:auto; max-width:1080px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* whats-new spotlight */
+  .whatsnew{max-width:1500px; margin:0 auto; padding:1.4rem clamp(1rem,4vw,3rem) .5rem;}
+  .whatsnew h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; padding-top:1.5rem;
+    border-top:2px solid var(--adv); color:#4c1d95; display:flex; align-items:center; gap:.6rem;}
+  .whatsnew h2 .pill{font-family:var(--mono); font-size:.62rem; letter-spacing:.05em; color:#fff;
+    background:var(--adv); border-radius:20px; padding:.16rem .55rem; text-transform:uppercase;}
+  .whatsnew .sub{color:var(--muted); font-size:.9rem; margin:.3rem 0 1.2rem}
+  .wn-grid{display:grid; gap:1rem; grid-template-columns:1fr}
+  @media(min-width:640px){ .wn-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1000px){ .wn-grid{grid-template-columns:1fr 1fr 1fr} }
+  .wn-card{border:1px solid #e6ddf7; border-left:3px solid var(--adv); background:var(--adv-bg);
+    border-radius:9px; padding:.85rem .95rem;}
+  .wn-card h3{font-family:var(--mono); font-size:.82rem; color:#5b21b6; margin-bottom:.3rem;}
+  .wn-card p{font-size:.8rem; color:#4a4550; line-height:1.55}
+  .wn-card code{font-family:var(--mono); font-size:.9em; background:#ece4fb; padding:.02em .28em; border-radius:4px; color:#4c1d95}
+
+  /* main grid */
+  main{max-width:1500px; margin:0 auto; padding:1.2rem clamp(1rem,4vw,3rem) 3rem;
+    column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  @media(min-width:1620px){ main{column-count:4} }
+
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem;}
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.tool{border-left-color:var(--tool)}
+  ul.cmds li.val{border-left-color:var(--val)}
+  ul.cmds li.shape{border-left-color:var(--shape)}
+  ul.cmds li.fn{border-left-color:var(--fn)}
+  ul.cmds li.oop{border-left-color:var(--oop)}
+  ul.cmds li.adv{border-left-color:var(--adv)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink);
+    display:block; word-break:break-word; line-height:1.45}
+  code.cmd .k{color:#a626a4; font-weight:600}
+  code.cmd .ty{color:var(--tsblue)}
+  code.cmd .s{color:#0a8754}
+  code.cmd .n{color:#b45309}
+  code.cmd .c{color:#a2a7b0; font-style:italic}
+  .desc{font-size:.77rem; color:#525761; margin-top:.2rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f1eee8; padding:.02em .26em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem;}
+  .b-ts{color:#fff; background:var(--adv); font-size:.6rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.04em; margin-left:.4rem; padding:.06rem .34rem; border-radius:4px; vertical-align:1px}
+  .b-avoid{color:var(--danger); font-size:.64rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.04em; margin-left:.4rem}
+  .b-emit{color:var(--val); font-size:.64rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.04em; margin-left:.4rem}
+
+  /* concept diagrams */
+  .diagrams{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;}
+  .diagrams h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin-bottom:.3rem;
+    padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.8rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:var(--mono)}
+
+  /* refs strip */
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem;
+    font-family:var(--mono); font-size:.8rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#7cc5ff; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#fbbf24; background:none}
+
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.75rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;}
+  footer code{color:var(--ink)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference &#183; the type layer over ES2024 JavaScript</div>
+  <h1><span class="ts">TS</span> <span class="word">typescript</span> cheat sheet</h1>
+  <p class="lede">TypeScript is JavaScript plus a type layer that lives only at compile time. You annotate; <code>tsc</code> checks the shapes <b>structurally</b>, then <b>erases</b> every type &#8212; the JavaScript that runs is plain and typeless. Learn the type system and the tooling carries the rest.</p>
+  <div class="legend">
+    <span><i class="dot tool"></i>tooling &amp; config</span>
+    <span><i class="dot val"></i>types &amp; values</span>
+    <span><i class="dot shape"></i>interfaces &amp; narrowing</span>
+    <span><i class="dot fn"></i>functions &amp; generics</span>
+    <span><i class="dot oop"></i>classes &amp; modules</span>
+    <span><i class="dot adv"></i>type-level &amp; TS&#160;7</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Synthesized &amp; cross-checked against: <b>typescriptlang.org</b> Handbook &#183; the four official cheat sheets (<b>Types &#183; Interfaces &#183; Classes &#183; Control&#160;Flow</b>) &#183; the <b>TypeScript&#160;7.0</b> release notes &#183; <b>MDN</b> &#183; <b>TC39</b> &#183; verified against <b>tsc&#160;7.0</b> (native)</p>
+</header>
+
+<!-- ============ SIGNATURE FLOW: the erasure pipeline ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The one idea: you write types &#8594; tsc checks them &#8594; they're erased</div>
+  <svg class="flow-svg" viewBox="0 0 1080 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="TypeScript compile pipeline: app.ts is type-checked by tsc, then types are erased to produce plain app.js plus an app.d.ts of the extracted types.">
+    <defs>
+      <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="ahg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#059669"/>
+      </marker>
+      <marker id="ahs" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+      </marker>
+    </defs>
+
+    <text x="130" y="30" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">WHAT YOU WRITE</text>
+    <text x="905" y="30" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#059669">WHAT SHIPS</text>
+
+    <!-- app.ts -->
+    <rect x="30" y="95" width="205" height="130" rx="12" fill="#eef4fb" stroke="#3178c6" stroke-width="2"/>
+    <text x="132" y="123" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">app.ts</text>
+    <text x="132" y="146" text-anchor="middle" font-size="10.5" fill="#3178c6">code + types</text>
+    <text x="132" y="176" text-anchor="middle" font-size="11" fill="#6b7280">interface&#160;&#183;&#160;: string</text>
+    <text x="132" y="194" text-anchor="middle" font-size="11" fill="#6b7280">&lt;T&gt;&#160;&#183;&#160;as&#160;&#183;&#160;satisfies</text>
+
+    <!-- arrow to checker -->
+    <line x1="235" y1="160" x2="323" y2="160" stroke="#1a1d24" stroke-width="2" marker-end="url(#ah)"/>
+    <text x="279" y="151" text-anchor="middle" font-size="11.5" font-weight="700" fill="#7c3aed">tsc</text>
+
+    <!-- checker -->
+    <rect x="325" y="95" width="215" height="130" rx="12" fill="#f3effc" stroke="#7c3aed" stroke-width="2"/>
+    <text x="432" y="120" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">type&#8209;check</text>
+    <text x="432" y="142" text-anchor="middle" font-size="10.5" fill="#7c3aed">structural &#183; compile&#8209;time</text>
+    <circle cx="432" cy="176" r="16" fill="none" stroke="#059669" stroke-width="2.4"/>
+    <path d="M424 176 l6 6 l10 -13" fill="none" stroke="#059669" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="432" y="212" text-anchor="middle" font-size="9.5" fill="#6b7280">shapes agree?</text>
+
+    <!-- split node -->
+    <line x1="540" y1="160" x2="590" y2="160" stroke="#1a1d24" stroke-width="2"/>
+    <circle cx="590" cy="160" r="4" fill="#1a1d24"/>
+    <!-- up branch to app.js -->
+    <path d="M590 160 C 640 160, 640 95, 700 95" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#ahg)"/>
+    <text x="648" y="86" text-anchor="middle" font-size="10.5" font-weight="700" fill="#059669">erase types</text>
+    <!-- down branch to d.ts -->
+    <path d="M590 160 C 640 160, 640 232, 700 232" fill="none" stroke="#64748b" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ahs)"/>
+    <text x="650" y="252" text-anchor="middle" font-size="10" fill="#64748b">keep types</text>
+
+    <!-- app.js -->
+    <rect x="702" y="52" width="240" height="86" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <text x="822" y="82" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">app.js</text>
+    <text x="822" y="104" text-anchor="middle" font-size="10.5" fill="#059669">types gone &#183; this is what runs</text>
+    <text x="822" y="122" text-anchor="middle" font-size="10.5" fill="#059669">runs on any JS engine</text>
+
+    <!-- app.d.ts -->
+    <rect x="702" y="186" width="240" height="86" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+    <text x="822" y="216" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">app.d.ts</text>
+    <text x="822" y="238" text-anchor="middle" font-size="10.5" fill="#64748b">the types, extracted</text>
+    <text x="822" y="256" text-anchor="middle" font-size="10.5" fill="#64748b">for editors &amp; consumers</text>
+
+    <!-- caption -->
+    <text x="540" y="300" text-anchor="middle" font-size="11.5" fill="#3f444f">Types are a compile&#8209;time layer. They never run &#8212; they cost <tspan font-weight="700" fill="#1a1d24">nothing</tspan> at runtime.</text>
+  </svg>
+</section>
+
+<!-- ============ WHAT'S NEW: TS 7 ============ -->
+<section class="whatsnew">
+  <h2>What&#8217;s new <span class="pill">TypeScript&#160;7.0 &#183; native</span></h2>
+  <p class="sub">7.0 is a performance release, not a syntax one &#8212; the whole sheet below is unchanged. It's the same type system, checked by a Go compiler roughly 10&#215; faster.</p>
+  <div class="wn-grid">
+    <div class="wn-card"><h3>10&#215; faster &#183; native Go</h3><p>Project&#160;Corsa &#8212; a Go port of tsc. GA Jul&#160;8&#160;2026. A port, not a rewrite: type-checking is identical to 6.0. vscode 125.7s &#8594; 10.6s.</p></div>
+    <div class="wn-card"><h3>strict by default</h3><p><code>strict:true</code>, <code>module:esnext</code>, and <code>target</code> = the latest stable ES. Adopt 6.0's defaults before you jump.</p></div>
+    <div class="wn-card"><h3>removed for good</h3><p>Hard errors now: <code>target:es5</code>, <code>downlevelIteration</code>, <code>baseUrl</code>, and <code>node10</code>/<code>classic</code>/<code>amd</code>/<code>umd</code> resolution.</p></div>
+    <div class="wn-card"><h3>parallel build flags</h3><p><code>--checkers N</code> (default 4) and <code>--builders N</code> tune parallelism; <code>--singleThreaded</code> turns it off for CI / debugging.</p></div>
+    <div class="wn-card"><h3>no API until 7.1</h3><p>typescript-eslint and Vue / Svelte / Astro / Angular templates still need TS&#160;6 &#8212; run it side-by-side as <code>tsc6</code>.</p></div>
+    <div class="wn-card"><h3>Unicode template types</h3><p>Inferring <code>`${infer H}${infer T}`</code> now keeps <code>&#128512;</code> whole instead of splitting the surrogate pair.</p></div>
+  </div>
+</section>
+
+<!-- ============ COMMAND CARDS ============ -->
+<main>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Compile</span><span class="card-sub">types &#8594; checked &#8594; erased</span></div>
+    <ul class="cmds">
+      <li class="tool"><code class="cmd">npm i -<span class="ty">D</span> typescript</code><div class="desc">Install the compiler as a dev dependency.</div></li>
+      <li class="tool"><code class="cmd">npx tsc --init</code><div class="desc">Scaffold a starter tsconfig.json.</div></li>
+      <li class="tool"><code class="cmd">npx tsc</code><span class="star">&#9733;</span><div class="desc">Type-check and emit .js beside your .ts.</div></li>
+      <li class="tool"><code class="cmd">npx tsc --noEmit</code><span class="star">&#9733;</span><div class="desc">Type-check only &#8212; no output. Ideal in CI.</div></li>
+      <li class="tool"><code class="cmd">npx tsc --watch</code><div class="desc">Re-check on save (TS&#160;7 rebuilt this).</div></li>
+      <li class="tool"><code class="cmd">npx tsx app.ts</code><div class="desc">Run a .ts file directly (tsx / ts-node).</div></li>
+      <li class="tool"><code class="cmd"><span class="c">// @ts-check</span></code><div class="desc">Opt a plain .js file into type-checking.</div></li>
+      <li class="tool"><code class="cmd"><span class="c">// @ts-expect-error</span></code><div class="desc">Assert the next line errors (fails if it doesn't).</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Everyday Types</span><span class="card-sub">let x: T</span></div>
+    <ul class="cmds">
+      <li class="val"><code class="cmd"><span class="k">let</span> s: <span class="ty">string</span> = <span class="s">&quot;hi&quot;</span></code><span class="star">&#9733;</span><div class="desc">Annotate a variable after its name.</div></li>
+      <li class="val"><code class="cmd"><span class="k">let</span> n = <span class="n">42</span></code><div class="desc">Inference &#8212; n is number, no annotation needed.</div></li>
+      <li class="val"><code class="cmd"><span class="k">let</span> ok: <span class="ty">boolean</span></code><div class="desc">string &#183; number &#183; boolean &#183; bigint &#183; symbol.</div></li>
+      <li class="val"><code class="cmd"><span class="k">let</span> a: <span class="ty">any</span></code><span class="b-avoid">avoid</span><div class="desc">Opts OUT of checking &#8212; contagious.</div></li>
+      <li class="val"><code class="cmd"><span class="k">let</span> u: <span class="ty">unknown</span></code><span class="star">&#9733;</span><div class="desc">Safe any &#8212; must narrow before use.</div></li>
+      <li class="val"><code class="cmd"><span class="k">function</span> log(): <span class="ty">void</span> {}</code><div class="desc">void = returns nothing useful.</div></li>
+      <li class="val"><code class="cmd"><span class="k">const</span> die = (): <span class="ty">never</span> =&amp;gt; { throw <span class="n">0</span> }</code><div class="desc">never = never returns (throws / loops).</div></li>
+      <li class="val"><code class="cmd"><span class="k">let</span> id: <span class="ty">string</span> | <span class="ty">number</span></code><span class="star">&#9733;</span><div class="desc">Union &#8212; one value, several allowed types.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Arrays, Tuples &amp; Objects</span><span class="card-sub">shapes of data</span></div>
+    <ul class="cmds">
+      <li class="val"><code class="cmd"><span class="k">let</span> xs: <span class="ty">number</span>[]</code><span class="star">&#9733;</span><div class="desc">Array of numbers (also Array&lt;number&gt;).</div></li>
+      <li class="val"><code class="cmd"><span class="k">let</span> ro: <span class="k">readonly</span> <span class="ty">string</span>[]</code><div class="desc">Immutable array &#8212; no push / splice.</div></li>
+      <li class="val"><code class="cmd"><span class="k">let</span> pair: [<span class="ty">string</span>, <span class="ty">number</span>]</code><div class="desc">Tuple &#8212; fixed length &amp; positions.</div></li>
+      <li class="val"><code class="cmd"><span class="k">let</span> p: [x: <span class="ty">number</span>, y: <span class="ty">number</span>]</code><div class="desc">Named tuple elements (labels only).</div></li>
+      <li class="val"><code class="cmd"><span class="k">let</span> t: [<span class="ty">string</span>, ...<span class="ty">number</span>[]]</code><div class="desc">Tuple with a variadic tail.</div></li>
+      <li class="val"><code class="cmd"><span class="k">let</span> o: { name: <span class="ty">string</span>; age?: <span class="ty">number</span> }</code><span class="star">&#9733;</span><div class="desc">Inline object type; age? is optional.</div></li>
+      <li class="val"><code class="cmd"><span class="k">let</span> m: { <span class="k">readonly</span> id: <span class="ty">number</span> }</code><div class="desc">readonly property &#8212; set once.</div></li>
+      <li class="val"><code class="cmd"><span class="k">let</span> d: { [key: <span class="ty">string</span>]: <span class="ty">number</span> }</code><div class="desc">Index signature &#8212; arbitrary keys.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Unions, Literals &amp; Enums</span><span class="card-sub">one of a set</span></div>
+    <ul class="cmds">
+      <li class="val"><code class="cmd"><span class="k">type</span> <span class="ty">Dir</span> = <span class="s">&quot;n&quot;</span> | <span class="s">&quot;s&quot;</span> | <span class="s">&quot;e&quot;</span> | <span class="s">&quot;w&quot;</span></code><span class="star">&#9733;</span><div class="desc">Literal union &#8212; the idiomatic enum.</div></li>
+      <li class="val"><code class="cmd"><span class="k">let</span> x: <span class="n">0</span> | <span class="n">1</span> | <span class="n">2</span></code><div class="desc">Number literal types work too.</div></li>
+      <li class="val"><code class="cmd"><span class="k">const</span> t = [<span class="n">1</span>, <span class="n">2</span>] <span class="k">as</span> <span class="k">const</span></code><span class="star">&#9733;</span><div class="desc">as const &#8594; readonly literal tuple.</div></li>
+      <li class="val"><code class="cmd"><span class="k">enum</span> <span class="ty">Role</span> { <span class="ty">Admin</span>, <span class="ty">Editor</span> }</code><span class="b-emit">emits JS</span><div class="desc">Enum &#8212; but it emits runtime code.</div></li>
+      <li class="val"><code class="cmd"><span class="k">const</span> <span class="k">enum</span> <span class="ty">Flag</span> { <span class="ty">On</span>, <span class="ty">Off</span> }</code><div class="desc">const enum &#8594; inlined, zero output.</div></li>
+      <li class="val"><code class="cmd"><span class="k">type</span> <span class="ty">In</span> = <span class="ty">string</span> | <span class="ty">number</span> | <span class="ty">null</span></code><div class="desc">Model several input shapes in one type.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Interfaces &amp; Type Aliases</span><span class="card-sub">name a shape</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd"><span class="k">interface</span> <span class="ty">User</span> { id: <span class="ty">number</span>; name: <span class="ty">string</span> }</code><span class="star">&#9733;</span><div class="desc">Interface &#8212; the go-to for object shapes.</div></li>
+      <li class="shape"><code class="cmd"><span class="k">type</span> <span class="ty">Point</span> = { x: <span class="ty">number</span>; y: <span class="ty">number</span> }</code><span class="star">&#9733;</span><div class="desc">type &#8212; names ANY type, not just objects.</div></li>
+      <li class="shape"><code class="cmd"><span class="k">interface</span> <span class="ty">Admin</span> <span class="k">extends</span> <span class="ty">User</span> { role: <span class="ty">string</span> }</code><div class="desc">Inherit members, then add more.</div></li>
+      <li class="shape"><code class="cmd"><span class="k">type</span> <span class="ty">C</span> = <span class="ty">A</span> &amp;amp; <span class="ty">B</span></code><div class="desc">Intersection &#8212; must satisfy BOTH.</div></li>
+      <li class="shape"><code class="cmd"><span class="k">interface</span> <span class="ty">Box</span>&amp;lt;<span class="ty">T</span>&amp;gt; { value: <span class="ty">T</span> }</code><div class="desc">Generic interface &#8212; parameterised shape.</div></li>
+      <li class="shape"><code class="cmd"><span class="k">interface</span> <span class="ty">Fn</span> { (u: <span class="ty">string</span>): <span class="ty">void</span> }</code><div class="desc">Call signature &#8212; a callable type.</div></li>
+      <li class="shape"><code class="cmd"><span class="k">type</span> <span class="ty">Id</span> = <span class="ty">string</span>   <span class="c">// vs interface</span></code><div class="desc">Use type for unions / tuples / mapped types.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Narrowing &#183; Control Flow</span><span class="card-sub">union &#8594; one type</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">if (<span class="k">typeof</span> x === <span class="s">&quot;string&quot;</span>) {}</code><span class="star">&#9733;</span><div class="desc">typeof guard &#8212; narrows primitives.</div></li>
+      <li class="shape"><code class="cmd">if (x instanceof <span class="ty">Date</span>) {}</code><div class="desc">instanceof &#8212; narrows class instances.</div></li>
+      <li class="shape"><code class="cmd">if (<span class="s">&quot;role&quot;</span> <span class="k">in</span> obj) {}</code><div class="desc">in &#8212; narrows by property presence.</div></li>
+      <li class="shape"><code class="cmd">if (x) { /* truthy */ }</code><div class="desc">Removes null / undefined / 0 / '' from the type.</div></li>
+      <li class="shape"><code class="cmd">switch (s.kind) { }</code><span class="star">&#9733;</span><div class="desc">Discriminated union &#8212; switch on a tag field.</div></li>
+      <li class="shape"><code class="cmd"><span class="k">function</span> isCat(a: <span class="ty">Animal</span>): a <span class="k">is</span> <span class="ty">Cat</span></code><div class="desc">Type predicate &#8212; your own guard.</div></li>
+      <li class="shape"><code class="cmd"><span class="k">function</span> assert(c: <span class="ty">unknown</span>): <span class="k">asserts</span> c</code><div class="desc">Assertion function &#8212; narrows after it runs.</div></li>
+      <li class="shape"><code class="cmd"><span class="k">const</span> _: <span class="ty">never</span> = s   <span class="c">// exhaustive</span></code><div class="desc">never check errors if a case is missed.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Functions</span><span class="card-sub">typed in &amp; out</span></div>
+    <ul class="cmds">
+      <li class="fn"><code class="cmd"><span class="k">function</span> add(a: <span class="ty">number</span>, b: <span class="ty">number</span>): <span class="ty">number</span></code><span class="star">&#9733;</span><div class="desc">Param types + return type.</div></li>
+      <li class="fn"><code class="cmd"><span class="k">const</span> f = (x: <span class="ty">number</span>): <span class="ty">string</span> =&amp;gt; <span class="s">`${x}`</span></code><span class="star">&#9733;</span><div class="desc">Typed arrow function.</div></li>
+      <li class="fn"><code class="cmd"><span class="k">function</span> g(a: <span class="ty">number</span>, b?: <span class="ty">number</span>) {}</code><div class="desc">b? optional &#8594; number | undefined.</div></li>
+      <li class="fn"><code class="cmd"><span class="k">function</span> h(a: <span class="ty">number</span>, b = <span class="n">10</span>) {}</code><div class="desc">Default param &#8212; type inferred from default.</div></li>
+      <li class="fn"><code class="cmd"><span class="k">function</span> sum(...ns: <span class="ty">number</span>[]): <span class="ty">number</span></code><div class="desc">Rest params typed as an array.</div></li>
+      <li class="fn"><code class="cmd"><span class="k">function</span> on(e: <span class="s">&quot;click&quot;</span>, cb: () =&amp;gt; <span class="ty">void</span>): <span class="ty">void</span></code><div class="desc">Overload signatures for varied calls.</div></li>
+      <li class="fn"><code class="cmd"><span class="k">function</span> each(<span class="k">this</span>: <span class="ty">Widget</span>, i: <span class="ty">number</span>) {}</code><div class="desc">Typed this parameter (erased at runtime).</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Generics</span><span class="card-sub">types as parameters</span></div>
+    <ul class="cmds">
+      <li class="fn"><code class="cmd"><span class="k">function</span> id&amp;lt;<span class="ty">T</span>&amp;gt;(x: <span class="ty">T</span>): <span class="ty">T</span> { <span class="k">return</span> x }</code><span class="star">&#9733;</span><div class="desc">Generic fn &#8212; T flows in and out.</div></li>
+      <li class="fn"><code class="cmd"><span class="k">function</span> first&amp;lt;<span class="ty">T</span>&amp;gt;(a: <span class="ty">T</span>[]): <span class="ty">T</span></code><div class="desc">T is inferred from the argument.</div></li>
+      <li class="fn"><code class="cmd">&amp;lt;<span class="ty">T</span> <span class="k">extends</span> <span class="ty">object</span>&amp;gt;</code><span class="star">&#9733;</span><div class="desc">Constraint &#8212; T must fit object.</div></li>
+      <li class="fn"><code class="cmd">&amp;lt;<span class="ty">T</span>, <span class="ty">K</span> <span class="k">extends</span> <span class="k">keyof</span> <span class="ty">T</span>&amp;gt;</code><div class="desc">K is restricted to T's own keys.</div></li>
+      <li class="fn"><code class="cmd"><span class="k">function</span> make&amp;lt;<span class="ty">T</span> = <span class="ty">string</span>&amp;gt;() {}</code><div class="desc">Default type parameter.</div></li>
+      <li class="fn"><code class="cmd"><span class="k">class</span> <span class="ty">Box</span>&amp;lt;<span class="ty">T</span>&amp;gt; { constructor(<span class="k">public</span> v: <span class="ty">T</span>) {} }</code><div class="desc">Generic class.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Classes</span><span class="card-sub">typed OOP</span></div>
+    <ul class="cmds">
+      <li class="oop"><code class="cmd"><span class="k">class</span> <span class="ty">P</span> { x: <span class="ty">number</span> = <span class="n">0</span> }</code><div class="desc">Field with type + initializer.</div></li>
+      <li class="oop"><code class="cmd">constructor(<span class="k">public</span> x: <span class="ty">number</span>) {}</code><span class="star">&#9733;</span><div class="desc">Parameter property &#8212; declares &amp; assigns x.</div></li>
+      <li class="oop"><code class="cmd"><span class="k">private</span> secret = <span class="n">1</span></code><span class="star">&#9733;</span><div class="desc">public &#183; private &#183; protected access.</div></li>
+      <li class="oop"><code class="cmd"><span class="k">readonly</span> id: <span class="ty">number</span></code><div class="desc">Assignable only in the constructor.</div></li>
+      <li class="oop"><code class="cmd"><span class="k">static</span> count = <span class="n">0</span></code><div class="desc">Belongs to the class, not instances.</div></li>
+      <li class="oop"><code class="cmd"><span class="k">abstract</span> <span class="k">class</span> <span class="ty">Shape</span> { <span class="k">abstract</span> area(): <span class="ty">number</span> }</code><div class="desc">Can't instantiate; subclasses implement.</div></li>
+      <li class="oop"><code class="cmd"><span class="k">class</span> <span class="ty">Dog</span> <span class="k">implements</span> <span class="ty">Animal</span> {}</code><span class="star">&#9733;</span><div class="desc">implements &#8212; shape-checked at compile time.</div></li>
+      <li class="oop"><code class="cmd">#real = <span class="n">42</span></code><div class="desc">True JS-private field (runtime, not erased).</div></li>
+      <li class="oop"><code class="cmd"><span class="k">get</span> name(): <span class="ty">string</span> { <span class="k">return</span> <span class="k">this</span>._n }</code><div class="desc">Accessors &#8212; typed get / set.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Decorators</span><span class="card-sub">annotate classes</span></div>
+    <ul class="cmds">
+      <li class="oop"><code class="cmd">@sealed <span class="k">class</span> <span class="ty">C</span> {}</code><div class="desc">Class decorator.</div></li>
+      <li class="oop"><code class="cmd">@log run() {}</code><div class="desc">Method decorator.</div></li>
+      <li class="oop"><code class="cmd"><span class="k">function</span> log(fn, ctx: <span class="ty">ClassMethodDecoratorContext</span>)</code><div class="desc">Standard (TC39) decorator signature.</div></li>
+      <li class="oop"><code class="cmd"><span class="k">accessor</span> x = <span class="n">0</span></code><div class="desc">Auto-accessor field &#8212; decoratable.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">keyof, typeof &amp; Indexing</span><span class="card-sub">types from values</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd"><span class="k">type</span> <span class="ty">K</span> = <span class="k">keyof</span> <span class="ty">User</span></code><span class="star">&#9733;</span><div class="desc">Union of keys: "id" | "name".</div></li>
+      <li class="adv"><code class="cmd"><span class="k">type</span> <span class="ty">T</span> = <span class="k">typeof</span> myConst</code><span class="star">&#9733;</span><div class="desc">Lift a VALUE into its type.</div></li>
+      <li class="adv"><code class="cmd"><span class="k">type</span> <span class="ty">V</span> = <span class="ty">User</span>[<span class="s">&quot;name&quot;</span>]</code><div class="desc">Indexed access &#8212; the type at a key.</div></li>
+      <li class="adv"><code class="cmd"><span class="k">type</span> <span class="ty">E</span> = <span class="ty">Arr</span>[<span class="ty">number</span>]</code><div class="desc">Element type of an array / tuple type.</div></li>
+      <li class="adv"><code class="cmd"><span class="k">type</span> <span class="ty">Vals</span> = <span class="ty">User</span>[<span class="k">keyof</span> <span class="ty">User</span>]</code><div class="desc">Union of all property value types.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Mapped Types</span><span class="card-sub">transform each key</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd"><span class="k">type</span> <span class="ty">Opt</span>&amp;lt;<span class="ty">T</span>&amp;gt; = { [<span class="ty">K</span> <span class="k">in</span> <span class="k">keyof</span> <span class="ty">T</span>]?: <span class="ty">T</span>[<span class="ty">K</span>] }</code><span class="star">&#9733;</span><div class="desc">Walk every key &#8212; here make all optional.</div></li>
+      <li class="adv"><code class="cmd">{ <span class="k">readonly</span> [<span class="ty">K</span> <span class="k">in</span> <span class="k">keyof</span> <span class="ty">T</span>]: <span class="ty">T</span>[<span class="ty">K</span>] }</code><div class="desc">Add readonly to each key.</div></li>
+      <li class="adv"><code class="cmd">{ -<span class="k">readonly</span> [<span class="ty">K</span> <span class="k">in</span> <span class="k">keyof</span> <span class="ty">T</span>]-?: <span class="ty">T</span>[<span class="ty">K</span>] }</code><div class="desc">Strip modifiers with -readonly / -?.</div></li>
+      <li class="adv"><code class="cmd">{ [<span class="ty">K</span> <span class="k">in</span> <span class="k">keyof</span> <span class="ty">T</span> <span class="k">as</span> <span class="s">`get${K}`</span>]: <span class="ty">T</span>[<span class="ty">K</span>] }</code><div class="desc">Key remapping with as (rename keys).</div></li>
+      <li class="adv"><code class="cmd"><span class="k">type</span> <span class="ty">R</span> = { [<span class="ty">K</span> <span class="k">in</span> <span class="s">&quot;a&quot;</span> | <span class="s">&quot;b&quot;</span>]: <span class="ty">number</span> }</code><div class="desc">Map over a literal union directly.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Conditional &amp; Template Types</span><span class="card-sub">type-level logic</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd"><span class="k">type</span> <span class="ty">NN</span>&amp;lt;<span class="ty">T</span>&amp;gt; = <span class="ty">T</span> <span class="k">extends</span> <span class="ty">null</span> ? <span class="ty">never</span> : <span class="ty">T</span></code><span class="star">&#9733;</span><div class="desc">T extends U ? X : Y &#8212; a type-level if.</div></li>
+      <li class="adv"><code class="cmd"><span class="k">type</span> <span class="ty">El</span>&amp;lt;<span class="ty">T</span>&amp;gt; = <span class="ty">T</span> <span class="k">extends</span> (<span class="k">infer</span> <span class="ty">U</span>)[] ? <span class="ty">U</span> : <span class="ty">T</span></code><span class="star">&#9733;</span><div class="desc">infer captures a type inside the match.</div></li>
+      <li class="adv"><code class="cmd"><span class="k">type</span> <span class="ty">R</span>&amp;lt;<span class="ty">F</span>&amp;gt; = <span class="ty">F</span> <span class="k">extends</span> () =&amp;gt; <span class="k">infer</span> <span class="ty">V</span> ? <span class="ty">V</span> : <span class="ty">never</span></code><div class="desc">Pull a function's return type out.</div></li>
+      <li class="adv"><code class="cmd"><span class="k">type</span> <span class="ty">Greet</span> = <span class="s">`hello ${string}`</span></code><div class="desc">Template literal type.</div></li>
+      <li class="adv"><code class="cmd"><span class="k">type</span> <span class="ty">Ev</span> = <span class="s">`on${Capitalize&amp;lt;Key&amp;gt;}`</span></code><div class="desc">Compose with Uppercase / Capitalize.</div></li>
+      <li class="adv"><code class="cmd"><span class="c">// `${infer H}${infer T}` on &quot;&amp;#128512;abc&quot;</span></code><span class="b-ts">TS 7</span><div class="desc">TS&#160;7: template inference keeps Unicode points.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Utility Types</span><span class="card-sub">built-in transforms</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd"><span class="ty">Partial</span>&amp;lt;<span class="ty">T</span>&amp;gt;</code><span class="star">&#9733;</span><div class="desc">All properties optional.</div></li>
+      <li class="adv"><code class="cmd"><span class="ty">Required</span>&amp;lt;<span class="ty">T</span>&amp;gt;</code><div class="desc">All properties required.</div></li>
+      <li class="adv"><code class="cmd"><span class="ty">Readonly</span>&amp;lt;<span class="ty">T</span>&amp;gt;</code><div class="desc">All properties readonly.</div></li>
+      <li class="adv"><code class="cmd"><span class="ty">Pick</span>&amp;lt;<span class="ty">T</span>, <span class="ty">K</span>&amp;gt;</code><span class="star">&#9733;</span><div class="desc">Keep only keys K.</div></li>
+      <li class="adv"><code class="cmd"><span class="ty">Omit</span>&amp;lt;<span class="ty">T</span>, <span class="ty">K</span>&amp;gt;</code><span class="star">&#9733;</span><div class="desc">Drop keys K.</div></li>
+      <li class="adv"><code class="cmd"><span class="ty">Record</span>&amp;lt;<span class="ty">K</span>, <span class="ty">V</span>&amp;gt;</code><span class="star">&#9733;</span><div class="desc">Object type with keys K, values V.</div></li>
+      <li class="adv"><code class="cmd"><span class="ty">Exclude</span>&amp;lt;<span class="ty">U</span>, <span class="ty">M</span>&amp;gt; &amp;#<span class="n">183</span>; <span class="ty">Extract</span>&amp;lt;<span class="ty">U</span>, <span class="ty">M</span>&amp;gt;</code><div class="desc">Remove / keep members of a union.</div></li>
+      <li class="adv"><code class="cmd"><span class="ty">NonNullable</span>&amp;lt;<span class="ty">T</span>&amp;gt;</code><div class="desc">Remove null and undefined.</div></li>
+      <li class="adv"><code class="cmd"><span class="ty">ReturnType</span>&amp;lt;<span class="ty">F</span>&amp;gt; &amp;#<span class="n">183</span>; <span class="ty">Parameters</span>&amp;lt;<span class="ty">F</span>&amp;gt;</code><div class="desc">A function's return / params tuple.</div></li>
+      <li class="adv"><code class="cmd"><span class="ty">Awaited</span>&amp;lt;<span class="ty">T</span>&amp;gt;</code><div class="desc">Unwrap a Promise's resolved type.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Assertions &amp; satisfies</span><span class="card-sub">override the checker</span></div>
+    <ul class="cmds">
+      <li class="val"><code class="cmd">el <span class="k">as</span> <span class="ty">HTMLInputElement</span></code><span class="star">&#9733;</span><div class="desc">as &#8212; trust me, it's this type (unchecked).</div></li>
+      <li class="val"><code class="cmd">value <span class="k">satisfies</span> <span class="ty">Config</span></code><span class="star">&#9733;</span><div class="desc">Check against a type WITHOUT widening it.</div></li>
+      <li class="val"><code class="cmd">routes <span class="k">as</span> <span class="k">const</span></code><div class="desc">Freeze to the narrowest literal type.</div></li>
+      <li class="val"><code class="cmd">el!.focus()</code><span class="star">&#9733;</span><div class="desc">Non-null assertion &#8212; 'not null here'.</div></li>
+      <li class="val"><code class="cmd"><span class="k">let</span> x!: <span class="ty">number</span></code><div class="desc">Definite assignment &#8212; 'set before use'.</div></li>
+      <li class="val"><code class="cmd">x <span class="k">as</span> <span class="ty">unknown</span> <span class="k">as</span> <span class="ty">T</span></code><span class="b-avoid">avoid</span><div class="desc">Double assertion to force unrelated types.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Modules &amp; Declarations</span><span class="card-sub">share types across files</span></div>
+    <ul class="cmds">
+      <li class="oop"><code class="cmd"><span class="k">export</span> <span class="k">type</span> { <span class="ty">User</span> }</code><span class="star">&#9733;</span><div class="desc">Export a type explicitly.</div></li>
+      <li class="oop"><code class="cmd"><span class="k">import</span> <span class="k">type</span> { <span class="ty">User</span> } <span class="k">from</span> <span class="s">&quot;./u&quot;</span></code><span class="star">&#9733;</span><div class="desc">Type-only import &#8212; erased from JS.</div></li>
+      <li class="oop"><code class="cmd"><span class="k">declare</span> <span class="k">const</span> <span class="ty">VERSION</span>: <span class="ty">string</span></code><div class="desc">Ambient declaration &#8212; 'exists elsewhere'.</div></li>
+      <li class="oop"><code class="cmd"><span class="k">declare</span> <span class="k">module</span> <span class="s">&quot;*.svg&quot;</span> { <span class="k">const</span> s: <span class="ty">string</span> }</code><div class="desc">Type a non-code import.</div></li>
+      <li class="oop"><code class="cmd"><span class="c">// types.d.ts</span></code><div class="desc">Declaration file &#8212; types, no implementation.</div></li>
+      <li class="oop"><code class="cmd"><span class="k">declare</span> global { <span class="k">interface</span> <span class="ty">Window</span> {} }</code><div class="desc">Augment global / third-party types.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Working Types</span><span class="card-sub">from lib.d.ts</span></div>
+    <ul class="cmds">
+      <li class="val"><code class="cmd"><span class="ty">Promise</span>&amp;lt;<span class="ty">string</span>&amp;gt;</code><span class="star">&#9733;</span><div class="desc">Async result type.</div></li>
+      <li class="val"><code class="cmd"><span class="ty">Array</span>&amp;lt;<span class="ty">T</span>&amp;gt; &amp;#<span class="n">183</span>; <span class="ty">ReadonlyArray</span>&amp;lt;<span class="ty">T</span>&amp;gt;</code><div class="desc">Generic array forms.</div></li>
+      <li class="val"><code class="cmd"><span class="ty">Map</span>&amp;lt;<span class="ty">K</span>, <span class="ty">V</span>&amp;gt; &amp;#<span class="n">183</span>; <span class="ty">Set</span>&amp;lt;<span class="ty">T</span>&amp;gt;</code><div class="desc">Typed collections.</div></li>
+      <li class="val"><code class="cmd">() =&amp;gt; <span class="ty">void</span></code><span class="star">&#9733;</span><div class="desc">Function type literal.</div></li>
+      <li class="val"><code class="cmd"><span class="ty">Record</span>&amp;lt;<span class="ty">string</span>, <span class="ty">number</span>&amp;gt;</code><div class="desc">Quick dictionary type.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">tsconfig Essentials</span><span class="card-sub">compilerOptions</span></div>
+    <ul class="cmds">
+      <li class="tool"><code class="cmd"><span class="s">&quot;strict&quot;</span>: <span class="ty">true</span></code><span class="star">&#9733;</span><span class="b-ts">TS 7</span><div class="desc">Turns on all strict checks &#8212; TS&#160;7 default.</div></li>
+      <li class="tool"><code class="cmd"><span class="s">&quot;noImplicitAny&quot;</span>: <span class="ty">true</span></code><div class="desc">Error on inferred any.</div></li>
+      <li class="tool"><code class="cmd"><span class="s">&quot;strictNullChecks&quot;</span>: <span class="ty">true</span></code><span class="star">&#9733;</span><div class="desc">null / undefined not in every type.</div></li>
+      <li class="tool"><code class="cmd"><span class="s">&quot;target&quot;</span>: <span class="s">&quot;es2024&quot;</span></code><div class="desc">JS version to emit.</div></li>
+      <li class="tool"><code class="cmd"><span class="s">&quot;module&quot;</span>: <span class="s">&quot;esnext&quot;</span></code><span class="b-ts">TS 7</span><div class="desc">Module output &#8212; TS&#160;7 default.</div></li>
+      <li class="tool"><code class="cmd"><span class="s">&quot;moduleResolution&quot;</span>: <span class="s">&quot;bundler&quot;</span></code><span class="b-ts">TS 7</span><div class="desc">How imports resolve (node10 gone in 7).</div></li>
+      <li class="tool"><code class="cmd"><span class="s">&quot;skipLibCheck&quot;</span>: <span class="ty">true</span></code><div class="desc">Skip checking .d.ts files (faster).</div></li>
+      <li class="tool"><code class="cmd"><span class="s">&quot;paths&quot;</span>: { <span class="s">&quot;@/*&quot;</span>: [<span class="s">&quot;src/*&quot;</span>] }</code><div class="desc">Import path aliases.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four ideas that unlock the rest</h2>
+  <p class="sub">The type system is small once these click: what disappears at compile time, why shapes (not names) decide compatibility, how a union collapses to one type, and how utility types rewrite a shape.</p>
+  <div class="merge-grid">
+
+    <!-- D1: erased vs emitted -->
+    <div class="merge-card">
+      <h3>1 &#183; What survives compile</h3>
+      <p>Almost everything type-related is erased. A handful of constructs emit real JavaScript &#8212; know which.</p>
+      <svg viewBox="0 0 420 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Left column lists constructs erased at compile time; right column lists constructs that emit JavaScript.">
+        <rect x="8" y="10" width="196" height="168" rx="9" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.6"/>
+        <text x="106" y="32" text-anchor="middle" font-size="11.5" font-weight="700" fill="#dc2626">ERASED &#183; compile-time only</text>
+        <g font-size="11" fill="#7a1f1f">
+          <text x="22" y="56">type &#183; interface</text>
+          <text x="22" y="76">: type annotations</text>
+          <text x="22" y="96">generics &lt;T&gt;</text>
+          <text x="22" y="116">as &#183; satisfies &#183; !</text>
+          <text x="22" y="136">readonly &#183; private</text>
+          <text x="22" y="156">import type</text>
+        </g>
+        <rect x="216" y="10" width="196" height="168" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+        <text x="314" y="32" text-anchor="middle" font-size="11.5" font-weight="700" fill="#059669">EMITTED &#183; real JavaScript</text>
+        <g font-size="11" fill="#0a5c3f">
+          <text x="230" y="56">class</text>
+          <text x="230" y="76">enum</text>
+          <text x="230" y="96">namespace</text>
+          <text x="230" y="116">constructor(public x)</text>
+          <text x="230" y="136">#private fields</text>
+        </g>
+        <text x="210" y="200" text-anchor="middle" font-size="10" fill="#6b7280">so there's no <tspan font-weight="700" fill="#1a1d24">x instanceof SomeInterface</tspan> &#8212; it isn't there at runtime</text>
+      </svg>
+    </div>
+
+    <!-- D2: structural typing -->
+    <div class="merge-card">
+      <h3>2 &#183; Structural (&#8220;duck&#8221;) typing</h3>
+      <p>Compatibility is about shape, not name. Has the required members? It fits &#8212; no <code>implements</code> needed.</p>
+      <svg viewBox="0 0 420 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A value with name, age and an extra legs property is assignable to an interface that requires only name and age.">
+        <defs><marker id="d2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker></defs>
+        <rect x="14" y="40" width="150" height="120" rx="9" fill="#fff" stroke="#d97706" stroke-width="1.8"/>
+        <text x="89" y="30" text-anchor="middle" font-size="10.5" fill="#6b7280">a value</text>
+        <g font-size="11.5" fill="#1a1d24" font-weight="500">
+          <text x="30" y="70">name: "Rex"</text>
+          <text x="30" y="94">age: 4</text>
+          <text x="30" y="122" fill="#94a3b8">legs: 4</text>
+          <text x="30" y="140" fill="#94a3b8" font-size="9.5">(extra &#8212; ignored)</text>
+        </g>
+        <line x1="170" y1="100" x2="248" y2="100" stroke="#059669" stroke-width="2.2" marker-end="url(#d2a)"/>
+        <text x="209" y="90" text-anchor="middle" font-size="10.5" font-weight="700" fill="#059669">fits</text>
+        <rect x="254" y="40" width="152" height="120" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="1.8"/>
+        <text x="330" y="30" text-anchor="middle" font-size="10.5" fill="#6b7280">interface Named</text>
+        <g font-size="11.5" fill="#0a5c3f" font-weight="500">
+          <text x="270" y="76">name: string</text>
+          <text x="270" y="100">age: number</text>
+        </g>
+        <text x="330" y="140" text-anchor="middle" font-size="9.5" fill="#059669">required shape</text>
+        <text x="210" y="192" text-anchor="middle" font-size="9.5" fill="#dc2626">but an object <tspan font-weight="700">literal</tspan> triggers an excess-property check on the extra</text>
+      </svg>
+    </div>
+
+    <!-- D3: narrowing funnel -->
+    <div class="merge-card">
+      <h3>3 &#183; Narrowing a union</h3>
+      <p>Control-flow analysis: a guard splits <code>string | number</code> so each branch sees exactly one type.</p>
+      <svg viewBox="0 0 420 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A string-or-number union passes through a typeof guard, splitting into a string branch and a number branch.">
+        <defs><marker id="d3a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker></defs>
+        <rect x="140" y="14" width="140" height="34" rx="8" fill="#eef4fb" stroke="#3178c6" stroke-width="1.8"/>
+        <text x="210" y="36" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">string | number</text>
+        <line x1="210" y1="48" x2="210" y2="70" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#d3a)"/>
+        <polygon points="210,74 300,104 210,134 120,104" fill="#f3effc" stroke="#7c3aed" stroke-width="1.8"/>
+        <text x="210" y="100" text-anchor="middle" font-size="10.5" fill="#5b21b6">typeof x</text>
+        <text x="210" y="114" text-anchor="middle" font-size="10.5" fill="#5b21b6">=== "string"</text>
+        <line x1="150" y1="122" x2="92" y2="150" stroke="#059669" stroke-width="1.8" marker-end="url(#d3a)"/>
+        <text x="96" y="140" font-size="9.5" fill="#059669">true</text>
+        <line x1="270" y1="122" x2="328" y2="150" stroke="#d97706" stroke-width="1.8" marker-end="url(#d3a)"/>
+        <text x="300" y="140" font-size="9.5" fill="#d97706">false</text>
+        <rect x="20" y="154" width="140" height="44" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+        <text x="90" y="174" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">string</text>
+        <text x="90" y="190" text-anchor="middle" font-size="9.5" fill="#059669">.toUpperCase()</text>
+        <rect x="260" y="154" width="140" height="44" rx="8" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+        <text x="330" y="174" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">number</text>
+        <text x="330" y="190" text-anchor="middle" font-size="9.5" fill="#d97706">.toFixed(2)</text>
+      </svg>
+    </div>
+
+    <!-- D4: utility types as transforms -->
+    <div class="merge-card">
+      <h3>4 &#183; Utility types rewrite a shape</h3>
+      <p>Built-in mapped types take a type and hand back a modified one &#8212; nothing is copied by hand.</p>
+      <svg viewBox="0 0 420 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="From interface User, Partial makes properties optional, Readonly makes them readonly, and Pick keeps a subset.">
+        <defs><marker id="d4a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker></defs>
+        <rect x="10" y="78" width="128" height="54" rx="9" fill="#eef4fb" stroke="#3178c6" stroke-width="1.8"/>
+        <text x="74" y="100" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">User</text>
+        <text x="74" y="118" text-anchor="middle" font-size="9.5" fill="#3178c6">id: number</text>
+        <text x="74" y="130" text-anchor="middle" font-size="9.5" fill="#3178c6">name: string</text>
+        <path d="M138 92 C 180 92, 180 34, 236 34" fill="none" stroke="#7c3aed" stroke-width="1.7" marker-end="url(#d4a)"/>
+        <path d="M138 105 L 236 105" fill="none" stroke="#7c3aed" stroke-width="1.7" marker-end="url(#d4a)"/>
+        <path d="M138 118 C 180 118, 180 176, 236 176" fill="none" stroke="#7c3aed" stroke-width="1.7" marker-end="url(#d4a)"/>
+        <rect x="238" y="14" width="172" height="42" rx="8" fill="#f3effc" stroke="#7c3aed" stroke-width="1.6"/>
+        <text x="252" y="32" font-size="11" font-weight="700" fill="#5b21b6">Partial&lt;User&gt;</text>
+        <text x="252" y="48" font-size="9.5" fill="#4a4550">id<tspan fill="#7c3aed" font-weight="700">?</tspan> &#183; name<tspan fill="#7c3aed" font-weight="700">?</tspan></text>
+        <rect x="238" y="84" width="172" height="42" rx="8" fill="#f3effc" stroke="#7c3aed" stroke-width="1.6"/>
+        <text x="252" y="102" font-size="11" font-weight="700" fill="#5b21b6">Readonly&lt;User&gt;</text>
+        <text x="252" y="118" font-size="9.5" fill="#4a4550"><tspan fill="#7c3aed" font-weight="700">readonly</tspan> id &#183; name</text>
+        <rect x="238" y="154" width="172" height="42" rx="8" fill="#f3effc" stroke="#7c3aed" stroke-width="1.6"/>
+        <text x="252" y="172" font-size="11" font-weight="700" fill="#5b21b6">Pick&lt;User, "id"&gt;</text>
+        <text x="252" y="188" font-size="9.5" fill="#4a4550">id: number &#160;<tspan fill="#94a3b8">(name dropped)</tspan></text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WORTH MEMORIZING ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">interface vs type</span><span class="v">interfaces extend &amp; merge; type does unions, tuples, mapped. Objects &#8594; interface, rest &#8594; type</span></div>
+    <div><span class="k">as vs satisfies</span><span class="v"><code>as</code> overrides (can lie); <code>satisfies</code> checks and keeps the narrow type</span></div>
+    <div><span class="k">types are erased</span><span class="v">no runtime type info &#8212; you can't <code>instanceof</code> an interface</span></div>
+    <div><span class="k">any is contagious</span><span class="v">it silently spreads and disables checks &#8212; reach for <code>unknown</code></span></div>
+    <div><span class="k">strictNullChecks</span><span class="v">null/undefined must be handled &#8212; the single most valuable strict flag</span></div>
+    <div><span class="k">excess-property</span><span class="v">the extra-key error only fires on object <code>literals</code>, not variables</span></div>
+    <div><span class="k">structural typing</span><span class="v">same shape &#8658; compatible; no <code>implements</code> required</span></div>
+    <div><span class="k">enum emits code</span><span class="v">prefer a literal union or <code>as const</code>; <code>const enum</code> inlines</span></div>
+    <div><span class="k">readonly / private</span><span class="v">compile-time only (erased); <code>#field</code> is the real runtime private</span></div>
+    <div><span class="k">optional ?:</span><span class="v">makes <code>T | undefined</code> &#8212; which is not the same as <code>| null</code></span></div>
+    <div><span class="k">! is a promise</span><span class="v">non-null <code>!</code> and <code>as</code> are unchecked &#8212; they can still crash</span></div>
+    <div><span class="k">empty [] &#8594; any[]</span><span class="v">annotate arrays you'll fill later, or inference gives up</span></div>
+    <div><span class="k">declaration merging</span><span class="v">two same-name interfaces silently combine into one</span></div>
+    <div><span class="k">TS 7 defaults</span><span class="v"><code>strict</code> on, <code>esnext</code> module; <code>es5</code>/<code>baseUrl</code>/node10 resolution are gone</span></div>
+  </div>
+</section>
+
+<footer>
+  TypeScript cheat sheet &#183; the type layer over ES2024 JavaScript &#183; synthesized from the official <code>Handbook</code> and the four official cheat sheets (Types &#183; Interfaces &#183; Classes &#183; Control&#160;Flow&#160;Analysis) at typescriptlang.org, the TypeScript&#160;7.0 release notes, MDN, and TC39.<br>
+  Behaviors verified against <code>tsc&#160;7.0</code> (the native Go compiler, GA&#160;Jul&#160;2026) &#183; pairs with the companion JavaScript&#160;(ES2024) sheet &#8212; that one covers the runtime, this one covers the types.
+</footer>
+
+</body>
+</html>

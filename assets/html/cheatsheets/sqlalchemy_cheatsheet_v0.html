@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQLAlchemy Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b;
+    --schema:#d97706;
+    --sql:#059669;
+    --map:#4f46e5;
+    --session:#7c3aed;
+    --async:#0d9488;
+    --danger:#dc2626;  --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --brand:#b2292e;
+    --tok-kw:#a626a4; --tok-fn:#4f46e5; --tok-str:#059669;
+    --tok-num:#b45309; --tok-cm:#8a8f9a; --tok-mod:#64748b;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem; font-family:var(--mono);
+  }
+  h1 .w1{color:#4a4f5a}
+  h1 .w2{color:var(--brand)}
+  h1 .tail{font-family:var(--sans); font-weight:600; font-size:.42em; color:var(--muted); letter-spacing:0}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede b{font-weight:600}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)}   .dot.schema{background:var(--schema)}
+  .dot.sql{background:var(--sql)}       .dot.map{background:var(--map)}
+  .dot.session{background:var(--session)} .dot.async{background:var(--async)}
+  .dot.danger{background:var(--danger)} .dot.star{background:var(--star)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:'JetBrains Mono',monospace}
+
+  /* ---------- quickstart panel ---------- */
+  .quick{
+    max-width:1500px; margin:0 auto; padding:1.4rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .quick-box{
+    background:var(--ink); border-radius:10px; overflow:hidden; max-width:1120px;
+    margin:0 auto; box-shadow:0 2px 8px rgba(20,20,30,.10);
+  }
+  .quick-bar{
+    display:flex; align-items:baseline; gap:.6rem; padding:.6rem .95rem;
+    border-bottom:1px solid #33384a; font-family:var(--mono); font-size:.74rem;
+    color:#cbd5e1; letter-spacing:.06em; text-transform:uppercase;
+  }
+  .quick-bar b{color:#fbbf24; font-weight:700}
+  pre.quick-inner{
+    white-space:pre; margin:0; tab-size:2; overflow-x:auto;
+    padding:1rem 1.1rem 1.15rem; font-family:var(--mono);
+    font-size:.79rem; line-height:1.65; color:#e8e6e1;
+  }
+  pre.quick-inner .kw{color:#c586e8}
+  pre.quick-inner .fn{color:#82aaff}
+  pre.quick-inner .str{color:#7ee0a8}
+  pre.quick-inner .num{color:#fbbf24}
+  pre.quick-inner .cm{color:#7f8796; font-style:italic}
+  pre.quick-inner .mod{color:#7fd4c9}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem; column-fill:balance;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  @media(min-width:1620px){ main{column-count:4} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.schema{border-left-color:var(--schema)}
+  ul.cmds li.sql{border-left-color:var(--sql)}
+  ul.cmds li.map{border-left-color:var(--map)}
+  ul.cmds li.session{border-left-color:var(--session)}
+  ul.cmds li.async{border-left-color:var(--async)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.795rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .kw{color:var(--tok-kw)}
+  code.cmd .fn{color:var(--tok-fn)}
+  code.cmd .str{color:var(--tok-str)}
+  code.cmd .num{color:var(--tok-num)}
+  code.cmd .mod{color:var(--tok-mod)}
+  code.cmd .arg{color:var(--map); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .cm{color:var(--tok-cm)}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.775rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; color:#3f444f}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-new{
+    color:#fff; background:var(--async); font-size:.62rem; font-weight:700;
+    font-family:var(--mono); letter-spacing:.04em; margin-left:.35rem;
+    padding:.05rem .3rem; border-radius:4px; vertical-align:.06em;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2, .appendix h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub, .appendix .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:'JetBrains Mono',monospace}
+
+  /* ---------- appendix ---------- */
+  .appendix{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 2rem}
+  .ver-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:820px){ .ver-grid{grid-template-columns:repeat(3,1fr)} }
+  .ver-card{border:1px solid var(--line); border-radius:10px; background:#fff; overflow:hidden}
+  .ver-head{padding:.75rem 1rem; border-bottom:1px solid var(--line); display:flex; align-items:baseline; gap:.5rem}
+  .ver-tag{font-family:var(--mono); font-size:.72rem; font-weight:700; color:#fff; border-radius:5px; padding:.1rem .4rem}
+  .ver-card.v14 .ver-tag{background:var(--schema)}
+  .ver-card.v20 .ver-tag{background:var(--map)}
+  .ver-card.v21 .ver-tag{background:var(--async)}
+  .ver-head b{font-size:.9rem}
+  .ver-body{padding:.5rem 0}
+  .ver-body h4{
+    font-family:var(--mono); font-size:.7rem; letter-spacing:.09em; text-transform:uppercase;
+    padding:.5rem 1rem .3rem; color:var(--muted);
+  }
+  .ver-body h4.adopt{color:var(--sql)}
+  .ver-body h4.drop{color:var(--danger)}
+  .ver-body ul{list-style:none}
+  .ver-body li{padding:.32rem 1rem; font-size:.775rem; color:#3f444f; border-bottom:1px solid #f5f2ec}
+  .ver-body li:last-child{border-bottom:none}
+  .ver-body li code{font-family:var(--mono); font-size:.9em; color:var(--ink)}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference &middot; Python SQL toolkit &amp; object&ndash;relational mapper</div>
+  <h1><span class="w1">sql</span><span class="w2">alchemy</span> <span class="tail">2.0 &middot; 2.1</span></h1>
+  <p class="lede">Two layers, one pipe. <b>Core</b> builds SQL as composable Python objects and hands them to an <b>Engine</b>; the <b>ORM</b> adds a <b>Session</b> that maps rows to objects and remembers what you changed. Learn where a call sits in that stack and the API stops being a list to memorize.</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>engine &amp; connection</span>
+    <span><i class="dot schema"></i>schema &amp; types</span>
+    <span><i class="dot sql"></i>SQL expressions</span>
+    <span><i class="dot map"></i>ORM mapping</span>
+    <span><i class="dot session"></i>session &amp; loading</span>
+    <span><i class="dot async"></i>async &amp; ecosystem</span>
+    <span><i class="dot danger"></i>gotcha / legacy</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>docs.sqlalchemy.org/en/20</b> &middot; <b>docs.sqlalchemy.org/en/21</b> (What&#8217;s New in 2.1) &middot; <b>sqlalchemy.org/download</b> &middot; <b>ORM Quick Start</b> &middot; <b>Unified Tutorial</b> &middot; <b>Relationship Loading Techniques</b> &middot; <b>asyncio extension</b> &middot; <b>alembic.sqlalchemy.org</b> &middot; <b>PyPI</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The stack &amp; the loop &mdash; where every call you write actually lands</div>
+  <svg class="flow-svg" viewBox="0 0 1080 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Top band: ORM sits on Core, both feed one Engine, which draws a pooled connection, talks to a DBAPI driver and then the database. Bottom band: the Session unit-of-work loop from add or modify, through flush, to commit and expire.">
+    <defs>
+      <marker id="sa-arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="sa-arw-v" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+      </marker>
+      <marker id="sa-arw-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+      </marker>
+    </defs>
+
+    <!-- ===== BAND A : the stack ===== -->
+    <text x="24" y="26" font-size="9.5" letter-spacing="2.6" fill="#94a3b8">A &#183; THE STACK &#8212; PYTHON SIDE</text>
+    <text x="808" y="26" font-size="9.5" letter-spacing="2.6" fill="#94a3b8">DATABASE SIDE</text>
+    <line x1="20" y1="34" x2="1060" y2="34" stroke="#e7e3db" stroke-width="1"/>
+
+    <!-- ORM box -->
+    <g>
+      <rect x="22" y="48" width="216" height="58" rx="11" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="130" y="70" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">ORM</text>
+      <text x="130" y="88" text-anchor="middle" font-size="10" fill="#4f46e5">Session &#183; mapped classes</text>
+    </g>
+    <!-- Core box -->
+    <g>
+      <rect x="22" y="132" width="216" height="58" rx="11" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="130" y="154" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">Core</text>
+      <text x="130" y="172" text-anchor="middle" font-size="10" fill="#059669">select() &#183; Table &#183; MetaData</text>
+    </g>
+    <!-- ORM builds on Core -->
+    <line x1="130" y1="106" x2="130" y2="130" stroke="#4f46e5" stroke-width="1.8" marker-end="url(#sa-arw-v)"/>
+    <text x="140" y="123" font-size="9.5" fill="#4f46e5">builds on</text>
+
+    <!-- Engine -->
+    <g>
+      <rect x="292" y="90" width="168" height="58" rx="11" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="376" y="112" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">Engine</text>
+      <text x="376" y="130" text-anchor="middle" font-size="10" fill="#64748b">create_engine(url)</text>
+    </g>
+    <!-- Pool -->
+    <g>
+      <rect x="512" y="90" width="168" height="58" rx="11" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="596" y="112" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">Connection Pool</text>
+      <text x="596" y="130" text-anchor="middle" font-size="10" fill="#64748b">reuses live sockets</text>
+    </g>
+    <!-- DBAPI -->
+    <g>
+      <rect x="732" y="90" width="150" height="58" rx="11" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="807" y="112" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">DBAPI driver</text>
+      <text x="807" y="130" text-anchor="middle" font-size="10" fill="#b45309">psycopg &#183; aiosqlite</text>
+    </g>
+    <!-- Database -->
+    <g>
+      <rect x="934" y="90" width="126" height="58" rx="11" fill="#1a1d24"/>
+      <text x="997" y="112" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff">Database</text>
+      <text x="997" y="130" text-anchor="middle" font-size="10" fill="#cbd5e1">Postgres, MySQL&#8230;</text>
+    </g>
+
+    <!-- arrows across band A -->
+    <line x1="238" y1="77" x2="290" y2="112" stroke="#1a1d24" stroke-width="2" marker-end="url(#sa-arw)"/>
+    <line x1="238" y1="161" x2="290" y2="126" stroke="#1a1d24" stroke-width="2" marker-end="url(#sa-arw)"/>
+    <text x="264" y="90" text-anchor="middle" font-size="9.5" fill="#4f46e5">.execute()</text>
+    <text x="264" y="158" text-anchor="middle" font-size="9.5" fill="#059669">.execute()</text>
+
+    <line x1="460" y1="119" x2="510" y2="119" stroke="#1a1d24" stroke-width="2" marker-end="url(#sa-arw)"/>
+    <line x1="680" y1="119" x2="730" y2="119" stroke="#1a1d24" stroke-width="2" marker-end="url(#sa-arw)"/>
+    <line x1="882" y1="119" x2="932" y2="119" stroke="#1a1d24" stroke-width="2" marker-end="url(#sa-arw)"/>
+    <text x="485" y="111" text-anchor="middle" font-size="9.5" fill="#64748b">connect</text>
+    <text x="705" y="111" text-anchor="middle" font-size="9.5" fill="#64748b">compile</text>
+    <text x="907" y="111" text-anchor="middle" font-size="9.5" fill="#64748b">SQL</text>
+
+    <!-- result return path -->
+    <line x1="932" y1="176" x2="130" y2="176" stroke="#64748b" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#sa-arw-g)"/>
+    <text x="540" y="192" text-anchor="middle" font-size="10.5" font-weight="600" fill="#64748b">rows come back as a Result &#8594; .scalars() / .all() / .mappings()</text>
+
+    <!-- ===== BAND B : the unit of work ===== -->
+    <text x="24" y="238" font-size="9.5" letter-spacing="2.6" fill="#94a3b8">B &#183; THE SESSION &#8212; UNIT OF WORK</text>
+    <line x1="20" y1="246" x2="1060" y2="246" stroke="#e7e3db" stroke-width="1"/>
+
+    <rect x="22" y="262" width="1038" height="150" rx="12" fill="#f4effe" stroke="#7c3aed" stroke-width="1.6"/>
+
+    <g>
+      <rect x="46" y="296" width="176" height="52" rx="9" fill="#fff" stroke="#7c3aed" stroke-width="1.6"/>
+      <text x="134" y="317" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">1 &#183; change</text>
+      <text x="134" y="334" text-anchor="middle" font-size="9.5" fill="#7c3aed">session.add(obj) / obj.x = 1</text>
+    </g>
+    <g>
+      <rect x="278" y="296" width="176" height="52" rx="9" fill="#fff" stroke="#7c3aed" stroke-width="1.6"/>
+      <text x="366" y="317" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">2 &#183; flush</text>
+      <text x="366" y="334" text-anchor="middle" font-size="9.5" fill="#7c3aed">INSERT / UPDATE / DELETE</text>
+    </g>
+    <g>
+      <rect x="510" y="296" width="176" height="52" rx="9" fill="#fff" stroke="#7c3aed" stroke-width="1.6"/>
+      <text x="598" y="317" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">3 &#183; commit</text>
+      <text x="598" y="334" text-anchor="middle" font-size="9.5" fill="#7c3aed">flush + COMMIT</text>
+    </g>
+    <g>
+      <rect x="742" y="296" width="176" height="52" rx="9" fill="#fff" stroke="#7c3aed" stroke-width="1.6"/>
+      <text x="830" y="317" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">4 &#183; expire</text>
+      <text x="830" y="334" text-anchor="middle" font-size="9.5" fill="#7c3aed">next access re-SELECTs</text>
+    </g>
+
+    <line x1="222" y1="322" x2="276" y2="322" stroke="#7c3aed" stroke-width="2" marker-end="url(#sa-arw-v)"/>
+    <line x1="454" y1="322" x2="508" y2="322" stroke="#7c3aed" stroke-width="2" marker-end="url(#sa-arw-v)"/>
+    <line x1="686" y1="322" x2="740" y2="322" stroke="#7c3aed" stroke-width="2" marker-end="url(#sa-arw-v)"/>
+
+    <text x="249" y="314" text-anchor="middle" font-size="9" fill="#7c3aed">autoflush</text>
+    <text x="864" y="368" text-anchor="middle" font-size="9.5" fill="#8b5cf6">expire_on_commit=True</text>
+
+    <!-- rollback loopback -->
+    <path d="M598 348 L598 386 L134 386 L134 350" fill="none" stroke="#dc2626" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#sa-arw)"/>
+    <text x="366" y="382" text-anchor="middle" font-size="10" font-weight="600" fill="#dc2626">session.rollback() &#8212; and the session is clean again</text>
+
+    <text x="960" y="290" text-anchor="middle" font-size="9.5" fill="#7c3aed">nothing hits the DB</text>
+    <text x="960" y="303" text-anchor="middle" font-size="9.5" fill="#7c3aed">until step 2</text>
+  </svg>
+</section>
+
+<!-- ============ QUICKSTART ============ -->
+<section class="quick">
+  <div class="quick-box">
+    <div class="quick-bar"><b>quickstart</b> &mdash; the whole 2.0-style round trip in 16 lines</div>
+<pre class="quick-inner"><span class="cm"># pip install "sqlalchemy[asyncio]"   # 2.1: greenlet only ships with this extra</span>
+<span class="kw">from</span> <span class="mod">sqlalchemy</span> <span class="kw">import</span> create_engine, select, ForeignKey
+<span class="kw">from</span> <span class="mod">sqlalchemy.orm</span> <span class="kw">import</span> DeclarativeBase, Mapped, mapped_column, relationship, Session
+
+<span class="kw">class</span> <span class="fn">Base</span>(DeclarativeBase): <span class="kw">pass</span>
+
+<span class="kw">class</span> <span class="fn">User</span>(Base):
+    __tablename__ = <span class="str">"user_account"</span>
+    id:   Mapped[<span class="fn">int</span>] = mapped_column(primary_key=<span class="kw">True</span>)     <span class="cm"># NOT NULL, PK</span>
+    name: Mapped[<span class="fn">str</span>]                                       <span class="cm"># NOT NULL</span>
+    bio:  Mapped[<span class="fn">str</span> | <span class="kw">None</span>]                                <span class="cm"># | None -&gt; NULLable</span>
+    posts: Mapped[<span class="fn">list</span>[<span class="str">"Post"</span>]] = relationship(back_populates=<span class="str">"user"</span>)
+
+<span class="kw">class</span> <span class="fn">Post</span>(Base):
+    __tablename__ = <span class="str">"post"</span>
+    id:      Mapped[<span class="fn">int</span>] = mapped_column(primary_key=<span class="kw">True</span>)
+    user_id: Mapped[<span class="fn">int</span>] = mapped_column(ForeignKey(<span class="str">"user_account.id"</span>))
+    user:    Mapped[<span class="str">"User"</span>] = relationship(back_populates=<span class="str">"posts"</span>)
+
+engine = create_engine(<span class="str">"sqlite+pysqlite:///app.db"</span>, echo=<span class="kw">True</span>)
+Base.metadata.create_all(engine)
+
+<span class="kw">with</span> Session(engine) <span class="kw">as</span> s, s.begin():                        <span class="cm"># begin-once: commits on exit</span>
+    s.add(User(name=<span class="str">"ada"</span>, posts=[Post(), Post()]))
+    ada = s.scalars(select(User).where(User.name == <span class="str">"ada"</span>)).one()
+    <span class="fn">print</span>(ada.posts)                                        <span class="cm"># lazy-loads: 1 extra SELECT</span></pre>
+  </div>
+</section>
+
+<!-- ============ REFERENCE CARDS ============ -->
+<main>
+
+  <!-- 01 INSTALL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; Verify</span><span class="card-sub">pip extras</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">pip install <span class="arg">sqlalchemy</span></code><span class="star">&#9733;</span><div class="desc">Core + ORM. 2.0.51 is the current stable line.</div></li>
+      <li class="setup"><code class="cmd">pip install <span class="str">"sqlalchemy[asyncio]"</span></code><span class="badge-new">2.1</span><div class="desc"><code>greenlet</code> no longer installs by default &mdash; async needs this extra.</div></li>
+      <li class="setup"><code class="cmd">pip install <span class="str">"sqlalchemy[postgresql]"</span></code><div class="desc">Driver extras: <code>postgresql</code>, <code>mysql</code>, <code>oracle</code>, <code>mssql</code>, <code>aiosqlite</code>&#8230;</div></li>
+      <li class="setup"><code class="cmd">pip install alembic</code><span class="star">&#9733;</span><div class="desc">Schema migrations &mdash; a separate package, same authors.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">import</span> <span class="mod">sqlalchemy</span>; sqlalchemy.__version__</code><div class="desc">Confirm which series you are actually on.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 ENGINE and URLS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Engine &amp; Database URLs</span><span class="card-sub">one per process</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">engine = create_engine(<span class="arg">url</span>)</code><span class="star">&#9733;</span><div class="desc">Lazy &mdash; no connection is opened until first use.</div></li>
+      <li class="setup"><code class="cmd"><span class="str">"sqlite+pysqlite:///file.db"</span></code><div class="desc"><code>sqlite://</code> alone = in-memory, per-connection.</div></li>
+      <li class="setup"><code class="cmd"><span class="str">"postgresql+psycopg://u:p@host/db"</span></code><span class="badge-new">2.1</span><div class="desc">Bare <code>postgresql://</code> now defaults to <b>psycopg 3</b>, not psycopg2.</div></li>
+      <li class="setup"><code class="cmd"><span class="str">"mysql+pymysql://u:p@host/db"</span></code><div class="desc">MySQL / MariaDB. Also <code>mysqldb</code>, <code>asyncmy</code>.</div></li>
+      <li class="setup"><code class="cmd"><span class="str">"oracle+oracledb://&#8230;"</span> &#183; <span class="str">"mssql+pyodbc://&#8230;"</span></code><span class="badge-new">2.1</span><div class="desc">Oracle default is now <code>python-oracledb</code>; new <code>mssql+mssqlpython</code>.</div></li>
+      <li class="setup"><code class="cmd">URL.create(<span class="str">"postgresql"</span>, username=&#8230;, password=&#8230;)</code><span class="star">&#9733;</span><div class="desc">Builds the URL safely &mdash; no manual escaping of <code>@ : /</code>.</div></li>
+      <li class="setup"><code class="cmd">create_engine(url, echo=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Log every statement to stdout. <code>echo="debug"</code> adds result rows.</div></li>
+      <li class="setup"><code class="cmd">engine.dispose()</code><div class="desc">Close the pool &mdash; call after <code>fork()</code>, never mid-request.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 CONNECTIONS and TRANSACTIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Connections &amp; Transactions</span><span class="card-sub">Core level</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="kw">with</span> engine.connect() <span class="kw">as</span> conn:</code><div class="desc">"Commit as you go" &mdash; rolls back on exit unless you commit.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">with</span> engine.begin() <span class="kw">as</span> conn:</code><span class="star">&#9733;</span><div class="desc">"Begin once" &mdash; commits on clean exit, rolls back on exception.</div></li>
+      <li class="setup"><code class="cmd">conn.execute(stmt, <span class="arg">params</span>)</code><span class="star">&#9733;</span><div class="desc">Returns a <code>CursorResult</code>. Pass a list of dicts for executemany.</div></li>
+      <li class="setup"><code class="cmd">conn.execute(text(<span class="str">"SELECT * FROM t WHERE id=:i"</span>), {<span class="str">"i"</span>: <span class="num">1</span>})</code><div class="desc">Raw SQL with <b>bound</b> params &mdash; never f-string user input.</div></li>
+      <li class="setup"><code class="cmd">conn.commit() &#183; conn.rollback()</code><div class="desc">Explicit control inside <code>engine.connect()</code>.</div></li>
+      <li class="setup"><code class="cmd">conn.begin_nested()</code><div class="desc">SAVEPOINT &mdash; a rollback point inside the outer transaction.</div></li>
+      <li class="setup"><code class="cmd">conn.execution_options(stream_results=<span class="kw">True</span>)</code><div class="desc">Server-side cursor for very large result sets.</div></li>
+      <li class="setup"><code class="cmd">conn.exec_driver_sql(<span class="str">"&#8230;"</span>)</code><div class="desc">Straight to the DBAPI &mdash; no SQLAlchemy compilation at all.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 METADATA / TABLE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">MetaData, Table, Column</span><span class="card-sub">Core schema</span></div>
+    <ul class="cmds">
+      <li class="schema"><code class="cmd">md = MetaData()</code><span class="star">&#9733;</span><div class="desc">The registry of every Table you define. ORM: <code>Base.metadata</code>.</div></li>
+      <li class="schema"><code class="cmd">MetaData(schema=<span class="str">"analytics"</span>)</code><div class="desc">Default schema for all tables &mdash; and, in 2.1, for named types too.</div></li>
+      <li class="schema"><code class="cmd">t = Table(<span class="str">"user"</span>, md, Column(<span class="str">"id"</span>, Integer, primary_key=<span class="kw">True</span>))</code><span class="star">&#9733;</span><div class="desc">Core table definition; the ORM builds one of these for you.</div></li>
+      <li class="schema"><code class="cmd">Column(<span class="str">"name"</span>, String(<span class="num">50</span>), nullable=<span class="kw">False</span>)</code><div class="desc"><code>nullable</code> defaults to True except on primary keys.</div></li>
+      <li class="schema"><code class="cmd">t.c.name &#183; t.c[<span class="str">"name"</span>] &#183; t.columns.keys()</code><span class="star">&#9733;</span><div class="desc"><code>.c</code> is the column collection you use in Core expressions.</div></li>
+      <li class="schema"><code class="cmd">t.primary_key &#183; t.foreign_keys &#183; md.sorted_tables</code><div class="desc">Introspect; <code>sorted_tables</code> is FK-dependency order.</div></li>
+      <li class="schema"><code class="cmd"><span class="kw">class</span> user_cols(TypedColumns): &#8230;</code><span class="badge-new">2.1</span><div class="desc">Typed column collections so <code>t.c.id</code> infers as <code>Column[int]</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 TYPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Column Types</span><span class="card-sub">portable &#8594; dialect</span></div>
+    <ul class="cmds">
+      <li class="schema"><code class="cmd">Integer &#183; BigInteger &#183; SmallInteger</code><div class="desc">Python <code>int</code>.</div></li>
+      <li class="schema"><code class="cmd">String(<span class="num">50</span>) &#183; Text &#183; Unicode</code><span class="star">&#9733;</span><div class="desc">Length is required by MySQL for indexed VARCHARs.</div></li>
+      <li class="schema"><code class="cmd">Numeric(<span class="num">10</span>, <span class="num">2</span>) &#183; Float &#183; Double</code><div class="desc"><code>Numeric</code> &#8594; <code>Decimal</code>; use it for money.</div></li>
+      <li class="schema"><code class="cmd">Boolean &#183; Date &#183; DateTime(timezone=<span class="kw">True</span>) &#183; Interval</code><span class="star">&#9733;</span><div class="desc">Set <code>timezone=True</code> or you get naive datetimes back.</div></li>
+      <li class="schema"><code class="cmd">Enum(MyPyEnum, name=<span class="str">"kind"</span>)</code><div class="desc">Native ENUM where supported, else VARCHAR + CHECK.</div></li>
+      <li class="schema"><code class="cmd">JSON &#183; ARRAY &#183; Uuid</code><div class="desc"><code>Uuid</code> is the portable one; <code>UUID</code> is Postgres-native.</div></li>
+      <li class="schema"><code class="cmd"><span class="kw">from</span> <span class="mod">sqlalchemy.dialects.postgresql</span> <span class="kw">import</span> JSONB, INET, HSTORE</code><div class="desc">Dialect types unlock native operators and containment.</div></li>
+      <li class="schema"><code class="cmd"><span class="kw">class</span> <span class="fn">MyType</span>(TypeDecorator): impl = String</code><div class="desc">Custom bind/result coercion around an existing type.</div></li>
+      <li class="schema"><code class="cmd">registry(type_annotation_map={<span class="fn">str</span>: Text})</code><div class="desc">Map Python annotations &#8594; SQL types once, globally.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 CONSTRAINTS and DEFAULTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Constraints, Indexes, Defaults</span><span class="card-sub">DDL detail</span></div>
+    <ul class="cmds">
+      <li class="schema"><code class="cmd">ForeignKey(<span class="str">"user_account.id"</span>, ondelete=<span class="str">"CASCADE"</span>)</code><span class="star">&#9733;</span><div class="desc">Goes on the <b>many</b> side. String form is resolved lazily.</div></li>
+      <li class="schema"><code class="cmd">UniqueConstraint(<span class="str">"a"</span>, <span class="str">"b"</span>) &#183; CheckConstraint(<span class="str">"qty &gt; 0"</span>)</code><div class="desc">Composite / expression constraints live in <code>__table_args__</code>.</div></li>
+      <li class="schema"><code class="cmd">Index(<span class="str">"ix_user_name"</span>, User.name, unique=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Or <code>mapped_column(index=True)</code> for the simple case.</div></li>
+      <li class="schema"><code class="cmd">__table_args__ = (UniqueConstraint(<span class="str">"a"</span>,<span class="str">"b"</span>), {<span class="str">"schema"</span>: <span class="str">"s"</span>})</code><div class="desc">A tuple; the dict of options must come <b>last</b>.</div></li>
+      <li class="schema"><code class="cmd">mapped_column(default=<span class="num">0</span>)</code><div class="desc"><b>Python-side</b> default, computed at INSERT time by SQLAlchemy.</div></li>
+      <li class="schema"><code class="cmd">mapped_column(server_default=func.now())</code><span class="star">&#9733;</span><div class="desc"><b>DDL-side</b> DEFAULT &mdash; the database fills it in.</div></li>
+      <li class="schema"><code class="cmd">mapped_column(onupdate=func.now())</code><div class="desc">Touched on every UPDATE &mdash; the classic <code>updated_at</code>.</div></li>
+      <li class="schema"><code class="cmd">Computed(<span class="str">"x * x"</span>, persisted=<span class="kw">True</span>)</code><span class="badge-new">2.1</span><div class="desc">2.1 defaults to VIRTUAL on PG 18+; pass <code>persisted=True</code> for STORED.</div></li>
+      <li class="schema"><code class="cmd">Identity() &#183; Sequence(<span class="str">"user_id_seq"</span>)</code><div class="desc">Server-generated keys, modern and legacy spellings.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 DDL and REFLECTION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Create, Drop &amp; Reflect</span><span class="card-sub">schema in &amp; out</span></div>
+    <ul class="cmds">
+      <li class="schema"><code class="cmd">md.create_all(engine)</code><span class="star">&#9733;</span><div class="desc">CREATE IF NOT EXISTS semantics; never ALTERs an existing table.</div></li>
+      <li class="schema"><code class="cmd">md.drop_all(engine) &#183; Table.create(engine)</code><div class="desc">Drops in reverse dependency order.</div></li>
+      <li class="schema"><code class="cmd">md.create_all(engine, checkfirst=CheckFirst.TABLES)</code><span class="badge-new">2.1</span><div class="desc">Fine-grained control over which existence checks are emitted.</div></li>
+      <li class="schema"><code class="cmd">md.reflect(bind=engine)</code><span class="star">&#9733;</span><div class="desc">Load an existing database's schema into MetaData.</div></li>
+      <li class="schema"><code class="cmd">Table(<span class="str">"user"</span>, md, autoload_with=engine)</code><div class="desc">Reflect just one table.</div></li>
+      <li class="schema"><code class="cmd">insp = inspect(engine); insp.get_table_names()</code><span class="star">&#9733;</span><div class="desc">Also <code>get_columns</code>, <code>get_indexes</code>, <code>get_foreign_keys</code>, <code>has_table</code>.</div></li>
+      <li class="schema"><code class="cmd">Base = automap_base(); Base.prepare(engine)</code><div class="desc">Generate mapped classes from a live schema.</div></li>
+      <li class="schema"><code class="cmd">CreateView(select(t), <span class="str">"v_users"</span>, metadata=md)</code><span class="badge-new">2.1</span><div class="desc">First-class CREATE VIEW; also <code>CreateTableAs</code> and <code>.into()</code>.</div></li>
+      <li class="schema"><code class="cmd"><span class="fn">print</span>(CreateTable(t).compile(engine))</code><div class="desc">See the DDL without running it.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 SELECT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">select() &mdash; the builder</span><span class="card-sub">Core and ORM alike</span></div>
+    <ul class="cmds">
+      <li class="sql"><code class="cmd">select(User)</code><span class="star">&#9733;</span><div class="desc">All mapped columns; rows come back as <code>User</code> objects.</div></li>
+      <li class="sql"><code class="cmd">select(User.id, User.name)</code><span class="star">&#9733;</span><div class="desc">Named columns; rows are <code>Row</code> tuples, not objects.</div></li>
+      <li class="sql"><code class="cmd">.where(&#8230;).order_by(&#8230;).limit(<span class="num">10</span>).offset(<span class="num">20</span>)</code><span class="star">&#9733;</span><div class="desc">Every method returns a <b>new</b> statement &mdash; reassign it.</div></li>
+      <li class="sql"><code class="cmd">.order_by(User.name.desc(), User.id.asc())</code><div class="desc">Add <code>.nulls_last()</code> where the backend supports it.</div></li>
+      <li class="sql"><code class="cmd">.group_by(User.city).having(func.count() &gt; <span class="num">5</span>)</code><div class="desc">HAVING filters groups; WHERE filters rows.</div></li>
+      <li class="sql"><code class="cmd">.distinct()</code><div class="desc">Postgres-only <code>distinct_on()</code> lives in the dialect module.</div></li>
+      <li class="sql"><code class="cmd">.with_only_columns(User.id)</code><div class="desc">Replace the column list, keeping the FROM/WHERE.</div></li>
+      <li class="sql"><code class="cmd">select(User).filter_by(name=<span class="str">"ada"</span>)</code><span class="badge-new">2.1</span><div class="desc">2.1 searches <b>all</b> FROM entities; ambiguity now raises.</div></li>
+      <li class="sql"><code class="cmd"><span class="fn">print</span>(stmt) &#183; stmt.compile(engine)</code><span class="star">&#9733;</span><div class="desc">See the SQL. Add <code>literal_binds</code> to inline the values.</div></li>
+      <li class="sql"><code class="cmd">tstring(t<span class="str">"SELECT * FROM u WHERE id={uid}"</span>)</code><span class="badge-new">2.1</span><div class="desc">PEP 750 t-strings: literals bind, SQL objects embed. Py 3.14+.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 WHERE and OPERATORS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">WHERE &amp; Operators</span><span class="card-sub">columns overload Python</span></div>
+    <ul class="cmds">
+      <li class="sql"><code class="cmd">.where(User.age &gt;= <span class="num">18</span>, User.active)</code><span class="star">&#9733;</span><div class="desc">Multiple args are ANDed together.</div></li>
+      <li class="sql"><code class="cmd">and_(a, b) &#183; or_(a, b) &#183; not_(a)</code><span class="star">&#9733;</span><div class="desc">Needed for OR &mdash; Python's <code>and</code>/<code>or</code> do <b>not</b> overload.</div></li>
+      <li class="sql"><code class="cmd">User.name.in_([<span class="str">"a"</span>, <span class="str">"b"</span>]) &#183; .not_in(&#8230;)</code><span class="star">&#9733;</span><div class="desc">Accepts a subquery too.</div></li>
+      <li class="sql"><code class="cmd">User.bio.is_(<span class="kw">None</span>) &#183; .is_not(<span class="kw">None</span>)</code><span class="star">&#9733;</span><div class="desc">Use these, not <code>== None</code>, for readable NULL tests.</div></li>
+      <li class="sql"><code class="cmd">User.name.like(<span class="str">"a%"</span>) &#183; .ilike(&#8230;) &#183; .startswith(&#8230;)</code><div class="desc">Also <code>contains</code>, <code>endswith</code>, <code>regexp_match</code>.</div></li>
+      <li class="sql"><code class="cmd">User.age.between(<span class="num">18</span>, <span class="num">65</span>)</code><div class="desc">Inclusive on both ends.</div></li>
+      <li class="sql"><code class="cmd">User.posts.any(Post.title == <span class="str">"x"</span>)</code><span class="star">&#9733;</span><div class="desc">EXISTS on a collection; <code>.has()</code> for many-to-one.</div></li>
+      <li class="sql"><code class="cmd">bindparam(<span class="str">"x"</span>) &#183; literal(<span class="num">5</span>) &#183; text(<span class="str">"a = :x"</span>)</code><div class="desc">Explicit parameters when the operator isn't enough.</div></li>
+      <li class="sql"><code class="cmd">cast(col, String) &#183; type_coerce(col, JSON)</code><div class="desc">SQL CAST vs. a Python-side type hint with no CAST emitted.</div></li>
+      <li class="danger"><code class="cmd">json_col.contains(<span class="str">"v"</span>)</code><span class="badge-danger">deprecated</span><div class="desc">2.1: string-LIKE on JSON warns &mdash; use <code>type_coerce(&#8230;, String)</code> or JSONB.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 JOINS, SUBQUERIES, CTEs -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Joins, Subqueries, CTEs</span><span class="card-sub">shaping the FROM</span></div>
+    <ul class="cmds">
+      <li class="sql"><code class="cmd">select(User).join(User.posts)</code><span class="star">&#9733;</span><div class="desc">ON clause inferred from the relationship.</div></li>
+      <li class="sql"><code class="cmd">.join(Post, Post.user_id == User.id)</code><div class="desc">Explicit ON when there's no relationship or it's ambiguous.</div></li>
+      <li class="sql"><code class="cmd">.outerjoin(Post) &#183; .join(&#8230;, isouter=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">LEFT OUTER JOIN. <code>full=True</code> for FULL OUTER.</div></li>
+      <li class="sql"><code class="cmd">.join_from(User, Post)</code><div class="desc">State both sides when the left side isn't obvious.</div></li>
+      <li class="sql"><code class="cmd">p = aliased(Post); .join(p, &#8230;)</code><span class="star">&#9733;</span><div class="desc">Required to join the same table twice.</div></li>
+      <li class="sql"><code class="cmd">sq = select(&#8230;).subquery(); select(sq.c.id)</code><div class="desc">Anonymous derived table; address columns through <code>.c</code>.</div></li>
+      <li class="sql"><code class="cmd">select(&#8230;).scalar_subquery()</code><div class="desc">A one-column subquery usable inside an expression.</div></li>
+      <li class="sql"><code class="cmd">cte = select(&#8230;).cte(<span class="str">"c"</span>, recursive=<span class="kw">True</span>)</code><div class="desc">WITH &#8230; ; grow it with <code>cte.union_all(&#8230;)</code>.</div></li>
+      <li class="sql"><code class="cmd">union_all(s1, s2) &#183; intersect(&#8230;) &#183; except_(&#8230;)</code><div class="desc">Compound selects; wrap in <code>.subquery()</code> to filter further.</div></li>
+      <li class="sql"><code class="cmd">select(&#8230;).lateral() &#183; .correlate(t)</code><div class="desc">LATERAL joins and explicit correlation control.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 FUNCTIONS and AGGREGATES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Functions &amp; Aggregates</span><span class="card-sub">the func namespace</span></div>
+    <ul class="cmds">
+      <li class="sql"><code class="cmd">func.count() &#183; func.count(User.id)</code><span class="star">&#9733;</span><div class="desc"><code>func.&lt;anything&gt;</code> renders as a SQL function call.</div></li>
+      <li class="sql"><code class="cmd">func.sum &#183; func.avg &#183; func.min &#183; func.max</code><div class="desc">Return types are inferred from the argument.</div></li>
+      <li class="sql"><code class="cmd">func.now() &#183; func.current_date()</code><span class="star">&#9733;</span><div class="desc">Server-side clock &mdash; ideal as a <code>server_default</code>.</div></li>
+      <li class="sql"><code class="cmd">func.coalesce(a, b) &#183; func.lower(x) &#183; func.concat(&#8230;)</code><div class="desc">Anything the backend knows, <code>func</code> can spell.</div></li>
+      <li class="sql"><code class="cmd">case((cond, <span class="str">"yes"</span>), else_=<span class="str">"no"</span>)</code><div class="desc">SQL CASE as a Python expression.</div></li>
+      <li class="sql"><code class="cmd">func.row_number().over(partition_by=&#8230;, order_by=&#8230;)</code><span class="star">&#9733;</span><div class="desc">Window functions on any aggregate or ranking function.</div></li>
+      <li class="sql"><code class="cmd">.over(range_=FrameClause(&#8230;))</code><span class="badge-new">2.1</span><div class="desc">RANGE frames now accept dates/intervals, not just integers.</div></li>
+      <li class="sql"><code class="cmd">func.count().filter(User.active)</code><div class="desc">FILTER (WHERE &#8230;) where supported.</div></li>
+      <li class="sql"><code class="cmd">select(func.json_each(col).table_valued(<span class="str">"value"</span>))</code><div class="desc">Table-valued and set-returning functions.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 INSERT / UPDATE / DELETE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">INSERT / UPDATE / DELETE</span><span class="card-sub">Core DML</span></div>
+    <ul class="cmds">
+      <li class="sql"><code class="cmd">insert(User).values(name=<span class="str">"ada"</span>)</code><span class="star">&#9733;</span><div class="desc">Or omit <code>.values()</code> and pass params to <code>execute()</code>.</div></li>
+      <li class="sql"><code class="cmd">conn.execute(insert(User), [{&#8230;}, {&#8230;}])</code><span class="star">&#9733;</span><div class="desc">Batched executemany &mdash; far faster than a loop.</div></li>
+      <li class="sql"><code class="cmd">insert(User).returning(User.id)</code><span class="star">&#9733;</span><div class="desc">RETURNING is used automatically for ORM inserts where supported.</div></li>
+      <li class="sql"><code class="cmd">insert(User).from_select([<span class="str">"name"</span>], select(&#8230;))</code><div class="desc">INSERT &#8230; SELECT, no round trip through Python.</div></li>
+      <li class="sql"><code class="cmd">update(User).where(&#8230;).values(active=<span class="kw">False</span>)</code><span class="star">&#9733;</span><div class="desc">Set-based UPDATE &mdash; skips the ORM's per-object machinery.</div></li>
+      <li class="sql"><code class="cmd">update(User).values(hits=User.hits + <span class="num">1</span>)</code><div class="desc">Atomic in-place update using the column itself.</div></li>
+      <li class="sql"><code class="cmd">delete(User).where(User.active.is_(<span class="kw">False</span>))</code><div class="desc">Result's <code>.rowcount</code> tells you how many rows matched.</div></li>
+      <li class="sql"><code class="cmd">delete(u).using(u.outerjoin(a, &#8230;))</code><span class="badge-new">2.1</span><div class="desc">Explicit USING for multi-table DELETE on PG / MySQL.</div></li>
+      <li class="sql"><code class="cmd"><span class="mod">postgresql</span>.insert(t).on_conflict_do_update(&#8230;)</code><span class="star">&#9733;</span><div class="desc">UPSERT. MySQL: <code>on_duplicate_key_update</code>; SQLite has its own.</div></li>
+      <li class="danger"><code class="cmd">session.execute(update(User)&#8230;)</code><span class="badge-danger">care</span><div class="desc">Bulk DML bypasses in-memory objects &mdash; set <code>synchronize_session</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 DECLARATIVE MAPPING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Declarative Mapping</span><span class="card-sub">classes &#8594; tables</span></div>
+    <ul class="cmds">
+      <li class="map"><code class="cmd"><span class="kw">class</span> <span class="fn">Base</span>(DeclarativeBase): <span class="kw">pass</span></code><span class="star">&#9733;</span><div class="desc">The 2.0 base. Replaces <code>declarative_base()</code>.</div></li>
+      <li class="map"><code class="cmd">__tablename__ = <span class="str">"user_account"</span></code><span class="star">&#9733;</span><div class="desc">Required unless you attach a <code>__table__</code> yourself.</div></li>
+      <li class="map"><code class="cmd">id: Mapped[<span class="fn">int</span>] = mapped_column(primary_key=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Every mapped class needs at least one primary key column.</div></li>
+      <li class="map"><code class="cmd">name: Mapped[<span class="fn">str</span>]</code><span class="star">&#9733;</span><div class="desc">Annotation alone is enough: String, <b>NOT NULL</b>.</div></li>
+      <li class="map"><code class="cmd">bio: Mapped[<span class="fn">str</span> | <span class="kw">None</span>]</code><span class="star">&#9733;</span><div class="desc"><code>| None</code> is what makes the column NULLable.</div></li>
+      <li class="map"><code class="cmd">mapped_column(<span class="str">"db_name"</span>, String(<span class="num">50</span>), unique=<span class="kw">True</span>)</code><div class="desc">First positional arg overrides the DB column name.</div></li>
+      <li class="map"><code class="cmd">mapped_column(deferred=<span class="kw">True</span>)</code><div class="desc">Skip a heavy column until it's touched.</div></li>
+      <li class="map"><code class="cmd">reg = registry(); @reg.mapped_as_dataclass</code><div class="desc">Decorator style &mdash; map a class without inheriting a base.</div></li>
+      <li class="map"><code class="cmd"><span class="kw">class</span> <span class="fn">Base</span>(MappedAsDataclass, DeclarativeBase)</code><div class="desc">Real dataclasses: generated <code>__init__</code>, <code>__repr__</code>, <code>__eq__</code>.</div></li>
+      <li class="map"><code class="cmd">User.__table__ &#183; inspect(User).mapper</code><div class="desc">Drop from ORM down to the Core Table / Mapper.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 RELATIONSHIPS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">relationship()</span><span class="card-sub">Python-side links</span></div>
+    <ul class="cmds">
+      <li class="map"><code class="cmd">posts: Mapped[<span class="fn">list</span>[<span class="str">"Post"</span>]] = relationship(back_populates=<span class="str">"user"</span>)</code><span class="star">&#9733;</span><div class="desc">One-to-many. The FK lives on <code>Post</code>, not here.</div></li>
+      <li class="map"><code class="cmd">user: Mapped[<span class="str">"User"</span>] = relationship(back_populates=<span class="str">"posts"</span>)</code><span class="star">&#9733;</span><div class="desc">Many-to-one, the other half of the pair.</div></li>
+      <li class="map"><code class="cmd">relationship(back_populates=<span class="kw">lambda</span>: Post.user)</code><span class="badge-new">2.1</span><div class="desc">Callable / direct attribute refs &mdash; lintable, no magic strings.</div></li>
+      <li class="map"><code class="cmd">relationship(secondary=assoc_table)</code><span class="star">&#9733;</span><div class="desc">Many-to-many through a plain association Table.</div></li>
+      <li class="map"><code class="cmd">relationship(<span class="str">"Child"</span>, cascade=<span class="str">"all, delete-orphan"</span>)</code><span class="star">&#9733;</span><div class="desc">Delete children with the parent. One-to-many side only.</div></li>
+      <li class="map"><code class="cmd">relationship(uselist=<span class="kw">False</span>)</code><div class="desc">Force one-to-one on the "one" side.</div></li>
+      <li class="map"><code class="cmd">relationship(primaryjoin=&#8230;, foreign_keys=[&#8230;])</code><div class="desc">Disambiguate when two FKs point at the same table.</div></li>
+      <li class="map"><code class="cmd">relationship(order_by=Post.created)</code><div class="desc">Sort the collection every time it loads.</div></li>
+      <li class="map"><code class="cmd">relationship(lazy=<span class="str">"selectin"</span>)</code><span class="star">&#9733;</span><div class="desc">Set the default load strategy at mapping time.</div></li>
+      <li class="map"><code class="cmd">WriteOnlyMapped[<span class="str">"Post"</span>] &#183; DynamicMapped[<span class="str">"Post"</span>]</code><div class="desc">Huge collections you never want fully loaded.</div></li>
+      <li class="danger"><code class="cmd">relationship(backref=<span class="str">"user"</span>)</code><span class="badge-danger">legacy</span><div class="desc">Works, but <code>back_populates</code> on both sides is explicit and typed.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 MAPPING EXTRAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Mapping Extras</span><span class="card-sub">mixins &#183; inheritance</span></div>
+    <ul class="cmds">
+      <li class="map"><code class="cmd"><span class="kw">class</span> <span class="fn">TimestampMixin</span>: created: Mapped[datetime]</code><span class="star">&#9733;</span><div class="desc">Plain mixin classes compose into any mapped class.</div></li>
+      <li class="map"><code class="cmd">@declared_attr <span class="kw">def</span> <span class="fn">__tablename__</span>(cls): &#8230;</code><div class="desc">Compute table names or columns per subclass.</div></li>
+      <li class="map"><code class="cmd">__mapper_args__ = {<span class="str">"polymorphic_on"</span>: &#8230;}</code><div class="desc">Single- and joined-table inheritance.</div></li>
+      <li class="map"><code class="cmd">__abstract__ = <span class="kw">True</span></code><div class="desc">A base class that is never mapped to a table itself.</div></li>
+      <li class="map"><code class="cmd">@hybrid_property <span class="kw">def</span> <span class="fn">full</span>(self): &#8230;</code><span class="star">&#9733;</span><div class="desc">Works in Python <b>and</b> compiles into SQL in a WHERE clause.</div></li>
+      <li class="map"><code class="cmd">@coords.inplace.bulk_dml</code><span class="badge-new">2.1</span><div class="desc">Hybrids can now expand into ORM bulk INSERT/UPDATE dicts.</div></li>
+      <li class="map"><code class="cmd">composite(mapped_column(<span class="str">"x"</span>), mapped_column(<span class="str">"y"</span>))</code><div class="desc">Two columns behind one value object. 2.1 adds <code>return_none_on</code>.</div></li>
+      <li class="map"><code class="cmd">column_property(select(&#8230;).scalar_subquery())</code><div class="desc">A read-only derived column computed by the database.</div></li>
+      <li class="map"><code class="cmd">@validates(<span class="str">"email"</span>) <span class="kw">def</span> <span class="fn">check</span>(self, key, v): &#8230;</code><div class="desc">Python-side validation on attribute set.</div></li>
+      <li class="map"><code class="cmd">association_proxy(<span class="str">"tags"</span>, <span class="str">"name"</span>)</code><div class="desc">Flatten a many-to-many into a list of scalars.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 SESSION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">The Session</span><span class="card-sub">short-lived, not shared</span></div>
+    <ul class="cmds">
+      <li class="session"><code class="cmd"><span class="kw">with</span> Session(engine) <span class="kw">as</span> s:</code><span class="star">&#9733;</span><div class="desc">One session per request / task. <b>Not</b> thread-safe.</div></li>
+      <li class="session"><code class="cmd">SessionLocal = sessionmaker(engine, expire_on_commit=<span class="kw">False</span>)</code><span class="star">&#9733;</span><div class="desc">A configured factory &mdash; the usual app-level pattern.</div></li>
+      <li class="session"><code class="cmd"><span class="kw">with</span> Session(engine) <span class="kw">as</span> s, s.begin():</code><span class="star">&#9733;</span><div class="desc">Begin-once: commit on clean exit, rollback on exception.</div></li>
+      <li class="session"><code class="cmd">s.add(obj) &#183; s.add_all([&#8230;])</code><span class="star">&#9733;</span><div class="desc">Marks pending &mdash; no SQL yet.</div></li>
+      <li class="session"><code class="cmd">s.delete(obj)</code><div class="desc">Marks for DELETE at the next flush, cascades included.</div></li>
+      <li class="session"><code class="cmd">s.flush()</code><div class="desc">Emit the pending SQL, stay inside the transaction.</div></li>
+      <li class="session"><code class="cmd">s.commit() &#183; s.rollback()</code><span class="star">&#9733;</span><div class="desc"><code>commit</code> = flush + COMMIT. After a failed flush you <b>must</b> rollback.</div></li>
+      <li class="session"><code class="cmd">s.refresh(obj) &#183; s.expire(obj)</code><div class="desc">Re-SELECT now, vs. mark stale and reload on next access.</div></li>
+      <li class="session"><code class="cmd">s.begin_nested()</code><div class="desc">SAVEPOINT &mdash; partial rollback inside a bigger transaction.</div></li>
+      <li class="session"><code class="cmd">Session(engine, execution_options={&#8230;})</code><span class="badge-new">2.1</span><div class="desc">Options now apply to flushes and eager loaders too.</div></li>
+      <li class="session"><code class="cmd">scoped_session(SessionLocal)</code><div class="desc">Thread-local registry; prefer explicit passing in new code.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 ORM QUERYING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">ORM Querying</span><span class="card-sub">2.0 style</span></div>
+    <ul class="cmds">
+      <li class="session"><code class="cmd">s.scalars(select(User)).all()</code><span class="star">&#9733;</span><div class="desc">The everyday call: a list of <code>User</code> objects.</div></li>
+      <li class="session"><code class="cmd">s.execute(select(User.id, User.name)).all()</code><span class="star">&#9733;</span><div class="desc">A list of <code>Row</code> tuples when you select columns.</div></li>
+      <li class="session"><code class="cmd">s.get(User, <span class="num">1</span>)</code><span class="star">&#9733;</span><div class="desc">PK lookup; checks the identity map first, so it may emit no SQL.</div></li>
+      <li class="session"><code class="cmd">s.get(User, {<span class="str">"a"</span>: <span class="num">1</span>, <span class="str">"b"</span>: <span class="num">2</span>}) &#183; s.get_one(&#8230;)</code><div class="desc">Composite keys; <code>get_one</code> raises instead of returning None.</div></li>
+      <li class="session"><code class="cmd">s.scalar(select(func.count()).select_from(User))</code><span class="star">&#9733;</span><div class="desc">Counting rows &mdash; never <code>len(s.scalars(&#8230;).all())</code>.</div></li>
+      <li class="session"><code class="cmd">s.scalars(stmt).unique().all()</code><span class="star">&#9733;</span><div class="desc"><b>Required</b> when <code>joinedload</code> pulls a collection.</div></li>
+      <li class="session"><code class="cmd">stmt.options(&#8230;) &#183; stmt.execution_options(&#8230;)</code><div class="desc">Loader options vs. engine-level options.</div></li>
+      <li class="session"><code class="cmd">s.execute(stmt, execution_options={<span class="str">"yield_per"</span>: <span class="num">1000</span>})</code><div class="desc">Stream large ORM results in batches.</div></li>
+      <li class="session"><code class="cmd">select(User).where(User.id.in_(select(&#8230;)))</code><div class="desc">ORM entities compose freely with Core constructs.</div></li>
+      <li class="danger"><code class="cmd">s.query(User).filter_by(name=<span class="str">"x"</span>).first()</code><span class="badge-danger">legacy</span><div class="desc">The 1.x <code>Query</code> API still works but is no longer documented first.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 RESULTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Reading Results</span><span class="card-sub">Result navigation</span></div>
+    <ul class="cmds">
+      <li class="session"><code class="cmd">result.all()</code><span class="star">&#9733;</span><div class="desc">List of <code>Row</code>. Iterating a Result yields Rows too.</div></li>
+      <li class="session"><code class="cmd">result.scalars()</code><span class="star">&#9733;</span><div class="desc">Unwrap the first column &mdash; the objects, not 1-tuples.</div></li>
+      <li class="session"><code class="cmd">.one() &#183; .one_or_none() &#183; .first()</code><span class="star">&#9733;</span><div class="desc"><code>one()</code> raises on 0 <i>or</i> &gt;1; <code>first()</code> just takes the head.</div></li>
+      <li class="session"><code class="cmd">.scalar_one() &#183; .scalar_one_or_none()</code><span class="star">&#9733;</span><div class="desc">Scalars + strictness in one call.</div></li>
+      <li class="session"><code class="cmd">result.mappings().all()</code><div class="desc">Dict-like rows &mdash; handy for JSON serialization.</div></li>
+      <li class="session"><code class="cmd">row.name &#183; row[<span class="num">0</span>] &#183; a, b = row</code><div class="desc"><code>Row</code> is a named tuple: index, attribute or unpack.</div></li>
+      <li class="session"><code class="cmd">result.rowcount &#183; result.inserted_primary_key</code><div class="desc">DML feedback on a <code>CursorResult</code>.</div></li>
+      <li class="session"><code class="cmd">result.partitions(<span class="num">500</span>) &#183; result.freeze()</code><div class="desc">Chunked iteration; freeze to re-read a Result.</div></li>
+      <li class="session"><code class="cmd">stmt: Select[<span class="fn">int</span>, <span class="fn">str</span>]</code><span class="badge-new">2.1</span><div class="desc">PEP 646 drops the <code>Tuple[]</code> wrapper &mdash; needs mypy 1.7+.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 LOADING STRATEGIES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Loading Strategies</span><span class="card-sub">the N+1 cure</span></div>
+    <ul class="cmds">
+      <li class="session"><code class="cmd">.options(selectinload(User.posts))</code><span class="star">&#9733;</span><div class="desc"><b>Best default for collections.</b> One extra SELECT &#8230; WHERE id IN (&#8230;).</div></li>
+      <li class="session"><code class="cmd">.options(joinedload(Post.user))</code><span class="star">&#9733;</span><div class="desc">Best for many-to-one: LEFT JOIN in the same statement.</div></li>
+      <li class="session"><code class="cmd">.options(subqueryload(User.posts))</code><div class="desc">Older eager form; <code>selectinload</code> is usually faster.</div></li>
+      <li class="session"><code class="cmd">.options(lazyload(User.posts))</code><div class="desc">The default: a SELECT fires the moment you touch the attribute.</div></li>
+      <li class="session"><code class="cmd">.options(raiseload(User.posts))</code><span class="star">&#9733;</span><div class="desc">Turn accidental lazy loads into a loud error. Great in tests.</div></li>
+      <li class="session"><code class="cmd">relationship(lazy=<span class="str">"raise_on_sql"</span>)</code><div class="desc">Allow it if it's already loaded, raise if it would hit the DB.</div></li>
+      <li class="session"><code class="cmd">.options(selectinload(User.posts).selectinload(Post.tags))</code><div class="desc">Chain to walk more than one level deep.</div></li>
+      <li class="session"><code class="cmd">.join(User.posts).options(contains_eager(User.posts))</code><span class="star">&#9733;</span><div class="desc">Reuse a JOIN <b>you</b> wrote to populate the collection.</div></li>
+      <li class="session"><code class="cmd">.options(load_only(User.id, User.name))</code><div class="desc">Column-level: also <code>defer()</code>, <code>undefer()</code>.</div></li>
+      <li class="session"><code class="cmd">with_loader_criteria(Post, Post.active)</code><div class="desc">Inject a WHERE into every eager load of that entity.</div></li>
+    </ul>
+  </article>
+
+  <!-- 20 OBJECT STATES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">20</span><span class="card-title">Object States &amp; Identity</span><span class="card-sub">what the Session knows</span></div>
+    <ul class="cmds">
+      <li class="session"><code class="cmd">inspect(obj).transient / pending / persistent / detached</code><span class="star">&#9733;</span><div class="desc">The four states every mapped instance moves through.</div></li>
+      <li class="session"><code class="cmd">s.new &#183; s.dirty &#183; s.deleted &#183; s.identity_map</code><div class="desc">Everything the unit of work is currently tracking.</div></li>
+      <li class="session"><code class="cmd">obj <span class="kw">in</span> s &#183; object_session(obj)</code><div class="desc">Which session, if any, owns this instance.</div></li>
+      <li class="session"><code class="cmd">s.expunge(obj)</code><div class="desc">Detach without deleting &mdash; the object keeps its loaded values.</div></li>
+      <li class="session"><code class="cmd">s.merge(obj)</code><div class="desc">Copy a detached object's state back into this session.</div></li>
+      <li class="session"><code class="cmd">s.expire_all() &#183; s.expunge_all()</code><div class="desc">Blanket versions of the above.</div></li>
+      <li class="session"><code class="cmd">get_history(obj, <span class="str">"name"</span>)</code><div class="desc">Added / unchanged / deleted values for one attribute.</div></li>
+      <li class="danger"><code class="cmd">obj.attr <span class="cm"># after the session closed</span></code><span class="badge-danger">detached</span><div class="desc">Eager-load before leaving scope, or set <code>expire_on_commit=False</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 21 ASYNC -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">21</span><span class="card-title">Asyncio</span><span class="card-sub">same API, awaited</span></div>
+    <ul class="cmds">
+      <li class="async"><code class="cmd">engine = create_async_engine(<span class="str">"postgresql+asyncpg://&#8230;"</span>)</code><span class="star">&#9733;</span><div class="desc">Needs an async driver: <code>asyncpg</code>, <code>aiosqlite</code>, <code>asyncmy</code>, <code>psycopg</code>.</div></li>
+      <li class="async"><code class="cmd">Sess = async_sessionmaker(engine, expire_on_commit=<span class="kw">False</span>)</code><span class="star">&#9733;</span><div class="desc">Almost always set <code>expire_on_commit=False</code> under async.</div></li>
+      <li class="async"><code class="cmd"><span class="kw">async with</span> Sess() <span class="kw">as</span> s: <span class="kw">await</span> s.execute(stmt)</code><span class="star">&#9733;</span><div class="desc">Same <code>select()</code> objects &mdash; only the I/O calls are awaited.</div></li>
+      <li class="async"><code class="cmd">(<span class="kw">await</span> s.scalars(stmt)).all()</code><span class="star">&#9733;</span><div class="desc">Await the call, then use the Result synchronously.</div></li>
+      <li class="async"><code class="cmd"><span class="kw">await</span> conn.run_sync(Base.metadata.create_all)</code><div class="desc"><code>run_sync</code> bridges any sync-only API into the loop.</div></li>
+      <li class="async"><code class="cmd"><span class="kw">class</span> <span class="fn">Base</span>(AsyncAttrs, DeclarativeBase)</code><span class="star">&#9733;</span><div class="desc">Then <code>await obj.awaitable_attrs.posts</code> for a lazy load.</div></li>
+      <li class="async"><code class="cmd">.options(selectinload(User.posts))</code><span class="star">&#9733;</span><div class="desc">Eager-load up front &mdash; the real fix, not <code>awaitable_attrs</code>.</div></li>
+      <li class="async"><code class="cmd">async_scoped_session(Sess, scopefunc=current_task)</code><div class="desc">Task-scoped registry when you can't pass the session down.</div></li>
+      <li class="danger"><code class="cmd">obj.posts <span class="cm"># plain access under async</span></code><span class="badge-danger">MissingGreenlet</span><div class="desc">A lazy load has no greenlet to suspend into. Eager-load it.</div></li>
+    </ul>
+  </article>
+
+  <!-- 22 POOLING and PERF -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">22</span><span class="card-title">Pooling &amp; Performance</span><span class="card-sub">the boring wins</span></div>
+    <ul class="cmds">
+      <li class="async"><code class="cmd">create_engine(url, pool_pre_ping=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Cheap liveness check &mdash; cures "server closed the connection".</div></li>
+      <li class="async"><code class="cmd">pool_size=<span class="num">5</span>, max_overflow=<span class="num">10</span>, pool_timeout=<span class="num">30</span></code><span class="star">&#9733;</span><div class="desc">Ceiling is <code>pool_size + max_overflow</code> per process.</div></li>
+      <li class="async"><code class="cmd">pool_recycle=<span class="num">1800</span></code><div class="desc">Recycle before MySQL's <code>wait_timeout</code> kills the socket.</div></li>
+      <li class="async"><code class="cmd">poolclass=NullPool</code><div class="desc">No pooling &mdash; for serverless / short-lived processes.</div></li>
+      <li class="async"><code class="cmd">engine.pool.status()</code><div class="desc">Checked-out vs. checked-in counts, live.</div></li>
+      <li class="async"><code class="cmd">insertmanyvalues</code><div class="desc">Batches INSERTs with RETURNING automatically &mdash; on by default.</div></li>
+      <li class="async"><code class="cmd">func.uuidv7(monotonic=<span class="kw">True</span>)</code><span class="badge-new">2.1</span><div class="desc">Server-side monotonic keys now work as batch-INSERT sentinels.</div></li>
+      <li class="async"><code class="cmd">create_engine(url, query_cache_size=<span class="num">1200</span>)</code><div class="desc">Compiled-statement cache; watch for churn from generated SQL.</div></li>
+      <li class="async"><code class="cmd">.options(raiseload(<span class="str">"*"</span>))</code><span class="star">&#9733;</span><div class="desc">The fastest way to find every N+1 in a code path.</div></li>
+    </ul>
+  </article>
+
+  <!-- 23 EVENTS and DEBUGGING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">23</span><span class="card-title">Events &amp; Debugging</span><span class="card-sub">hooks and echoes</span></div>
+    <ul class="cmds">
+      <li class="async"><code class="cmd">create_engine(url, echo=<span class="kw">True</span>, echo_pool=<span class="str">"debug"</span>)</code><span class="star">&#9733;</span><div class="desc">Fastest possible answer to "what SQL did that emit?".</div></li>
+      <li class="async"><code class="cmd">logging.getLogger(<span class="str">"sqlalchemy.engine"</span>).setLevel(<span class="str">"INFO"</span>)</code><div class="desc">Route the same output through your app's logging config.</div></li>
+      <li class="async"><code class="cmd">@event.listens_for(engine, <span class="str">"before_cursor_execute"</span>)</code><span class="star">&#9733;</span><div class="desc">Time queries, tag them, or log slow statements.</div></li>
+      <li class="async"><code class="cmd">@event.listens_for(Session, <span class="str">"before_flush"</span>)</code><div class="desc">Also <code>after_flush</code>, <code>after_commit</code>, <code>do_orm_execute</code>.</div></li>
+      <li class="async"><code class="cmd">@event.listens_for(User, <span class="str">"before_insert"</span>)</code><div class="desc">Mapper-level hooks per class.</div></li>
+      <li class="async"><code class="cmd">@event.listens_for(Base, <span class="str">"resolve_type_annotation"</span>)</code><span class="badge-new">2.1</span><div class="desc">New <code>RegistryEvents</code> &mdash; program your own annotation rules.</div></li>
+      <li class="async"><code class="cmd">stmt.compile(engine, compile_kwargs={<span class="str">"literal_binds"</span>: <span class="kw">True</span>})</code><span class="star">&#9733;</span><div class="desc">SQL with the values inlined &mdash; for reading, not for running.</div></li>
+      <li class="async"><code class="cmd">exc.IntegrityError &#183; NoResultFound &#183; MultipleResultsFound</code><div class="desc">All DBAPI errors arrive wrapped as <code>DBAPIError</code> subclasses.</div></li>
+    </ul>
+  </article>
+
+  <!-- 24 ALEMBIC -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">24</span><span class="card-title">Alembic Migrations</span><span class="card-sub">separate package</span></div>
+    <ul class="cmds">
+      <li class="async"><code class="cmd">alembic init <span class="arg">migrations</span></code><span class="star">&#9733;</span><div class="desc">Then point <code>target_metadata = Base.metadata</code> in <code>env.py</code>.</div></li>
+      <li class="async"><code class="cmd">alembic revision <span class="flag">--autogenerate</span> <span class="flag">-m</span> <span class="str">"add users"</span></code><span class="star">&#9733;</span><div class="desc">Diffs models against the live DB. <b>Always read the output.</b></div></li>
+      <li class="async"><code class="cmd">alembic upgrade head &#183; alembic downgrade -1</code><span class="star">&#9733;</span><div class="desc"><code>head</code> = newest revision on this branch.</div></li>
+      <li class="async"><code class="cmd">alembic current &#183; alembic history <span class="flag">--verbose</span></code><div class="desc">Where the database is vs. where the scripts go.</div></li>
+      <li class="async"><code class="cmd">alembic stamp head</code><div class="desc">Mark as migrated without running anything &mdash; for existing DBs.</div></li>
+      <li class="async"><code class="cmd">alembic merge <span class="flag">-m</span> <span class="str">"merge"</span> <span class="arg">rev1 rev2</span></code><div class="desc">Reconcile two branches that both claim <code>head</code>.</div></li>
+      <li class="async"><code class="cmd">alembic upgrade head <span class="flag">--sql</span></code><div class="desc">Offline mode: print the SQL for a DBA to review.</div></li>
+      <li class="danger"><code class="cmd">md.create_all() <span class="cm"># in production</span></code><span class="badge-danger">care</span><div class="desc">Creates missing tables but never migrates existing ones.</div></li>
+    </ul>
+  </article>
+
+  <!-- 25 NEW IN 2.1 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">25</span><span class="card-title">New in 2.1</span><span class="card-sub">2.1.0b3 &#183; beta</span></div>
+    <ul class="cmds">
+      <li class="async"><code class="cmd">pip install <span class="str">"sqlalchemy[asyncio]"</span></code><span class="star">&#9733;</span><div class="desc"><code>greenlet</code> left the default install. The #1 upgrade surprise.</div></li>
+      <li class="async"><code class="cmd"><span class="str">"postgresql://"</span> &#8594; psycopg 3</code><span class="star">&#9733;</span><div class="desc">Pin <code>postgresql+psycopg2://</code> if you still need the old driver.</div></li>
+      <li class="async"><code class="cmd">tstring(t<span class="str">"&#8230; {value}"</span>)</code><div class="desc">PEP 750 template strings compile to bound parameters.</div></li>
+      <li class="async"><code class="cmd">CreateView &#183; CreateTableAs &#183; SelectBase.into()</code><div class="desc">Views and CTAS are finally first-class DDL.</div></li>
+      <li class="async"><code class="cmd">Select[<span class="fn">int</span>, <span class="fn">str</span>]</code><div class="desc">PEP 646 typing &mdash; <code>Row._t</code> workarounds can go.</div></li>
+      <li class="async"><code class="cmd">autoflush is now unconditional</code><span class="star">&#9733;</span><div class="desc">Even a raw <code>text()</code> execute flushes pending changes first.</div></li>
+      <li class="async"><code class="cmd">filter_by() searches all FROM entities</code><div class="desc">Duplicated names raise <code>AmbiguousColumnError</code> &mdash; use <code>filter()</code>.</div></li>
+      <li class="async"><code class="cmd">MappedAsDataclass defaults use DONT_SET</code><div class="desc">Passing only <code>related_id=</code> no longer NULLs it out.</div></li>
+      <li class="async"><code class="cmd">composite() returns an object, not None</code><div class="desc">Opt back in with <code>return_none_on=</code>, or annotate <code>| None</code>.</div></li>
+      <li class="async"><code class="cmd">Enum / DOMAIN belong to MetaData</code><div class="desc">They inherit its schema; <code>inherit_schema</code> is deprecated.</div></li>
+      <li class="async"><code class="cmd">Select.ext() + SyntaxExtension</code><div class="desc">Add QUALIFY, INTO OUTFILE, etc. without patching the compiler.</div></li>
+      <li class="async"><code class="cmd">float literals CAST to DOUBLE</code><div class="desc">Was FLOAT; matters for third-party dialects.</div></li>
+    </ul>
+  </article>
+
+  <!-- 26 LEGACY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">26</span><span class="card-title">Legacy &#8594; Modern</span><span class="card-sub">what old tutorials teach</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">session.query(User)</code><span class="badge-danger">legacy</span><div class="desc">&#8594; <code>select(User)</code> + <code>session.execute()</code> / <code>session.scalars()</code>.</div></li>
+      <li class="danger"><code class="cmd">query.get(<span class="num">1</span>)</code><span class="badge-danger">legacy</span><div class="desc">&#8594; <code>session.get(User, 1)</code>.</div></li>
+      <li class="danger"><code class="cmd">Base = declarative_base()</code><span class="badge-danger">legacy</span><div class="desc">&#8594; <code>class Base(DeclarativeBase): pass</code>.</div></li>
+      <li class="danger"><code class="cmd">id = Column(Integer, primary_key=<span class="kw">True</span>)</code><span class="badge-danger">legacy</span><div class="desc">&#8594; <code>id: Mapped[int] = mapped_column(primary_key=True)</code>.</div></li>
+      <li class="danger"><code class="cmd">select([col1, col2])</code><span class="badge-danger">removed</span><div class="desc">&#8594; <code>select(col1, col2)</code> &mdash; no list.</div></li>
+      <li class="danger"><code class="cmd">engine.execute(<span class="str">"SELECT 1"</span>)</code><span class="badge-danger">removed</span><div class="desc">Connectionless execution is gone &#8594; <code>with engine.connect()</code>.</div></li>
+      <li class="danger"><code class="cmd">Session(autocommit=<span class="kw">True</span>)</code><span class="badge-danger">removed</span><div class="desc">&#8594; explicit <code>begin()</code> / <code>commit()</code>.</div></li>
+      <li class="danger"><code class="cmd">sessionmaker(class_=AsyncSession)</code><span class="badge-danger">dated</span><div class="desc">&#8594; <code>async_sessionmaker(engine)</code>.</div></li>
+      <li class="danger"><code class="cmd">ClauseElement.params()</code><span class="badge-danger">deprecated</span><div class="desc">2.1 &#8594; the faster <code>ExecutableStatement.params()</code> on statements.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four pictures that prevent most SQLAlchemy bugs</h2>
+  <p class="sub">Object lifecycle, query counts, where the foreign key really lives, and what shape a Result hands back.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>1 &#183; the four object states</h3>
+      <p>An instance is only <b>persistent</b> while a Session owns it and a row exists. Everything that surprises you about ORM objects follows from this line.</p>
+      <svg viewBox="0 0 440 218" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Object lifecycle: transient becomes pending on session add, persistent on flush, detached on close or expunge; persistent becomes deleted after delete and flush.">
+        <defs>
+          <marker id="d1-arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+          </marker>
+          <marker id="d1-arw-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+          </marker>
+        </defs>
+
+        <rect x="8"   y="52" width="92" height="42" rx="9" fill="#f1f3f6" stroke="#64748b" stroke-width="1.8"/>
+        <text x="54"  y="72" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">transient</text>
+        <text x="54"  y="86" text-anchor="middle" font-size="8.5" fill="#64748b">just User(&#8230;)</text>
+
+        <rect x="120" y="52" width="92" height="42" rx="9" fill="#f4effe" stroke="#7c3aed" stroke-width="1.8"/>
+        <text x="166" y="72" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">pending</text>
+        <text x="166" y="86" text-anchor="middle" font-size="8.5" fill="#7c3aed">no SQL yet</text>
+
+        <rect x="232" y="52" width="92" height="42" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="1.8"/>
+        <text x="278" y="72" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">persistent</text>
+        <text x="278" y="86" text-anchor="middle" font-size="8.5" fill="#059669">row + identity map</text>
+
+        <rect x="344" y="52" width="88" height="42" rx="9" fill="#fdf6ec" stroke="#d97706" stroke-width="1.8"/>
+        <text x="388" y="72" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">detached</text>
+        <text x="388" y="86" text-anchor="middle" font-size="8.5" fill="#b45309">no session</text>
+
+        <line x1="100" y1="73" x2="118" y2="73" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#d1-arw)"/>
+        <line x1="212" y1="73" x2="230" y2="73" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#d1-arw)"/>
+        <line x1="324" y1="73" x2="342" y2="73" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#d1-arw)"/>
+
+        <text x="109" y="42" text-anchor="middle" font-size="9" font-weight="700" fill="#7c3aed">s.add()</text>
+        <text x="221" y="42" text-anchor="middle" font-size="9" font-weight="700" fill="#059669">flush</text>
+        <text x="333" y="42" text-anchor="middle" font-size="9" font-weight="700" fill="#d97706">close /</text>
+        <text x="333" y="32" text-anchor="middle" font-size="9" font-weight="700" fill="#d97706">expunge</text>
+
+        <rect x="232" y="146" width="92" height="40" rx="9" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.8"/>
+        <text x="278" y="165" text-anchor="middle" font-size="11.5" font-weight="700" fill="#dc2626">deleted</text>
+        <text x="278" y="178" text-anchor="middle" font-size="8.5" fill="#dc2626">row is gone</text>
+        <line x1="278" y1="96" x2="278" y2="144" stroke="#dc2626" stroke-width="1.8" marker-end="url(#d1-arw-r)"/>
+        <text x="288" y="124" font-size="9" font-weight="700" fill="#dc2626">s.delete() + flush</text>
+
+        <path d="M388 96 L388 166 L326 166" fill="none" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="356" y="120" font-size="8.5" fill="#7c3aed">s.merge()</text>
+        <text x="356" y="131" font-size="8.5" fill="#7c3aed">brings it back</text>
+
+        <text x="8" y="207" font-size="9" fill="#6b7280">Touching an attribute on a <tspan font-weight="700" fill="#d97706">detached</tspan> object that was expired at commit &#8594; DetachedInstanceError.</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>2 &#183; N+1, and the two ways out</h3>
+      <p>Same data, three strategies, wildly different query counts. Each block below is one round trip to the database for 5 users.</p>
+      <svg viewBox="0 0 440 212" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Query counts: lazy loading emits one parent select plus one select per user; selectinload emits two; joinedload emits one.">
+        <text x="8" y="16" font-size="9" letter-spacing="1.6" fill="#94a3b8">QUERIES EMITTED FOR: 5 users, each with their posts</text>
+
+        <text x="8"  y="46" font-size="10.5" font-weight="700" fill="#dc2626">lazy (default)</text>
+        <rect x="120" y="34" width="46" height="18" rx="4" fill="#1a1d24"/><text x="143" y="47" text-anchor="middle" font-size="9" fill="#fff">users</text>
+        <rect x="172" y="34" width="34" height="18" rx="4" fill="#dc2626"/><text x="189" y="47" text-anchor="middle" font-size="8.5" fill="#fff">posts</text>
+        <rect x="210" y="34" width="34" height="18" rx="4" fill="#dc2626"/><text x="227" y="47" text-anchor="middle" font-size="8.5" fill="#fff">posts</text>
+        <rect x="248" y="34" width="34" height="18" rx="4" fill="#dc2626"/><text x="265" y="47" text-anchor="middle" font-size="8.5" fill="#fff">posts</text>
+        <rect x="286" y="34" width="34" height="18" rx="4" fill="#dc2626"/><text x="303" y="47" text-anchor="middle" font-size="8.5" fill="#fff">posts</text>
+        <rect x="324" y="34" width="34" height="18" rx="4" fill="#dc2626"/><text x="341" y="47" text-anchor="middle" font-size="8.5" fill="#fff">posts</text>
+        <text x="368" y="47" font-size="10" font-weight="700" fill="#dc2626">= 6</text>
+        <text x="120" y="66" font-size="8.5" fill="#6b7280">1 + N &#8212; one extra SELECT per parent, fired on attribute access</text>
+
+        <line x1="8" y1="80" x2="432" y2="80" stroke="#e7e3db"/>
+
+        <text x="8"  y="106" font-size="10.5" font-weight="700" fill="#059669">selectinload</text>
+        <rect x="120" y="94" width="46" height="18" rx="4" fill="#1a1d24"/><text x="143" y="107" text-anchor="middle" font-size="9" fill="#fff">users</text>
+        <rect x="172" y="94" width="150" height="18" rx="4" fill="#059669"/><text x="247" y="107" text-anchor="middle" font-size="8.5" fill="#fff">posts WHERE user_id IN (&#8230;)</text>
+        <text x="368" y="107" font-size="10" font-weight="700" fill="#059669">= 2</text>
+        <text x="120" y="126" font-size="8.5" fill="#6b7280">Best default for <tspan font-weight="700">collections</tspan> &#8212; leaves the original query untouched.</text>
+
+        <line x1="8" y1="140" x2="432" y2="140" stroke="#e7e3db"/>
+
+        <text x="8"  y="166" font-size="10.5" font-weight="700" fill="#4f46e5">joinedload</text>
+        <rect x="120" y="154" width="202" height="18" rx="4" fill="#4f46e5"/><text x="221" y="167" text-anchor="middle" font-size="8.5" fill="#fff">users LEFT OUTER JOIN posts</text>
+        <text x="368" y="167" font-size="10" font-weight="700" fill="#4f46e5">= 1</text>
+        <text x="120" y="186" font-size="8.5" fill="#6b7280">Best for <tspan font-weight="700">many-to-one</tspan>. On a collection it duplicates parent rows &#8212;</text>
+        <text x="120" y="198" font-size="8.5" fill="#dc2626" font-weight="700">so you must call .unique() on the Result.</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>3 &#183; where the foreign key lives</h3>
+      <p><code>ForeignKey</code> is the database constraint and sits on the <b>many</b> side. <code>relationship()</code> is pure Python and sits on <b>both</b>. They are not the same thing.</p>
+      <svg viewBox="0 0 440 214" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="User table has id primary key; Post table has id primary key and user_id foreign key pointing at user_account dot id. Relationship pairs link the classes in Python only.">
+        <defs>
+          <marker id="d3-arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#d97706"/>
+          </marker>
+        </defs>
+
+        <text x="8" y="16" font-size="9" letter-spacing="1.6" fill="#94a3b8">DATABASE &#8212; ONE COLUMN CARRIES THE LINK</text>
+
+        <rect x="14" y="30" width="164" height="76" rx="9" fill="#fff" stroke="#4f46e5" stroke-width="1.8"/>
+        <rect x="14" y="30" width="164" height="22" rx="9" fill="#4f46e5"/>
+        <rect x="14" y="44" width="164" height="8" fill="#4f46e5"/>
+        <text x="96" y="46" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">user_account</text>
+        <text x="26" y="70" font-size="9.5" fill="#1a1d24">id</text>
+        <text x="150" y="70" text-anchor="end" font-size="8.5" font-weight="700" fill="#4f46e5">PK</text>
+        <text x="26" y="88" font-size="9.5" fill="#1a1d24">name</text>
+        <line x1="14" y1="76" x2="178" y2="76" stroke="#eee9e0"/>
+
+        <rect x="262" y="30" width="164" height="94" rx="9" fill="#fff" stroke="#059669" stroke-width="1.8"/>
+        <rect x="262" y="30" width="164" height="22" rx="9" fill="#059669"/>
+        <rect x="262" y="44" width="164" height="8" fill="#059669"/>
+        <text x="344" y="46" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">post</text>
+        <text x="274" y="70" font-size="9.5" fill="#1a1d24">id</text>
+        <text x="398" y="70" text-anchor="end" font-size="8.5" font-weight="700" fill="#059669">PK</text>
+        <line x1="262" y1="76" x2="426" y2="76" stroke="#eee9e0"/>
+        <text x="274" y="88" font-size="9.5" font-weight="700" fill="#b45309">user_id</text>
+        <text x="398" y="88" text-anchor="end" font-size="8.5" font-weight="700" fill="#d97706">FK</text>
+        <line x1="262" y1="94" x2="426" y2="94" stroke="#eee9e0"/>
+        <text x="274" y="106" font-size="9.5" fill="#1a1d24">title</text>
+
+        <path d="M274 88 L226 88 L226 66 L180 66" fill="none" stroke="#d97706" stroke-width="1.8" marker-end="url(#d3-arw)"/>
+        <text x="226" y="106" text-anchor="middle" font-size="8.5" font-weight="700" fill="#d97706">ForeignKey</text>
+
+        <line x1="8" y1="138" x2="432" y2="138" stroke="#e7e3db"/>
+        <text x="8" y="158" font-size="9" letter-spacing="1.6" fill="#94a3b8">PYTHON &#8212; TWO ATTRIBUTES, POINTED AT EACH OTHER</text>
+
+        <rect x="14" y="168" width="412" height="36" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.4"/>
+        <text x="26" y="184" font-size="9" fill="#1a1d24">User.posts  = relationship(back_populates=<tspan fill="#059669">"user"</tspan>)   &#8594; list[Post]</text>
+        <text x="26" y="197" font-size="9" fill="#1a1d24">Post.user   = relationship(back_populates=<tspan fill="#4f46e5">"posts"</tspan>)  &#8594; User</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>4 &#183; what comes back from execute()</h3>
+      <p>Whether you get objects or tuples is decided by what you put <i>inside</i> <code>select()</code> &mdash; not by which method you call afterwards.</p>
+      <svg viewBox="0 0 440 216" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="select of a whole entity plus scalars gives User objects; select of individual columns plus all gives Row tuples.">
+        <defs>
+          <marker id="d4-arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+          </marker>
+        </defs>
+
+        <rect x="10" y="22" width="180" height="30" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+        <text x="100" y="41" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1a1d24">select(User)</text>
+
+        <rect x="250" y="22" width="180" height="30" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+        <text x="340" y="41" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1a1d24">select(User.id, User.name)</text>
+
+        <line x1="100" y1="52" x2="100" y2="82" stroke="#64748b" stroke-width="1.6" marker-end="url(#d4-arw)"/>
+        <line x1="340" y1="52" x2="340" y2="82" stroke="#64748b" stroke-width="1.6" marker-end="url(#d4-arw)"/>
+
+        <rect x="10" y="84" width="180" height="30" rx="7" fill="#f4effe" stroke="#7c3aed" stroke-width="1.6"/>
+        <text x="100" y="103" text-anchor="middle" font-size="9.5" fill="#1a1d24">s.scalars(stmt)</text>
+        <rect x="250" y="84" width="180" height="30" rx="7" fill="#f4effe" stroke="#7c3aed" stroke-width="1.6"/>
+        <text x="340" y="103" text-anchor="middle" font-size="9.5" fill="#1a1d24">s.execute(stmt)</text>
+
+        <line x1="100" y1="114" x2="100" y2="144" stroke="#64748b" stroke-width="1.6" marker-end="url(#d4-arw)"/>
+        <line x1="340" y1="114" x2="340" y2="144" stroke="#64748b" stroke-width="1.6" marker-end="url(#d4-arw)"/>
+        <text x="108" y="132" font-size="8.5" fill="#6b7280">.all()</text>
+        <text x="348" y="132" font-size="8.5" fill="#6b7280">.all()</text>
+
+        <rect x="10" y="146" width="180" height="34" rx="7" fill="#1a1d24"/>
+        <text x="100" y="161" text-anchor="middle" font-size="9.5" font-weight="700" fill="#7ee0a8">[User, User, &#8230;]</text>
+        <text x="100" y="174" text-anchor="middle" font-size="8.5" fill="#cbd5e1">u.name works</text>
+
+        <rect x="250" y="146" width="180" height="34" rx="7" fill="#1a1d24"/>
+        <text x="340" y="161" text-anchor="middle" font-size="9.5" font-weight="700" fill="#fbbf24">[Row(1, 'ada'), &#8230;]</text>
+        <text x="340" y="174" text-anchor="middle" font-size="8.5" fill="#cbd5e1">row.name or row[0]</text>
+
+        <text x="10" y="199" font-size="8.5" fill="#6b7280">Exactly one row expected? <tspan font-weight="700" fill="#7c3aed">.scalar_one()</tspan> / <tspan font-weight="700" fill="#7c3aed">.one()</tspan> &#8212; they raise instead of silently truncating.</text>
+        <text x="10" y="211" font-size="8.5" fill="#6b7280">Want dicts for JSON? <tspan font-weight="700" fill="#7c3aed">.mappings().all()</tspan>.</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ MIGRATION APPENDIX ============ -->
+<section class="appendix">
+  <h2>Appendix &mdash; moving 1.4 &#8594; 2.0 &#8594; 2.1</h2>
+  <p class="sub">What to adopt at each step, and what stops working. 2.0 was the API break; 2.1 is mostly behavioural, but two of its changes bite on day one.</p>
+  <div class="ver-grid">
+
+    <div class="ver-card v14">
+      <div class="ver-head"><span class="ver-tag">1.4</span><b>the bridge release</b></div>
+      <div class="ver-body">
+        <h4 class="adopt">&#10010; adopt</h4>
+        <ul>
+          <li><code>SQLALCHEMY_WARN_20=1</code> &mdash; surfaces every 2.0-incompatible call as a warning</li>
+          <li><code>select()</code> and <code>session.execute()</code> already work here &mdash; migrate before upgrading</li>
+          <li><code>future=True</code> on engine and Session opts into 2.0 behaviour early</li>
+          <li>New unified <code>Result</code> / <code>Row</code> objects across Core and ORM</li>
+        </ul>
+        <h4 class="drop">&#9888; changed</h4>
+        <ul>
+          <li><code>Query</code> is now a thin wrapper over <code>select()</code> &mdash; behaviour, not just style</li>
+          <li>Autocommit mode deprecated; transactions become explicit</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ver-card v20">
+      <div class="ver-head"><span class="ver-tag">2.0</span><b>typing &amp; the new API</b></div>
+      <div class="ver-body">
+        <h4 class="adopt">&#10010; adopt</h4>
+        <ul>
+          <li><code>DeclarativeBase</code> + <code>Mapped[]</code> + <code>mapped_column()</code> &mdash; PEP 484 all the way down, no mypy plugin</li>
+          <li><code>select()</code> everywhere; <code>session.scalars()</code> / <code>session.get()</code></li>
+          <li>Native <code>asyncio</code>: <code>create_async_engine</code>, <code>AsyncSession</code>, <code>AsyncAttrs</code></li>
+          <li><code>MappedAsDataclass</code> for real dataclass mappings</li>
+          <li>"insertmanyvalues" batching &mdash; large INSERTs get much faster for free</li>
+        </ul>
+        <h4 class="drop">&#9888; removed</h4>
+        <ul>
+          <li><code>engine.execute()</code> and all connectionless execution</li>
+          <li><code>Session(autocommit=True)</code></li>
+          <li><code>select([cols])</code> list form</li>
+          <li>Implicit string coercion &mdash; wrap raw SQL in <code>text()</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ver-card v21">
+      <div class="ver-head"><span class="ver-tag">2.1</span><b>beta &#183; 2.1.0b3</b></div>
+      <div class="ver-body">
+        <h4 class="adopt">&#10010; adopt</h4>
+        <ul>
+          <li><code>tstring()</code> for PEP 750 t-strings (Python 3.14+)</li>
+          <li><code>CreateView</code>, <code>CreateTableAs</code>, <code>Delete.using()</code>, <code>Select.ext()</code></li>
+          <li><code>Select[int, str]</code> &mdash; PEP 646 typing, no more <code>Tuple[]</code></li>
+          <li><code>TypedColumns</code> so <code>Table.c</code> is statically typed</li>
+          <li><code>back_populates=lambda: B.a</code> instead of magic strings</li>
+          <li>Session-level <code>execution_options</code> that reach flushes too</li>
+        </ul>
+        <h4 class="drop">&#9888; watch out</h4>
+        <ul>
+          <li><b>greenlet is not installed</b> unless you use <code>sqlalchemy[asyncio]</code></li>
+          <li><b><code>postgresql://</code> now means psycopg 3</b> &mdash; pin <code>+psycopg2</code> to keep the old driver</li>
+          <li>Autoflush fires on <i>every</i> execute, including raw <code>text()</code></li>
+          <li><code>filter_by()</code> can now raise <code>AmbiguousColumnError</code></li>
+          <li>Dataclass <code>default</code> no longer lands in <code>__dict__</code> (DONT_SET)</li>
+          <li><code>composite()</code> returns an object where 2.0 returned <code>None</code></li>
+          <li><code>Computed()</code> is VIRTUAL by default on PostgreSQL 18+</li>
+          <li>Requires Python 3.10+; <code>inherit_schema</code> deprecated</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">flush &#8800; commit</span><span class="v">flush emits SQL; commit ends the transaction</span></div>
+    <div><span class="k">scalars() vs execute()</span><span class="v">objects vs <code>Row</code> tuples &#8212; decided by what's inside <code>select()</code></span></div>
+    <div><span class="k">Mapped[str]</span><span class="v">NOT NULL &nbsp;&#183;&nbsp; <code>Mapped[str | None]</code> is what makes it nullable</span></div>
+    <div><span class="k">FK on the many side</span><span class="v"><code>relationship()</code> is Python-only; <code>ForeignKey</code> is the constraint</span></div>
+    <div><span class="k">back_populates twice</span><span class="v">name each side from the other, or the halves drift apart</span></div>
+    <div><span class="k">N+1</span><span class="v">lazy is the default &#8212; reach for <code>selectinload</code> on collections</span></div>
+    <div><span class="k">joinedload + collection</span><span class="v">you must call <code>.unique()</code> on the Result</span></div>
+    <div><span class="k">expire_on_commit=True</span><span class="v">the default; every attribute re-SELECTs after <code>commit()</code></span></div>
+    <div><span class="k">Engine global, Session not</span><span class="v">one Engine per process, one Session per request/task</span></div>
+    <div><span class="k">Session isn't thread-safe</span><span class="v">and it isn't task-safe either</span></div>
+    <div><span class="k">failed flush &#8594; rollback</span><span class="v">the Session stays unusable until you do</span></div>
+    <div><span class="k">pool_pre_ping=True</span><span class="v">the one-line fix for "server closed the connection"</span></div>
+    <div><span class="k">delete-orphan</span><span class="v">goes on the one-to-many side only</span></div>
+    <div><span class="k">text() for raw SQL</span><span class="v">bind params with <code>:name</code> &#8212; never f-string user input</span></div>
+    <div><span class="k">create_all &#8800; migrate</span><span class="v">it creates missing tables; it never ALTERs &#8212; use Alembic</span></div>
+    <div><span class="k">MissingGreenlet</span><span class="v">a lazy load under async &#8212; eager-load or use <code>awaitable_attrs</code></span></div>
+    <div><span class="k">2.1: sqlalchemy[asyncio]</span><span class="v">greenlet no longer ships in the default install</span></div>
+    <div><span class="k">2.1: postgresql://</span><span class="v">now resolves to psycopg 3, not psycopg2</span></div>
+  </div>
+</section>
+
+<footer>
+  SQLAlchemy cheat sheet &middot; synthesized from the official documentation at docs.sqlalchemy.org (2.0 Unified Tutorial, ORM Quick Start, ORM Querying Guide, Relationship Loading Techniques, asyncio extension) and the 2.1 &#8220;What&#8217;s New&#8221; migration guide, plus sqlalchemy.org/download, the GitHub release notes and PyPI.<br>
+  Stable line shown: <code>2.0.51</code> (15 Jun 2026) &middot; beta line: <code>2.1.0b3</code> (27 Jun 2026), marked <b>2.1</b> throughout &middot; all examples use 2.0-style <code>select()</code> + <code>Session.execute()</code>; the 1.x <code>Query</code> API is flagged as legacy.
+</footer>
+
+</body>
+</html>

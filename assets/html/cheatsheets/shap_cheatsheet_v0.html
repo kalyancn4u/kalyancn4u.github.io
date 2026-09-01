@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHAP Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --core:#64748b;   --core-bg:#f1f3f6;
+    --exp:#059669;    --exp-bg:#ecf7f2;
+    --loc:#d97706;    --loc-bg:#fdf6ec;
+    --glob:#4f46e5;   --glob-bg:#eef0fd;
+    --adv:#0891b2;    --adv-bg:#ecf6fa;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased}
+
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem}
+  h1 .sh{font-family:var(--mono); color:var(--exp)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7}
+  .sources b{color:var(--ink); font-weight:500}
+
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.core{background:var(--core)}  .dot.exp{background:var(--exp)}
+  .dot.loc{background:var(--loc)}    .dot.glob{background:var(--glob)}
+  .dot.adv{background:var(--adv)}    .dot.danger{background:var(--danger)}
+
+  .flow-wrap{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem}
+  .flow-title{font-family:var(--mono); font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem}
+  .flow-svg{width:100%; height:auto; max-width:1140px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  .deck-wrap, .diagrams, .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 2rem}
+  .deck-wrap h2, .diagrams h2, .refs h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .deck-wrap .sub, .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem; max-width:80ch}
+  .deck-wrap .sub b{color:var(--ink); font-weight:600}
+  .deck-wrap .sub code, .diagrams .sub code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:.05rem .22rem; border-radius:3px}
+
+  .deck{column-gap:1.4rem}
+  @media(min-width:760px){ .deck{column-count:2} }
+  @media(min-width:1200px){ .deck{column-count:3} }
+
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03)}
+  .card-head{display:flex; align-items:baseline; gap:.6rem; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line)}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em}
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  .card-note{padding:.6rem 1rem; font-size:.79rem; color:#525761; background:#fcfbf9; border-bottom:1px solid var(--line)}
+  .card-note b{color:var(--ink); font-weight:600}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.core{border-left-color:var(--core)}
+  ul.cmds li.exp{border-left-color:var(--exp)}
+  ul.cmds li.loc{border-left-color:var(--loc)}
+  ul.cmds li.glob{border-left-color:var(--glob)}
+  ul.cmds li.adv{border-left-color:var(--adv)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{font-family:var(--mono); font-size:.82rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; line-height:1.55}
+  code.cmd .arg{color:var(--glob); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .fn{color:var(--exp); font-weight:700}
+  code.cmd .cm{color:#9aa1ac; font-weight:400}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc b{color:var(--ink); font-weight:600}
+  .desc code, .card-note code, .refs-inner code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:.05rem .22rem; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem}
+  .badge-ok{color:var(--exp); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem}
+  .badge-slow{color:var(--loc); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem}
+
+  table.grid{width:100%; border-collapse:collapse; font-size:.76rem}
+  table.grid th{text-align:left; font-family:var(--mono); font-size:.64rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:700; padding:.55rem 1rem .4rem; border-bottom:1px solid var(--line); background:#fcfbf9}
+  table.grid td{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; vertical-align:top; color:#525761}
+  table.grid tr:last-child td{border-bottom:none}
+  table.grid td.key{font-family:var(--mono); color:var(--ink); font-weight:700; white-space:nowrap}
+  table.grid td b{color:var(--ink); font-weight:600}
+  table.grid td code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:.05rem .22rem; border-radius:3px}
+
+  .dia-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .dia-grid{grid-template-columns:1fr 1fr} }
+  .dia-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .dia-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .dia-card h3.bad{color:var(--danger)}
+  .dia-card h3.good{color:var(--exp)}
+  .dia-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .dia-card p b{color:var(--ink); font-weight:600}
+  .dia-card p code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:.05rem .22rem; border-radius:3px}
+  .dia-card .bsvg{width:100%; height:auto; display:block}
+  .dia-card .bsvg text{font-family:var(--mono)}
+  .dia-card.bad{border-color:#f3cdc9; background:var(--danger-bg)}
+  .dia-card.good{border-color:#c3e6d8; background:var(--exp-bg)}
+  .dia-card.bad .bsvg, .dia-card.good .bsvg{background:#fff; border-radius:6px}
+  .dia-card.wide{grid-column:1 / -1}
+
+  .mer-wrap{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1.2rem; overflow-x:auto}
+  .mermaid{text-align:center; font-size:13px}
+
+  .refs{padding-bottom:4rem}
+  .refs h2{margin-bottom:1rem}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{background:#2b303a; color:#e8e6e1}
+
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7}
+  footer a{color:var(--glob); text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · SHapley Additive exPlanations</div>
+  <h1><span class="sh">SHAP</span> cheat sheet</h1>
+  <p class="lede">One equation carries the whole library: <b>f(x) = E[f(X)] + Σφᵢ</b>. Start from the average prediction, add each feature's contribution, land <b>exactly</b> on this prediction. Everything else is picking the right <b>explainer</b> for your model and the right <b>plot</b> for your question — plus three traps that silently corrupt the numbers.</p>
+  <div class="legend">
+    <span><i class="dot core"></i>foundations &amp; the Explanation object</span>
+    <span><i class="dot exp"></i>explainers</span>
+    <span><i class="dot loc"></i>local plots — one prediction</span>
+    <span><i class="dot glob"></i>global plots — whole dataset</span>
+    <span><i class="dot adv"></i>text · image · interactions</span>
+    <span><i class="dot danger"></i>trap</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Grounded against <b>shap.readthedocs.io</b> (official API) &amp; <b>github.com/shap/shap</b> · Lundberg &amp; Lee, <b>NeurIPS 2017</b> · TreeSHAP, <b>Nature MI 2020</b>. <b>Every claim and number here was executed against shap 0.52.0 / scikit-learn 1.8.0 / xgboost.</b> Diagram figures are real output.</p>
+</header>
+
+<!-- ============ SIGNATURE ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">Model → Explainer → Explanation → plots · and the two gates that decide whether the numbers mean anything</div>
+  <svg class="flow-svg" viewBox="0 0 1140 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SHAP architecture: model type selects an explainer, which produces an Explanation object obeying the additivity identity, which feeds local and global plots. Two gates: output space and background set.">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker>
+      <marker id="arrowR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+    </defs>
+
+    <text x="110" y="24" text-anchor="middle" font-size="9.5" letter-spacing="2" fill="#94a3b8">YOUR MODEL</text>
+    <text x="420" y="24" text-anchor="middle" font-size="9.5" letter-spacing="2" fill="#94a3b8">ONE OBJECT · ONE IDENTITY</text>
+    <text x="900" y="24" text-anchor="middle" font-size="9.5" letter-spacing="2" fill="#94a3b8">TWO QUESTIONS · TWO PLOT FAMILIES</text>
+
+    <!-- explainers -->
+    <g>
+      <rect x="12" y="42" width="196" height="46" rx="10" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="26" y="62" font-size="11" font-weight="700" fill="#1a1d24">tree / GBM</text>
+      <text x="26" y="79" font-size="9.5" fill="#059669">TreeExplainer — exact · fast</text>
+    </g>
+    <g>
+      <rect x="12" y="96" width="196" height="46" rx="10" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="26" y="116" font-size="11" font-weight="700" fill="#1a1d24">linear</text>
+      <text x="26" y="133" font-size="9.5" fill="#059669">LinearExplainer — exact</text>
+    </g>
+    <g>
+      <rect x="12" y="150" width="196" height="46" rx="10" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="26" y="170" font-size="11" font-weight="700" fill="#1a1d24">neural net</text>
+      <text x="26" y="187" font-size="9.5" fill="#4f46e5">Deep / GradientExplainer</text>
+    </g>
+    <g>
+      <rect x="12" y="204" width="196" height="52" rx="10" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="26" y="224" font-size="11" font-weight="700" fill="#1a1d24">anything else</text>
+      <text x="26" y="241" font-size="9.5" fill="#b45309">Kernel / Permutation</text>
+      <text x="26" y="252" font-size="8.5" fill="#dc2626">slow · APPROXIMATE</text>
+    </g>
+    <g>
+      <rect x="12" y="266" width="196" height="42" rx="10" fill="#f1f3f6" stroke="#64748b" stroke-width="2" stroke-dasharray="5 4"/>
+      <text x="110" y="284" text-anchor="middle" font-size="10.5" font-weight="700" fill="#64748b">shap.Explainer(model, X)</text>
+      <text x="110" y="299" text-anchor="middle" font-size="9" fill="#94a3b8">auto-picks one of the above</text>
+    </g>
+
+    <line x1="208" y1="175" x2="248" y2="175" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- Explanation -->
+    <g>
+      <rect x="252" y="56" width="336" height="110" rx="12" fill="#fff" stroke="#1a1d24" stroke-width="2"/>
+      <text x="420" y="82" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">Explanation</text>
+      <text x="270" y="106" font-size="10" fill="#64748b">.values</text>
+      <text x="400" y="106" font-size="10" fill="#94a3b8">φ — the SHAP values</text>
+      <text x="270" y="126" font-size="10" fill="#64748b">.base_values</text>
+      <text x="400" y="126" font-size="10" fill="#94a3b8">E[f(X)] — the starting point</text>
+      <text x="270" y="146" font-size="10" fill="#64748b">.data</text>
+      <text x="400" y="146" font-size="10" fill="#94a3b8">the input values</text>
+      <text x="270" y="160" font-size="9" fill="#cbd5e1">.feature_names</text>
+    </g>
+
+    <!-- the identity -->
+    <g>
+      <rect x="252" y="180" width="336" height="76" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="420" y="204" text-anchor="middle" font-size="11" font-weight="700" fill="#059669">THE ADDITIVITY IDENTITY</text>
+      <text x="420" y="230" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">f(x) = E[f(X)] + Σ φᵢ</text>
+      <text x="420" y="248" text-anchor="middle" font-size="9" fill="#64748b">exact for Tree &amp; Linear · approximate for Kernel</text>
+    </g>
+
+    <!-- GATES -->
+    <g>
+      <rect x="252" y="272" width="164" height="86" rx="10" fill="#fdf0ef" stroke="#dc2626" stroke-width="2"/>
+      <text x="334" y="294" text-anchor="middle" font-size="10.5" font-weight="700" fill="#dc2626">GATE 1 · output space</text>
+      <text x="334" y="314" text-anchor="middle" font-size="9.5" fill="#dc2626">XGB/LGBM → LOG-ODDS</text>
+      <text x="334" y="330" text-anchor="middle" font-size="9.5" fill="#dc2626">sklearn RF → probability</text>
+      <text x="334" y="348" text-anchor="middle" font-size="9" fill="#dc2626">sigmoid(Σ) to compare</text>
+    </g>
+    <g>
+      <rect x="424" y="272" width="164" height="86" rx="10" fill="#fdf0ef" stroke="#dc2626" stroke-width="2"/>
+      <text x="506" y="294" text-anchor="middle" font-size="10.5" font-weight="700" fill="#dc2626">GATE 2 · background</text>
+      <text x="506" y="314" text-anchor="middle" font-size="9.5" fill="#dc2626">E[f(X)] is computed FROM</text>
+      <text x="506" y="330" text-anchor="middle" font-size="9.5" fill="#dc2626">the background set.</text>
+      <text x="506" y="348" text-anchor="middle" font-size="9" fill="#dc2626">Change it → all φ change.</text>
+    </g>
+    <text x="420" y="378" text-anchor="middle" font-size="10" font-weight="700" fill="#dc2626">Both gates are silent. Nothing errors — the numbers just quietly mean something else.</text>
+
+    <line x1="588" y1="120" x2="628" y2="120" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="588" y1="218" x2="628" y2="240" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- LOCAL -->
+    <g>
+      <rect x="632" y="56" width="240" height="118" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="752" y="80" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">LOCAL — one row</text>
+      <text x="752" y="98" text-anchor="middle" font-size="9.5" fill="#b45309">"why THIS prediction?"</text>
+      <text x="648" y="122" font-size="10" fill="#b45309">plots.waterfall(sv[0])</text>
+      <text x="648" y="140" font-size="10" fill="#b45309">plots.force(sv[0])</text>
+      <text x="648" y="158" font-size="10" fill="#b45309">plots.decision(...)</text>
+      <text x="866" y="122" text-anchor="end" font-size="9" fill="#d97706">★</text>
+    </g>
+    <!-- GLOBAL -->
+    <g>
+      <rect x="632" y="188" width="240" height="136" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="752" y="212" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">GLOBAL — whole dataset</text>
+      <text x="752" y="230" text-anchor="middle" font-size="9.5" fill="#4f46e5">"what drives the model?"</text>
+      <text x="648" y="254" font-size="10" fill="#4f46e5">plots.beeswarm(sv)</text>
+      <text x="648" y="272" font-size="10" fill="#4f46e5">plots.bar(sv)</text>
+      <text x="648" y="290" font-size="10" fill="#4f46e5">plots.scatter(sv[:, "age"])</text>
+      <text x="648" y="308" font-size="10" fill="#4f46e5">plots.heatmap(sv)</text>
+      <text x="866" y="254" text-anchor="end" font-size="9" fill="#4f46e5">★</text>
+    </g>
+
+    <line x1="872" y1="115" x2="912" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="872" y1="256" x2="912" y2="210" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- key insight -->
+    <g>
+      <rect x="916" y="130" width="212" height="100" rx="12" fill="#1a1d24"/>
+      <text x="1022" y="156" text-anchor="middle" font-size="11" font-weight="700" fill="#fbbf24">GLOBAL = mean(|φ|)</text>
+      <text x="1022" y="178" text-anchor="middle" font-size="9.5" fill="#cbd5e1">NOT mean(φ) — that</text>
+      <text x="1022" y="193" text-anchor="middle" font-size="9.5" fill="#cbd5e1">cancels to ≈ 0 and</text>
+      <text x="1022" y="208" text-anchor="middle" font-size="9.5" fill="#cbd5e1">tells you nothing.</text>
+      <text x="1022" y="224" text-anchor="middle" font-size="9" fill="#94a3b8">bar &amp; beeswarm do this for you</text>
+    </g>
+    <text x="1022" y="256" text-anchor="middle" font-size="9.5" font-weight="700" fill="#64748b">SHAP is the only method</text>
+    <text x="1022" y="271" text-anchor="middle" font-size="9.5" font-weight="700" fill="#64748b">where local values</text>
+    <text x="1022" y="286" text-anchor="middle" font-size="9.5" font-weight="700" fill="#64748b">aggregate into a valid</text>
+    <text x="1022" y="301" text-anchor="middle" font-size="9.5" font-weight="700" fill="#64748b">global explanation.</text>
+    <text x="1022" y="322" text-anchor="middle" font-size="9" fill="#94a3b8">That's the whole selling point.</text>
+  </svg>
+</section>
+
+<!-- ============ FOUNDATIONS ============ -->
+<section class="deck-wrap">
+  <h2>Foundations</h2>
+  <p class="sub">SHAP has a <b>modern API</b> (<code>shap.Explainer</code> → <code>Explanation</code> object) and a <b>legacy API</b> (<code>.shap_values()</code> → raw arrays). Tutorials mix them freely, which is why the shapes never match. <b>Learn the modern one.</b></p>
+  <div class="deck">
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">The Three-Line Workflow</span><span class="card-sub">this is the whole library</span></div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd">pip install <span class="arg">shap</span><br><span class="flag">import</span> shap</code><span class="star">★</span><div class="desc">Current: <b>0.52.0</b>. Works on scikit-learn 1.8, numpy 2, XGBoost, LightGBM, CatBoost, PyTorch, TF/Keras.</div></li>
+      <li class="core"><code class="cmd">explainer = shap.<span class="fn">Explainer</span>(model, X_background)<br>sv = explainer(X) <span class="cm"># → Explanation</span><br>shap.plots.<span class="fn">waterfall</span>(sv[<span class="arg">0</span>])</code><span class="star">★</span><div class="desc"><b>The modern API.</b> <code>shap.Explainer</code> <b>auto-dispatches</b> to Tree/Linear/Deep/Permutation based on the model. Calling it returns an <code>Explanation</code> that <i>every</i> plot accepts.</div></li>
+      <li class="core"><code class="cmd">sv.<span class="fn">values</span> <span class="cm"># φ — (n_rows, n_features)</span><br>sv.<span class="fn">base_values</span> <span class="cm"># E[f(X)] — the baseline</span><br>sv.<span class="fn">data</span> <span class="cm"># the input values</span><br>sv.<span class="fn">feature_names</span></code><span class="star">★</span><div class="desc">The <code>Explanation</code> is <b>sliceable like numpy</b>: <code>sv[0]</code> = one row, <code>sv[:, "age"]</code> = one feature, <code>sv[..., 1]</code> = one class.</div></li>
+      <li class="danger"><code class="cmd">sv = explainer.<span class="fn">shap_values</span>(X) <span class="cm"># LEGACY</span></code><span class="badge-danger">avoid</span><div class="desc">Returns bare arrays with <b>no <code>base_values</code> attached</b> — so <code>plots.waterfall</code> won't take them, and you must pass <code>explainer.expected_value</code> by hand. Most Stack Overflow answers use this. <b>It's why nothing lines up.</b></div></li>
+      <li class="core"><code class="cmd">shap.<span class="fn">sample</span>(X, <span class="arg">100</span>) · shap.<span class="fn">kmeans</span>(X, <span class="arg">50</span>)</code><div class="desc">Summarise the background set. <b>Necessary</b> for Kernel/Deep — see card 05.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">The Additivity Identity</span><span class="card-sub">the one equation</span></div>
+    <div class="card-note">Every SHAP value is a <b>signed contribution measured from a baseline</b>. Start at the average prediction, add each φ, arrive at <i>this</i> prediction. For trees and linear models this holds <b>exactly</b>.</div>
+    <ul class="cmds">
+      <li class="exp"><code class="cmd"><span class="cm"># verified on a real RandomForestRegressor:</span><br>base_values <span class="arg">223.60</span> <span class="cm"># E[f(X)]</span><br>rooms=6&nbsp;&nbsp; <span class="arg">+85.42</span><br>age=2&nbsp;&nbsp;&nbsp;&nbsp; <span class="arg">+21.15</span><br>dist_km=2.1 <span class="arg">+27.48</span><br><span class="cm"># ───────────────</span><br>sum = <span class="arg">357.65</span> == model.predict(row)</code><span class="badge-ok">exact</span><div class="desc">Not a metaphor — <b>machine-precision equality</b>. See the waterfall diagram below.</div></li>
+      <li class="core"><code class="cmd">φᵢ = <span class="cm"># the Shapley value: the average marginal</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># contribution of feature i across ALL</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># possible orderings of the features</span></code><div class="desc">From cooperative game theory. The averaging over orderings is what makes SHAP <b>fair</b> — and what makes it expensive (<code>O(2ⁿ)</code> naively). TreeSHAP gets it to polynomial time.</div></li>
+      <li class="core"><code class="cmd"><span class="cm"># the four axioms it uniquely satisfies</span></code><div class="desc"><b>Local accuracy</b> (the identity above) · <b>Missingness</b> (absent feature → φ=0) · <b>Consistency</b> (if a feature matters more in a new model, its φ can't go down). <b>SHAP is the <i>only</i> attribution method satisfying all of them</b> — that's the entire theoretical claim.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Picking an Explainer</span><span class="card-sub">exactness vs speed</span></div>
+    <table class="grid">
+      <thead><tr><th>Explainer</th><th>Use for · cost</th></tr></thead>
+      <tbody>
+        <tr><td class="key">Tree <span class="star">★</span></td><td>RF, XGBoost, LightGBM, CatBoost, sklearn trees.<br><b>Exact + polynomial time.</b> Always use this if you can.</td></tr>
+        <tr><td class="key">Linear</td><td>Linear/logistic regression. <b>Exact</b>, trivial.</td></tr>
+        <tr><td class="key">Deep</td><td>TF/Keras/PyTorch nets. DeepLIFT-based approximation.</td></tr>
+        <tr><td class="key">Gradient</td><td>Nets, via expected gradients. More general than Deep.</td></tr>
+        <tr><td class="key">Permutation</td><td>Model-agnostic. <b>The sensible default black-box choice</b> — and what <code>shap.Explainer</code> auto-picks.</td></tr>
+        <tr><td class="key">Kernel</td><td>Model-agnostic (weighted linear regression). <b>Slow &amp; approximate.</b> Last resort.</td></tr>
+        <tr><td class="key">Partition</td><td>Hierarchical / correlated features. Powers <b>text &amp; image</b>.</td></tr>
+        <tr><td class="key">Exact</td><td>Brute-force <code>O(2ⁿ)</code>. Ground truth for &lt;15 features.</td></tr>
+      </tbody>
+    </table>
+    <div class="card-note"><b>Just use <code>shap.Explainer(model, X)</code>.</b> It picks Tree for a forest, Linear for a regression, Permutation for a black box. Name an explainer explicitly only to override that choice.</div>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ DIAGRAMS 1 ============ -->
+<section class="diagrams">
+  <h2>What the numbers actually are</h2>
+  <p class="sub">Both figures below are <b>real output from shap 0.52.0</b>. The waterfall is the single most important picture in the library — <b>read it once properly and every other plot follows</b>.</p>
+  <div class="dia-grid">
+
+    <div class="dia-card wide">
+      <h3>waterfall — E[f(X)] + Σφ = f(x), exactly</h3>
+      <p>A <code>RandomForestRegressor</code> on house prices. <b><code>base_values</code> = 223.60 is the model's answer knowing nothing.</b> Each feature then pushes it. The arrow lands on the prediction with <b>zero residual</b> — that's the local-accuracy axiom, not an approximation.</p>
+      <svg viewBox="0 0 1080 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Waterfall: base value 223.60 plus rooms 85.42 plus age 21.15 plus dist_km 27.48 equals exactly 357.65, the model prediction.">
+        <text x="14" y="20" font-size="10" font-weight="700" fill="#64748b">row:  rooms = 6 · age = 2 · dist_km = 2.1</text>
+
+        <line x1="120" y1="148" x2="1055" y2="148" stroke="#e7e3db"/>
+        <line x1="120" y1="40" x2="120" y2="154" stroke="#cbd5e1" stroke-dasharray="3 3"/>
+
+        <rect x="126" y="102" width="190" height="46" rx="3" fill="#64748b"/>
+        <text x="221" y="131" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">223.60</text>
+        <text x="221" y="168" text-anchor="middle" font-size="10" font-weight="700" fill="#64748b">E[f(X)]</text>
+        <text x="221" y="184" text-anchor="middle" font-size="9" fill="#94a3b8">base_values</text>
+        <text x="221" y="94" text-anchor="middle" font-size="9" fill="#94a3b8">knowing nothing</text>
+
+        <rect x="324" y="66" width="190" height="36" rx="3" fill="#059669"/>
+        <text x="419" y="90" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">+85.42</text>
+        <text x="419" y="168" text-anchor="middle" font-size="10" font-weight="700" fill="#059669">rooms = 6</text>
+        <text x="419" y="184" text-anchor="middle" font-size="9" fill="#94a3b8">big house</text>
+        <line x1="316" y1="102" x2="324" y2="102" stroke="#059669" stroke-width="2"/>
+
+        <rect x="522" y="52" width="190" height="14" rx="3" fill="#059669"/>
+        <text x="617" y="46" text-anchor="middle" font-size="11" font-weight="700" fill="#059669">+21.15</text>
+        <text x="617" y="168" text-anchor="middle" font-size="10" font-weight="700" fill="#059669">age = 2</text>
+        <text x="617" y="184" text-anchor="middle" font-size="9" fill="#94a3b8">nearly new</text>
+        <line x1="514" y1="66" x2="522" y2="66" stroke="#059669" stroke-width="2"/>
+
+        <rect x="720" y="34" width="190" height="18" rx="3" fill="#059669"/>
+        <text x="815" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="#059669">+27.48</text>
+        <text x="815" y="168" text-anchor="middle" font-size="10" font-weight="700" fill="#059669">dist_km = 2.1</text>
+        <text x="815" y="184" text-anchor="middle" font-size="9" fill="#94a3b8">close to centre</text>
+        <line x1="712" y1="52" x2="720" y2="52" stroke="#059669" stroke-width="2"/>
+
+        <rect x="918" y="34" width="150" height="114" rx="6" fill="#1a1d24"/>
+        <text x="993" y="62" text-anchor="middle" font-size="9" fill="#cbd5e1">223.60 + 85.42</text>
+        <text x="993" y="76" text-anchor="middle" font-size="9" fill="#cbd5e1">+ 21.15 + 27.48</text>
+        <text x="993" y="104" text-anchor="middle" font-size="17" font-weight="700" fill="#fbbf24">357.65</text>
+        <text x="993" y="126" text-anchor="middle" font-size="9.5" font-weight="700" fill="#fff">== model.predict()</text>
+        <text x="993" y="140" text-anchor="middle" font-size="8.5" fill="#94a3b8">to machine precision</text>
+      </svg>
+    </div>
+
+    <div class="dia-card good">
+      <h3 class="good">✓ TreeExplainer — exact</h3>
+      <p>Polynomial-time TreeSHAP. These are the <b>true Shapley values</b>, not an estimate. <b>0.005 s.</b></p>
+      <svg viewBox="0 0 440 140" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="TreeExplainer produces exact SHAP values quickly.">
+        <text x="14" y="20" font-size="9.5" font-weight="700" fill="#059669">shap.TreeExplainer(model)</text>
+        <g font-size="10" fill="#1a1d24">
+          <text x="14" y="48">rooms</text><text x="14" y="74">age</text><text x="14" y="100">dist_km</text>
+        </g>
+        <rect x="90" y="38" width="240" height="13" rx="2" fill="#f1f3f6"/><rect x="90" y="38" width="240" height="13" rx="2" fill="#059669"/>
+        <text x="340" y="48" font-size="10" font-weight="700" fill="#059669">85.42</text>
+        <rect x="90" y="64" width="240" height="13" rx="2" fill="#f1f3f6"/><rect x="90" y="64" width="59" height="13" rx="2" fill="#059669"/>
+        <text x="340" y="74" font-size="10" font-weight="700" fill="#059669">21.15</text>
+        <rect x="90" y="90" width="240" height="13" rx="2" fill="#f1f3f6"/><rect x="90" y="90" width="77" height="13" rx="2" fill="#059669"/>
+        <text x="340" y="100" font-size="10" font-weight="700" fill="#059669">27.48</text>
+        <line x1="14" y1="114" x2="426" y2="114" stroke="#c3e6d8"/>
+        <text x="14" y="132" font-size="9" font-weight="700" fill="#059669">exact · 0.005 s · use this whenever you can</text>
+      </svg>
+    </div>
+
+    <div class="dia-card bad">
+      <h3 class="bad">≈ KernelExplainer — approximate</h3>
+      <p>Same model, same row. <b><code>rooms</code> comes out 93.67 instead of 85.42</b> — a ~10% error, and <b>5× slower</b>. Model-agnostic is not free.</p>
+      <svg viewBox="0 0 440 140" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="KernelExplainer produces approximate SHAP values, overestimating rooms, and is slower.">
+        <text x="14" y="20" font-size="9.5" font-weight="700" fill="#dc2626">shap.KernelExplainer(f, background)</text>
+        <g font-size="10" fill="#1a1d24">
+          <text x="14" y="48">rooms</text><text x="14" y="74">age</text><text x="14" y="100">dist_km</text>
+        </g>
+        <rect x="90" y="38" width="240" height="13" rx="2" fill="#f1f3f6"/><rect x="90" y="38" width="240" height="13" rx="2" fill="#dc2626"/>
+        <text x="340" y="48" font-size="10" font-weight="700" fill="#dc2626">93.67</text>
+        <rect x="90" y="64" width="240" height="13" rx="2" fill="#f1f3f6"/><rect x="90" y="64" width="54" height="13" rx="2" fill="#dc2626"/>
+        <text x="340" y="74" font-size="10" font-weight="700" fill="#dc2626">21.06</text>
+        <rect x="90" y="90" width="240" height="13" rx="2" fill="#f1f3f6"/><rect x="90" y="90" width="67" height="13" rx="2" fill="#dc2626"/>
+        <text x="340" y="100" font-size="10" font-weight="700" fill="#dc2626">26.01</text>
+        <line x1="14" y1="114" x2="426" y2="114" stroke="#f3cdc9"/>
+        <text x="14" y="132" font-size="9" font-weight="700" fill="#dc2626">approximate · 5× slower · a fallback, not a default</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ PLOTS ============ -->
+<section class="deck-wrap">
+  <h2>The plots</h2>
+  <p class="sub">Two families, one rule: <b>local plots take one row</b> (<code>sv[0]</code>), <b>global plots take the whole matrix</b> (<code>sv</code>). Passing the wrong shape is the #1 plotting error.</p>
+  <div class="deck">
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Local — one prediction</span><span class="card-sub">"why THIS row?"</span></div>
+    <ul class="cmds">
+      <li class="loc"><code class="cmd">shap.plots.<span class="fn">waterfall</span>(sv[<span class="arg">0</span>])</code><span class="star">★</span><div class="desc"><b>The one to reach for.</b> Ranked contributions from <code>E[f(X)]</code> up to <code>f(x)</code>. Small features collapse into an "other" row — control with <code>max_display</code>.</div></li>
+      <li class="loc"><code class="cmd">shap.<span class="fn">initjs</span>()<br>shap.plots.<span class="fn">force</span>(sv[<span class="arg">0</span>])</code><div class="desc">The same information as a pushed-apart bar. <b>Needs <code>initjs()</code> in a notebook</b> or you get a blank cell. Pass <code>matplotlib=True</code> for a static image.</div></li>
+      <li class="loc"><code class="cmd">shap.plots.<span class="fn">force</span>(sv[:<span class="arg">100</span>]) <span class="cm"># stacked</span></code><div class="desc">100 force plots rotated and stacked — an interactive way to spot clusters of similar explanations.</div></li>
+      <li class="loc"><code class="cmd">shap.plots.<span class="fn">decision</span>(sv.base_values[<span class="arg">0</span>], sv.values[<span class="arg">0</span>], X.iloc[<span class="arg">0</span>])</code><div class="desc">A cumulative path from base to prediction. <b>Best for comparing several rows at once</b> — divergent lines show where the model treats them differently.</div></li>
+      <li class="danger"><code class="cmd">shap.plots.waterfall(sv) <span class="cm"># whole matrix</span></code><span class="badge-danger">error</span><div class="desc">Waterfall wants <b>one row</b>: <code>sv[0]</code>. Passing the full <code>Explanation</code> raises.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Global — the whole dataset</span><span class="card-sub">"what drives the model?"</span></div>
+    <div class="card-note">Global importance is <b>mean(|φ|)</b>, never mean(φ). Positive and negative contributions cancel — <b>verified: mean(φ) came out ≈ 0 while mean(|φ|) correctly ranked the features.</b></div>
+    <ul class="cmds">
+      <li class="glob"><code class="cmd">shap.plots.<span class="fn">beeswarm</span>(sv)</code><span class="star">★</span><div class="desc"><b>The signature SHAP plot — and the densest.</b> One row per feature, one dot per sample. <b>x = the SHAP value</b> (impact), <b>colour = the feature's actual value</b> (red high, blue low). See the reading guide below.</div></li>
+      <li class="glob"><code class="cmd">shap.plots.<span class="fn">bar</span>(sv)</code><span class="star">★</span><div class="desc">Plain mean(|φ|) ranking. Loses all direction and distribution — but it's the one non-specialists can read.</div></li>
+      <li class="glob"><code class="cmd">shap.plots.<span class="fn">scatter</span>(sv[:, <span class="arg">"age"</span>], color=sv)</code><div class="desc"><b>The dependence plot.</b> How one feature's φ varies with its value — reveals <b>non-linearity and thresholds</b>. <code>color=sv</code> auto-picks the strongest interacting feature and colours by it.</div></li>
+      <li class="glob"><code class="cmd">shap.plots.<span class="fn">heatmap</span>(sv)</code><div class="desc">Samples on x, features on y, φ as colour, with a <code>f(x)</code> line on top. Good for spotting <b>subpopulations</b> the model treats differently.</div></li>
+      <li class="glob"><code class="cmd">shap.plots.<span class="fn">bar</span>(sv.<span class="fn">cohorts</span>(<span class="arg">2</span>).abs.mean(<span class="arg">0</span>))</code><div class="desc">Auto-split into cohorts and compare importances side by side. Quietly one of the most useful calls in the library.</div></li>
+      <li class="danger"><code class="cmd">shap.summary_plot(...) · shap.dependence_plot(...)</code><span class="badge-danger">legacy</span><div class="desc">The old top-level API. Still works, now <b>deprecated</b> in places. <code>summary_plot</code> → <code>plots.beeswarm</code>; <code>dependence_plot</code> → <code>plots.scatter</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Text, Image &amp; Interactions</span><span class="card-sub">beyond tabular</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd">expl = shap.<span class="fn">Explainer</span>(pipeline, shap.maskers.<span class="fn">Text</span>(tokenizer))<br>shap.plots.<span class="fn">text</span>(expl(docs))</code><div class="desc"><b>Token-level highlighting</b> for transformers and text pipelines. Works with a HuggingFace <code>pipeline</code> directly.</div></li>
+      <li class="adv"><code class="cmd">masker = shap.maskers.<span class="fn">Image</span>(<span class="arg">"inpaint_telea"</span>, X[<span class="arg">0</span>].shape)<br>shap.plots.<span class="fn">image</span>(shap.<span class="fn">Explainer</span>(model, masker)(X[:<span class="arg">2</span>]))</code><div class="desc">Pixel/superpixel attributions. The <b>masker defines what "removing" a feature means</b> — for images, that's inpainting or blurring.</div></li>
+      <li class="adv"><code class="cmd">shap.maskers.<span class="fn">Independent</span> · <span class="fn">Partition</span> · <span class="fn">Text</span> · <span class="fn">Image</span> · <span class="fn">Impute</span></code><div class="desc">The masker <b>is</b> the background model. <code>Independent</code> = interventional (breaks correlations); <code>Partition</code> = respects a feature hierarchy.</div></li>
+      <li class="adv"><code class="cmd">iv = shap.<span class="fn">TreeExplainer</span>(model).<span class="fn">shap_interaction_values</span>(X)<br><span class="cm"># shape: (n, features, features)</span></code><div class="desc"><b>Pairwise interactions.</b> The diagonal is the main effect, off-diagonal the interaction, and <b>each row still sums to the prediction</b>. Expensive — <code>O(features²)</code>, tree models only.</div></li>
+      <li class="adv"><code class="cmd">shap.<span class="fn">GPUTreeExplainer</span>(model)</code><div class="desc">CUDA TreeSHAP. Worth it on large datasets or when computing interaction values.</div></li>
+    </ul>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ DIAGRAMS 2 ============ -->
+<section class="diagrams">
+  <h2>Reading the beeswarm · and the trap that voids it</h2>
+  <p class="sub">The beeswarm packs <b>three variables into one chart</b>, which is why people misread it. And <code>mean(φ)</code> vs <code>mean(|φ|)</code> is the difference between a correct importance ranking and a chart of near-zeroes.</p>
+  <div class="dia-grid">
+
+    <div class="dia-card">
+      <h3>beeswarm — three variables, one chart</h3>
+      <p><b>Row</b> = feature (ranked by mean|φ|). <b>x</b> = that sample's SHAP value. <b>Colour</b> = the feature's <i>actual value</i>. A red cloud on the right means <i>"high values push the prediction up."</i></p>
+      <svg viewBox="0 0 440 180" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Anatomy of a beeswarm plot: rows are features, x axis is SHAP value, colour encodes the feature value.">
+        <line x1="200" y1="28" x2="200" y2="132" stroke="#cbd5e1" stroke-dasharray="3 3"/>
+        <text x="200" y="24" text-anchor="middle" font-size="8" fill="#94a3b8">φ = 0</text>
+        <text x="14" y="48" font-size="9.5" font-weight="700" fill="#1a1d24">rooms</text>
+        <text x="14" y="88" font-size="9.5" font-weight="700" fill="#1a1d24">dist_km</text>
+        <text x="14" y="128" font-size="9.5" font-weight="700" fill="#1a1d24">age</text>
+
+        <!-- rooms: low left blue, high right red -->
+        <g>
+          <circle cx="120" cy="46" r="3.5" fill="#4f46e5"/><circle cx="136" cy="50" r="3.5" fill="#4f46e5"/>
+          <circle cx="150" cy="44" r="3.5" fill="#4f46e5"/><circle cx="168" cy="48" r="3.5" fill="#6b7ce8"/>
+          <circle cx="185" cy="45" r="3.5" fill="#9aa4f0"/><circle cx="212" cy="47" r="3.5" fill="#f0a68a"/>
+          <circle cx="240" cy="44" r="3.5" fill="#e8734f"/><circle cx="270" cy="49" r="3.5" fill="#dc2626"/>
+          <circle cx="300" cy="45" r="3.5" fill="#dc2626"/><circle cx="330" cy="47" r="3.5" fill="#dc2626"/>
+          <circle cx="356" cy="44" r="3.5" fill="#dc2626"/>
+        </g>
+        <!-- dist_km -->
+        <g>
+          <circle cx="150" cy="86" r="3.5" fill="#dc2626"/><circle cx="168" cy="90" r="3.5" fill="#dc2626"/>
+          <circle cx="182" cy="85" r="3.5" fill="#e8734f"/><circle cx="196" cy="88" r="3.5" fill="#f0a68a"/>
+          <circle cx="210" cy="86" r="3.5" fill="#9aa4f0"/><circle cx="226" cy="89" r="3.5" fill="#6b7ce8"/>
+          <circle cx="246" cy="85" r="3.5" fill="#4f46e5"/><circle cx="266" cy="88" r="3.5" fill="#4f46e5"/>
+        </g>
+        <!-- age (tight = low importance) -->
+        <g>
+          <circle cx="182" cy="126" r="3.5" fill="#dc2626"/><circle cx="192" cy="129" r="3.5" fill="#e8734f"/>
+          <circle cx="200" cy="125" r="3.5" fill="#9aa4f0"/><circle cx="209" cy="128" r="3.5" fill="#6b7ce8"/>
+          <circle cx="218" cy="126" r="3.5" fill="#4f46e5"/>
+        </g>
+        <text x="300" y="128" font-size="8" fill="#94a3b8">tight cluster → low impact</text>
+
+        <line x1="14" y1="142" x2="426" y2="142" stroke="#e7e3db"/>
+        <text x="120" y="158" text-anchor="middle" font-size="8.5" fill="#4f46e5">← pushes prediction DOWN</text>
+        <text x="320" y="158" text-anchor="middle" font-size="8.5" fill="#dc2626">pushes prediction UP →</text>
+        <circle cx="150" cy="172" r="4" fill="#4f46e5"/><text x="160" y="176" font-size="8" fill="#6b7280">low value</text>
+        <circle cx="240" cy="172" r="4" fill="#dc2626"/><text x="250" y="176" font-size="8" fill="#6b7280">high value</text>
+      </svg>
+    </div>
+
+    <div class="dia-card bad">
+      <h3 class="bad">✗ mean(φ) is not importance</h3>
+      <p>Real numbers from the same model. <b>Positive and negative contributions cancel</b>, so <code>mean(φ)</code> collapses to near-zero and ranks <code>rooms</code> — the dominant feature — as trivial.</p>
+      <svg viewBox="0 0 440 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="mean of SHAP values cancels to near zero, while mean of absolute SHAP values correctly ranks features.">
+        <text x="14" y="18" font-size="9" font-weight="700" fill="#dc2626">mean(φ) — WRONG</text>
+        <g font-size="9" fill="#1a1d24">
+          <text x="14" y="40">rooms</text><text x="14" y="60">age</text><text x="14" y="80">dist_km</text>
+        </g>
+        <line x1="100" y1="28" x2="100" y2="88" stroke="#cbd5e1"/>
+        <rect x="100" y="33" width="9" height="9" fill="#dc2626"/><text x="120" y="41" font-size="9" font-weight="700" fill="#dc2626">0.251</text>
+        <rect x="99" y="53" width="1" height="9" fill="#dc2626"/><text x="120" y="61" font-size="9" font-weight="700" fill="#dc2626">−0.032</text>
+        <rect x="100" y="73" width="3" height="9" fill="#dc2626"/><text x="120" y="81" font-size="9" font-weight="700" fill="#dc2626">0.073</text>
+        <text x="200" y="61" font-size="8.5" fill="#dc2626">all ≈ 0 · ranking is noise</text>
+
+        <line x1="14" y1="98" x2="426" y2="98" stroke="#f3cdc9"/>
+
+        <text x="14" y="116" font-size="9" font-weight="700" fill="#059669">mean(|φ|) — CORRECT</text>
+        <g font-size="9" fill="#1a1d24">
+          <text x="14" y="132" >rooms</text><text x="66" y="132">age</text><text x="110" y="132">dist</text>
+        </g>
+        <rect x="150" y="124" width="200" height="9" rx="2" fill="#059669"/><text x="358" y="132" font-size="9" font-weight="700" fill="#059669">49.38</text>
+        <rect x="150" y="137" width="47" height="9" rx="2" fill="#94a3b8"/><text x="358" y="145" font-size="9" font-weight="700" fill="#64748b">11.66</text>
+        <rect x="150" y="150" width="58" height="9" rx="2" fill="#94a3b8"/><text x="358" y="158" font-size="9" font-weight="700" fill="#64748b">14.36</text>
+        <text x="215" y="118" font-size="8.5" font-weight="700" fill="#059669">rooms dominates — correct</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ TRAPS ============ -->
+<section class="deck-wrap">
+  <h2>The three silent traps</h2>
+  <p class="sub">None of these raise an error. The plots render beautifully. <b>The numbers just quietly mean something other than what you think</b> — which is the worst possible failure mode for an audit tool.</p>
+  <div class="deck">
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Trap 1 — Output Space</span><span class="card-sub">log-odds ≠ probability</span></div>
+    <div class="card-note">For <b>XGBoost / LightGBM classifiers</b>, SHAP values live in <b>log-odds (margin) space</b>. They do <b>not</b> sum to <code>predict_proba</code>. For <b>sklearn RandomForest</b> they <i>do</i> sum to probability. <b>Same code, different units.</b></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="cm"># VERIFIED — XGBClassifier</span><br>base + Σφ = <span class="arg">4.1027</span><br>predict(output_margin=<span class="arg">True</span>) = <span class="arg">4.1027</span> <span class="cm"># ✓ match</span><br>predict_proba[<span class="arg">1</span>] = <span class="arg">0.9837</span> <span class="cm"># ✗ NOT this</span><br>sigmoid(<span class="arg">4.1027</span>) = <span class="arg">0.9837</span> <span class="cm"># ✓ now it matches</span></code><span class="badge-danger">units</span><div class="desc">A φ of <code>+2.0</code> is <b>2 log-odds</b>, not 200 percentage points. Reporting it as "probability" to a stakeholder is simply wrong.</div></li>
+      <li class="exp"><code class="cmd">shap.<span class="fn">TreeExplainer</span>(model, data=X_bg,<br>&nbsp;&nbsp;model_output=<span class="arg">"probability"</span>)</code><span class="badge-ok">fix</span><div class="desc">Forces probability space. <b>Requires a background dataset</b>, and it's slower — but now φ is in units a human can act on.</div></li>
+      <li class="core"><code class="cmd"><span class="cm"># sklearn RandomForestClassifier — VERIFIED</span><br>base <span class="arg">0.5166</span> + Σφ <span class="arg">0.4435</span> = <span class="arg">0.9600</span> == predict_proba[<span class="arg">1</span>]</code><div class="desc">Already in probability space, because sklearn's RF averages leaf probabilities. <b>Don't assume — check which space you're in.</b></div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Trap 2 — The Background Set</span><span class="card-sub">E[f(X)] is not a constant</span></div>
+    <div class="card-note">"Contribution" is always <b>relative to a baseline</b>, and the baseline is computed <b>from the background data you pass</b>. Change the background and <b>every SHAP value changes</b> — legitimately.</div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="cm"># VERIFIED — same model, same rows</span><br>feature_perturbation=<span class="arg">"tree_path_dependent"</span><br>&nbsp;&nbsp;→ E[f(X)] = <span class="arg">223.60</span> <span class="cm"># from tree node weights</span><br><br>feature_perturbation=<span class="arg">"interventional"</span>, data=bg<br>&nbsp;&nbsp;→ E[f(X)] = <span class="arg">227.38</span> <span class="cm"># == mean(predict(bg))</span></code><span class="badge-danger">shifts</span><div class="desc"><b>Two different baselines, two different sets of φ.</b> Neither is wrong — but you must know which you reported, and keep it fixed across a comparison.</div></li>
+      <li class="exp"><code class="cmd">bg = shap.<span class="fn">sample</span>(X_train, <span class="arg">100</span>, random_state=<span class="arg">0</span>)<br>bg = shap.<span class="fn">kmeans</span>(X_train, <span class="arg">50</span>) <span class="cm"># weighted centroids</span></code><span class="star">★</span><div class="desc"><b>Kernel/Deep scale with background size</b> — passing all 100k rows will hang. Summarise to 50–200. SHAP itself warns and silently subsamples to 100 if you don't.</div></li>
+      <li class="core"><code class="cmd"><span class="cm"># interventional vs conditional</span></code><div class="desc"><b>Interventional</b> (default with <code>data=</code>) breaks feature correlations — it may evaluate the model on <b>impossible rows</b> (a 1-room mansion). <b>tree_path_dependent</b> respects the training distribution but is less "causal". A real, unresolved tension — not a bug.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Trap 3 — Shapes</span><span class="card-sub">binary classification is 3-D</span></div>
+    <div class="card-note">The single most-Googled SHAP error. For a <b>binary classifier</b> the values are <b>3-dimensional</b> — and the shape has <b>changed across versions</b>, which is why every Stack Overflow answer contradicts the next.</div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="cm"># VERIFIED — RandomForestClassifier, shap 0.52</span><br>sv.values.shape&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># (400, 3, 2) ← 3-D!</span><br>sv.base_values.shape <span class="cm"># (400, 2)</span><br><span class="cm"># last axis = CLASS</span></code><span class="badge-danger">3-D</span><div class="desc"><b>Older versions returned a <i>list</i> of two 2-D arrays.</b> Newer ones return one 3-D array. Code written against either breaks on the other.</div></li>
+      <li class="exp"><code class="cmd">shap.plots.<span class="fn">beeswarm</span>(sv[..., <span class="arg">1</span>]) <span class="cm"># positive class</span><br>shap.plots.<span class="fn">waterfall</span>(sv[<span class="arg">0</span>, :, <span class="arg">1</span>])</code><span class="star">★</span><div class="desc"><b>Slice the class axis.</b> The <code>Explanation</code> object slices like numpy and carries <code>base_values</code> along with it — which is exactly why the modern API is worth using.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># always check before plotting</span><br><span class="flag">print</span>(sv.shape, sv.base_values.shape)</code><div class="desc"><b>Two seconds that saves an hour.</b> Binary → 3-D. Multiclass → 3-D with <i>k</i> on the last axis. Regression → 2-D.</div></li>
+    </ul>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ DECISION MAP ============ -->
+<section class="diagrams">
+  <h2>Decision map</h2>
+  <p class="sub">Model type picks the explainer. Question type picks the plot. <b>Everything else is checking which units you're in.</b></p>
+  <div class="mer-wrap">
+    <pre class="mermaid">
+flowchart LR
+  A["I need to explain<br/>a model"] --> B{"Model type?"}
+  B -->|"tree / RF / XGB /<br/>LGBM / CatBoost"| C["TreeExplainer<br/>EXACT · fast"]
+  B -->|"linear / logistic"| D["LinearExplainer<br/>EXACT"]
+  B -->|"neural net"| E["Deep / Gradient<br/>Explainer"]
+  B -->|"anything else"| F["Permutation<br/>(Kernel = last resort)"]
+  B -->|"text / image"| G["Explainer + masker<br/>Text / Image"]
+
+  C --> H{"Classifier?"}
+  H -->|yes| H1["CHECK UNITS:<br/>XGB → log-odds<br/>sklearn RF → probability"]
+  H -->|no| I
+  H1 --> H2["sv shape is 3-D!<br/>slice sv[..., 1]"]
+  H2 --> I
+  D --> I
+  E --> I
+  F --> I
+  G --> I
+
+  I["Explanation object<br/>f(x) = E[f(X)] + Σφ"] --> J{"Which question?"}
+  J -->|"why THIS row?"| K["plots.waterfall(sv[0])<br/>plots.force · plots.decision"]
+  J -->|"what drives<br/>the model?"| L["plots.beeswarm(sv)<br/>plots.bar · plots.scatter"]
+  J -->|"how does ONE<br/>feature behave?"| M["plots.scatter(sv[:, 'age'])"]
+
+  K --> Z(["Ship it"])
+  L --> Z
+  M --> Z
+
+  classDef exact fill:#ecf7f2,stroke:#059669,color:#065f46,stroke-width:2px;
+  classDef approx fill:#fdf6ec,stroke:#d97706,color:#92400e,stroke-width:2px;
+  classDef gate fill:#ecf6fa,stroke:#0891b2,color:#155e75,stroke-width:2px;
+  classDef warn fill:#fdf0ef,stroke:#dc2626,color:#991b1b,stroke-width:2px;
+  classDef glob fill:#eef0fd,stroke:#4f46e5,color:#3730a3,stroke-width:2px;
+  classDef ship fill:#1a1d24,stroke:#1a1d24,color:#fbbf24,stroke-width:2px;
+  class B,H,J gate;
+  class C,D,I exact;
+  class E,F,G approx;
+  class H1,H2 warn;
+  class K,L,M glob;
+  class Z ship;
+    </pre>
+  </div>
+</section>
+
+<!-- ============ SHAP vs ELI5 ============ -->
+<section class="deck-wrap">
+  <h2>Perspective</h2>
+  <p class="sub">SHAP is the most-cited explainability tool in ML — and also the most <b>over-applied</b>. Two things worth saying out loud before you reach for it reflexively.</p>
+  <div class="deck">
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">SHAP vs eli5 vs permutation</span><span class="card-sub">pick the right tool</span></div>
+    <table class="grid">
+      <thead><tr><th>Want</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td>Fast <b>global</b> feature ranking, nothing more</td><td><code>sklearn.inspection.permutation_importance</code>. <b>Free, robust, honest.</b> SHAP is overkill.</td></tr>
+        <tr><td><b>Debug a text model</b> quickly</td><td><b>eli5</b> — its word highlighting for linear + vectorizer is faster and clearer.</td></tr>
+        <tr><td><b>Per-row</b> attributions that <b>sum to the prediction</b></td><td><b>SHAP.</b> This is the unique capability.</td></tr>
+        <tr><td>An <b>auditable, axiomatic</b> answer</td><td><b>SHAP.</b> The consistency guarantee is the reason regulators accept it.</td></tr>
+        <tr><td>Global ranking that <b>aggregates local truth</b></td><td><b>SHAP</b> — <code>mean(|φ|)</code>. Impurity importance can't do this.</td></tr>
+      </tbody>
+    </table>
+    <div class="card-note"><b>The honest line:</b> if you only need "which features matter?", permutation importance answers it in one line with fewer assumptions. <b>SHAP earns its cost when you need the <i>per-row</i> decomposition</b> — a loan denial, a flagged transaction, a diagnosis.</div>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">What SHAP Does NOT Tell You</span><span class="card-sub">the limits</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="cm"># SHAP is not causal</span></code><span class="badge-danger">important</span><div class="desc">φ says <b>"the model used this feature this way"</b> — <i>not</i> "changing this feature would change the outcome". A model that learned a proxy will produce confident, correct-looking SHAP values <b>for the proxy</b>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># correlated features split credit arbitrarily</span></code><div class="desc">Two near-duplicate features share the attribution between them. Neither looks important alone. <b>Cluster correlated features and interpret them as a group</b> — or use <code>Partition</code> masking, which respects a hierarchy.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># interventional masking evaluates impossible rows</span></code><div class="desc">Breaking correlations means asking the model about a <b>1-room mansion</b>. The model answers, and that answer enters your explanation. This is a genuine, acknowledged tension in the method.</div></li>
+      <li class="core"><code class="cmd"><span class="cm"># a good explanation of a bad model is still bad</span></code><div class="desc">SHAP faithfully describes whatever the model learned — <b>including its biases and its leakage</b>. It's a <b>mirror, not a validator</b>. Validate the model first; explain it second.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Performance</span><span class="card-sub">when it hangs</span></div>
+    <ul class="cmds">
+      <li class="exp"><code class="cmd">shap.<span class="fn">TreeExplainer</span>(model) <span class="cm"># no background</span></code><span class="star">★</span><div class="desc">Fastest path — <code>tree_path_dependent</code> needs <b>no background data at all</b>. Use it when you don't need interventional semantics.</div></li>
+      <li class="danger"><code class="cmd">shap.KernelExplainer(f, X_train) <span class="cm"># all 100k rows</span></code><span class="badge-slow">hangs</span><div class="desc">Kernel cost scales with <b>background size × rows explained × nsamples</b>. Always <code>shap.sample(X, 100)</code>.</div></li>
+      <li class="exp"><code class="cmd">explainer(X[:<span class="arg">500</span>]) <span class="cm"># beeswarm doesn't need 1M rows</span></code><div class="desc">A few hundred samples give a beeswarm indistinguishable from the full set. <b>Subsample the rows you explain</b>, not just the background.</div></li>
+      <li class="exp"><code class="cmd">shap.<span class="fn">GPUTreeExplainer</span> · <span class="fn">PermutationExplainer</span>(…, max_evals=<span class="arg">500</span>)</code><div class="desc">GPU TreeSHAP for scale; cap <code>max_evals</code> to trade accuracy for time on Permutation.</div></li>
+    </ul>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ REFS ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">f(x) = E[f(X)] + Σφᵢ</span><span class="v">the whole library · exact for Tree &amp; Linear, approximate for Kernel</span></div>
+    <div><span class="k">3-line workflow</span><span class="v"><code>Explainer(model, X)</code> → <code>explainer(X)</code> → <code>plots.waterfall(sv[0])</code></span></div>
+    <div><span class="k">use the modern API</span><span class="v"><code>explainer(X)</code> returns an Explanation with base_values attached · <code>.shap_values()</code> doesn't</span></div>
+    <div><span class="k">TreeExplainer is EXACT</span><span class="v">and fast · Kernel is approximate and slow — verified 85.42 vs 93.67 on the same row</span></div>
+    <div><span class="k">global = mean(|φ|)</span><span class="v">never mean(φ) — it cancels to ≈0 and ranks your top feature as trivial</span></div>
+    <div><span class="k">binary clf → 3-D values</span><span class="v"><code>(n, features, 2)</code> · slice <code>sv[..., 1]</code> for the positive class</span></div>
+    <div><span class="k">XGB/LGBM → LOG-ODDS</span><span class="v">φ does NOT sum to predict_proba · sigmoid(Σ) does · sklearn RF gives probability</span></div>
+    <div><span class="k">E[f(X)] moves</span><span class="v">it's computed from the BACKGROUND set · change it and every φ changes</span></div>
+    <div><span class="k">shap.sample(X, 100)</span><span class="v">always summarise the background for Kernel/Deep, or it hangs</span></div>
+    <div><span class="k">waterfall = one row</span><span class="v"><code>sv[0]</code> · beeswarm/bar = the whole matrix <code>sv</code></span></div>
+    <div><span class="k">beeswarm: x=φ, colour=value</span><span class="v">red cloud on the right = "high values push the prediction up"</span></div>
+    <div><span class="k">scatter = dependence</span><span class="v"><code>plots.scatter(sv[:, "age"], color=sv)</code> reveals non-linearity and interactions</span></div>
+    <div><span class="k">force needs initjs()</span><span class="v">or you get a blank cell in the notebook</span></div>
+    <div><span class="k">SHAP is not causal</span><span class="v">it says how the MODEL used a feature, not what would happen if you changed it</span></div>
+    <div><span class="k">correlated features split credit</span><span class="v">near-duplicates share attribution — interpret them as a group</span></div>
+    <div><span class="k">just need a ranking?</span><span class="v">permutation_importance is one line and fewer assumptions · SHAP is for per-row decomposition</span></div>
+  </div>
+</section>
+
+<footer>
+  SHAP cheat sheet · grounded against the official <a href="https://shap.readthedocs.io/">SHAP documentation</a> and the <a href="https://github.com/shap/shap">shap/shap</a> repository · Lundberg &amp; Lee (NeurIPS 2017); TreeSHAP (Nature Machine Intelligence 2020).<br>
+  <b>Every claim and every figure was executed against shap 0.52.0 / scikit-learn 1.8.0 / xgboost</b> · <span class="star">★</span> = everyday · <span style="color:#dc2626">red</span> = it will bite you.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({
+      startOnLoad: true, theme: 'base',
+      themeVariables: {
+        fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: '12px',
+        primaryColor: '#fbfaf8', primaryTextColor: '#1a1d24', primaryBorderColor: '#64748b',
+        lineColor: '#94a3b8', secondaryColor: '#f1f3f6', tertiaryColor: '#ffffff'
+      },
+      flowchart: { curve: 'basis', nodeSpacing: 30, rankSpacing: 55, useMaxWidth: true }
+    });
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shapash Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    /* pipeline-stage palette */
+    --build:#64748b;   --build-bg:#f1f3f6;   /* model / data prep      */
+    --explain:#d97706; --explain-bg:#fdf6ec; /* SmartExplainer + compile */
+    --plot:#059669;    --plot-bg:#ecf7f2;    /* plots / visualise      */
+    --deploy:#4f46e5;  --deploy-bg:#eef0fd;  /* report / deploy        */
+    --quality:#0891b2; --quality-bg:#e8f6fa; /* explainability quality */
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .name{font-family:var(--mono); color:var(--explain)}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.build{background:var(--build)} .dot.explain{background:var(--explain)}
+  .dot.plot{background:var(--plot)} .dot.deploy{background:var(--deploy)}
+  .dot.quality{background:var(--quality)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.build{border-left-color:var(--build)}
+  ul.cmds li.explain{border-left-color:var(--explain)}
+  ul.cmds li.plot{border-left-color:var(--plot)}
+  ul.cmds li.deploy{border-left-color:var(--deploy)}
+  ul.cmds li.quality{border-left-color:var(--quality)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.45;
+  }
+  code.cmd .obj{color:var(--explain); font-weight:600}
+  code.cmd .arg{color:var(--deploy); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .cm{color:#9aa0aa; font-style:italic}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc b{color:var(--ink); font-weight:600}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge{
+    font-size:.62rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+    padding:.05rem .3rem; border-radius:4px; vertical-align:middle;
+  }
+  .badge-opt{color:var(--muted); background:#f1f0ec}
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .plot-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:620px){ .plot-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1040px){ .plot-grid{grid-template-columns:1fr 1fr 1fr} }
+  .plot-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .plot-card h3{font-size:.92rem; font-family:var(--mono); margin-bottom:.1rem}
+  .plot-card h3 .m{color:var(--plot)}
+  .plot-card p{font-size:.77rem; color:var(--muted); margin-bottom:.7rem; min-height:2.4em}
+  .plot-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:var(--ink)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · ML explainability &amp; interpretability</div>
+  <h1><span class="name">shapash</span> cheat sheet</h1>
+  <p class="lede">Shapash is an <b>overlay</b> on top of SHAP / LIME by MAIF. One <b>SmartExplainer</b> binds your model, data and encoders together, then a single vocabulary of <code>xpl.plot.*</code> calls turns raw contributions into labelled, human-readable plots — plus a web app, an audit-ready HTML report, and a light deployment object. Learn the <b>pipeline</b> once and the methods stop being a list to memorise.</p>
+  <div class="legend">
+    <span><i class="dot build"></i>build (model &amp; data)</span>
+    <span><i class="dot explain"></i>explain (compile)</span>
+    <span><i class="dot plot"></i>plot / visualise</span>
+    <span><i class="dot deploy"></i>report &amp; deploy</span>
+    <span><i class="dot quality"></i>explainability quality</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked across: <b>shapash.readthedocs.io</b> · <b>github.com/MAIF/shapash</b> · <b>maif.github.io/shapash</b> · <b>pypi.org/project/shapash</b> · <b>towardsdatascience.com</b> · Shapash ≈ 2.9 · SmartExplainer / SmartPredictor API</p>
+</header>
+
+<!-- ============ SIGNATURE PIPELINE DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The pipeline &amp; the methods that move you along it</div>
+  <svg class="flow-svg" viewBox="0 0 1120 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Shapash pipeline: a trained model and dataset feed a SmartExplainer, which is compiled, then produces plots, a web app, an audit report, and a deployable SmartPredictor.">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <!-- group labels -->
+    <text x="150" y="42" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">YOU BRING THESE</text>
+    <text x="560" y="42" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#d97706">THE SHAPASH CORE</text>
+    <text x="985" y="42" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#4f46e5">OUTPUTS</text>
+
+    <!-- inputs -->
+    <g>
+      <rect x="30" y="70" width="240" height="56" rx="10" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="150" y="94" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">trained model</text>
+      <text x="150" y="112" text-anchor="middle" font-size="10.5" fill="#64748b">xgboost · lightgbm · sklearn · catboost</text>
+    </g>
+    <g>
+      <rect x="30" y="152" width="240" height="56" rx="10" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="150" y="176" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">X test · y · encoder</text>
+      <text x="150" y="194" text-anchor="middle" font-size="10.5" fill="#64748b">+ features_dict for labels</text>
+    </g>
+
+    <!-- SmartExplainer -->
+    <g>
+      <rect x="360" y="82" width="200" height="114" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2.5"/>
+      <text x="460" y="112" text-anchor="middle" font-size="14.5" font-weight="700" fill="#1a1d24">SmartExplainer</text>
+      <text x="460" y="132" text-anchor="middle" font-size="10.5" fill="#b45309">binds model + data + shap/lime</text>
+      <text x="460" y="160" text-anchor="middle" font-size="11" fill="#b45309" font-weight="700">.compile(x=Xtest, …)</text>
+      <text x="460" y="178" text-anchor="middle" font-size="10" fill="#b45309">→ computes contributions</text>
+    </g>
+
+    <!-- arrows inputs -> explainer -->
+    <line x1="270" y1="98"  x2="358" y2="120" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="270" y1="180" x2="358" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="315" y="108" text-anchor="middle" font-size="10.5" font-weight="700" fill="#d97706">init</text>
+
+    <!-- outputs -->
+    <g>
+      <rect x="650" y="60" width="440" height="40" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="668" y="85" font-size="12" font-weight="700" fill="#059669">plots</text>
+      <text x="742" y="85" font-size="10.5" fill="#1a1d24">xpl.plot.features_importance() · contribution_plot() …</text>
+    </g>
+    <g>
+      <rect x="650" y="112" width="440" height="40" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="668" y="137" font-size="12" font-weight="700" fill="#059669">web app</text>
+      <text x="758" y="137" font-size="10.5" fill="#1a1d24">xpl.run_app() — navigate global ⇄ local</text>
+    </g>
+    <g>
+      <rect x="650" y="164" width="440" height="40" rx="9" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="668" y="189" font-size="12" font-weight="700" fill="#4f46e5">report</text>
+      <text x="748" y="189" font-size="10.5" fill="#1a1d24">xpl.generate_report() — standalone audit HTML</text>
+    </g>
+    <g>
+      <rect x="650" y="216" width="440" height="40" rx="9" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="668" y="241" font-size="12" font-weight="700" fill="#4f46e5">deploy</text>
+      <text x="742" y="241" font-size="10.5" fill="#1a1d24">xpl.to_smartpredictor() — light, API / batch</text>
+    </g>
+
+    <!-- arrows explainer -> outputs -->
+    <line x1="560" y1="120" x2="648" y2="80"  stroke="#059669" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="560" y1="132" x2="648" y2="132" stroke="#059669" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="560" y1="150" x2="648" y2="184" stroke="#4f46e5" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="560" y1="162" x2="648" y2="236" stroke="#4f46e5" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- quality band -->
+    <g>
+      <rect x="360" y="300" width="730" height="66" rx="10" fill="#e8f6fa" stroke="#0891b2" stroke-width="2"/>
+      <text x="378" y="324" font-size="12" font-weight="700" fill="#0891b2">trust the explanation?</text>
+      <text x="378" y="344" font-size="10.5" fill="#155e75">3 quality metrics — how much can you rely on these contributions</text>
+      <text x="820" y="330" font-size="11" font-weight="700" fill="#0891b2">Stability</text>
+      <text x="820" y="348" font-size="9.5" fill="#155e75">similar rows → similar reasons</text>
+      <text x="945" y="330" font-size="11" font-weight="700" fill="#0891b2">Consistency</text>
+      <text x="945" y="348" font-size="9.5" fill="#155e75">shap vs lime agree?</text>
+      <text x="1045" y="330" font-size="11" font-weight="700" fill="#0891b2">Compacity</text>
+      <text x="1045" y="348" font-size="9.5" fill="#155e75">few features enough?</text>
+    </g>
+    <line x1="460" y1="196" x2="460" y2="298" stroke="#0891b2" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+    <text x="476" y="250" font-size="10" fill="#0891b2">evaluate</text>
+  </svg>
+</section>
+
+<!-- ============ COMMAND CARDS ============ -->
+<main>
+
+  <!-- 01 INSTALL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; Import</span><span class="card-sub">once per env</span></div>
+    <ul class="cmds">
+      <li class="build"><code class="cmd">pip install shapash</code><span class="star">★</span><div class="desc">Core library (Python 3.11–3.14).</div></li>
+      <li class="build"><code class="cmd">pip install <span class="arg">shapash[report]</span></code><div class="desc">Extra deps to enable <b>generate_report</b>.</div></li>
+      <li class="build"><code class="cmd">pip install <span class="arg">shapash[xgboost,lightgbm,catboost]</span></code><div class="desc">Optional model backends.</div></li>
+      <li class="build"><code class="cmd">from shapash import <span class="obj">SmartExplainer</span></code><span class="star">★</span><div class="desc">The one class you start from.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 BUILD A MODEL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Bring a Model</span><span class="card-sub">what Shapash wraps</span></div>
+    <ul class="cmds">
+      <li class="build"><code class="cmd"><span class="cm"># any fitted, compatible model</span></code><div class="desc">Regression · binary · multiclass.</div></li>
+      <li class="build"><code class="cmd">regressor.fit(Xtrain, ytrain)</code><div class="desc">Catboost · Xgboost · LightGBM · Sklearn · linear · SVM.</div></li>
+      <li class="build"><code class="cmd">y_pred = regressor.predict(Xtest)</code><div class="desc">Optional — Shapash defaults to <code>model.predict</code>.</div></li>
+      <li class="build"><code class="cmd">encoder = OrdinalEncoder(...).fit(X)</code><div class="desc">category-encoders / ColumnTransformer for clean labels.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 SMARTEXPLAINER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Declare Explainer</span><span class="card-sub">step 1 · bind it</span></div>
+    <ul class="cmds">
+      <li class="explain"><code class="cmd">xpl = <span class="obj">SmartExplainer</span>(model=regressor)</code><span class="star">★</span><div class="desc"><b>model</b> is the one required arg.</div></li>
+      <li class="explain"><code class="cmd"><span class="cm">…, </span>features_dict=<span class="arg">house_dict</span></code><span class="badge badge-opt">opt</span><div class="desc">Map raw names → human labels.</div></li>
+      <li class="explain"><code class="cmd"><span class="cm">…, </span>preprocessing=<span class="arg">encoder</span></code><span class="badge badge-opt">opt</span><div class="desc">Lets plots inverse-transform to raw values.</div></li>
+      <li class="explain"><code class="cmd"><span class="cm">…, </span>backend=<span class="arg">'shap'</span></code><span class="badge badge-opt">opt</span><div class="desc"><code>'shap'</code> (default) or <code>'lime'</code>.</div></li>
+      <li class="explain"><code class="cmd"><span class="cm">…, </span>label_dict=<span class="arg">{0:'Death',1:'Survival'}</span></code><span class="badge badge-opt">opt</span><div class="desc">Readable class names (classification).</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 COMPILE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Compile</span><span class="card-sub">step 2 · the workhorse</span></div>
+    <ul class="cmds">
+      <li class="explain"><code class="cmd">xpl.compile(x=<span class="arg">Xtest</span>)</code><span class="star">★</span><div class="desc"><b>x</b> is the only required arg — computes contributions.</div></li>
+      <li class="explain"><code class="cmd"><span class="cm">…, </span>y_pred=<span class="arg">y_pred</span></code><span class="badge badge-opt">opt</span><div class="desc">Your own predictions to explain.</div></li>
+      <li class="explain"><code class="cmd"><span class="cm">…, </span>y_target=<span class="arg">ytest</span></code><span class="badge badge-opt">opt</span><div class="desc">Enables True-vs-Predicted plots.</div></li>
+      <li class="explain"><code class="cmd"><span class="cm">…, </span>additional_data=<span class="arg">X_extra</span></code><span class="badge badge-opt">opt</span><div class="desc">Extra columns for filtering in the web app.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 GLOBAL PLOTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Global Plots</span><span class="card-sub">step 3 · the big picture</span></div>
+    <ul class="cmds">
+      <li class="plot"><code class="cmd">xpl.plot.<b>features_importance</b>()</code><span class="star">★</span><div class="desc">Sum of |contributions| per feature — <b>start here.</b></div></li>
+      <li class="plot"><code class="cmd"><span class="cm">…</span>features_importance(selection=<span class="arg">subset</span>)</code><div class="desc">Compare a subset vs the whole population.</div></li>
+      <li class="plot"><code class="cmd">xpl.plot.<b>contribution_plot</b>(<span class="arg">'Age'</span>)</code><span class="star">★</span><div class="desc">How one feature's value drives the output (auto violin/scatter).</div></li>
+      <li class="plot"><code class="cmd">xpl.plot.<b>top_interactions_plot</b>()</code><div class="desc">Strongest pairwise feature interactions.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 LOCAL PLOTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Local Plots</span><span class="card-sub">explain one prediction</span></div>
+    <ul class="cmds">
+      <li class="plot"><code class="cmd">xpl.plot.<b>local_plot</b>(index=<span class="arg">42</span>)</code><span class="star">★</span><div class="desc">Why row 42 got its prediction — bars ± per feature.</div></li>
+      <li class="plot"><code class="cmd"><span class="cm">…</span>local_plot(row_num=<span class="arg">0</span>)</code><div class="desc">Select by position instead of index label.</div></li>
+      <li class="plot"><code class="cmd"><span class="cm">…</span>local_plot(query=<span class="arg">"Age &gt; 60"</span>)</code><div class="desc">Select the single row matching a condition.</div></li>
+      <li class="plot"><code class="cmd">xpl.plot.<b>compare_plot</b>(row_num=<span class="arg">[0,1,2]</span>)</code><span class="star">★</span><div class="desc">Side-by-side: why these individuals differ.</div></li>
+      <li class="plot"><code class="cmd">xpl.plot.<b>local_neighbors_plot</b>(index=<span class="arg">42</span>)</code><div class="desc">Are near-identical rows explained the same way?</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 FILTER & EXPORT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Summarise &amp; Export</span><span class="card-sub">tune the local story</span></div>
+    <ul class="cmds">
+      <li class="explain"><code class="cmd">xpl.<b>filter</b>(max_contrib=<span class="arg">8</span>)</code><span class="star">★</span><div class="desc">Cap how many features the summary shows.</div></li>
+      <li class="explain"><code class="cmd"><span class="cm">…</span>filter(threshold=<span class="arg">0.01</span>)</code><div class="desc">Hide contributions below a magnitude.</div></li>
+      <li class="explain"><code class="cmd"><span class="cm">…</span>filter(positive=<span class="arg">True</span>)</code><div class="desc">Keep only positive (or negative) drivers.</div></li>
+      <li class="plot"><code class="cmd">xpl.<b>to_pandas</b>(max_contrib=<span class="arg">5</span>)</code><span class="star">★</span><div class="desc">Export the local summary as a DataFrame.</div></li>
+      <li class="explain"><code class="cmd">xpl.<b>add</b>(y_pred=<span class="arg">new_pred</span>)</code><div class="desc">Attach / update preds or labels after compile.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 QUALITY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Explainability Quality</span><span class="card-sub">can you trust it?</span></div>
+    <ul class="cmds">
+      <li class="quality"><code class="cmd">xpl.plot.<b>stability_plot</b>()</code><span class="star">★</span><div class="desc"><b>Stability</b> — similar rows get similar contributions.</div></li>
+      <li class="quality"><code class="cmd"><span class="cm">…</span>stability_plot(distribution=<span class="arg">'boxplot'</span>)</code><div class="desc">Show spread of variability per feature.</div></li>
+      <li class="quality"><code class="cmd">xpl.plot.<b>compacity_plot</b>()</code><div class="desc"><b>Compacity</b> — how few features explain ~90% of output.</div></li>
+      <li class="quality"><code class="cmd">xpl.plot.<b>consistency_plot</b>()</code><div class="desc"><b>Consistency</b> — do shap &amp; lime agree?</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 WEBAPP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Web App</span><span class="card-sub">navigate interactively</span></div>
+    <ul class="cmds">
+      <li class="plot"><code class="cmd">app = xpl.<b>run_app</b>()</code><span class="star">★</span><div class="desc">Launch the interactive explorer (global ⇄ local).</div></li>
+      <li class="plot"><code class="cmd">xpl.run_app(<span class="cm">title_story=</span><span class="arg">"My model"</span>)</code><div class="desc">Title shown in the app header.</div></li>
+      <li class="plot"><code class="cmd">xpl.run_app(<span class="cm">port=</span><span class="arg">8050</span>)</code><div class="desc">Pin host / port if needed.</div></li>
+      <li class="plot"><code class="cmd">app.<b>kill</b>()</code><div class="desc">Stop the running app thread.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 REPORT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Audit Report</span><span class="card-sub">step 4 · standalone HTML</span></div>
+    <ul class="cmds">
+      <li class="deploy"><code class="cmd">xpl.<b>generate_report</b>(</code><span class="star">★</span><div class="desc">One self-contained HTML file for auditors / DPO / risk.</div></li>
+      <li class="deploy"><code class="cmd"><span class="cm">  </span>output_file=<span class="arg">'report.html'</span>,</code><div class="desc">Where to write it.</div></li>
+      <li class="deploy"><code class="cmd"><span class="cm">  </span>project_info_file=<span class="arg">'info.yml'</span>,</code><div class="desc">Project title, purpose, authors, data prep.</div></li>
+      <li class="deploy"><code class="cmd"><span class="cm">  </span>x_train=<span class="arg">Xtrain</span>, y_train=<span class="arg">ytrain</span>,</code><div class="desc">Splits used to enrich the document.</div></li>
+      <li class="deploy"><code class="cmd"><span class="cm">  </span>metrics=<span class="arg">[{'name':'MSE','path':...}]</span>)</code><div class="desc">Metrics to freeze into the snapshot.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 DEPLOY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Deploy · SmartPredictor</span><span class="card-sub">step 5 · production</span></div>
+    <ul class="cmds">
+      <li class="deploy"><code class="cmd">predictor = xpl.<b>to_smartpredictor</b>()</code><span class="star">★</span><div class="desc">Light object for API / batch — with consistency checks.</div></li>
+      <li class="deploy"><code class="cmd">predictor.<b>add_input</b>(x=<span class="arg">new_df</span>)</code><div class="desc">Feed raw (un-preprocessed) rows to score.</div></li>
+      <li class="deploy"><code class="cmd">predictor.<b>detail_contributions</b>()</code><div class="desc">Predictions + their local contributions.</div></li>
+      <li class="deploy"><code class="cmd">predictor.<b>summarize</b>()</code><div class="desc">Wordy, human-readable local explanation.</div></li>
+      <li class="deploy"><code class="cmd">predictor.save(<span class="arg">'pred.pkl'</span>)</code><div class="desc">Pickle it for the serving layer.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 PERSIST -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Save &amp; Reload</span><span class="card-sub">persist the explainer</span></div>
+    <ul class="cmds">
+      <li class="explain"><code class="cmd">xpl.<b>save</b>(<span class="arg">'xpl.pkl'</span>)</code><div class="desc">Persist the compiled explainer.</div></li>
+      <li class="explain"><code class="cmd">xpl2 = <span class="obj">SmartExplainer</span>.<b>load</b>(<span class="arg">'xpl.pkl'</span>)</code><div class="desc">Reload without recomputing contributions.</div></li>
+      <li class="deploy"><code class="cmd">from shapash.utils.load_smartpredictor import load_smartpredictor</code><div class="desc">Loader for a saved SmartPredictor pickle.</div></li>
+    </ul>
+  </article>
+
+  <!-- ★ SELECT A ROW -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">★</span><span class="card-title">Select a Row</span><span class="card-sub">anywhere you pick an instance</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">index=<span class="arg">1023</span></code><div class="desc">by the DataFrame's index label</div></li>
+      <li><code class="cmd">row_num=<span class="arg">0</span></code><div class="desc">by 0-based position</div></li>
+      <li><code class="cmd">query=<span class="arg">"Pclass==1 &amp; Age&gt;60"</span></code><div class="desc">by a condition matching one row</div></li>
+      <li><code class="cmd">selection=<span class="arg">[3,7,12]</span></code><div class="desc">a subset for global plots</div></li>
+      <li><code class="cmd">label=<span class="arg">'Survival'</span></code><div class="desc">which class to explain (classification)</div></li>
+      <li><code class="cmd">max_contrib=<span class="arg">10</span></code><div class="desc">how many features to show</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ THE PLOT GALLERY ============ -->
+<section class="diagrams">
+  <h2>The five plots you'll actually use</h2>
+  <p class="sub">Every plot is one <code>xpl.plot.*</code> call on a compiled explainer. Sketches below show the <i>shape</i> of each output — the real ones are interactive Plotly figures with your feature labels.</p>
+  <div class="plot-grid">
+
+    <!-- features_importance -->
+    <div class="plot-card">
+      <h3><span class="m">features_importance</span>()</h3>
+      <p>Global ranking — the sum of absolute contributions per feature. Your first look at what the model leans on.</p>
+      <svg viewBox="0 0 300 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Horizontal bar chart of feature importances, longest bar on top.">
+        <line x1="70" y1="18" x2="70" y2="132" stroke="#cbd5e1" stroke-width="1.5"/>
+        <rect x="70" y="24"  width="200" height="15" rx="3" fill="#059669"/>
+        <rect x="70" y="48"  width="150" height="15" rx="3" fill="#059669" opacity=".85"/>
+        <rect x="70" y="72"  width="108" height="15" rx="3" fill="#059669" opacity=".7"/>
+        <rect x="70" y="96"  width="70"  height="15" rx="3" fill="#059669" opacity=".55"/>
+        <rect x="70" y="120" width="42"  height="15" rx="3" fill="#059669" opacity=".4"/>
+        <g font-family="JetBrains Mono, monospace" font-size="8.5" fill="#6b7280" text-anchor="end">
+          <text x="64" y="35">Sex</text><text x="64" y="59">Pclass</text>
+          <text x="64" y="83">Age</text><text x="64" y="107">Fare</text><text x="64" y="131">Embark</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- contribution_plot -->
+    <div class="plot-card">
+      <h3><span class="m">contribution_plot</span>(<span style="color:#4f46e5">'Age'</span>)</h3>
+      <p>How one feature's <i>value</i> maps to its contribution. Auto-picks violin (categorical) or scatter (continuous).</p>
+      <svg viewBox="0 0 300 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Scatter of a feature's value against its contribution, trending upward.">
+        <line x1="40" y1="130" x2="285" y2="130" stroke="#cbd5e1" stroke-width="1.5"/>
+        <line x1="40" y1="18"  x2="40"  y2="130" stroke="#cbd5e1" stroke-width="1.5"/>
+        <line x1="40" y1="90" x2="285" y2="90" stroke="#e7e3db" stroke-width="1" stroke-dasharray="3 3"/>
+        <g fill="#059669">
+          <circle cx="70" cy="112" r="3.5" opacity=".8"/><circle cx="92" cy="104" r="3.5" opacity=".8"/>
+          <circle cx="110" cy="108" r="3.5" opacity=".8"/><circle cx="132" cy="92" r="3.5" opacity=".8"/>
+          <circle cx="150" cy="84" r="3.5" opacity=".8"/><circle cx="170" cy="70" r="3.5" opacity=".8"/>
+          <circle cx="192" cy="60" r="3.5" opacity=".8"/><circle cx="214" cy="46" r="3.5" opacity=".8"/>
+          <circle cx="238" cy="40" r="3.5" opacity=".8"/><circle cx="260" cy="30" r="3.5" opacity=".8"/>
+          <circle cx="120" cy="100" r="3.5" opacity=".6"/><circle cx="200" cy="66" r="3.5" opacity=".6"/>
+        </g>
+        <g font-family="JetBrains Mono, monospace" font-size="8" fill="#6b7280">
+          <text x="150" y="146" text-anchor="middle">feature value →</text>
+          <text x="12" y="75" transform="rotate(-90 12 75)" text-anchor="middle">contrib →</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- local_plot -->
+    <div class="plot-card">
+      <h3><span class="m">local_plot</span>(index=<span style="color:#4f46e5">42</span>)</h3>
+      <p>One prediction, decomposed. Green pushes the output up, red pulls it down — the ± drivers for that single row.</p>
+      <svg viewBox="0 0 300 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diverging bar chart for a single prediction, positive bars right, negative bars left.">
+        <line x1="150" y1="14" x2="150" y2="138" stroke="#9aa0aa" stroke-width="1.5"/>
+        <rect x="150" y="20"  width="110" height="13" rx="3" fill="#059669"/>
+        <rect x="150" y="42"  width="70"  height="13" rx="3" fill="#059669" opacity=".8"/>
+        <rect x="92"  y="64"  width="58"  height="13" rx="3" fill="#dc2626" opacity=".85"/>
+        <rect x="150" y="86"  width="40"  height="13" rx="3" fill="#059669" opacity=".6"/>
+        <rect x="106" y="108" width="44"  height="13" rx="3" fill="#dc2626" opacity=".7"/>
+        <g font-family="JetBrains Mono, monospace" font-size="8" fill="#6b7280">
+          <text x="150" y="134" text-anchor="middle">0</text>
+          <text x="264" y="30" fill="#059669">Sex=F</text>
+          <text x="88" y="74" text-anchor="end" fill="#dc2626">Pclass=3</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- compare_plot -->
+    <div class="plot-card">
+      <h3><span class="m">compare_plot</span>(row_num=<span style="color:#4f46e5">[0,1,2]</span>)</h3>
+      <p>Several individuals overlaid on the same feature axis — see at a glance <i>why</i> their predictions diverge.</p>
+      <svg viewBox="0 0 300 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Line comparison of contributions across features for three individuals.">
+        <g stroke-width="2" fill="none">
+          <polyline points="40,40 100,70 160,50 220,95 275,60" stroke="#059669"/>
+          <polyline points="40,70 100,50 160,100 220,60 275,110" stroke="#4f46e5"/>
+          <polyline points="40,110 100,95 160,70 220,120 275,90" stroke="#d97706"/>
+        </g>
+        <g font-family="JetBrains Mono, monospace" font-size="8" fill="#6b7280" text-anchor="middle">
+          <text x="40" y="145">Age</text><text x="100" y="145">Fare</text>
+          <text x="160" y="145">Sex</text><text x="220" y="145">Pcl</text><text x="275" y="145">Emb</text>
+        </g>
+        <g font-family="JetBrains Mono, monospace" font-size="7.5">
+          <circle cx="255" cy="16" r="3" fill="#059669"/><text x="262" y="19" fill="#6b7280">#0</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- stability_plot -->
+    <div class="plot-card">
+      <h3><span class="m">stability_plot</span>()</h3>
+      <p>Quality check: for similar instances, are contributions similar? Points near the axis = stable, trustworthy explanations.</p>
+      <svg viewBox="0 0 300 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Scatter of contribution amplitude against neighbourhood variability, points clustered low-variability.">
+        <line x1="40" y1="130" x2="285" y2="130" stroke="#cbd5e1" stroke-width="1.5"/>
+        <line x1="40" y1="18"  x2="40"  y2="130" stroke="#cbd5e1" stroke-width="1.5"/>
+        <g fill="#0891b2">
+          <circle cx="70" cy="40" r="4" opacity=".85"/><circle cx="60" cy="62" r="4" opacity=".85"/>
+          <circle cx="85" cy="80" r="4" opacity=".85"/><circle cx="72" cy="100" r="4" opacity=".85"/>
+          <circle cx="120" cy="55" r="4" opacity=".7"/><circle cx="150" cy="95" r="4" opacity=".7"/>
+          <circle cx="200" cy="70" r="4" opacity=".55"/><circle cx="235" cy="110" r="4" opacity=".5"/>
+        </g>
+        <g font-family="JetBrains Mono, monospace" font-size="7.5" fill="#6b7280">
+          <text x="150" y="146" text-anchor="middle">variability across neighbours →</text>
+          <text x="12" y="75" transform="rotate(-90 12 75)" text-anchor="middle">amplitude →</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- compacity_plot -->
+    <div class="plot-card">
+      <h3><span class="m">compacity_plot</span>()</h3>
+      <p>Quality check: how many features are <i>enough</i> to reproduce ~90% of the output? A curve that plateaus early = a simple story.</p>
+      <svg viewBox="0 0 300 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Rising curve of explanation fidelity versus number of features, plateauing after a few.">
+        <line x1="40" y1="130" x2="285" y2="130" stroke="#cbd5e1" stroke-width="1.5"/>
+        <line x1="40" y1="18"  x2="40"  y2="130" stroke="#cbd5e1" stroke-width="1.5"/>
+        <line x1="40" y1="40" x2="285" y2="40" stroke="#0891b2" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>
+        <text x="283" y="36" font-family="JetBrains Mono, monospace" font-size="7" fill="#0891b2" text-anchor="end">90%</text>
+        <path d="M40,125 C90,110 110,60 150,48 S230,42 285,41" fill="none" stroke="#0891b2" stroke-width="2.5"/>
+        <g font-family="JetBrains Mono, monospace" font-size="7.5" fill="#6b7280">
+          <text x="150" y="146" text-anchor="middle"># features →</text>
+          <text x="12" y="75" transform="rotate(-90 12 75)" text-anchor="middle">% explained →</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorising</h2>
+  <div class="refs-inner">
+    <div><span class="k">overlay, not method</span><span class="v">Shapash wraps shap / lime — it doesn't compute values itself</span></div>
+    <div><span class="k">global vs local</span><span class="v">features_importance = whole model · local_plot = one row</span></div>
+    <div><span class="k">only 2 required args</span><span class="v"><code>model</code> at init · <code>x</code> at compile — rest is optional polish</span></div>
+    <div><span class="k">features_dict</span><span class="v">the single biggest readability win — map codes to labels</span></div>
+    <div><span class="k">filter ➜ to_pandas</span><span class="v">filter() sets the summary; to_pandas() exports that same view</span></div>
+    <div><span class="k">3 quality metrics</span><span class="v">Stability · Consistency · Compacity — trust before you ship</span></div>
+    <div><span class="k">Explainer ≠ Predictor</span><span class="v">SmartExplainer = analysis · SmartPredictor = light deploy</span></div>
+    <div><span class="k">report needs extras</span><span class="v"><code>pip install shapash[report]</code> before generate_report()</span></div>
+  </div>
+</section>
+
+<footer>
+  Shapash cheat sheet · synthesised from the official references of Shapash (readthedocs.io &amp; MAIF GitHub), PyPI, the MAIF project site, and Towards Data Science.<br>
+  API shown for Shapash ≈ 2.9 · v2.0+ moves <code>model</code>/<code>backend</code>/<code>preprocessing</code> into <code>SmartExplainer(...)</code> init (previously passed to <code>compile</code>). Plots are interactive Plotly figures; sketches are illustrative.
+</footer>
+
+</body>
+</html>

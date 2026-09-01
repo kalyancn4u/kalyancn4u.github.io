@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hugging Face Tokenizers Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">HuggingFace &middot; fast Rust tokenizers &middot; train &amp; run subword vocabularies &middot; verified against tokenizers 0.2x (2026)</div>
+  <h1><span class="mono">tokenizers</span> cheat sheet</h1>
+  <p class="lede">Hugging Face <b>tokenizers</b> is the Rust-backed library that turns text into model input ids &mdash; blazing fast, with full <b>offset tracking</b> back to the original string. It's what powers the "Fast" tokenizers in &#127760; Transformers. A tokenizer is a <b>pipeline</b>: normalizer &rarr; pre-tokenizer &rarr; model (BPE/WordPiece/Unigram) &rarr; post-processor &rarr; decoder. Use it to <b>train a new vocabulary</b> or run an existing one. This sheet targets <b>tokenizers 0.2x</b>.</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>load / encode</span>
+    <span><i class="dot c2"></i>pipeline components</span>
+    <span><i class="dot c3"></i>training</span>
+    <span><i class="dot c4"></i>encoding features</span>
+    <span><i class="dot c5"></i>save &amp; integrate</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-08-24 against the official docs at <b>huggingface.co/docs/tokenizers</b> and the huggingface/tokenizers repo. Python bindings over a Rust core; integrates with Transformers via <code>PreTrainedTokenizerFast</code>.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub">Most people either (a) load an existing tokenizer and encode, or (b) assemble the 5-stage pipeline and train a new one. Both below.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Run</h3>
+      <ol class="toc-list">
+        <li><a href="#install">1 &middot; Install &amp; load</a></li>
+        <li><a href="#encode">2 &middot; Encode &amp; the Encoding object</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">Build</h3>
+      <ol class="toc-list">
+        <li><a href="#pipeline">3 &middot; The 5-stage pipeline</a></li>
+        <li><a href="#components">4 &middot; Models, normalizers, pre-tokenizers</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Train</h3>
+      <ol class="toc-list">
+        <li><a href="#train">5 &middot; Train a vocabulary</a></li>
+        <li><a href="#post">6 &middot; Post-processing &amp; decoders</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Use</h3>
+      <ol class="toc-list">
+        <li><a href="#features">7 &middot; Padding, truncation, batches</a></li>
+        <li><a href="#offsets">8 &middot; Offsets &amp; alignment</a></li>
+        <li><a href="#integrate">9 &middot; Save &amp; use in Transformers</a></li>
+        <li><a href="#gotchas">10 &middot; Gotchas</a></li>
+        <li><a href="#worth">Worth memorizing</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-run"><h2 style="color:var(--c1)">Run an Existing Tokenizer</h2><p class="sub">Load and encode &mdash; the common case.</p></div>
+<main>
+  <article class="card" id="install">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Install &amp; load</span><span class="card-sub">0.2x</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">pip install tokenizers</code><span class="star">&#9733;</span><div class="desc">Standalone; also ships inside <code>transformers</code>. Prebuilt Rust wheels &mdash; no compiler needed.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">from</span> tokenizers <span class="kw">import</span> Tokenizer
+tok = Tokenizer.from_pretrained(<span class="str">"bert-base-uncased"</span>)</code><span class="star">&#9733;</span><div class="desc">Pull a trained tokenizer straight from the Hub. <code>Tokenizer.from_file("tokenizer.json")</code> for a local one.</div></li>
+      <li class="c1"><code class="cmd">tok.get_vocab_size() &middot; tok.get_vocab() &middot; tok.token_to_id(<span class="str">"the"</span>)</code><div class="desc">Inspect the vocabulary and map tokens &harr; ids.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="encode">
+    <div class="card-head"><span class="card-num n1">2</span><span class="card-title">Encode &amp; the Encoding object</span><span class="card-sub">text &rarr; ids</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">enc = tok.encode(<span class="str">"Hello, world!"</span>)</code><span class="star">&#9733;</span><div class="desc">Returns an <code>Encoding</code> &mdash; the rich result object, not just ids.</div></li>
+      <li class="c1"><code class="cmd">enc.ids &middot; enc.tokens &middot; enc.attention_mask &middot; enc.type_ids</code><span class="star">&#9733;</span><div class="desc">Everything a model needs. <code>enc.ids</code> &rarr; the integer input; <code>enc.tokens</code> &rarr; the human-readable subwords.</div></li>
+      <li class="c1"><code class="cmd">enc.offsets <span class="cm"># [(start,end), ...] char spans in the original text</span></code><span class="star">&#9733;</span><div class="desc">The killer feature: map each token back to its exact characters &mdash; essential for NER/QA span extraction.</div></li>
+      <li class="c1"><code class="cmd">tok.decode(enc.ids) &middot; tok.encode(<span class="str">"A"</span>, <span class="str">"B"</span>) <span class="cm"># sentence pair</span></code><div class="desc">Decode back to text; pass two strings for pair tasks (adds separators via the post-processor).</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-build"><h2 style="color:var(--c2)">Build a Tokenizer</h2><p class="sub">Assemble the pipeline from parts.</p></div>
+<main>
+  <article class="card" id="pipeline">
+    <div class="card-head"><span class="card-num n2">3</span><span class="card-title">The 5-stage pipeline</span><span class="card-sub">how a tokenizer works</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd"><span class="cm"># 1 normalizer  2 pre_tokenizer  3 model  4 post_processor  5 decoder</span></code><span class="star">&#9733;</span><div class="desc">Text flows through these five stages. Each is a swappable component &mdash; understanding the order is the whole mental model.</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">from</span> tokenizers <span class="kw">import</span> Tokenizer
+<span class="kw">from</span> tokenizers.models <span class="kw">import</span> BPE
+tok = Tokenizer(BPE(unk_token=<span class="str">"[UNK]"</span>))</code><span class="star">&#9733;</span><div class="desc">Start from the core <b>model</b> (the algorithm that splits into subwords), then attach the other stages.</div></li>
+      <li class="c2"><code class="cmd">tok.normalizer = ... &middot; tok.pre_tokenizer = ... &middot; tok.decoder = ...</code><div class="desc">Set each stage as an attribute. Only the model is required; the rest have sensible no-ops.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="components">
+    <div class="card-head"><span class="card-num n2">4</span><span class="card-title">Models, normalizers, pre-tokenizers</span><span class="card-sub">the parts</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd"><span class="kw">from</span> tokenizers.models <span class="kw">import</span> BPE, WordPiece, Unigram, WordLevel</code><span class="star">&#9733;</span><div class="desc"><b>Model</b>: BPE (GPT), WordPiece (BERT), Unigram (T5/SentencePiece), WordLevel (whole words).</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">from</span> tokenizers <span class="kw">import</span> normalizers
+tok.normalizer = normalizers.Sequence([NFD(), Lowercase(), StripAccents()])</code><span class="star">&#9733;</span><div class="desc"><b>Normalizer</b>: clean text (unicode, casing, accents) before splitting. Chain with <code>Sequence</code>.</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">from</span> tokenizers <span class="kw">import</span> pre_tokenizers
+tok.pre_tokenizer = pre_tokenizers.Whitespace() <span class="cm"># or ByteLevel(), Metaspace()</span></code><span class="star">&#9733;</span><div class="desc"><b>Pre-tokenizer</b>: initial split into words. <code>ByteLevel</code> (GPT-style, handles any byte) is common for BPE.</div></li>
+      <li class="c2"><code class="cmd">pre_tokenizers.Sequence([Whitespace(), Digits(individual_digits=<span class="kw">True</span>)])</code><div class="desc">Compose pre-tokenizers too &mdash; e.g. split off digits individually for number-heavy text.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-train"><h2 style="color:var(--c3)">Train</h2><p class="sub">Learn a vocabulary from your corpus.</p></div>
+<main>
+  <article class="card" id="train">
+    <div class="card-head"><span class="card-num n3">5</span><span class="card-title">Train a vocabulary</span><span class="card-sub">trainers</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="kw">from</span> tokenizers.trainers <span class="kw">import</span> BpeTrainer
+trainer = BpeTrainer(vocab_size=30000, special_tokens=[<span class="str">"[UNK]"</span>,<span class="str">"[CLS]"</span>,<span class="str">"[SEP]"</span>,<span class="str">"[PAD]"</span>,<span class="str">"[MASK]"</span>])</code><span class="star">&#9733;</span><div class="desc">One trainer per model type (<code>BpeTrainer</code>, <code>WordPieceTrainer</code>, <code>UnigramTrainer</code>, <code>WordLevelTrainer</code>).</div></li>
+      <li class="c3"><code class="cmd">tok.train([<span class="str">"corpus1.txt"</span>, <span class="str">"corpus2.txt"</span>], trainer)</code><span class="star">&#9733;</span><div class="desc">Train from files. Fast &mdash; millions of lines in seconds thanks to the Rust core.</div></li>
+      <li class="c3"><code class="cmd">tok.train_from_iterator(text_generator, trainer, length=n)</code><span class="star">&#9733;</span><div class="desc">Train from any Python iterator (a &#127760; <code>datasets</code> stream, a generator) &mdash; no need to dump to disk.</div></li>
+      <li class="c3"><code class="cmd">BpeTrainer(..., min_frequency=2, show_progress=<span class="kw">True</span>)</code><div class="desc">Drop rare merges; <code>initial_alphabet</code> / <code>ByteLevel.alphabet()</code> to guarantee full byte coverage.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="post">
+    <div class="card-head"><span class="card-num n3">6</span><span class="card-title">Post-processing &amp; decoders</span><span class="card-sub">special tokens &amp; text back</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="kw">from</span> tokenizers.processors <span class="kw">import</span> TemplateProcessing
+tok.post_processor = TemplateProcessing(
+    single=<span class="str">"[CLS] $A [SEP]"</span>, pair=<span class="str">"[CLS] $A [SEP] $B:1 [SEP]:1"</span>,
+    special_tokens=[(<span class="str">"[CLS]"</span>, cls_id), (<span class="str">"[SEP]"</span>, sep_id)])</code><span class="star">&#9733;</span><div class="desc"><b>Post-processor</b>: insert <code>[CLS]</code>/<code>[SEP]</code> and set type ids. <code>$A</code>/<code>$B</code> are the sequences; <code>:1</code> = type id.</div></li>
+      <li class="c3"><code class="cmd"><span class="kw">from</span> tokenizers <span class="kw">import</span> decoders
+tok.decoder = decoders.ByteLevel() <span class="cm"># or WordPiece(), Metaspace()</span></code><div class="desc"><b>Decoder</b>: correctly join subwords back to text (must match the pre-tokenizer's scheme).</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-use"><h2 style="color:var(--c4)">Use &amp; Integrate</h2><p class="sub">Batches, alignment, and handing off to Transformers.</p></div>
+<main>
+  <article class="card" id="features">
+    <div class="card-head"><span class="card-num n4">7</span><span class="card-title">Padding, truncation, batches</span><span class="card-sub">for the model</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">tok.enable_padding(pad_id=0, pad_token=<span class="str">"[PAD]"</span>)</code><span class="star">&#9733;</span><div class="desc">Pad a batch to the longest item (or <code>length=</code> for fixed). Set on the tokenizer, applies to all encodes.</div></li>
+      <li class="c4"><code class="cmd">tok.enable_truncation(max_length=512)</code><span class="star">&#9733;</span><div class="desc">Cap length; <code>strategy</code> controls which sequence gets cut in pairs.</div></li>
+      <li class="c4"><code class="cmd">encs = tok.encode_batch([<span class="str">"a"</span>, <span class="str">"b"</span>, <span class="str">"c"</span>])</code><span class="star">&#9733;</span><div class="desc">Batch-encode a list (parallelized in Rust) &mdash; returns a list of <code>Encoding</code>s.</div></li>
+      <li class="c4"><code class="cmd">tok.encode(text, add_special_tokens=<span class="kw">False</span>)</code><div class="desc">Skip the post-processor's special tokens for a raw tokenization.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="offsets">
+    <div class="card-head"><span class="card-num n4">8</span><span class="card-title">Offsets &amp; alignment</span><span class="card-sub">token &harr; char</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">enc.word_ids &middot; enc.words <span class="cm"># which word each token belongs to</span></code><span class="star">&#9733;</span><div class="desc">Group subwords back into words &mdash; needed to align token-level predictions with word-level labels (NER).</div></li>
+      <li class="c4"><code class="cmd">enc.char_to_token(pos) &middot; enc.token_to_chars(i)</code><span class="star">&#9733;</span><div class="desc">Two-way mapping between character positions and token indices &mdash; extract the exact answer span in QA.</div></li>
+      <li class="c4"><code class="cmd">enc.token_to_word(i) &middot; enc.word_to_tokens(w)</code><div class="desc">Token&harr;word alignment for label projection across the subword boundary.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="integrate">
+    <div class="card-head"><span class="card-num n5">9</span><span class="card-title">Save &amp; use in Transformers</span><span class="card-sub">ship it</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd">tok.save(<span class="str">"tokenizer.json"</span>)</code><span class="star">&#9733;</span><div class="desc">The entire pipeline (model + all stages) serializes to one JSON file. <code>Tokenizer.from_file(...)</code> to reload.</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">from</span> transformers <span class="kw">import</span> PreTrainedTokenizerFast
+hf = PreTrainedTokenizerFast(tokenizer_object=tok)</code><span class="star">&#9733;</span><div class="desc">Wrap it for the Transformers API (returns dicts of tensors, plays with the Trainer). Set <code>pad_token</code> etc.</div></li>
+      <li class="c5"><code class="cmd">hf.save_pretrained(<span class="str">"my-tok/"</span>); hf.push_to_hub(<span class="str">"me/my-tok"</span>)</code><div class="desc">Publish so it loads via <code>AutoTokenizer.from_pretrained</code> alongside a model.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="gotchas">
+    <div class="card-head"><span class="card-num">!</span><span class="card-title">Common gotchas</span><span class="card-sub">read before shipping</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">decoder must match pre-tokenizer</code><div class="desc">A <code>ByteLevel</code> pre-tokenizer needs a <code>ByteLevel</code> decoder (etc.) or <code>decode()</code> produces garbled spacing.</div></li>
+      <li class="danger"><code class="cmd">add special tokens in the vocab AND post-processor</code><div class="desc"><code>[CLS]</code>/<code>[SEP]</code> must be in the trainer's <code>special_tokens</code> <em>and</em> referenced by the post-processor's template.</div></li>
+      <li class="danger"><code class="cmd">this library ≠ SentencePiece</code><div class="desc">Unigram here is compatible in spirit, but existing <code>.model</code> SentencePiece files aren't loaded directly &mdash; convert or retrain.</div></li>
+      <li class="danger"><code class="cmd">offsets are on the normalized text unless configured</code><div class="desc">Some normalizers change lengths; keep track (or use <code>ByteLevel(add_prefix_space)</code> settings) so char offsets line up with your raw input.</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs" id="worth">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">5-stage pipeline</span><span class="v">normalizer &rarr; pre_tokenizer &rarr; model &rarr; post_processor &rarr; decoder</span></div>
+    <div><span class="k">from_pretrained to just use one</span><span class="v">Tokenizer.from_pretrained / from_file; encode() returns an Encoding</span></div>
+    <div><span class="k">Encoding has more than ids</span><span class="v">ids, tokens, attention_mask, offsets, word_ids</span></div>
+    <div><span class="k">offsets = superpower</span><span class="v">map tokens back to exact characters for NER/QA spans</span></div>
+    <div><span class="k">model picks the algorithm</span><span class="v">BPE / WordPiece / Unigram / WordLevel + a matching trainer</span></div>
+    <div><span class="k">train_from_iterator</span><span class="v">train straight from a datasets stream, no temp files</span></div>
+    <div><span class="k">TemplateProcessing for [CLS]/[SEP]</span><span class="v">$A/$B templates + type ids</span></div>
+    <div><span class="k">decoder must match pre-tokenizer</span><span class="v">ByteLevel/WordPiece/Metaspace pairs</span></div>
+    <div><span class="k">save = one tokenizer.json</span><span class="v">wrap in PreTrainedTokenizerFast for Transformers</span></div>
+  </div>
+</section>
+
+<footer>
+  tokenizers cheat sheet (tokenizers_cheatsheet v0).<br>
+  Verified 2026-08-24 against <b>huggingface.co/docs/tokenizers</b> and the huggingface/tokenizers repo (0.2x). Rust-backed fast tokenizers with offset tracking; the engine behind Transformers' Fast tokenizers, integrable via <code>PreTrainedTokenizerFast</code>. Component names (normalizers/pre_tokenizers/processors/decoders) are stable but check the API reference for the exact class list.<br>
+  Design system = shared cheat-sheet tokens (Inter + JetBrains Mono, light theme). Content only.
+</footer>
+</body>
+</html>

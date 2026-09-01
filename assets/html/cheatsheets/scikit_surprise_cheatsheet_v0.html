@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>scikit-surprise Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --data:#64748b;   --data-bg:#f1f3f6;
+    --algo:#d97706;   --algo-bg:#fdf6ec;
+    --fit:#059669;    --fit-bg:#ecf7f2;
+    --eval:#4f46e5;   --eval-bg:#eef0fd;
+    --tune:#7c3aed;   --tune-bg:#f3effe;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .lib{font-family:var(--mono); color:var(--eval)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .lede code{font-family:var(--mono); font-size:.92em; background:#f0ede7; padding:.05rem .3rem; border-radius:4px}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.data{background:var(--data)} .dot.algo{background:var(--algo)}
+  .dot.fit{background:var(--fit)} .dot.eval{background:var(--eval)}
+  .dot.tune{background:var(--tune)} .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- mental-model banner ---------- */
+  .banner{
+    max-width:1500px; margin:1.2rem auto 0; padding:0 clamp(1rem,4vw,3rem);
+  }
+  .banner-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:12px;
+    padding:1.3rem 1.5rem; display:grid; gap:1.2rem;
+    grid-template-columns:1fr; align-items:center;
+  }
+  @media(min-width:820px){ .banner-inner{grid-template-columns:auto 1fr} }
+  .banner pre{
+    font-family:var(--mono); font-size:.82rem; line-height:1.65; margin:0;
+    white-space:pre; overflow-x:auto;
+  }
+  .banner pre .kw{color:#c4b5fd} .banner pre .fn{color:#34d399}
+  .banner pre .st{color:#fbbf24} .banner pre .cm{color:#7c869c}
+  .banner .gloss{font-size:.85rem; color:#cbd5e1; line-height:1.65}
+  .banner .gloss b{color:#fff; font-weight:600}
+  .banner .gloss code{font-family:var(--mono); font-size:.92em; color:#fbbf24}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.8rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.data{border-left-color:var(--data)}
+  ul.cmds li.algo{border-left-color:var(--algo)}
+  ul.cmds li.fit{border-left-color:var(--fit)}
+  ul.cmds li.eval{border-left-color:var(--eval)}
+  ul.cmds li.tune{border-left-color:var(--tune)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .arg{color:var(--eval); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .cls{color:var(--algo); font-weight:700}
+  code.cmd .mth{color:var(--fit); font-weight:700}
+  code.cmd .str{color:var(--danger); font-weight:400}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.77rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f0ede7; padding:.02rem .26rem; border-radius:4px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem; max-width:70ch}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner .v code{color:#fff; font-family:var(--mono)}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{background:#f0ede7; padding:.02rem .26rem; border-radius:4px}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · explicit-rating recommenders · scikit-learn-style API</div>
+  <h1><span class="lib">Surprise</span> cheat sheet</h1>
+  <p class="lede">A scikit-learn <i>for recommenders</i>. Load ratings into a <code>Dataset</code>, pick one of a dozen <code>Algorithm</code>s, and the same <code>fit &rarr; test &rarr; predict</code> loop and cross-validation tooling works for every one of them. One caveat to hold onto: Surprise handles <b>explicit ratings only</b> &mdash; no implicit feedback, no content features.</p>
+  <div class="legend">
+    <span><i class="dot data"></i>data &amp; I/O</span>
+    <span><i class="dot algo"></i>algorithms</span>
+    <span><i class="dot fit"></i>fit / predict</span>
+    <span><i class="dot eval"></i>evaluate / search</span>
+    <span><i class="dot tune"></i>options / params</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&starf;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked across: <b>surprise.readthedocs.io</b> · <b>github.com/NicolasHug/Surprise</b> · <b>surpriselib.com</b> · <b>PyPI scikit-surprise</b> · <b>Koren 2010 (baseline estimates)</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The workflow &mdash; from a ratings table to scored predictions</div>
+  <svg class="flow-svg" viewBox="0 0 1100 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Surprise workflow: a ratings Dataset is split into a trainset and testset, an algorithm is fit on the trainset and tested on the testset to produce predictions scored by accuracy; cross_validate and GridSearchCV wrap the whole loop, while deploy fits the full trainset for single predictions or an anti-testset for top-N.">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <!-- evaluate bracket -->
+    <path d="M40 66 L40 52 L1060 52 L1060 66" fill="none" stroke="#4f46e5" stroke-width="1.5"/>
+    <rect x="392" y="36" width="316" height="30" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.2"/>
+    <text x="550" y="55" text-anchor="middle" font-size="11.5" font-weight="700" fill="#4f46e5">cross_validate() · GridSearchCV()</text>
+
+    <!-- box 1 : data -->
+    <rect x="18" y="120" width="206" height="120" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+    <text x="121" y="150" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">Dataset</text>
+    <text x="121" y="175" text-anchor="middle" font-size="11" fill="#64748b">Reader + ratings</text>
+    <text x="121" y="194" text-anchor="middle" font-size="10.5" fill="#64748b">load_from_df / builtin</text>
+    <text x="121" y="213" text-anchor="middle" font-size="9.5" fill="#94a3b8">user · item · rating</text>
+
+    <!-- box 2 : split -->
+    <rect x="286" y="120" width="176" height="120" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <text x="374" y="150" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">Split</text>
+    <text x="374" y="175" text-anchor="middle" font-size="11" fill="#059669">train_test_split</text>
+    <text x="374" y="194" text-anchor="middle" font-size="11" fill="#059669">KFold iterator</text>
+    <text x="374" y="213" text-anchor="middle" font-size="9.5" fill="#5eaa8b">trainset + testset</text>
+
+    <!-- box 3 : algorithm -->
+    <rect x="524" y="120" width="196" height="120" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+    <text x="622" y="150" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">Algorithm</text>
+    <text x="622" y="175" text-anchor="middle" font-size="11" fill="#b45309">SVD · KNN · NMF</text>
+    <text x="622" y="194" text-anchor="middle" font-size="11" fill="#b45309">.fit(trainset)</text>
+    <text x="622" y="213" text-anchor="middle" font-size="9.5" fill="#c08a3e">learns r&#770;&#8341;&#7522;</text>
+
+    <!-- box 4 : predictions -->
+    <rect x="782" y="120" width="278" height="120" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+    <text x="921" y="150" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">Predictions &amp; score</text>
+    <text x="921" y="175" text-anchor="middle" font-size="11" fill="#4f46e5">.test(testset) &rarr; list</text>
+    <text x="921" y="194" text-anchor="middle" font-size="11" fill="#4f46e5">accuracy.rmse / mae</text>
+    <text x="921" y="213" text-anchor="middle" font-size="9.5" fill="#7c86e8">(uid, iid, r_ui, est, ...)</text>
+
+    <!-- arrows -->
+    <line x1="224" y1="180" x2="284" y2="180" stroke="#1a1d24" stroke-width="2" marker-end="url(#arr)"/>
+    <text x="254" y="171" text-anchor="middle" font-size="10" font-weight="700" fill="#059669">split</text>
+    <line x1="462" y1="180" x2="522" y2="180" stroke="#1a1d24" stroke-width="2" marker-end="url(#arr)"/>
+    <text x="492" y="171" text-anchor="middle" font-size="10" font-weight="700" fill="#d97706">fit</text>
+    <line x1="720" y1="180" x2="780" y2="180" stroke="#1a1d24" stroke-width="2" marker-end="url(#arr)"/>
+    <text x="750" y="171" text-anchor="middle" font-size="10" font-weight="700" fill="#4f46e5">test</text>
+
+    <!-- deploy path -->
+    <path d="M121 240 C 121 300, 300 300, 470 300" fill="none" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+    <text x="150" y="292" font-size="10.5" font-weight="600" fill="#7c3aed">deploy &rarr;</text>
+    <text x="486" y="296" font-size="10.5" fill="#7c3aed">build_full_trainset &middot; predict(uid, iid)</text>
+    <text x="486" y="312" font-size="10.5" fill="#7c3aed">build_anti_testset &middot; top-N ranking</text>
+
+    <!-- group labels -->
+    <text x="121" y="104" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">INPUT</text>
+    <text x="921" y="104" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#4f46e5">OUTPUT</text>
+  </svg>
+</section>
+
+<!-- ============ MENTAL-MODEL BANNER ============ -->
+<section class="banner">
+  <div class="banner-inner">
+<pre><span class="kw">from</span> surprise <span class="kw">import</span> SVD, Dataset
+<span class="kw">from</span> surprise.model_selection <span class="kw">import</span> cross_validate
+
+data = Dataset.<span class="fn">load_builtin</span>(<span class="st">"ml-100k"</span>)
+algo = <span class="fn">SVD</span>()
+<span class="fn">cross_validate</span>(algo, data,
+    measures=[<span class="st">"RMSE"</span>,<span class="st">"MAE"</span>], cv=<span class="st">5</span>)</pre>
+    <div class="gloss">
+      Five lines from zero to a benchmarked recommender. Load ratings into a <b>Dataset</b>, pick an <b>Algorithm</b>, and let <code>cross_validate</code> handle the folds and metrics. Swap <code>SVD()</code> for any of the dozen built-ins and <b>everything else stays identical</b> &mdash; that scikit-learn-style uniformity is the whole point. Three things to remember: it's <b>explicit ratings only</b>; <code>predict()</code> speaks <b>raw ids</b> (the strings from your file); and every prediction comes back as the tuple <code>(uid, iid, r_ui, est, details)</code>.
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMMAND CARDS ============ -->
+<main>
+
+  <!-- 01 INSTALL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; Import</span><span class="card-sub">once per env</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">pip install scikit-surprise</code><span class="star">&starf;</span><div class="desc">Needs NumPy + a C compiler.</div></li>
+      <li class="data"><code class="cmd">conda install <span class="flag">-c</span> conda-forge scikit-surprise</code><div class="desc">Easiest route on Windows.</div></li>
+      <li class="data"><code class="cmd">from surprise import <span class="cls">SVD</span>, Dataset, Reader</code><span class="star">&starf;</span><div class="desc">Algorithms live in the top-level namespace.</div></li>
+      <li class="data"><code class="cmd">from surprise import accuracy, dump</code><div class="desc">Metrics + model persistence.</div></li>
+      <li class="data"><code class="cmd">from surprise.model_selection import cross_validate</code><div class="desc">CV, splitters &amp; search live here.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 LOAD DATA -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Load Your Data</span><span class="card-sub">Reader + Dataset</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">reader = <span class="cls">Reader</span>(<span class="flag">rating_scale</span>=<span class="arg">(1, 5)</span>)</code><span class="star">&starf;</span><div class="desc">Declare the rating range.</div></li>
+      <li class="data"><code class="cmd">Dataset.<span class="mth">load_from_df</span>(df[<span class="arg">[u,i,r]</span>], reader)</code><span class="star">&starf;</span><div class="desc">From a DataFrame &mdash; 3 cols, <b>in that order</b>.</div></li>
+      <li class="data"><code class="cmd"><span class="cls">Reader</span>(<span class="flag">line_format</span>=<span class="str">"user item rating"</span>, <span class="flag">sep</span>=<span class="str">"\t"</span>)</code><div class="desc">Describe a raw text/CSV layout.</div></li>
+      <li class="data"><code class="cmd">Dataset.<span class="mth">load_from_file</span>(path, reader)</code><div class="desc">From a CSV/TSV on disk.</div></li>
+      <li class="data"><code class="cmd">Dataset.<span class="mth">load_builtin</span>(<span class="str">"ml-100k"</span>)</code><div class="desc">Auto-download MovieLens / Jester.</div></li>
+      <li class="data"><code class="cmd">data.<span class="mth">build_full_trainset</span>()</code><span class="star">&starf;</span><div class="desc">Use <b>all</b> ratings as one trainset.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 30-SECOND WORKFLOW -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">30-Second Workflow</span><span class="card-sub">the whole loop</span></div>
+    <ul class="cmds">
+      <li class="fit"><code class="cmd">data = Dataset.<span class="mth">load_builtin</span>(<span class="str">"ml-100k"</span>)</code><div class="desc">Get some ratings.</div></li>
+      <li class="fit"><code class="cmd">algo = <span class="cls">SVD</span>()</code><span class="star">&starf;</span><div class="desc">Pick an algorithm.</div></li>
+      <li class="fit"><code class="cmd"><span class="mth">cross_validate</span>(algo, data, <span class="flag">cv</span>=<span class="arg">5</span>)</code><span class="star">&starf;</span><div class="desc">Benchmark it &mdash; folds + metrics in one call.</div></li>
+      <li class="fit"><code class="cmd">tr, te = <span class="mth">train_test_split</span>(data, <span class="flag">test_size</span>=<span class="arg">.25</span>)</code><div class="desc">Or split once for a quick holdout.</div></li>
+      <li class="fit"><code class="cmd">algo.<span class="mth">fit</span>(tr).<span class="mth">test</span>(te)</code><span class="star">&starf;</span><div class="desc">Train + predict in a single chain.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 PICK AN ALGORITHM -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Pick an Algorithm</span><span class="card-sub">the built-in zoo</span></div>
+    <ul class="cmds">
+      <li class="algo"><code class="cmd"><span class="cls">SVD</span>()</code><span class="star">&starf;</span><div class="desc">Funk matrix factorization &mdash; the go-to.</div></li>
+      <li class="algo"><code class="cmd"><span class="cls">SVDpp</span>()</code><div class="desc">SVD++ folds in implicit signal; slower, often best.</div></li>
+      <li class="algo"><code class="cmd"><span class="cls">NMF</span>()</code><div class="desc">Non-negative matrix factorization.</div></li>
+      <li class="algo"><code class="cmd"><span class="cls">KNNBaseline</span>()</code><span class="star">&starf;</span><div class="desc">Neighborhood + baseline &mdash; strongest KNN.</div></li>
+      <li class="algo"><code class="cmd"><span class="cls">BaselineOnly</span>()</code><div class="desc">&mu; + b&#7512; + b&#7522;. Surprisingly hard to beat.</div></li>
+      <li class="algo"><code class="cmd"><span class="cls">SlopeOne</span>() / <span class="cls">CoClustering</span>()</code><div class="desc">Lightweight alternatives.</div></li>
+      <li class="algo"><code class="cmd"><span class="cls">NormalPredictor</span>()</code><div class="desc">Random baseline &mdash; your sanity floor.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 MATRIX FACTORIZATION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Matrix Factorization</span><span class="card-sub">SVD · SVD++ · NMF</span></div>
+    <ul class="cmds">
+      <li class="algo"><code class="cmd"><span class="cls">SVD</span>(<span class="flag">n_factors</span>=<span class="arg">100</span>, <span class="flag">n_epochs</span>=<span class="arg">20</span>)</code><span class="star">&starf;</span><div class="desc">Latent dimensions &amp; SGD passes.</div></li>
+      <li class="tune"><code class="cmd"><span class="cls">SVD</span>(<span class="flag">lr_all</span>=<span class="arg">.005</span>, <span class="flag">reg_all</span>=<span class="arg">.02</span>)</code><div class="desc">Learning rate &amp; L2 regularization.</div></li>
+      <li class="tune"><code class="cmd"><span class="cls">SVD</span>(<span class="flag">biased</span>=<span class="arg">False</span>)</code><div class="desc">Drops bias terms &rarr; plain PMF.</div></li>
+      <li class="algo"><code class="cmd"><span class="cls">SVDpp</span>(<span class="flag">n_factors</span>=<span class="arg">20</span>)</code><div class="desc">Uses implicit feedback; noticeably slower.</div></li>
+      <li class="algo"><code class="cmd"><span class="cls">NMF</span>(<span class="flag">n_factors</span>=<span class="arg">15</span>, <span class="flag">n_epochs</span>=<span class="arg">50</span>)</code><div class="desc">Non-negative; <code>reg_pu</code> / <code>reg_qi</code>.</div></li>
+      <li class="tune"><code class="cmd"><span class="flag">random_state</span>=<span class="arg">42</span></code><div class="desc">Pin the seed for reproducibility.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 kNN -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">k-NN Neighborhood</span><span class="card-sub">similar users/items</span></div>
+    <ul class="cmds">
+      <li class="algo"><code class="cmd"><span class="cls">KNNBasic</span>(<span class="flag">k</span>=<span class="arg">40</span>, <span class="flag">min_k</span>=<span class="arg">1</span>)</code><div class="desc">Weighted average over <code>k</code> neighbors.</div></li>
+      <li class="algo"><code class="cmd"><span class="cls">KNNWithMeans</span>()</code><span class="star">&starf;</span><div class="desc">Subtracts each user/item mean first.</div></li>
+      <li class="algo"><code class="cmd"><span class="cls">KNNWithZScore</span>()</code><div class="desc">z-score normalizes before averaging.</div></li>
+      <li class="algo"><code class="cmd"><span class="cls">KNNBaseline</span>()</code><span class="star">&starf;</span><div class="desc">Baseline-corrected &mdash; usually the best KNN.</div></li>
+      <li class="tune"><code class="cmd"><span class="flag">sim_options</span>=<span class="arg">{"user_based": False}</span></code><div class="desc">Item&ndash;item; often faster &amp; better.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 BASELINE / SIMPLE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Baseline &amp; Simple</span><span class="card-sub">strong floors</span></div>
+    <ul class="cmds">
+      <li class="algo"><code class="cmd"><span class="cls">BaselineOnly</span>(<span class="flag">bsl_options</span>=<span class="arg">...</span>)</code><div class="desc">Just &mu; + b&#7512; + b&#7522; &mdash; no interactions.</div></li>
+      <li class="algo"><code class="cmd"><span class="cls">NormalPredictor</span>()</code><div class="desc">Samples from N(&mu;, &sigma;) of the trainset.</div></li>
+      <li class="algo"><code class="cmd"><span class="cls">SlopeOne</span>()</code><div class="desc">Item-based, parameter-free, quick.</div></li>
+      <li class="algo"><code class="cmd"><span class="cls">CoClustering</span>(<span class="flag">n_cltr_u</span>=<span class="arg">3</span>, <span class="flag">n_cltr_i</span>=<span class="arg">3</span>)</code><div class="desc">Co-clusters users &times; items.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 FIT / TEST / PREDICT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Fit / Test / Predict</span><span class="card-sub">the three verbs</span></div>
+    <ul class="cmds">
+      <li class="fit"><code class="cmd">algo.<span class="mth">fit</span>(trainset)</code><span class="star">&starf;</span><div class="desc">Learn from a <code>Trainset</code>.</div></li>
+      <li class="fit"><code class="cmd">preds = algo.<span class="mth">test</span>(testset)</code><span class="star">&starf;</span><div class="desc">Predict a whole list of (u, i) pairs.</div></li>
+      <li class="fit"><code class="cmd">algo.<span class="mth">predict</span>(<span class="flag">uid</span>, <span class="flag">iid</span>, <span class="flag">r_ui</span>=<span class="arg">4</span>)</code><span class="star">&starf;</span><div class="desc">One rating &mdash; <b>raw ids</b>, as strings.</div></li>
+      <li class="fit"><code class="cmd">pred.est</code><div class="desc">The estimate r&#770;&#8341;&#7522; on a Prediction.</div></li>
+      <li class="fit"><code class="cmd">algo.<span class="mth">fit</span>(tr).<span class="mth">test</span>(te)</code><div class="desc">Chain them in one line.</div></li>
+      <li class="danger"><code class="cmd">pred.details[<span class="str">"was_impossible"</span>]</code><div class="desc"><b>True</b> when the pair couldn't be scored.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 SPLIT & CV -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Split &amp; Cross-Validate</span><span class="card-sub">scikit-learn-style</span></div>
+    <ul class="cmds">
+      <li class="eval"><code class="cmd"><span class="mth">train_test_split</span>(data, <span class="flag">test_size</span>=<span class="arg">.25</span>)</code><span class="star">&starf;</span><div class="desc">Quick single holdout.</div></li>
+      <li class="eval"><code class="cmd"><span class="mth">cross_validate</span>(algo, data, <span class="flag">cv</span>=<span class="arg">5</span>, <span class="flag">measures</span>=<span class="arg">[...]</span>)</code><span class="star">&starf;</span><div class="desc">k-fold + metrics, fully automatic.</div></li>
+      <li class="eval"><code class="cmd">kf = <span class="cls">KFold</span>(<span class="flag">n_splits</span>=<span class="arg">5</span>)</code><div class="desc">Manual: <code>for tr, te in kf.split(data)</code>.</div></li>
+      <li class="eval"><code class="cmd"><span class="cls">ShuffleSplit</span>() / <span class="cls">RepeatedKFold</span>()</code><div class="desc">Randomized / repeated variants.</div></li>
+      <li class="eval"><code class="cmd"><span class="cls">LeaveOneOut</span>()</code><div class="desc">One held-out rating per user.</div></li>
+      <li class="eval"><code class="cmd"><span class="cls">PredefinedKFold</span>()</code><div class="desc">Folds already split into files on disk.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 GRID / RANDOM SEARCH -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Grid &amp; Random Search</span><span class="card-sub">tune params</span></div>
+    <ul class="cmds">
+      <li class="eval"><code class="cmd">gs = <span class="cls">GridSearchCV</span>(<span class="cls">SVD</span>, grid, <span class="flag">cv</span>=<span class="arg">3</span>)</code><span class="star">&starf;</span><div class="desc">Pass the <b>class</b>, not an instance.</div></li>
+      <li class="tune"><code class="cmd">grid = <span class="arg">{"n_epochs":[5,10], "lr_all":[.002,.005]}</span></code><div class="desc">Every combination is tried.</div></li>
+      <li class="eval"><code class="cmd">gs.<span class="mth">fit</span>(data)</code><span class="star">&starf;</span><div class="desc">Runs the full sweep.</div></li>
+      <li class="eval"><code class="cmd">gs.best_params[<span class="str">"rmse"</span>]</code><div class="desc">Winning combo (+ <code>best_score</code>).</div></li>
+      <li class="eval"><code class="cmd">gs.best_estimator[<span class="str">"rmse"</span>]</code><div class="desc">Ready-to-fit tuned algorithm.</div></li>
+      <li class="eval"><code class="cmd"><span class="cls">RandomizedSearchCV</span>(<span class="cls">SVD</span>, distr, <span class="flag">n_iter</span>=<span class="arg">10</span>)</code><div class="desc">Sample the space instead of gridding it.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 ACCURACY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Accuracy Metrics</span><span class="card-sub">on predictions</span></div>
+    <ul class="cmds">
+      <li class="eval"><code class="cmd">accuracy.<span class="mth">rmse</span>(preds)</code><span class="star">&starf;</span><div class="desc">Root mean squared error.</div></li>
+      <li class="eval"><code class="cmd">accuracy.<span class="mth">mae</span>(preds)</code><span class="star">&starf;</span><div class="desc">Mean absolute error.</div></li>
+      <li class="eval"><code class="cmd">accuracy.<span class="mth">mse</span>(preds)</code><div class="desc">Mean squared error.</div></li>
+      <li class="eval"><code class="cmd">accuracy.<span class="mth">fcp</span>(preds)</code><div class="desc">Fraction of concordant pairs (ranking-ish).</div></li>
+      <li class="danger"><code class="cmd"># precision@k / recall@k</code><div class="desc">Not built in &mdash; roll your own from <code>preds</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 SIMILARITY OPTIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Similarity Options</span><span class="card-sub">sim_options dict</span></div>
+    <ul class="cmds">
+      <li class="tune"><code class="cmd"><span class="flag">"name"</span>: <span class="str">"msd"</span></code><div class="desc">Default; also <code>cosine</code>, <code>pearson</code>, <code>pearson_baseline</code>.</div></li>
+      <li class="tune"><code class="cmd"><span class="flag">"user_based"</span>: <span class="arg">True</span></code><span class="star">&starf;</span><div class="desc">Users vs items &mdash; <b>huge</b> impact on speed &amp; error.</div></li>
+      <li class="tune"><code class="cmd"><span class="flag">"min_support"</span>: <span class="arg">5</span></code><div class="desc">Below this many co-ratings &rarr; sim = 0.</div></li>
+      <li class="tune"><code class="cmd"><span class="flag">"shrinkage"</span>: <span class="arg">100</span></code><div class="desc"><code>pearson_baseline</code> only.</div></li>
+      <li class="tune"><code class="cmd"><span class="cls">KNNBasic</span>(<span class="flag">sim_options</span>=sim_options)</code><div class="desc">Feed it to any KNN algorithm.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 BASELINE OPTIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Baseline Options</span><span class="card-sub">bsl_options dict</span></div>
+    <ul class="cmds">
+      <li class="tune"><code class="cmd"><span class="flag">"method"</span>: <span class="str">"als"</span></code><span class="star">&starf;</span><div class="desc">ALS (default) or <code>"sgd"</code>.</div></li>
+      <li class="tune"><code class="cmd">als: <span class="flag">"reg_i"</span>:<span class="arg">10</span>, <span class="flag">"reg_u"</span>:<span class="arg">15</span>, <span class="flag">"n_epochs"</span>:<span class="arg">10</span></code><div class="desc">Item / user reg &amp; iterations.</div></li>
+      <li class="tune"><code class="cmd">sgd: <span class="flag">"learning_rate"</span>:<span class="arg">.005</span>, <span class="flag">"reg"</span>:<span class="arg">.02</span></code><div class="desc">Gradient-descent variant.</div></li>
+      <li class="tune"><code class="cmd"><span class="cls">BaselineOnly</span>(<span class="flag">bsl_options</span>=bsl_options)</code><div class="desc">Also used by <code>KNNBaseline</code> &amp; pearson_baseline.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 TOP-N -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Top-N Recommendations</span><span class="card-sub">the ranking recipe</span></div>
+    <ul class="cmds">
+      <li class="fit"><code class="cmd">trainset = data.<span class="mth">build_full_trainset</span>()</code><div class="desc">Train on everything first.</div></li>
+      <li class="fit"><code class="cmd">anti = trainset.<span class="mth">build_anti_testset</span>()</code><span class="star">&starf;</span><div class="desc">Every (u, i) pair the user <b>hasn't</b> rated.</div></li>
+      <li class="fit"><code class="cmd">preds = algo.<span class="mth">test</span>(anti)</code><div class="desc">Score all the blanks.</div></li>
+      <li class="fit"><code class="cmd">sort preds by <span class="flag">.est</span> per uid &rarr; take n</code><div class="desc">Group by user, keep the top few (DIY helper).</div></li>
+      <li class="danger"><code class="cmd">len(anti) &asymp; users &times; items</code><span class="badge-danger">memory</span><div class="desc">Anti-testset can be enormous &mdash; batch it.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 PERSIST & INSPECT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Persist &amp; Inspect</span><span class="card-sub">dump + Trainset</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">dump.<span class="mth">dump</span>(fname, <span class="flag">predictions</span>=preds, <span class="flag">algo</span>=algo)</code><div class="desc">Save model + predictions to disk.</div></li>
+      <li class="data"><code class="cmd">_, algo = dump.<span class="mth">load</span>(fname)</code><div class="desc">Reload later.</div></li>
+      <li class="data"><code class="cmd">trainset.n_users, .n_items, .global_mean</code><div class="desc">Quick dataset stats.</div></li>
+      <li class="data"><code class="cmd">trainset.<span class="mth">to_inner_uid</span>(raw)</code><div class="desc">Raw&rarr;inner id (and <code>to_raw_uid</code> back).</div></li>
+      <li class="data"><code class="cmd">trainset.ur[inner_uid]</code><div class="desc">A user's (item, rating) list.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 GOTCHAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Gotchas</span><span class="card-sub">read before you fit</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="cls">GridSearchCV</span>(<span class="cls">SVD</span>)</code><span class="badge-danger">class</span><div class="desc">Pass the class, not <code>SVD()</code>.</div></li>
+      <li class="danger"><code class="cmd">predict(<span class="str">"196"</span>, <span class="str">"302"</span>)</code><span class="badge-danger">raw ids</span><div class="desc">Raw ids are the <b>strings</b> from your file.</div></li>
+      <li class="danger"><code class="cmd">explicit ratings only</code><span class="badge-danger">scope</span><div class="desc">No implicit clicks, no content features.</div></li>
+      <li class="danger"><code class="cmd">unknown user/item</code><span class="badge-danger">fallback</span><div class="desc">Falls back to global mean; flags <code>was_impossible</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="flag">user_based</span>=<span class="arg">True</span> default</code><span class="badge-danger">slow</span><div class="desc">Item-based is often faster &amp; more accurate.</div></li>
+    </ul>
+  </article>
+
+  <!-- PREDICTION ANATOMY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&starf;</span><span class="card-title">Prediction anatomy</span><span class="card-sub">what test() returns</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">Prediction(uid, iid, r_ui, est, details)</code><div class="desc">The named tuple you get per pair.</div></li>
+      <li><code class="cmd">uid · iid</code><div class="desc">Raw user &amp; item ids.</div></li>
+      <li><code class="cmd">r_ui</code><div class="desc">True rating if known, else <code>None</code>.</div></li>
+      <li><code class="cmd">est</code><div class="desc">The estimate r&#770;&#8341;&#7522; &mdash; what you rank on.</div></li>
+      <li><code class="cmd">details["was_impossible"]</code><div class="desc">Whether it could actually be scored.</div></li>
+      <li><code class="cmd">raw id = file (str) · inner id = int</code><div class="desc">Surprise indexes internally with inner ids.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>How the pieces fit</h2>
+  <p class="sub">Four views of the same library: the three core verbs, the algorithm family, the one toggle that reshapes k-NN, and the trick for turning a rating predictor into a top-N ranker.</p>
+  <div class="merge-grid">
+
+    <!-- fit/test/predict lifecycle -->
+    <div class="merge-card">
+      <h3>fit · test · predict</h3>
+      <p>Three verbs, three shapes of input and output. Everything else in Surprise is built on these.</p>
+      <svg viewBox="0 0 400 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="fit takes a trainset and returns a trained algorithm; test takes a testset list and returns a list of predictions; predict takes one user-item pair and returns one prediction.">
+        <defs>
+          <marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker>
+        </defs>
+        <g font-family="JetBrains Mono, monospace" font-size="11">
+          <!-- fit -->
+          <rect x="14" y="20" width="96" height="38" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+          <text x="62" y="38" text-anchor="middle" fill="#525761" font-size="10">trainset</text>
+          <text x="62" y="52" text-anchor="middle" fill="#94a3b8" font-size="9">all ratings</text>
+          <line x1="110" y1="39" x2="168" y2="39" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#a2)"/>
+          <text x="139" y="32" text-anchor="middle" fill="#059669" font-weight="700" font-size="10">fit</text>
+          <rect x="170" y="20" width="120" height="38" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/>
+          <text x="230" y="43" text-anchor="middle" fill="#b45309" font-weight="700">trained algo</text>
+
+          <!-- test -->
+          <rect x="14" y="86" width="96" height="38" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.5"/>
+          <text x="62" y="104" text-anchor="middle" fill="#525761" font-size="10">testset</text>
+          <text x="62" y="118" text-anchor="middle" fill="#94a3b8" font-size="9">[(u,i), ...]</text>
+          <line x1="110" y1="105" x2="168" y2="105" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#a2)"/>
+          <text x="139" y="98" text-anchor="middle" fill="#4f46e5" font-weight="700" font-size="10">test</text>
+          <rect x="170" y="86" width="216" height="38" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.5"/>
+          <text x="278" y="109" text-anchor="middle" fill="#4f46e5" font-weight="700">[Prediction, Prediction, ...]</text>
+
+          <!-- predict -->
+          <rect x="14" y="152" width="96" height="38" rx="6" fill="#f3effe" stroke="#7c3aed" stroke-width="1.5"/>
+          <text x="62" y="170" text-anchor="middle" fill="#525761" font-size="10">one (u, i)</text>
+          <text x="62" y="184" text-anchor="middle" fill="#94a3b8" font-size="9">raw ids</text>
+          <line x1="110" y1="171" x2="168" y2="171" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#a2)"/>
+          <text x="139" y="164" text-anchor="middle" fill="#7c3aed" font-weight="700" font-size="10">predict</text>
+          <rect x="170" y="152" width="216" height="38" rx="6" fill="#f3effe" stroke="#7c3aed" stroke-width="1.5"/>
+          <text x="278" y="170" text-anchor="middle" fill="#7c3aed" font-weight="700" font-size="10">one Prediction</text>
+          <text x="278" y="183" text-anchor="middle" fill="#94a3b8" font-size="9">.est = r&#770;&#8341;&#7522;</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- algorithm family -->
+    <div class="merge-card">
+      <h3>Algorithm family</h3>
+      <p>Every algorithm subclasses <b>AlgoBase</b>, so they're interchangeable. They fall into four camps.</p>
+      <svg viewBox="0 0 400 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AlgoBase branches into four groups: baselines (NormalPredictor, BaselineOnly), neighborhood kNN (KNNBasic, KNNWithMeans, KNNWithZScore, KNNBaseline), matrix factorization (SVD, SVD++, NMF), and other (SlopeOne, CoClustering).">
+        <g font-family="JetBrains Mono, monospace" font-size="9.5">
+          <rect x="150" y="12" width="100" height="26" rx="6" fill="#1a1d24"/>
+          <text x="200" y="29" text-anchor="middle" fill="#fff" font-weight="700" font-size="11">AlgoBase</text>
+          <!-- connectors -->
+          <path d="M200 38 L200 48 M70 48 L362 48 M70 48 L70 58 M188 48 L188 58 M290 48 L290 58 M362 48 L362 58" stroke="#cbd5e1" stroke-width="1.2" fill="none"/>
+          <!-- baseline -->
+          <rect x="14" y="58" width="112" height="118" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/>
+          <text x="70" y="74" text-anchor="middle" fill="#b45309" font-weight="700" font-size="10">baseline</text>
+          <text x="70" y="94" text-anchor="middle" fill="#525761">NormalPredictor</text>
+          <text x="70" y="110" text-anchor="middle" fill="#525761">BaselineOnly</text>
+          <!-- knn -->
+          <rect x="132" y="58" width="112" height="118" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/>
+          <text x="188" y="74" text-anchor="middle" fill="#b45309" font-weight="700" font-size="10">neighborhood</text>
+          <text x="188" y="94" text-anchor="middle" fill="#525761">KNNBasic</text>
+          <text x="188" y="110" text-anchor="middle" fill="#525761">KNNWithMeans</text>
+          <text x="188" y="126" text-anchor="middle" fill="#525761">KNNWithZScore</text>
+          <text x="188" y="142" text-anchor="middle" fill="#059669" font-weight="700">KNNBaseline</text>
+          <!-- mf -->
+          <rect x="250" y="58" width="80" height="118" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/>
+          <text x="290" y="74" text-anchor="middle" fill="#b45309" font-weight="700" font-size="10">factorization</text>
+          <text x="290" y="94" text-anchor="middle" fill="#059669" font-weight="700">SVD</text>
+          <text x="290" y="110" text-anchor="middle" fill="#525761">SVD++</text>
+          <text x="290" y="126" text-anchor="middle" fill="#525761">NMF</text>
+          <!-- other -->
+          <rect x="336" y="58" width="52" height="118" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/>
+          <text x="362" y="74" text-anchor="middle" fill="#b45309" font-weight="700" font-size="10">other</text>
+          <text x="362" y="94" text-anchor="middle" fill="#525761" font-size="8">SlopeOne</text>
+          <text x="362" y="110" text-anchor="middle" fill="#525761" font-size="7">CoClustering</text>
+          <text x="200" y="196" text-anchor="middle" fill="#6b7280" font-size="9.5">green = the strong default in its group</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- user vs item based -->
+    <div class="merge-card">
+      <h3>user-based vs item-based</h3>
+      <p>One flag in <b>sim_options</b> decides whether neighbors are similar <i>users</i> (rows) or similar <i>items</i> (columns).</p>
+      <svg viewBox="0 0 400 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Left: a ratings grid with two highlighted rows showing user-based similarity. Right: the same grid with two highlighted columns showing item-based similarity.">
+        <g font-family="JetBrains Mono, monospace" font-size="10">
+          <text x="100" y="18" text-anchor="middle" fill="#1a1d24" font-weight="700" font-size="11">user_based=True</text>
+          <text x="300" y="18" text-anchor="middle" fill="#1a1d24" font-weight="700" font-size="11">user_based=False</text>
+          <!-- left grid, highlight 2 rows -->
+          <g>
+            <rect x="46" y="30" width="108" height="108" fill="#fff" stroke="#e7e3db"/>
+            <rect x="46" y="30" width="108" height="27" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.5"/>
+            <rect x="46" y="84" width="108" height="27" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.5"/>
+            <line x1="82" y1="30" x2="82" y2="138" stroke="#e7e3db"/><line x1="118" y1="30" x2="118" y2="138" stroke="#e7e3db"/>
+            <line x1="46" y1="57" x2="154" y2="57" stroke="#e7e3db"/><line x1="46" y1="84" x2="154" y2="84" stroke="#e7e3db"/><line x1="46" y1="111" x2="154" y2="111" stroke="#e7e3db"/>
+            <path d="M40 43 C 24 63, 24 78, 40 97" fill="none" stroke="#4f46e5" stroke-width="1.6"/>
+            <text x="100" y="156" text-anchor="middle" fill="#4f46e5" font-size="9.5">rows = users</text>
+            <text x="100" y="170" text-anchor="middle" fill="#94a3b8" font-size="9">"find similar users"</text>
+          </g>
+          <!-- right grid, highlight 2 cols -->
+          <g>
+            <rect x="246" y="30" width="108" height="108" fill="#fff" stroke="#e7e3db"/>
+            <rect x="246" y="30" width="27" height="108" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/>
+            <rect x="300" y="30" width="27" height="108" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/>
+            <line x1="273" y1="30" x2="273" y2="138" stroke="#e7e3db"/><line x1="327" y1="30" x2="327" y2="138" stroke="#e7e3db"/>
+            <line x1="246" y1="57" x2="354" y2="57" stroke="#e7e3db"/><line x1="246" y1="84" x2="354" y2="84" stroke="#e7e3db"/><line x1="246" y1="111" x2="354" y2="111" stroke="#e7e3db"/>
+            <path d="M259 24 C 279 8, 294 8, 314 24" fill="none" stroke="#d97706" stroke-width="1.6"/>
+            <text x="300" y="156" text-anchor="middle" fill="#d97706" font-size="9.5">columns = items</text>
+            <text x="300" y="170" text-anchor="middle" fill="#94a3b8" font-size="9">"find similar items"</text>
+          </g>
+          <text x="200" y="196" text-anchor="middle" fill="#6b7280" font-size="9.5">same data, opposite axis &mdash; and very different speed/accuracy</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- top-N via anti-testset -->
+    <div class="merge-card">
+      <h3>Top-N via anti-testset</h3>
+      <p>Surprise predicts ratings, not rankings. The blanks a user hasn't rated become the anti-testset you score and sort.</p>
+      <svg viewBox="0 0 400 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A ratings grid: filled cells are the trainset, blank cells form the anti-testset. Feed the blanks to test, get estimates, sort per user, and keep the top items.">
+        <g font-family="JetBrains Mono, monospace" font-size="10">
+          <!-- grid -->
+          <text x="70" y="20" text-anchor="middle" fill="#1a1d24" font-weight="700" font-size="10.5">one user's row</text>
+          <g>
+            <rect x="20" y="30" width="28" height="28" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/><text x="34" y="49" text-anchor="middle" fill="#059669">5</text>
+            <rect x="48" y="30" width="28" height="28" fill="#fff" stroke="#e7e3db"/>
+            <rect x="76" y="30" width="28" height="28" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/><text x="90" y="49" text-anchor="middle" fill="#059669">3</text>
+            <rect x="104" y="30" width="28" height="28" fill="#fff" stroke="#e7e3db"/>
+            <rect x="132" y="30" width="28" height="28" fill="#fff" stroke="#e7e3db"/>
+            <text x="90" y="74" text-anchor="middle" fill="#059669" font-size="9">green = rated (trainset)</text>
+            <text x="90" y="88" text-anchor="middle" fill="#94a3b8" font-size="9">white = blanks (anti-testset)</text>
+          </g>
+          <!-- arrow -->
+          <line x1="170" y1="44" x2="210" y2="44" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#a2)"/>
+          <text x="190" y="37" text-anchor="middle" fill="#4f46e5" font-size="9" font-weight="700">test</text>
+          <!-- scored blanks -->
+          <g>
+            <rect x="218" y="30" width="30" height="28" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.3"/><text x="233" y="49" text-anchor="middle" fill="#4f46e5">4.6</text>
+            <rect x="250" y="30" width="30" height="28" fill="#eef0fd" stroke="#4f46e5" stroke-width="2.4"/><text x="265" y="49" text-anchor="middle" fill="#4f46e5" font-weight="700">4.9</text>
+            <rect x="282" y="30" width="30" height="28" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.3"/><text x="297" y="49" text-anchor="middle" fill="#4f46e5">2.1</text>
+            <text x="265" y="74" text-anchor="middle" fill="#4f46e5" font-size="9">predicted est for blanks</text>
+          </g>
+          <!-- sort to topN -->
+          <line x1="200" y1="120" x2="200" y2="104" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#a2)"/>
+          <rect x="70" y="122" width="260" height="52" rx="8" fill="#f3effe" stroke="#7c3aed" stroke-width="1.5"/>
+          <text x="200" y="143" text-anchor="middle" fill="#7c3aed" font-weight="700" font-size="10.5">sort by est per user &rarr; keep top-N</text>
+          <text x="200" y="161" text-anchor="middle" fill="#94a3b8" font-size="9">no built-in ranker &mdash; a short DIY helper</text>
+          <text x="200" y="196" text-anchor="middle" fill="#6b7280" font-size="9.5">rating prediction &rarr; recommendation list</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">fit ≠ test</span><span class="v">fit trains on a Trainset; test scores a list of pairs</span></div>
+    <div><span class="k">raw vs inner ids</span><span class="v"><code>predict()</code> takes raw ids — the strings from your file</span></div>
+    <div><span class="k">explicit only</span><span class="v">no implicit feedback, no content features</span></div>
+    <div><span class="k">GridSearchCV(SVD)</span><span class="v">pass the class, not an instance <code>SVD()</code></span></div>
+    <div><span class="k">SVD ≠ sklearn SVD</span><span class="v">it's Funk MF; <code>biased=False</code> gives PMF</span></div>
+    <div><span class="k">user_based flips cost</span><span class="v">item-based is often faster &amp; more accurate</span></div>
+    <div><span class="k">KNNBaseline &gt; KNNBasic</span><span class="v">baseline-corrected neighbors win</span></div>
+    <div><span class="k">build_anti_testset</span><span class="v">the blanks → <code>test()</code> → sort → top-N</span></div>
+  </div>
+</section>
+
+<footer>
+  Surprise cheat sheet · synthesized from the official docs (surprise.readthedocs.io), the NicolasHug/Surprise README, surpriselib.com, and Koren 2010 (baseline estimates).<br>
+  API shown for scikit-surprise (Surprise 1.1.x) · install as <code>pip install scikit-surprise</code> · import as <code>from surprise import SVD, Dataset, Reader</code> · the name stands for <b>Simple Python RecommendatIon System Engine</b>.
+</footer>
+
+</body>
+</html>

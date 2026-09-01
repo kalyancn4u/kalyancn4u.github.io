@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>xlrd Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --open:#64748b;
+    --book:#4f46e5;
+    --sheet:#d97706;
+    --cell:#059669;
+    --type:#7c3aed;
+    --fmt:#0d9488;
+    --danger:#dc2626;  --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --brand:#9a3412;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem; font-family:var(--mono);
+  }
+  h1 .w1{color:#4a4f5a}
+  h1 .w2{color:var(--brand)}
+  h1 .tail{font-family:var(--sans); font-weight:600; font-size:.4em; color:var(--muted); letter-spacing:0}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .lede b{font-weight:600}
+  .frozen{
+    display:inline-flex; align-items:center; gap:.45rem; margin-top:1rem;
+    background:var(--danger-bg); border:1px solid var(--danger); border-radius:7px;
+    padding:.5rem .8rem; font-family:var(--mono); font-size:.76rem; color:var(--danger);
+    font-weight:700; max-width:100%; flex-wrap:wrap;
+  }
+  .frozen span{font-weight:400; color:#7f1d1d}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.open{background:var(--open)}   .dot.book{background:var(--book)}
+  .dot.sheet{background:var(--sheet)} .dot.cell{background:var(--cell)}
+  .dot.type{background:var(--type)}   .dot.fmt{background:var(--fmt)}
+  .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:'JetBrains Mono',monospace}
+
+  /* ---------- quickstart panel ---------- */
+  .quick{
+    max-width:1500px; margin:0 auto; padding:1.4rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .quick-box{
+    background:var(--ink); border-radius:10px; overflow:hidden; max-width:1120px;
+    margin:0 auto; box-shadow:0 2px 8px rgba(20,20,30,.10);
+  }
+  .quick-bar{
+    display:flex; align-items:baseline; gap:.6rem; padding:.6rem .95rem;
+    border-bottom:1px solid #33384a; font-family:var(--mono); font-size:.74rem;
+    color:#cbd5e1; letter-spacing:.06em; text-transform:uppercase;
+  }
+  .quick-bar b{color:#fbbf24; font-weight:700}
+  pre.quick-inner{
+    white-space:pre; margin:0; tab-size:2; overflow-x:auto;
+    padding:1rem 1.1rem 1.15rem; font-family:var(--mono);
+    font-size:.79rem; line-height:1.65; color:#e8e6e1;
+  }
+  pre.quick-inner .kw{color:#c586e8}
+  pre.quick-inner .fn{color:#82aaff}
+  pre.quick-inner .str{color:#7ee0a8}
+  pre.quick-inner .num{color:#fbbf24}
+  pre.quick-inner .cm{color:#7f8796; font-style:italic}
+  pre.quick-inner .mod{color:#7fd4c9}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem; column-fill:balance;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  @media(min-width:1620px){ main{column-count:4} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.open{border-left-color:var(--open)}
+  ul.cmds li.book{border-left-color:var(--book)}
+  ul.cmds li.sheet{border-left-color:var(--sheet)}
+  ul.cmds li.cell{border-left-color:var(--cell)}
+  ul.cmds li.type{border-left-color:var(--type)}
+  ul.cmds li.fmt{border-left-color:var(--fmt)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.795rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .kw{color:#a626a4}
+  code.cmd .fn{color:var(--book)}
+  code.cmd .str{color:var(--cell)}
+  code.cmd .num{color:var(--star)}
+  code.cmd .mod{color:var(--open)}
+  code.cmd .arg{color:var(--book); font-weight:400}
+  code.cmd .cm{color:#8a8f9a}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.775rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; color:#3f444f}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-fmt{
+    color:#fff; background:var(--fmt); font-size:.62rem; font-weight:700;
+    font-family:var(--mono); letter-spacing:.04em; margin-left:.35rem;
+    padding:.05rem .3rem; border-radius:4px; vertical-align:.06em;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2, .appendix h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub, .appendix .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:'JetBrains Mono',monospace}
+
+  /* ---------- appendix ---------- */
+  .appendix{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 2rem}
+  .ver-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:820px){ .ver-grid{grid-template-columns:repeat(3,1fr)} }
+  .ver-card{border:1px solid var(--line); border-radius:10px; background:#fff; overflow:hidden}
+  .ver-head{padding:.75rem 1rem; border-bottom:1px solid var(--line); display:flex; align-items:baseline; gap:.5rem}
+  .ver-tag{font-family:var(--mono); font-size:.72rem; font-weight:700; color:#fff; border-radius:5px; padding:.1rem .4rem}
+  .ver-card.vxl .ver-tag{background:var(--brand)}
+  .ver-card.vpd .ver-tag{background:var(--book)}
+  .ver-card.vcl .ver-tag{background:var(--fmt)}
+  .ver-head b{font-size:.9rem}
+  .ver-body{padding:.5rem 0}
+  .ver-body h4{
+    font-family:var(--mono); font-size:.7rem; letter-spacing:.09em; text-transform:uppercase;
+    padding:.5rem 1rem .3rem; color:var(--muted);
+  }
+  .ver-body h4.adopt{color:var(--cell)}
+  .ver-body h4.drop{color:var(--danger)}
+  .ver-body ul{list-style:none}
+  .ver-body li{padding:.32rem 1rem; font-size:.775rem; color:#3f444f; border-bottom:1px solid #f5f2ec}
+  .ver-body li:last-child{border-bottom:none}
+  .ver-body li code{font-family:var(--mono); font-size:.9em; color:var(--ink)}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference &middot; read legacy Excel .xls files from Python</div>
+  <h1><span class="w1">xl</span><span class="w2">rd</span> <span class="tail">2.0.1</span></h1>
+  <p class="lede">xlrd is a <b>read-only decoder for one dead file format</b>. It opens the OLE2 compound document that is a <code>.xls</code>, pulls out the Workbook stream, parses its BIFF records, and hands you <b>Book &rarr; Sheet &rarr; Cell</b>. It cannot write. It cannot read <code>.xlsx</code>. It is not being developed. Used for what it is &mdash; rescuing data out of pre-2007 spreadsheets &mdash; it is precise and dependable.</p>
+  <div class="frozen">&#9888; FROZEN &#183; last release 11 Dec 2020 <span>&mdash; version 2.0.0 deliberately removed <b>all</b> non-<code>.xls</code> support. If your file is <code>.xlsx</code>, you want openpyxl; scroll to the appendix.</span></div>
+  <div class="legend">
+    <span><i class="dot open"></i>install &amp; open</span>
+    <span><i class="dot book"></i>the Book</span>
+    <span><i class="dot sheet"></i>the Sheet</span>
+    <span><i class="dot cell"></i>cells &amp; values</span>
+    <span><i class="dot type"></i>types, dates &amp; unicode</span>
+    <span><i class="dot fmt"></i>formatting_info &amp; extras</span>
+    <span><i class="dot danger"></i>gotcha / removed</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>xlrd.readthedocs.io</b> (API Reference &middot; Dates &middot; Handling of Unicode &middot; Formatting information &middot; Loading worksheets on demand &middot; Changes) &middot; <b>github.com/python-excel/xlrd</b> CHANGELOG &middot; <b>PyPI</b> &middot; <b>pandas 3.0</b> IO documentation &middot; <b>python-calamine</b> &middot; <b>re-verified 2026-08-30: xlrd 2.0.1 (11 Dec 2020) still the final release &mdash; .xls only</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">What xlrd is &mdash; and the gate every user hits first</div>
+  <svg class="flow-svg" viewBox="0 0 1080 450" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Top band: a .xls file is an OLE2 compound document; xlrd extracts the Workbook stream, parses BIFF records, and builds Book, Sheet and Cell objects in memory, with no write path. Bottom band: a format gate - only .xls is supported; xlsx, xlsb, ods and zip files raise XLRDError and must go to openpyxl, pyxlsb, odfpy or calamine.">
+    <defs>
+      <marker id="xl-arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="xl-arw-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+      </marker>
+      <marker id="xl-arw-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+      </marker>
+    </defs>
+
+    <!-- ===== BAND A ===== -->
+    <text x="24" y="26" font-size="9.5" letter-spacing="2.6" fill="#94a3b8">A &#183; ON DISK</text>
+    <text x="330" y="26" font-size="9.5" letter-spacing="2.6" fill="#94a3b8">PARSED, EAGERLY, INTO MEMORY</text>
+    <line x1="20" y1="34" x2="1060" y2="34" stroke="#e7e3db" stroke-width="1"/>
+
+    <!-- the file -->
+    <rect x="22" y="62" width="176" height="108" rx="11" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+    <text x="110" y="88" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">legacy.xls</text>
+    <text x="110" y="107" text-anchor="middle" font-size="9.5" fill="#64748b">OLE2 compound document</text>
+    <text x="110" y="124" text-anchor="middle" font-size="9" fill="#94a3b8">D0 CF 11 E0 A1 B1 1A E1</text>
+    <text x="110" y="143" text-anchor="middle" font-size="9.5" fill="#64748b">streams: Workbook,</text>
+    <text x="110" y="156" text-anchor="middle" font-size="9.5" fill="#64748b">SummaryInformation &#8230;</text>
+
+    <line x1="198" y1="116" x2="240" y2="116" stroke="#1a1d24" stroke-width="2" marker-end="url(#xl-arw)"/>
+
+    <!-- compdoc + biff -->
+    <rect x="242" y="80" width="130" height="72" rx="10" fill="#fff" stroke="#64748b" stroke-width="1.8"/>
+    <text x="307" y="104" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">compdoc</text>
+    <text x="307" y="121" text-anchor="middle" font-size="9" fill="#64748b">pull out the</text>
+    <text x="307" y="134" text-anchor="middle" font-size="9" fill="#64748b">"Workbook" stream</text>
+
+    <line x1="372" y1="116" x2="410" y2="116" stroke="#1a1d24" stroke-width="2" marker-end="url(#xl-arw)"/>
+
+    <rect x="412" y="80" width="130" height="72" rx="10" fill="#fff" stroke="#64748b" stroke-width="1.8"/>
+    <text x="477" y="104" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">BIFF parser</text>
+    <text x="477" y="121" text-anchor="middle" font-size="9" fill="#64748b">binary records &#8594;</text>
+    <text x="477" y="134" text-anchor="middle" font-size="9" fill="#64748b">Python objects</text>
+
+    <line x1="542" y1="116" x2="580" y2="116" stroke="#1a1d24" stroke-width="2" marker-end="url(#xl-arw)"/>
+
+    <!-- object tree -->
+    <rect x="582" y="80" width="146" height="72" rx="10" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+    <text x="655" y="104" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">Book</text>
+    <text x="655" y="121" text-anchor="middle" font-size="9" fill="#4f46e5">nsheets &#183; datemode</text>
+    <text x="655" y="134" text-anchor="middle" font-size="9" fill="#4f46e5">sheet_by_index()</text>
+
+    <rect x="748" y="80" width="146" height="72" rx="10" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+    <text x="821" y="104" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">Sheet</text>
+    <text x="821" y="121" text-anchor="middle" font-size="9" fill="#b45309">nrows &#183; ncols</text>
+    <text x="821" y="134" text-anchor="middle" font-size="9" fill="#b45309">row_values()</text>
+
+    <rect x="914" y="80" width="146" height="72" rx="10" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <text x="987" y="104" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">Cell</text>
+    <text x="987" y="121" text-anchor="middle" font-size="9" fill="#059669">.ctype &#183; .value</text>
+    <text x="987" y="134" text-anchor="middle" font-size="9" fill="#059669">.xf_index</text>
+
+    <line x1="728" y1="116" x2="746" y2="116" stroke="#4f46e5" stroke-width="2" marker-end="url(#xl-arw)"/>
+    <line x1="894" y1="116" x2="912" y2="116" stroke="#4f46e5" stroke-width="2" marker-end="url(#xl-arw)"/>
+
+    <!-- no write path -->
+    <path d="M655 152 L655 182 L110 182 L110 172" fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#xl-arw-r)"/>
+    <rect x="300" y="168" width="270" height="26" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.6"/>
+    <text x="435" y="185" text-anchor="middle" font-size="11" font-weight="700" fill="#dc2626">&#10007; there is no write path &#8212; ever</text>
+    <text x="590" y="185" font-size="9" fill="#6b7280">to write .xls use xlwt; to edit one, xlutils.copy</text>
+
+    <!-- ===== BAND B ===== -->
+    <text x="24" y="246" font-size="9.5" letter-spacing="2.6" fill="#94a3b8">B &#183; THE FORMAT GATE &#8212; SINCE 2.0.0, ONLY ONE ANSWER PASSES</text>
+    <line x1="20" y1="254" x2="1060" y2="254" stroke="#e7e3db" stroke-width="1"/>
+
+    <rect x="22" y="272" width="228" height="44" rx="9" fill="#1a1d24"/>
+    <text x="136" y="290" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">open_workbook(path)</text>
+    <text x="136" y="306" text-anchor="middle" font-size="9" fill="#94a3b8">inspect_format() sniffs it first</text>
+
+    <path d="M250 294 L286 294 L286 344" fill="none" stroke="#64748b" stroke-width="1.8" marker-end="url(#xl-arw-g)"/>
+    <path d="M250 294 L286 294 L286 406" fill="none" stroke="#64748b" stroke-width="1.8" marker-end="url(#xl-arw-g)"/>
+
+    <!-- pass -->
+    <rect x="302" y="330" width="150" height="40" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.8"/>
+    <text x="377" y="347" text-anchor="middle" font-size="12" font-weight="700" fill="#059669">.xls</text>
+    <text x="377" y="362" text-anchor="middle" font-size="8.5" fill="#059669">BIFF 2.0 &#8211; 8.0</text>
+    <line x1="452" y1="350" x2="486" y2="350" stroke="#059669" stroke-width="1.8" marker-end="url(#xl-arw-g)"/>
+    <rect x="488" y="330" width="300" height="40" rx="8" fill="#fff" stroke="#059669" stroke-width="1.6"/>
+    <text x="504" y="347" font-size="10.5" font-weight="700" fill="#1a1d24">&#10003; xlrd reads it</text>
+    <text x="504" y="361" font-size="8.5" fill="#059669">the only format it still understands</text>
+
+    <!-- fail -->
+    <rect x="302" y="392" width="150" height="40" rx="8" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.8"/>
+    <text x="377" y="409" text-anchor="middle" font-size="11" font-weight="700" fill="#dc2626">.xlsx .xlsb</text>
+    <text x="377" y="424" text-anchor="middle" font-size="11" font-weight="700" fill="#dc2626">.ods .zip</text>
+    <line x1="452" y1="412" x2="486" y2="412" stroke="#dc2626" stroke-width="1.8" marker-end="url(#xl-arw-r)"/>
+    <rect x="488" y="392" width="300" height="40" rx="8" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.6"/>
+    <text x="504" y="408" font-size="9.5" font-weight="700" fill="#dc2626">XLRDError: Excel xlsx file; not supported</text>
+    <text x="504" y="423" font-size="8.5" fill="#7f1d1d">the single most-searched xlrd message</text>
+
+    <line x1="788" y1="412" x2="820" y2="412" stroke="#dc2626" stroke-width="1.8" marker-end="url(#xl-arw-r)"/>
+    <rect x="822" y="380" width="238" height="64" rx="8" fill="#e9f6f4" stroke="#0d9488" stroke-width="1.6"/>
+    <text x="836" y="397" font-size="9" font-weight="700" fill="#0d9488">go here instead</text>
+    <text x="836" y="411" font-size="8.5" fill="#1a1d24">.xlsx &#8594; openpyxl &#183; .xlsb &#8594; pyxlsb</text>
+    <text x="836" y="424" font-size="8.5" fill="#1a1d24">.ods &#8594; odfpy &#183; any of them &#8594; calamine</text>
+    <text x="836" y="437" font-size="8.5" fill="#6b7280">never pin xlrd==1.2 to dodge this</text>
+  </svg>
+</section>
+
+<!-- ============ QUICKSTART ============ -->
+<section class="quick">
+  <div class="quick-box">
+    <div class="quick-bar"><b>quickstart</b> &mdash; read a legacy .xls, handling dates correctly</div>
+<pre class="quick-inner"><span class="cm"># pip install xlrd            # 2.0.1 — reads .xls ONLY, and only reads</span>
+<span class="kw">import</span> <span class="mod">xlrd</span>
+<span class="kw">from</span> <span class="mod">xlrd</span> <span class="kw">import</span> open_workbook, xldate_as_datetime
+
+book = open_workbook(<span class="str">"legacy.xls"</span>)          <span class="cm"># parses the WHOLE file up front</span>
+<span class="fn">print</span>(book.nsheets, book.sheet_names())
+
+sheet = book.sheet_by_index(<span class="num">0</span>)              <span class="cm"># or .sheet_by_name("Data")</span>
+<span class="fn">print</span>(sheet.name, sheet.nrows, sheet.ncols)  <span class="cm"># NOT len(sheet)</span>
+
+header = sheet.row_values(<span class="num">0</span>)                <span class="cm"># row 0 — indexes start at ZERO</span>
+
+<span class="kw">for</span> rx <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, sheet.nrows):
+    cell = sheet.cell(rx, <span class="num">2</span>)                <span class="cm"># (row, col), both 0-based</span>
+    <span class="kw">if</span> cell.ctype == xlrd.XL_CELL_DATE:     <span class="cm"># ctype 3 → .value is a FLOAT</span>
+        value = xldate_as_datetime(cell.value, book.datemode)
+    <span class="kw">else</span>:
+        value = cell.value
+    <span class="fn">print</span>(sheet.cell_value(rx, <span class="num">0</span>), value)
+
+book.release_resources()                    <span class="cm"># free the mmap + parsed data</span></pre>
+  </div>
+</section>
+
+<!-- ============ REFERENCE CARDS ============ -->
+<main>
+
+  <!-- 01 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; the 2.0 Break</span><span class="card-sub">read this first</span></div>
+    <ul class="cmds">
+      <li class="open"><code class="cmd">pip install xlrd</code><span class="star">&#9733;</span><div class="desc">Gets 2.0.1 (11 Dec 2020), the final release. Pure Python, no dependencies.</div></li>
+      <li class="open"><code class="cmd"><span class="kw">import</span> <span class="mod">xlrd</span>; xlrd.__version__</code><div class="desc">Confirm which side of the 2.0 divide you're on.</div></li>
+      <li class="danger"><code class="cmd">pip install xlrd==<span class="num">1.2.0</span></code><span class="badge-danger">don't</span><div class="desc">The "fix" every forum suggests. It restores <code>.xlsx</code> along with the XML vulnerabilities that got it removed &mdash; and modern pandas rejects it anyway.</div></li>
+      <li class="open"><code class="cmd">xlrd.inspect_format(path)</code><span class="star">&#9733;</span><div class="desc">Sniff before you open: returns <code>'xls'</code>, <code>'xlsx'</code>, <code>'xlsb'</code>, <code>'ods'</code>, <code>'zip'</code> or <code>None</code>.</div></li>
+      <li class="open"><code class="cmd">xlrd.FILE_FORMAT_DESCRIPTIONS</code><div class="desc">Maps those codes to human-readable names. xlrd can <i>identify</i> far more than it can read.</div></li>
+      <li class="danger"><code class="cmd">2.0.0 removed everything but .xls</code><span class="badge-danger">by design</span><div class="desc">Also dropped <code>psyco</code>, and changed the fallback encoding from <code>ascii</code> to <code>iso-8859-1</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">open_workbook()</span><span class="card-sub">the only entry point</span></div>
+    <ul class="cmds">
+      <li class="open"><code class="cmd">book = xlrd.open_workbook(<span class="str">"file.xls"</span>)</code><span class="star">&#9733;</span><div class="desc">Parses the entire file immediately and returns a <code>Book</code>.</div></li>
+      <li class="open"><code class="cmd">open_workbook(file_contents=blob)</code><span class="star">&#9733;</span><div class="desc">Read from bytes or an <code>mmap</code> instead of a path &mdash; <code>filename</code> is then ignored.</div></li>
+      <li class="open"><code class="cmd">open_workbook(<span class="str">"~/data.xls"</span>)</code><div class="desc"><code>~</code> is expanded to your home directory automatically.</div></li>
+      <li class="open"><code class="cmd"><span class="kw">with</span> open_workbook(f) <span class="kw">as</span> book: &#8230;</code><span class="star">&#9733;</span><div class="desc">Context-manager form calls <code>release_resources()</code> on exit.</div></li>
+      <li class="open"><code class="cmd">open_workbook(f, logfile=<span class="fn">open</span>(<span class="str">"log.txt"</span>, <span class="str">"w"</span>))</code><div class="desc">Warnings and diagnostics go to stdout by default. Redirect them.</div></li>
+      <li class="open"><code class="cmd">open_workbook(f, verbosity=<span class="num">2</span>)</code><div class="desc">Turn up the trace detail when a file won't parse.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">open_workbook() flags</span><span class="card-sub">all nine, in one place</span></div>
+    <ul class="cmds">
+      <li class="open"><code class="cmd">formatting_info=<span class="kw">True</span></code><span class="star">&#9733;</span><div class="desc">Unlocks fonts, colours, XF records, merged cells &mdash; and makes blank cells visible. Costs memory.</div></li>
+      <li class="open"><code class="cmd">on_demand=<span class="kw">True</span></code><span class="star">&#9733;</span><div class="desc">Load sheets only when asked for. See card 20.</div></li>
+      <li class="open"><code class="cmd">ragged_rows=<span class="kw">True</span></code><span class="star">&#9733;</span><div class="desc">Stop padding short rows out to <code>ncols</code>. Big saving on uneven sheets.</div></li>
+      <li class="open"><code class="cmd">encoding_override=<span class="str">"cp1251"</span></code><div class="desc">For old files with a missing or lying <code>CODEPAGE</code> record.</div></li>
+      <li class="open"><code class="cmd">ignore_workbook_corruption=<span class="kw">True</span></code><div class="desc">Swallow <code>CompDocError: Workbook corruption</code> and try anyway.</div></li>
+      <li class="open"><code class="cmd">use_mmap=<span class="kw">False</span></code><div class="desc">Override the heuristic (mmap is used whenever it exists).</div></li>
+      <li class="open"><code class="cmd">logfile=&#183; verbosity=&#183; file_contents=</code><div class="desc">The remaining three &mdash; see card 02.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">The Book Object</span><span class="card-sub">workbook-level facts</span></div>
+    <ul class="cmds">
+      <li class="book"><code class="cmd">book.nsheets</code><span class="star">&#9733;</span><div class="desc">Sheet count. Known without loading any sheet.</div></li>
+      <li class="book"><code class="cmd">book.sheet_names()</code><span class="star">&#9733;</span><div class="desc">List of names, also available before loading.</div></li>
+      <li class="book"><code class="cmd">book.datemode</code><span class="star">&#9733;</span><div class="desc"><code>0</code> = 1900 system, <code>1</code> = 1904. You must pass this to every date conversion.</div></li>
+      <li class="book"><code class="cmd">book.biff_version</code><div class="desc"><code>80</code> = BIFF8 (Excel 97+), down to <code>20</code> for Excel 2.x. Tells you what to expect.</div></li>
+      <li class="book"><code class="cmd">book.codepage &#183; book.encoding</code><div class="desc"><code>1200</code> means UTF-16LE. Older files derive a Python codec from the codepage.</div></li>
+      <li class="book"><code class="cmd">book.user_name</code><div class="desc">Whoever last saved the file, if recorded.</div></li>
+      <li class="book"><code class="cmd">book.countries</code><div class="desc">Telephone country codes &mdash; a hint at the right encoding for an unknown codepage.</div></li>
+      <li class="book"><code class="cmd">book.release_resources()</code><span class="star">&#9733;</span><div class="desc">Drop the mmap and parsed data but keep loaded sheets. Safe to call twice.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Getting a Sheet</span><span class="card-sub">four ways</span></div>
+    <ul class="cmds">
+      <li class="book"><code class="cmd">sheet = book.sheet_by_index(<span class="num">0</span>)</code><span class="star">&#9733;</span><div class="desc">Index in <code>range(book.nsheets)</code>, zero-based.</div></li>
+      <li class="book"><code class="cmd">sheet = book.sheet_by_name(<span class="str">"Data"</span>)</code><span class="star">&#9733;</span><div class="desc">By name. Raises <code>XLRDError</code> if there's no such sheet.</div></li>
+      <li class="book"><code class="cmd">book[<span class="num">0</span>] &#183; book[<span class="str">"Data"</span>]</code><span class="star">&#9733;</span><div class="desc">Item access &mdash; added in 2.0.0. Both forms work.</div></li>
+      <li class="book"><code class="cmd"><span class="kw">for</span> sheet <span class="kw">in</span> book: sheet.name</code><div class="desc">Books became iterable in 2.0.0 too.</div></li>
+      <li class="book"><code class="cmd">book.sheets()</code><div class="desc">A list of all sheets &mdash; <b>forces every sheet to load</b>.</div></li>
+      <li class="book"><code class="cmd">book.sheet_loaded(<span class="num">0</span>)</code><div class="desc">Only meaningful with <code>on_demand=True</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Sheet Dimensions</span><span class="card-sub">no len(), ever</span></div>
+    <ul class="cmds">
+      <li class="sheet"><code class="cmd">sheet.nrows &#183; sheet.ncols</code><span class="star">&#9733;</span><div class="desc">Row indexes are <code>range(sheet.nrows)</code>. There is no <code>len(sheet)</code>.</div></li>
+      <li class="sheet"><code class="cmd">sheet.name</code><span class="star">&#9733;</span><div class="desc">The sheet's title.</div></li>
+      <li class="sheet"><code class="cmd">sheet.book.datemode</code><div class="desc">Every Sheet keeps a back-reference to its Book. Handy inside helpers.</div></li>
+      <li class="sheet"><code class="cmd">sheet.row_len(rowx)</code><span class="star">&#9733;</span><div class="desc">The <i>real</i> length of one row &mdash; essential with <code>ragged_rows=True</code>.</div></li>
+      <li class="sheet"><code class="cmd">sheet.visibility</code><div class="desc"><code>0</code> visible &#183; <code>1</code> hidden &#183; <code>2</code> very hidden (VBA-only).</div></li>
+      <li class="danger"><code class="cmd">ncols is max index + 1</code><span class="badge-danger">care</span><div class="desc">Trailing empty columns are ignored, so rows can be shorter than you expect.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Cell Access</span><span class="card-sub">(row, col), both 0-based</span></div>
+    <ul class="cmds">
+      <li class="cell"><code class="cmd">sheet.cell_value(<span class="num">0</span>, <span class="num">0</span>)</code><span class="star">&#9733;</span><div class="desc">Straight to the value. This is cell <b>A1</b>.</div></li>
+      <li class="cell"><code class="cmd">sheet.cell(rowx, colx)</code><span class="star">&#9733;</span><div class="desc">The <code>Cell</code> object: <code>.ctype</code>, <code>.value</code>, <code>.xf_index</code>.</div></li>
+      <li class="cell"><code class="cmd">sheet.cell_type(rowx, colx)</code><span class="star">&#9733;</span><div class="desc">Just the type code, without building a Cell.</div></li>
+      <li class="cell"><code class="cmd">sheet.cell_xf_index(rowx, colx)</code><span class="badge-fmt">formatting_info</span><div class="desc">Index into <code>book.xf_list</code>.</div></li>
+      <li class="cell"><code class="cmd">sheet.cell(-<span class="num">1</span>, -<span class="num">1</span>)</code><div class="desc">Negative indexes work exactly as they do on Python lists.</div></li>
+      <li class="danger"><code class="cmd">sheet[<span class="str">"A1"</span>] &#183; sheet.cell(<span class="num">1</span>, <span class="num">1</span>)</code><span class="badge-danger">no A1 notation</span><div class="desc">xlrd has none. And <code>(1, 1)</code> is <b>B2</b> here, not A1 &mdash; the classic openpyxl migration bug.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Rows</span><span class="card-sub">the usual workhorse</span></div>
+    <ul class="cmds">
+      <li class="cell"><code class="cmd">sheet.row_values(rowx)</code><span class="star">&#9733;</span><div class="desc">A plain list of values &mdash; what you want 90% of the time.</div></li>
+      <li class="cell"><code class="cmd">sheet.row_values(rowx, <span class="num">2</span>, <span class="num">5</span>)</code><span class="star">&#9733;</span><div class="desc">Sliced by <code>start_colx</code>, <code>end_colx</code>.</div></li>
+      <li class="cell"><code class="cmd">sheet.row(rowx)</code><div class="desc">The same span as <code>Cell</code> objects, so you keep the types.</div></li>
+      <li class="cell"><code class="cmd">sheet.row_types(rowx)</code><div class="desc">Just the type codes for the row.</div></li>
+      <li class="cell"><code class="cmd">sheet.row_slice(rowx, <span class="num">0</span>, <span class="num">3</span>)</code><div class="desc">Sliced Cell objects.</div></li>
+      <li class="cell"><code class="cmd"><span class="kw">for</span> row <span class="kw">in</span> sheet.get_rows(): &#8230;</code><span class="star">&#9733;</span><div class="desc">A generator over rows of Cells &mdash; the cleanest full-sheet loop.</div></li>
+      <li class="cell"><code class="cmd">[sheet.row_values(r) <span class="kw">for</span> r <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, sheet.nrows)]</code><span class="star">&#9733;</span><div class="desc">Skip the header and materialize the body.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Columns</span><span class="card-sub">mirror of the row API</span></div>
+    <ul class="cmds">
+      <li class="cell"><code class="cmd">sheet.col_values(colx)</code><span class="star">&#9733;</span><div class="desc">Values down one column.</div></li>
+      <li class="cell"><code class="cmd">sheet.col_values(colx, <span class="num">1</span>)</code><span class="star">&#9733;</span><div class="desc"><code>start_rowx=1</code> skips the header.</div></li>
+      <li class="cell"><code class="cmd">sheet.col(colx)</code><div class="desc">Cell objects for the whole column.</div></li>
+      <li class="cell"><code class="cmd">sheet.col_types(colx, <span class="num">1</span>, <span class="num">50</span>)</code><div class="desc">Type codes over a row range.</div></li>
+      <li class="cell"><code class="cmd">sheet.col_slice(colx, <span class="num">1</span>, <span class="num">50</span>)</code><div class="desc">Cell objects over a row range.</div></li>
+      <li class="cell"><code class="cmd"><span class="fn">dict</span>(<span class="fn">zip</span>(sheet.row_values(<span class="num">0</span>), <span class="fn">zip</span>(*rows)))</code><div class="desc">Header-keyed columns, without pandas.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Cell Types</span><span class="card-sub">seven codes</span></div>
+    <ul class="cmds">
+      <li class="type"><code class="cmd">XL_CELL_EMPTY <span class="cm"># 0 &#8594; ''</span></code><div class="desc">No cell record existed at all.</div></li>
+      <li class="type"><code class="cmd">XL_CELL_TEXT <span class="cm"># 1 &#8594; str</span></code><span class="star">&#9733;</span><div class="desc">A Unicode string.</div></li>
+      <li class="type"><code class="cmd">XL_CELL_NUMBER <span class="cm"># 2 &#8594; float</span></code><span class="star">&#9733;</span><div class="desc">Always a float &mdash; there is no int type in Excel.</div></li>
+      <li class="type"><code class="cmd">XL_CELL_DATE <span class="cm"># 3 &#8594; float</span></code><span class="star">&#9733;</span><div class="desc"><b>Also a float.</b> The type says "date"; the value does not. See card 11.</div></li>
+      <li class="type"><code class="cmd">XL_CELL_BOOLEAN <span class="cm"># 4 &#8594; int</span></code><div class="desc"><code>1</code> is TRUE, <code>0</code> is FALSE.</div></li>
+      <li class="type"><code class="cmd">XL_CELL_ERROR <span class="cm"># 5 &#8594; int</span></code><div class="desc">An internal Excel error code. See card 13.</div></li>
+      <li class="type"><code class="cmd">XL_CELL_BLANK <span class="cm"># 6 &#8594; ''</span></code><span class="badge-fmt">formatting_info</span><div class="desc">Formatted but empty. Invisible unless you asked for formatting.</div></li>
+      <li class="type"><code class="cmd">xlrd.sheet.ctype_text[cell.ctype]</code><div class="desc">A readable name for the code, for logging.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Dates</span><span class="card-sub">the one that costs hours</span></div>
+    <ul class="cmds">
+      <li class="type"><code class="cmd">xldate_as_datetime(cell.value, book.datemode)</code><span class="star">&#9733;</span><div class="desc">The modern converter. Returns a real <code>datetime.datetime</code>.</div></li>
+      <li class="type"><code class="cmd">xldate_as_tuple(value, datemode)</code><span class="star">&#9733;</span><div class="desc">Returns <code>(y, m, d, h, mi, s)</code> &mdash; feed it to any date constructor.</div></li>
+      <li class="type"><code class="cmd"><span class="kw">from</span> <span class="mod">xlrd</span> <span class="kw">import</span> xldate_as_datetime</code><div class="desc">Importable from the top level since 1.1.0.</div></li>
+      <li class="danger"><code class="cmd">forgetting book.datemode</code><span class="badge-danger">4 years off</span><div class="desc">Mac-authored files use the 1904 system. Guess wrong and every date shifts by 1,462 days.</div></li>
+      <li class="type"><code class="cmd"><span class="num">0.0</span> &lt;= xldate &lt; <span class="num">1.0</span></code><div class="desc">A time of day, not a date. You get <code>(0, 0, 0, h, m, s)</code>.</div></li>
+      <li class="type"><code class="cmd">xldate_from_date_tuple((<span class="num">2020</span>,<span class="num">1</span>,<span class="num">1</span>), <span class="num">0</span>)</code><div class="desc">The inverse, plus <code>_from_time_tuple</code> and <code>_from_datetime_tuple</code>.</div></li>
+      <li class="danger"><code class="cmd">a date column read as plain numbers</code><span class="badge-danger">check ctype</span><div class="desc">A "date" is only a date if <code>ctype == 3</code>. Formatting alone doesn't make one.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Date Exceptions</span><span class="card-sub">xlrd.xldate</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">XLDateAmbiguous</code><span class="badge-danger">1900 leap bug</span><div class="desc">Raised when <code>datemode == 0</code> and <code>1.0 &lt;= xldate &lt; 61.0</code> &mdash; Excel believes 1900 was a leap year, so these serials are genuinely undecidable.</div></li>
+      <li class="danger"><code class="cmd">XLDateNegative</code><div class="desc">The serial is below zero. Usually a corrupt or misread cell.</div></li>
+      <li class="danger"><code class="cmd">XLDateTooLarge</code><div class="desc">Would land in year 10000 or later.</div></li>
+      <li class="danger"><code class="cmd">XLDateBadDatemode</code><div class="desc"><code>datemode</code> was neither <code>0</code> nor <code>1</code>.</div></li>
+      <li class="danger"><code class="cmd">XLDateBadTuple</code><div class="desc">Out-of-range component when converting the other way.</div></li>
+      <li class="type"><code class="cmd"><span class="kw">except</span> xlrd.xldate.XLDateError:</code><span class="star">&#9733;</span><div class="desc">The common base class &mdash; catch this one and log the row.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Errors &amp; Booleans</span><span class="card-sub">ctype 4 and 5</span></div>
+    <ul class="cmds">
+      <li class="type"><code class="cmd">xlrd.error_text_from_code[value]</code><span class="star">&#9733;</span><div class="desc">Turns the stored int into <code>#DIV/0!</code>, <code>#N/A</code> and friends.</div></li>
+      <li class="type"><code class="cmd"><span class="num">0</span>:#NULL! &#183; <span class="num">7</span>:#DIV/0! &#183; <span class="num">15</span>:#VALUE!</code><div class="desc">The codes are sparse, not sequential.</div></li>
+      <li class="type"><code class="cmd"><span class="num">23</span>:#REF! &#183; <span class="num">29</span>:#NAME? &#183; <span class="num">36</span>:#NUM! &#183; <span class="num">42</span>:#N/A</code><div class="desc">The remaining four.</div></li>
+      <li class="type"><code class="cmd"><span class="kw">if</span> cell.ctype == <span class="num">4</span>: <span class="fn">bool</span>(cell.value)</code><div class="desc">Booleans arrive as <code>1</code>/<code>0</code>, not <code>True</code>/<code>False</code>.</div></li>
+      <li class="danger"><code class="cmd">cell.value <span class="kw">is</span> <span class="kw">True</span></code><span class="badge-danger">never</span><div class="desc">It's an int. Compare with <code>==</code> or cast.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Unicode &amp; Encoding</span><span class="card-sub">old files, old codepages</span></div>
+    <ul class="cmds">
+      <li class="type"><code class="cmd">BIFF8 &#8594; always UTF-16LE</code><span class="star">&#9733;</span><div class="desc">Excel 97 and later. Strings come back as proper <code>str</code>, no work needed.</div></li>
+      <li class="type"><code class="cmd">book.codepage == <span class="num">1200</span></code><div class="desc">Confirms Unicode. Older files carry things like <code>1252</code> or <code>10000</code>.</div></li>
+      <li class="type"><code class="cmd">open_workbook(f, encoding_override=<span class="str">"koi8_r"</span>)</code><span class="star">&#9733;</span><div class="desc">When the CODEPAGE record is missing or simply wrong.</div></li>
+      <li class="type"><code class="cmd">no CODEPAGE &#8594; iso-8859-1</code><div class="desc">The 2.0.0 fallback. Before that it assumed <code>ascii</code> and often raised.</div></li>
+      <li class="danger"><code class="cmd">mojibake in a pre-97 file</code><span class="badge-danger">codepage</span><div class="desc">Check <code>book.countries</code> for a hint, then override the encoding.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">formatting_info=True</span><span class="card-sub">what it unlocks</span></div>
+    <ul class="cmds">
+      <li class="fmt"><code class="cmd">open_workbook(f, formatting_info=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Off by default to save memory. Everything in cards 15&ndash;17 needs it.</div></li>
+      <li class="fmt"><code class="cmd">blank cells become visible</code><span class="star">&#9733;</span><div class="desc">BLANK and MULBLANK records are read, so <code>nrows</code>/<code>ncols</code> can <b>grow</b>.</div></li>
+      <li class="fmt"><code class="cmd">book.xf_list[cell.xf_index]</code><span class="star">&#9733;</span><div class="desc">The XF record: <code>.font_index</code>, <code>.format_key</code>, <code>.alignment</code>, <code>.border</code>, <code>.background</code>, <code>.protection</code>.</div></li>
+      <li class="fmt"><code class="cmd">book.format_map[xf.format_key].format_str</code><span class="star">&#9733;</span><div class="desc">The number-format string, e.g. <code>"0.00%"</code>. Use <code>format_map</code>, not <code>format_list</code>.</div></li>
+      <li class="fmt"><code class="cmd">book.style_name_map</code><div class="desc">Maps style names to <code>(built_in, xf_index)</code>.</div></li>
+      <li class="danger"><code class="cmd">memory and parse time both jump</code><span class="badge-danger">cost</span><div class="desc">Only ask for formatting when you actually need it.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Fonts &amp; Colours</span><span class="card-sub">rendering an .xls</span></div>
+    <ul class="cmds">
+      <li class="fmt"><code class="cmd">book.font_list[xf.font_index]</code><span class="star">&#9733;</span><div class="desc"><code>.name</code>, <code>.bold</code>, <code>.italic</code>, <code>.height</code>, <code>.colour_index</code>, <code>.underline_type</code>.</div></li>
+      <li class="fmt"><code class="cmd">font.height <span class="cm"># twips</span></code><div class="desc">A twip is 1/20 of a point, so divide by 20 for pt.</div></li>
+      <li class="fmt"><code class="cmd">font.weight <span class="cm"># 400 normal, 700 bold</span></code><div class="desc"><code>.bold</code> is a redundant convenience flag.</div></li>
+      <li class="fmt"><code class="cmd">book.colour_map[idx] &#8594; (r, g, b)</code><span class="star">&#9733;</span><div class="desc">Resolve any colour index. "Magic" indexes map to <code>None</code>.</div></li>
+      <li class="fmt"><code class="cmd">book.palette_record</code><div class="desc">The raw 56-entry palette, only if the user customised it. For writing, not rendering.</div></li>
+      <li class="fmt"><code class="cmd">xf.background.background_colour_index</code><div class="desc">Also <code>.fill_pattern</code> and <code>.pattern_colour_index</code>.</div></li>
+      <li class="fmt"><code class="cmd">xf.border.top_line_style</code><div class="desc"><code>0</code> none &#183; <code>1</code> thin &#183; <code>2</code> medium &#183; <code>5</code> thick &#183; <code>6</code> double, and more.</div></li>
+      <li class="fmt"><code class="cmd">sheet.computed_column_width(colx)</code><div class="desc">In 1/256ths of a zero-character width.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Merged &amp; Ragged</span><span class="card-sub">shape surprises</span></div>
+    <ul class="cmds">
+      <li class="fmt"><code class="cmd">sheet.merged_cells</code><span class="badge-fmt">formatting_info</span><span class="star">&#9733;</span><div class="desc">A list of <code>(rlo, rhi, clo, chi)</code> tuples.</div></li>
+      <li class="fmt"><code class="cmd">upper bounds are exclusive</code><span class="star">&#9733;</span><div class="desc"><code>[2, 3, 7, 9]</code> spans only two cells &mdash; row 2, columns 7&ndash;8.</div></li>
+      <li class="fmt"><code class="cmd">rlo, clo carries the value</code><span class="star">&#9733;</span><div class="desc">The rest of the block reads as BLANK. Fill them yourself if you need a rectangle.</div></li>
+      <li class="fmt"><code class="cmd">open_workbook(f, ragged_rows=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Rows keep their true length instead of being padded to <code>ncols</code>.</div></li>
+      <li class="fmt"><code class="cmd">sheet.row_len(rowx)</code><span class="star">&#9733;</span><div class="desc">The companion call &mdash; always use it once ragged rows are on.</div></li>
+      <li class="fmt"><code class="cmd">sheet.rowinfo_map &#183; sheet.colinfo_map</code><div class="desc">Per-row and per-column height, width, hidden and outline level.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Names &amp; Ranges</span><span class="card-sub">defined names</span></div>
+    <ul class="cmds">
+      <li class="fmt"><code class="cmd">book.name_map[<span class="str">"tax_rate"</span>]</code><span class="star">&#9733;</span><div class="desc">Lower-cased name to a list of <code>Name</code> objects, sorted by scope.</div></li>
+      <li class="fmt"><code class="cmd">book.name_and_scope_map[(name, scope)]</code><div class="desc">Exactly one Name per key.</div></li>
+      <li class="fmt"><code class="cmd">name.cell()</code><span class="star">&#9733;</span><div class="desc">Convenience for a name pointing at a single cell.</div></li>
+      <li class="fmt"><code class="cmd">name.area2d()</code><span class="star">&#9733;</span><div class="desc">Returns <code>(sheet, rowxlo, rowxhi, colxlo, colxhi)</code>, clipped to the sheet by default.</div></li>
+      <li class="fmt"><code class="cmd">name.scope <span class="cm"># -1 = global</span></code><div class="desc"><code>-2</code> macro sheet, <code>-3</code> invalid, <code>0..nsheets</code> local to that sheet.</div></li>
+      <li class="fmt"><code class="cmd">name.builtin</code><div class="desc">Flags the auto-generated ones like <code>Print_Area</code> and <code>Print_Titles</code>.</div></li>
+      <li class="danger"><code class="cmd">files older than Excel 5.0</code><span class="badge-danger">no names</span><div class="desc">Name info isn't extracted when <code>book.biff_version &lt; 50</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Notes, Links &amp; Panes</span><span class="card-sub">the long tail</span></div>
+    <ul class="cmds">
+      <li class="fmt"><code class="cmd">sheet.cell_note_map[(rowx, colx)]</code><div class="desc">Sparse map to <code>Note</code> objects: <code>.text</code>, <code>.author</code>, <code>.show</code>.</div></li>
+      <li class="fmt"><code class="cmd">sheet.hyperlink_map[(rowx, colx)]</code><div class="desc">Maps to a <code>Hyperlink</code>: <code>.url_or_path</code>, <code>.type</code>, <code>.desc</code>, <code>.textmark</code>.</div></li>
+      <li class="fmt"><code class="cmd">sheet.hyperlink_list</code><div class="desc">All of them; a link can cover a rectangle of cells.</div></li>
+      <li class="fmt"><code class="cmd">sheet.rich_text_runlist_map[(r, c)]</code><span class="badge-fmt">formatting_info</span><div class="desc"><code>(offset, font_index)</code> pairs for mixed formatting inside one cell.</div></li>
+      <li class="fmt"><code class="cmd">sheet.vert_split_pos &#183; sheet.horz_split_pos</code><div class="desc">Frozen-pane positions.</div></li>
+      <li class="fmt"><code class="cmd">sheet.horizontal_page_breaks</code><div class="desc">And <code>vertical_page_breaks</code>, both formatting-only.</div></li>
+      <li class="fmt"><code class="cmd">sheet.row_label_ranges &#183; sheet.col_label_ranges</code><div class="desc">From Excel's old Insert &gt; Name &gt; Labels feature.</div></li>
+    </ul>
+  </article>
+
+  <!-- 20 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">20</span><span class="card-title">on_demand &amp; Memory</span><span class="card-sub">big legacy files</span></div>
+    <ul class="cmds">
+      <li class="open"><code class="cmd">book = open_workbook(f, on_demand=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Sheets load only when you ask for them.</div></li>
+      <li class="open"><code class="cmd">book.unload_sheet(<span class="num">0</span>)</code><span class="star">&#9733;</span><div class="desc">Free one sheet after you're done with it. Name or index.</div></li>
+      <li class="open"><code class="cmd">book.release_resources()</code><span class="star">&#9733;</span><div class="desc">Call when finished loading but still using the Book. Automatic in a <code>with</code> block.</div></li>
+      <li class="danger"><code class="cmd">book.sheets()</code><span class="badge-danger">defeats it</span><div class="desc">Loads everything &mdash; as does iterating the Book. Use <code>sheet_names()</code> instead.</div></li>
+      <li class="danger"><code class="cmd">on_demand + BIFF &lt; 5.0</code><span class="badge-danger">ignored</span><div class="desc">Silently falls back to loading everything, with a warning to the logfile.</div></li>
+      <li class="open"><code class="cmd">book.load_time_stage_1 &#183; _stage_2</code><div class="desc">Seconds spent extracting vs parsing &mdash; useful when profiling a slow file.</div></li>
+    </ul>
+  </article>
+
+  <!-- 21 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">21</span><span class="card-title">Debugging a Bad File</span><span class="card-sub">when it won't parse</span></div>
+    <ul class="cmds">
+      <li class="open"><code class="cmd">xlrd.dump(<span class="str">"broken.xls"</span>)</code><span class="star">&#9733;</span><div class="desc">Every BIFF record in char and hex. The tool of last resort.</div></li>
+      <li class="open"><code class="cmd">xlrd.dump(f, unnumbered=<span class="kw">True</span>)</code><div class="desc">Omit offsets so you can diff two dumps.</div></li>
+      <li class="open"><code class="cmd">xlrd.count_records(<span class="str">"file.xls"</span>)</code><div class="desc">A sorted <code>(record_name, count)</code> summary.</div></li>
+      <li class="open"><code class="cmd">python -m xlrd.runxlrd &#8230;</code><div class="desc">The bundled CLI: <code>biff_dump</code>, <code>biff_count</code>, <code>show</code>, <code>fonts</code>.</div></li>
+      <li class="open"><code class="cmd">obj.dump()</code><div class="desc">Almost every xlrd class inherits a <code>dump()</code> for inspection.</div></li>
+      <li class="danger"><code class="cmd">CompDocError: Workbook corruption</code><div class="desc">Try <code>ignore_workbook_corruption=True</code> before giving up.</div></li>
+      <li class="danger"><code class="cmd">XLRDError: Unsupported format</code><div class="desc">The error text includes the first 8 bytes &mdash; check them against the OLE2 signature.</div></li>
+    </ul>
+  </article>
+
+  <!-- 22 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">22</span><span class="card-title">pandas Interop</span><span class="card-sub">how most people meet xlrd</span></div>
+    <ul class="cmds">
+      <li class="fmt"><code class="cmd">pd.read_excel(<span class="str">"legacy.xls"</span>)</code><span class="star">&#9733;</span><div class="desc">pandas picks xlrd automatically for <code>.xls</code> &mdash; still true in pandas 3.0.</div></li>
+      <li class="fmt"><code class="cmd">pd.read_excel(f, engine=<span class="str">"xlrd"</span>)</code><div class="desc">Explicit, and clearer in code others will read.</div></li>
+      <li class="danger"><code class="cmd">Pandas requires version '2.0.1' or newer of 'xlrd'</code><span class="badge-danger">upgrade</span><div class="desc">You pinned 1.2.0. Upgrade xlrd and switch <code>.xlsx</code> work to openpyxl.</div></li>
+      <li class="fmt"><code class="cmd">pd.read_excel(f, sheet_name=<span class="kw">None</span>)</code><span class="star">&#9733;</span><div class="desc">Every sheet as a dict of DataFrames.</div></li>
+      <li class="fmt"><code class="cmd">pd.DataFrame(sheet.get_rows())</code><div class="desc">Going the manual route gives you Cell objects &mdash; map <code>.value</code> first.</div></li>
+      <li class="fmt"><code class="cmd">pd.read_excel(f, engine=<span class="str">"calamine"</span>)</code><div class="desc">Reads <code>.xls</code> too, and is considerably faster. Needs <code>python-calamine</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 23 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">23</span><span class="card-title">Writing .xls</span><span class="card-sub">not with xlrd</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">xlrd cannot write. At all.</code><span class="badge-danger">by design</span><div class="desc">The name is "xl <b>read</b>". There is no save, no write, no modify.</div></li>
+      <li class="fmt"><code class="cmd">pip install xlwt</code><div class="desc">The sibling writer for <code>.xls</code>. Also frozen, and it cannot read.</div></li>
+      <li class="fmt"><code class="cmd">pip install xlutils</code><span class="star">&#9733;</span><div class="desc">The bridge: <code>from xlutils.copy import copy</code> turns a Book into a writable xlwt workbook.</div></li>
+      <li class="fmt"><code class="cmd">copy(open_workbook(f, formatting_info=<span class="kw">True</span>))</code><span class="star">&#9733;</span><div class="desc">Without <code>formatting_info</code> the copy loses all styling.</div></li>
+      <li class="danger"><code class="cmd">producing new .xls in 2026</code><span class="badge-danger">reconsider</span><div class="desc">Write <code>.xlsx</code> with openpyxl or XlsxWriter unless a downstream system truly demands <code>.xls</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 24 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">24</span><span class="card-title">Migrating Off xlrd</span><span class="card-sub">the honest card</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">.xlsx &#8594; openpyxl</code><span class="star">&#9733;</span><div class="desc">The direct replacement, and it writes as well as reads.</div></li>
+      <li class="danger"><code class="cmd">.xlsb &#8594; pyxlsb &#183; .ods &#8594; odfpy</code><div class="desc">Binary and OpenDocument each need their own reader.</div></li>
+      <li class="fmt"><code class="cmd">anything &#8594; python-calamine</code><span class="star">&#9733;</span><div class="desc">One Rust-backed reader for <code>.xls</code>, <code>.xlsx</code>, <code>.xlsm</code>, <code>.xlsb</code> and <code>.ods</code>. Read-only, fast.</div></li>
+      <li class="fmt"><code class="cmd">libreoffice --headless --convert-to xlsx</code><span class="star">&#9733;</span><div class="desc">Batch-convert the legacy pile once, then never think about BIFF again.</div></li>
+      <li class="fmt"><code class="cmd">index shift: (0,0) &#8594; (1,1)</code><span class="star">&#9733;</span><div class="desc">The first thing to fix when porting xlrd code to openpyxl. See diagram 1.</div></li>
+      <li class="fmt"><code class="cmd">dates arrive as datetime already</code><div class="desc">openpyxl and calamine both convert for you &mdash; drop the <code>xldate_*</code> calls.</div></li>
+      <li class="open"><code class="cmd">keep xlrd if: .xls, read-only, works</code><span class="star">&#9733;</span><div class="desc">Frozen is not the same as broken. A stable parser for a stable format is fine.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four pictures that prevent most xlrd bugs</h2>
+  <p class="sub">The index base, the seven cell types, how a date becomes a date, and what <code>formatting_info</code> actually changes.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>1 &#183; xlrd counts from 0</h3>
+      <p>The single biggest source of off-by-one bugs, especially when porting to or from openpyxl &mdash; which counts from <b>1</b>. Same cell, two different tuples.</p>
+      <svg viewBox="0 0 440 236" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two grids side by side. In xlrd, cell A1 is row 0 column 0. In openpyxl, the same cell A1 is row 1 column 1.">
+        <text x="20" y="18" font-size="10" font-weight="700" fill="#9a3412">xlrd &#8212; 0-based</text>
+        <text x="248" y="18" font-size="10" font-weight="700" fill="#4f46e5">openpyxl &#8212; 1-based</text>
+
+        <!-- left grid -->
+        <text x="48"  y="38" text-anchor="middle" font-size="9" fill="#94a3b8">A</text>
+        <text x="104" y="38" text-anchor="middle" font-size="9" fill="#94a3b8">B</text>
+        <text x="160" y="38" text-anchor="middle" font-size="9" fill="#94a3b8">C</text>
+        <rect x="20" y="44" width="168" height="56" fill="#fff" stroke="#cfd4dc" stroke-width="1.4"/>
+        <line x1="76"  y1="44" x2="76"  y2="100" stroke="#e7e3db"/>
+        <line x1="132" y1="44" x2="132" y2="100" stroke="#e7e3db"/>
+        <line x1="20"  y1="72" x2="188" y2="72"  stroke="#e7e3db"/>
+        <rect x="20" y="44" width="56" height="28" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+        <text x="48"  y="63" text-anchor="middle" font-size="10" font-weight="700" fill="#059669">0,0</text>
+        <text x="104" y="63" text-anchor="middle" font-size="9.5" fill="#94a3b8">0,1</text>
+        <text x="160" y="63" text-anchor="middle" font-size="9.5" fill="#94a3b8">0,2</text>
+        <text x="48"  y="91" text-anchor="middle" font-size="9.5" fill="#94a3b8">1,0</text>
+        <text x="104" y="91" text-anchor="middle" font-size="9.5" fill="#94a3b8">1,1</text>
+        <text x="160" y="91" text-anchor="middle" font-size="9.5" fill="#94a3b8">1,2</text>
+
+        <!-- right grid -->
+        <text x="276" y="38" text-anchor="middle" font-size="9" fill="#94a3b8">A</text>
+        <text x="332" y="38" text-anchor="middle" font-size="9" fill="#94a3b8">B</text>
+        <text x="388" y="38" text-anchor="middle" font-size="9" fill="#94a3b8">C</text>
+        <rect x="248" y="44" width="168" height="56" fill="#fff" stroke="#cfd4dc" stroke-width="1.4"/>
+        <line x1="304" y1="44" x2="304" y2="100" stroke="#e7e3db"/>
+        <line x1="360" y1="44" x2="360" y2="100" stroke="#e7e3db"/>
+        <line x1="248" y1="72" x2="416" y2="72"  stroke="#e7e3db"/>
+        <rect x="248" y="44" width="56" height="28" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+        <text x="276" y="63" text-anchor="middle" font-size="10" font-weight="700" fill="#4f46e5">1,1</text>
+        <text x="332" y="63" text-anchor="middle" font-size="9.5" fill="#94a3b8">1,2</text>
+        <text x="388" y="63" text-anchor="middle" font-size="9.5" fill="#94a3b8">1,3</text>
+        <text x="276" y="91" text-anchor="middle" font-size="9.5" fill="#94a3b8">2,1</text>
+        <text x="332" y="91" text-anchor="middle" font-size="9.5" fill="#94a3b8">2,2</text>
+        <text x="388" y="91" text-anchor="middle" font-size="9.5" fill="#94a3b8">2,3</text>
+
+        <line x1="8" y1="118" x2="432" y2="118" stroke="#e7e3db"/>
+        <text x="8" y="138" font-size="9.5" fill="#3f444f">cell <tspan font-weight="700">A1</tspan> is &nbsp; <tspan font-weight="700" fill="#059669">sheet.cell(0, 0)</tspan> &nbsp;vs&nbsp; <tspan font-weight="700" fill="#4f46e5">ws.cell(1, 1)</tspan></text>
+        <text x="8" y="156" font-size="9.5" fill="#3f444f">last row is &nbsp; <tspan font-weight="700" fill="#059669">sheet.nrows - 1</tspan> &nbsp;vs&nbsp; <tspan font-weight="700" fill="#4f46e5">ws.max_row</tspan></text>
+        <text x="8" y="174" font-size="9.5" fill="#3f444f">loop with &nbsp; <tspan font-weight="700" fill="#059669">range(sheet.nrows)</tspan> &nbsp;vs&nbsp; <tspan font-weight="700" fill="#4f46e5">range(1, ws.max_row + 1)</tspan></text>
+
+        <rect x="8" y="188" width="424" height="40" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.4"/>
+        <text x="20" y="205" font-size="9" font-weight="700" fill="#dc2626">&#9888; both accept (1, 1) without complaint</text>
+        <text x="20" y="220" font-size="8.5" fill="#7f1d1d">one gives you B2, the other A1 &#8212; no error, just quietly wrong data.</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>2 &#183; the seven cell types</h3>
+      <p>Every value arrives with a <code>ctype</code>. Two of them are traps: a DATE is a <b>float</b>, and a BLANK only exists if you asked for formatting.</p>
+      <svg viewBox="0 0 440 244" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Table of the seven xlrd cell types: EMPTY 0 empty string, TEXT 1 str, NUMBER 2 float, DATE 3 float, BOOLEAN 4 int, ERROR 5 int code, BLANK 6 empty string requiring formatting_info.">
+        <text x="8"   y="16" font-size="9" letter-spacing="1.4" fill="#94a3b8">CTYPE</text>
+        <text x="46"  y="16" font-size="9" letter-spacing="1.4" fill="#94a3b8">SYMBOL</text>
+        <text x="212" y="16" font-size="9" letter-spacing="1.4" fill="#94a3b8">PYTHON VALUE</text>
+        <line x1="8" y1="22" x2="432" y2="22" stroke="#cfd4dc"/>
+
+        <rect x="8" y="30" width="22" height="20" rx="4" fill="#f1f3f6"/>
+        <text x="19" y="44" text-anchor="middle" font-size="10" font-weight="700" fill="#64748b">0</text>
+        <text x="46" y="44" font-size="9.5" fill="#1a1d24">XL_CELL_EMPTY</text>
+        <text x="212" y="44" font-size="9.5" fill="#6b7280">'' &#8212; no record at all</text>
+
+        <rect x="8" y="58" width="22" height="20" rx="4" fill="#f4effe"/>
+        <text x="19" y="72" text-anchor="middle" font-size="10" font-weight="700" fill="#7c3aed">1</text>
+        <text x="46" y="72" font-size="9.5" font-weight="700" fill="#1a1d24">XL_CELL_TEXT</text>
+        <text x="212" y="72" font-size="9.5" fill="#059669">str</text>
+
+        <rect x="8" y="86" width="22" height="20" rx="4" fill="#f4effe"/>
+        <text x="19" y="100" text-anchor="middle" font-size="10" font-weight="700" fill="#7c3aed">2</text>
+        <text x="46" y="100" font-size="9.5" font-weight="700" fill="#1a1d24">XL_CELL_NUMBER</text>
+        <text x="212" y="100" font-size="9.5" fill="#059669">float &#8212; always, never int</text>
+
+        <rect x="8" y="114" width="22" height="20" rx="4" fill="#fdf0ef"/>
+        <text x="19" y="128" text-anchor="middle" font-size="10" font-weight="700" fill="#dc2626">3</text>
+        <text x="46" y="128" font-size="9.5" font-weight="700" fill="#1a1d24">XL_CELL_DATE</text>
+        <text x="212" y="128" font-size="9.5" font-weight="700" fill="#dc2626">float &#8212; NOT a datetime</text>
+
+        <rect x="8" y="142" width="22" height="20" rx="4" fill="#f4effe"/>
+        <text x="19" y="156" text-anchor="middle" font-size="10" font-weight="700" fill="#7c3aed">4</text>
+        <text x="46" y="156" font-size="9.5" fill="#1a1d24">XL_CELL_BOOLEAN</text>
+        <text x="212" y="156" font-size="9.5" fill="#6b7280">int &#8212; 1 or 0, not True/False</text>
+
+        <rect x="8" y="170" width="22" height="20" rx="4" fill="#f4effe"/>
+        <text x="19" y="184" text-anchor="middle" font-size="10" font-weight="700" fill="#7c3aed">5</text>
+        <text x="46" y="184" font-size="9.5" fill="#1a1d24">XL_CELL_ERROR</text>
+        <text x="212" y="184" font-size="9.5" fill="#6b7280">int &#8594; error_text_from_code</text>
+
+        <rect x="8" y="198" width="22" height="20" rx="4" fill="#e9f6f4"/>
+        <text x="19" y="212" text-anchor="middle" font-size="10" font-weight="700" fill="#0d9488">6</text>
+        <text x="46" y="212" font-size="9.5" fill="#1a1d24">XL_CELL_BLANK</text>
+        <text x="212" y="212" font-size="9.5" fill="#0d9488">'' &#8212; only with formatting_info</text>
+
+        <line x1="8" y1="224" x2="432" y2="224" stroke="#e7e3db"/>
+        <text x="8" y="239" font-size="8.5" fill="#6b7280">Empty vs Blank: <tspan font-weight="700">EMPTY</tspan> never existed; <tspan font-weight="700">BLANK</tspan> has formatting but no data.</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>3 &#183; how a date becomes a date</h3>
+      <p>Excel stores a date as days since an epoch. Which epoch depends on the file, so the conversion <b>always</b> needs <code>book.datemode</code>.</p>
+      <svg viewBox="0 0 440 240" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A cell with ctype 3 holds the float 43831.0; combined with the workbook datemode it converts via xldate_as_datetime into a datetime. Datemode 0 is the 1900 system, datemode 1 is the 1904 Macintosh system, 1462 days apart. Serials between 1 and 61 in the 1900 system raise XLDateAmbiguous.">
+        <defs>
+          <marker id="d3x-arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+          </marker>
+        </defs>
+
+        <rect x="8" y="26" width="120" height="42" rx="8" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.6"/>
+        <text x="68" y="43" text-anchor="middle" font-size="9" fill="#6b7280">ctype 3, value</text>
+        <text x="68" y="59" text-anchor="middle" font-size="13" font-weight="700" fill="#dc2626">43831.0</text>
+
+        <line x1="128" y1="47" x2="158" y2="47" stroke="#64748b" stroke-width="1.6" marker-end="url(#d3x-arw)"/>
+
+        <rect x="160" y="26" width="128" height="42" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.6"/>
+        <text x="224" y="43" text-anchor="middle" font-size="9" fill="#6b7280">+ which epoch?</text>
+        <text x="224" y="59" text-anchor="middle" font-size="11" font-weight="700" fill="#4f46e5">book.datemode</text>
+
+        <line x1="288" y1="47" x2="318" y2="47" stroke="#64748b" stroke-width="1.6" marker-end="url(#d3x-arw)"/>
+
+        <rect x="320" y="26" width="112" height="42" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+        <text x="376" y="43" text-anchor="middle" font-size="9" fill="#6b7280">xldate_as_datetime</text>
+        <text x="376" y="59" text-anchor="middle" font-size="11" font-weight="700" fill="#059669">2020-01-01</text>
+
+        <line x1="8" y1="84" x2="432" y2="84" stroke="#e7e3db"/>
+        <text x="8" y="102" font-size="9" letter-spacing="1.4" fill="#94a3b8">TWO EPOCHS, 1462 DAYS APART</text>
+
+        <rect x="8" y="112" width="208" height="42" rx="7" fill="#fff" stroke="#4f46e5" stroke-width="1.5"/>
+        <text x="22" y="129" font-size="10" font-weight="700" fill="#4f46e5">datemode 0 &#8212; 1900</text>
+        <text x="22" y="145" font-size="8.5" fill="#6b7280">Excel for Windows default</text>
+
+        <rect x="224" y="112" width="208" height="42" rx="7" fill="#fff" stroke="#d97706" stroke-width="1.5"/>
+        <text x="238" y="129" font-size="10" font-weight="700" fill="#b45309">datemode 1 &#8212; 1904</text>
+        <text x="238" y="145" font-size="8.5" fill="#6b7280">Excel for Macintosh default</text>
+
+        <text x="220" y="170" text-anchor="middle" font-size="8.5" font-weight="700" fill="#dc2626">guess wrong and every date in the file shifts by 4 years and a day</text>
+
+        <line x1="8" y1="182" x2="432" y2="182" stroke="#e7e3db"/>
+        <text x="8" y="200" font-size="9" letter-spacing="1.4" fill="#94a3b8">THE 1900 LEAP-YEAR BUG</text>
+
+        <rect x="8" y="208" width="72" height="22" rx="5" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.4"/>
+        <text x="44" y="223" text-anchor="middle" font-size="9" font-weight="700" fill="#dc2626">1.0 &#8211; 61.0</text>
+        <rect x="84" y="208" width="348" height="22" rx="5" fill="#ecf7f2" stroke="#059669" stroke-width="1.2"/>
+        <text x="96" y="223" font-size="8.5" fill="#059669">61.0 and up &#8212; unambiguous, converts cleanly</text>
+        <text x="8" y="240" font-size="8.5" fill="#6b7280">Excel thinks 1900 was a leap year. In that window xlrd raises <tspan font-weight="700" fill="#dc2626">XLDateAmbiguous</tspan> rather than guess.</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>4 &#183; what formatting_info changes</h3>
+      <p>It is not just "extra style data". Turning it on changes <b>which cells exist</b>, and therefore <code>nrows</code> and <code>ncols</code>.</p>
+      <svg viewBox="0 0 440 240" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison of formatting_info False and True across available cell data, blank cells, sheet dimensions, merged cells, fonts and colours, and memory cost.">
+        <rect x="120" y="20" width="146" height="26" rx="6" fill="#f1f3f6" stroke="#64748b" stroke-width="1.4"/>
+        <text x="193" y="38" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1a1d24">False (default)</text>
+        <rect x="274" y="20" width="158" height="26" rx="6" fill="#e9f6f4" stroke="#0d9488" stroke-width="1.4"/>
+        <text x="353" y="38" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1a1d24">True</text>
+
+        <text x="8" y="68" font-size="9" fill="#3f444f">cell_value / cell_type</text>
+        <text x="193" y="68" text-anchor="middle" font-size="10" font-weight="700" fill="#059669">&#10003;</text>
+        <text x="353" y="68" text-anchor="middle" font-size="10" font-weight="700" fill="#059669">&#10003;</text>
+        <line x1="8" y1="76" x2="432" y2="76" stroke="#f1eee8"/>
+
+        <text x="8" y="94" font-size="9" fill="#3f444f">blank cells (ctype 6)</text>
+        <text x="193" y="94" text-anchor="middle" font-size="9" font-weight="700" fill="#dc2626">invisible</text>
+        <text x="353" y="94" text-anchor="middle" font-size="9" font-weight="700" fill="#0d9488">present</text>
+        <line x1="8" y1="102" x2="432" y2="102" stroke="#f1eee8"/>
+
+        <text x="8" y="120" font-size="9" fill="#3f444f">nrows / ncols</text>
+        <text x="193" y="120" text-anchor="middle" font-size="9" fill="#6b7280">margins trimmed</text>
+        <text x="353" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#0d9488">can be larger</text>
+        <line x1="8" y1="128" x2="432" y2="128" stroke="#f1eee8"/>
+
+        <text x="8" y="146" font-size="9" fill="#3f444f">cell.xf_index</text>
+        <text x="193" y="146" text-anchor="middle" font-size="9" font-weight="700" fill="#dc2626">None</text>
+        <text x="353" y="146" text-anchor="middle" font-size="9" font-weight="700" fill="#0d9488">usable index</text>
+        <line x1="8" y1="154" x2="432" y2="154" stroke="#f1eee8"/>
+
+        <text x="8" y="172" font-size="9" fill="#3f444f">merged_cells</text>
+        <text x="193" y="172" text-anchor="middle" font-size="9" font-weight="700" fill="#dc2626">[] empty</text>
+        <text x="353" y="172" text-anchor="middle" font-size="9" font-weight="700" fill="#0d9488">populated</text>
+        <line x1="8" y1="180" x2="432" y2="180" stroke="#f1eee8"/>
+
+        <text x="8" y="198" font-size="9" fill="#3f444f">fonts, colours, borders</text>
+        <text x="193" y="198" text-anchor="middle" font-size="10" font-weight="700" fill="#dc2626">&#10007;</text>
+        <text x="353" y="198" text-anchor="middle" font-size="10" font-weight="700" fill="#059669">&#10003;</text>
+        <line x1="8" y1="206" x2="432" y2="206" stroke="#f1eee8"/>
+
+        <text x="8" y="224" font-size="9" fill="#3f444f">memory &amp; parse time</text>
+        <text x="193" y="224" text-anchor="middle" font-size="9" font-weight="700" fill="#059669">lower</text>
+        <text x="353" y="224" text-anchor="middle" font-size="9" font-weight="700" fill="#dc2626">noticeably higher</text>
+
+        <text x="8" y="238" font-size="8.5" fill="#6b7280">xlutils.copy needs it too &#8212; without it, a copied workbook loses every style.</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ APPENDIX ============ -->
+<section class="appendix">
+  <h2>Appendix &mdash; reading a .xls in 2026</h2>
+  <p class="sub">Three live routes. pandas still reaches for xlrd automatically, so even people who never import it depend on it.</p>
+  <div class="ver-grid">
+
+    <div class="ver-card vxl">
+      <div class="ver-head"><span class="ver-tag">xlrd</span><b>direct, full control</b></div>
+      <div class="ver-body">
+        <h4 class="adopt">&#10010; reach for it when</h4>
+        <ul>
+          <li>You need the <b>cell type</b>, not just the value &mdash; dates, errors, blanks</li>
+          <li>You need formatting: fonts, colours, merged ranges, XF records</li>
+          <li>You're feeding <code>xlutils.copy</code> to edit an <code>.xls</code> in place</li>
+          <li>You want defined names, notes, hyperlinks or page breaks</li>
+          <li>The file is odd and you need <code>dump()</code> to see the BIFF records</li>
+        </ul>
+        <h4 class="drop">&#9888; it can't</h4>
+        <ul>
+          <li>Read <code>.xlsx</code>, <code>.xlsb</code> or <code>.ods</code> &mdash; removed in 2.0.0</li>
+          <li>Write anything, ever</li>
+          <li>Receive fixes &mdash; no release since Dec 2020</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ver-card vpd">
+      <div class="ver-head"><span class="ver-tag">pandas</span><b>one line to a DataFrame</b></div>
+      <div class="ver-body">
+        <h4 class="adopt">&#10010; reach for it when</h4>
+        <ul>
+          <li>You want the table, not the spreadsheet</li>
+          <li><code>pd.read_excel("f.xls")</code> already picks xlrd for you</li>
+          <li>You need <code>dtype</code>, <code>parse_dates</code>, <code>na_values</code>, <code>usecols</code> on the way in</li>
+          <li><code>sheet_name=None</code> gives you every sheet at once</li>
+        </ul>
+        <h4 class="drop">&#9888; watch out</h4>
+        <ul>
+          <li>It requires <code>xlrd &gt;= 2.0.1</code> &mdash; pinning 1.2.0 breaks pandas</li>
+          <li>Cell types, formatting and merges are all flattened away</li>
+          <li>There is an open proposal to drop the xlrd engine for calamine</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ver-card vcl">
+      <div class="ver-head"><span class="ver-tag">calamine</span><b>the modern replacement</b></div>
+      <div class="ver-body">
+        <h4 class="adopt">&#10010; reach for it when</h4>
+        <ul>
+          <li>You want <b>one</b> reader for <code>.xls</code>, <code>.xlsx</code>, <code>.xlsm</code>, <code>.xlsb</code> and <code>.ods</code></li>
+          <li>Speed matters &mdash; it's Rust underneath, and markedly faster</li>
+          <li>You're standardising a mixed pile of legacy files</li>
+          <li><code>pip install python-calamine</code>, then <code>engine="calamine"</code> in pandas</li>
+        </ul>
+        <h4 class="drop">&#9888; it can't</h4>
+        <ul>
+          <li>Write files &mdash; also read-only</li>
+          <li>Expose XF records, fonts or colours the way xlrd does</li>
+          <li>Replace <code>xlutils.copy</code> for in-place <code>.xls</code> editing</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">2.0+ reads .xls only</span><span class="v">and the fix is openpyxl, never <code>pip install xlrd==1.2.0</code></span></div>
+    <div><span class="k">frozen since Dec 2020</span><span class="v">2.0.1 is the last release &mdash; stable, not maintained</span></div>
+    <div><span class="k">read-only, always</span><span class="v">xlwt writes .xls; xlutils.copy edits one</span></div>
+    <div><span class="k">indexes start at 0</span><span class="v">A1 is <code>(0, 0)</code> &mdash; openpyxl calls it <code>(1, 1)</code></span></div>
+    <div><span class="k">nrows / ncols</span><span class="v">there is no <code>len(sheet)</code></span></div>
+    <div><span class="k">ncols = max index + 1</span><span class="v">trailing empty columns are dropped</span></div>
+    <div><span class="k">ctype 3 = DATE</span><span class="v">but <code>.value</code> is still a float</span></div>
+    <div><span class="k">always pass book.datemode</span><span class="v">1900 vs 1904 is a 1,462-day error</span></div>
+    <div><span class="k">XLDateAmbiguous</span><span class="v">serials 1&ndash;61 in the 1900 system: the leap-year bug</span></div>
+    <div><span class="k">numbers are floats</span><span class="v">Excel has no integer type</span></div>
+    <div><span class="k">booleans are 1 / 0</span><span class="v">not <code>True</code> / <code>False</code></span></div>
+    <div><span class="k">blank &#8800; empty</span><span class="v">BLANK needs <code>formatting_info=True</code> to appear at all</span></div>
+    <div><span class="k">merged_cells bounds</span><span class="v">upper limits are exclusive; only the top-left holds data</span></div>
+    <div><span class="k">ragged_rows + row_len()</span><span class="v">use them together or you'll index past the end</span></div>
+    <div><span class="k">open_workbook is eager</span><span class="v">the whole file is parsed up front unless <code>on_demand=True</code></span></div>
+    <div><span class="k">book.sheets()</span><span class="v">forces every sheet to load &mdash; defeats on_demand</span></div>
+    <div><span class="k">release_resources()</span><span class="v">or just use <code>with open_workbook(f) as book:</code></span></div>
+    <div><span class="k">pandas needs xlrd&gt;=2.0.1</span><span class="v">and still routes .xls to it in pandas 3.0</span></div>
+  </div>
+</section>
+
+<footer>
+  xlrd cheat sheet &middot; synthesized from the official documentation at xlrd.readthedocs.io (API Reference, Dates in Excel spreadsheets, Handling of Unicode, Formatting information, Loading worksheets on demand, Changes) and the CHANGELOG at github.com/python-excel/xlrd, plus PyPI, the pandas 3.0 <code>read_excel</code> / <code>ExcelFile</code> reference, and python-calamine.<br>
+  Version shown: <code>2.0.1</code>, released 11 December 2020 &mdash; the final release (re-verified 2026-08-30 as still current) &middot; &#169; 2005&ndash;2019 Stephen John Machin, Lingfo Pty Ltd; 2019&ndash;2021 Chris Withers &middot; BSD licensed &middot; reads <code>.xls</code> only, BIFF 2.0 through 8.0.
+</footer>
+
+</body>
+</html>

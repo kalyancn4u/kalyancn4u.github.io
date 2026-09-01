@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vLLM Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">High-throughput LLM inference &amp; serving &middot; PagedAttention &middot; OpenAI-compatible &middot; verified against vLLM 0.28.x (2026)</div>
+  <h1><span class="mono">vLLM</span> cheat sheet</h1>
+  <p class="lede"><b>vLLM</b> is a fast, memory-efficient engine for LLM inference and serving. Its <b>PagedAttention</b> + continuous batching pack many requests through the GPU at high throughput. Two modes: <b>offline</b> &mdash; the <code>LLM</code> class for batched local generation &mdash; and <b>online</b> &mdash; <code>vllm serve</code> spins up an <b>OpenAI-compatible</b> HTTP server you hit with the plain <code>openai</code> client. Tensor/pipeline parallelism, quantization, and structured decoding are built in. Targets <b>vLLM 0.28.x</b>, Python 3.10&ndash;3.14, Linux + NVIDIA/AMD/Intel GPUs (also CPU/TPU/Gaudi).</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>offline inference</span>
+    <span><i class="dot c2"></i>chat / multimodal / embed</span>
+    <span><i class="dot c3"></i>online serving</span>
+    <span><i class="dot c4"></i>scaling &amp; tuning</span>
+    <span><i class="dot c5"></i>deploy &amp; ecosystem</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-08-31 against the official docs at <b>docs.vllm.ai</b> (vLLM 0.28.0, released 2026-08-26). vLLM primarily targets Linux with a GPU; the same OpenAI-compatible API serves any supported model by swapping the <code>--model</code>.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub">Prototype offline with the <code>LLM</code> class, then serve the same model with <code>vllm serve</code> and call it through the OpenAI client. Scaling &amp; tuning knobs apply to both.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Offline inference</h3>
+      <ol class="toc-list">
+        <li><span class="rk">1</span><a href="#install">Install</a> <span class="cap">&mdash; pip / GPU</span></li>
+        <li><span class="rk">2</span><a href="#offline">Offline generate()</a></li>
+        <li><span class="rk">3</span><a href="#sampling">SamplingParams</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">Chat / multimodal / embed</h3>
+      <ol class="toc-list">
+        <li><span class="rk">4</span><a href="#chat">Chat &amp; multimodal</a></li>
+        <li><span class="rk">5</span><a href="#embed">Embeddings &amp; pooling</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Online serving</h3>
+      <ol class="toc-list">
+        <li><span class="rk">6</span><a href="#serve">vllm serve (OpenAI server)</a></li>
+        <li><span class="rk">7</span><a href="#client">Query the server</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">Scaling &amp; tuning</h3>
+      <ol class="toc-list">
+        <li><span class="rk">8</span><a href="#parallel">Parallelism &amp; scaling</a></li>
+        <li><span class="rk">9</span><a href="#quant">Quantization &amp; memory</a></li>
+        <li><span class="rk">10</span><a href="#structured">Structured output</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Deploy &amp; ecosystem</h3>
+      <ol class="toc-list">
+        <li><span class="rk">11</span><a href="#perf">Performance &amp; engine args</a></li>
+        <li><span class="rk">12</span><a href="#ecosystem">Deploy &amp; ecosystem</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-offline"><h2 style="color:var(--c1)">Offline Inference</h2><p class="sub">The <code>LLM</code> class runs a model in-process for high-throughput batched generation.</p></div>
+<main>
+  <article class="card" id="install">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Install</span><span class="card-sub">pip / GPU</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">pip install <span class="arg">vllm</span></code><span class="star">&#9733;</span><div class="desc">Prebuilt CUDA wheels. On uv: <code>uv pip install vllm --torch-backend=auto</code> auto-detects your GPU/driver.</div></li>
+      <li class="c1"><code class="cmd"><span class="cm"># needs a supported GPU (NVIDIA/AMD/Intel) on Linux; Python 3.10-3.14</span></code><span class="badge-warn">note</span><div class="desc">Linux-first. CPU, TPU, Gaudi, and Apple-silicon builds exist but use separate install paths (see docs).</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">export</span> HF_TOKEN=<span class="str">"hf_..."</span>  <span class="cm"># for gated Hugging Face models</span></code><div class="desc">Models are pulled from the Hugging Face Hub by id. Set <code>VLLM_USE_MODELSCOPE=1</code> to pull from ModelScope instead.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">from</span> vllm <span class="kw">import</span> LLM, SamplingParams</code><span class="star">&#9733;</span><div class="desc">The two objects you use most: the engine and its generation config.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="offline">
+    <div class="card-head"><span class="card-num n1">2</span><span class="card-title">Offline generate()</span><span class="card-sub">batched local</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">llm = LLM(model=<span class="str">"meta-llama/Llama-3.1-8B-Instruct"</span>)</code><span class="star">&#9733;</span><div class="desc">Loads weights onto the GPU once. Any HF model id (or a local path). Add <code>tensor_parallel_size=N</code> to shard across N GPUs.</div></li>
+      <li class="c1"><code class="cmd">outs = llm.generate([<span class="str">"Hello, "</span>, <span class="str">"The capital of France is"</span>], sp)</code><span class="star">&#9733;</span><div class="desc">Pass a <b>list</b> of prompts &mdash; vLLM batches them together. Continuous batching keeps the GPU saturated automatically.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">for</span> o <span class="kw">in</span> outs:
+    print(o.prompt, o.outputs[0].text)</code><span class="star">&#9733;</span><div class="desc">Each <code>RequestOutput</code> has the prompt + one or more <code>CompletionOutput</code>s (<code>.text</code>, <code>.token_ids</code>, <code>.cumulative_logprob</code>).</div></li>
+      <li class="c1"><code class="cmd">LLM(model=..., max_model_len=8192, dtype=<span class="str">"bfloat16"</span>, seed=0)</code><div class="desc">Common constructor args: cap context length, set precision, fix the seed. These mirror the <code>vllm serve</code> flags.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="sampling">
+    <div class="card-head"><span class="card-num n1">3</span><span class="card-title">SamplingParams</span><span class="card-sub">decoding knobs</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">sp = SamplingParams(temperature=0.8, top_p=0.95, max_tokens=256)</code><span class="star">&#9733;</span><div class="desc">The core knobs. <code>temperature=0</code> = greedy/deterministic. Also <code>top_k</code>, <code>min_p</code>, <code>repetition_penalty</code>, <code>presence_penalty</code>.</div></li>
+      <li class="c1"><code class="cmd">SamplingParams(n=3, best_of=3)</code><div class="desc"><code>n</code> = how many completions to return per prompt; <code>best_of</code> generates then keeps the best.</div></li>
+      <li class="c1"><code class="cmd">SamplingParams(stop=[<span class="str">"\n\n"</span>], stop_token_ids=[128009])</code><div class="desc">Stop strings/token ids. <code>ignore_eos=True</code> to keep generating past EOS.</div></li>
+      <li class="c1"><code class="cmd">SamplingParams(logprobs=5, prompt_logprobs=1)</code><div class="desc">Return per-token logprobs for the output (and optionally the prompt).</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-chat"><h2 style="color:var(--c2)">Chat, Multimodal &amp; Embeddings</h2><p class="sub">Apply chat templates automatically, feed images/audio, and pool embeddings.</p></div>
+<main>
+  <article class="card" id="chat">
+    <div class="card-head"><span class="card-num n2">4</span><span class="card-title">Chat &amp; multimodal</span><span class="card-sub">templated</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">outs = llm.chat([
+    {<span class="str">"role"</span>:<span class="str">"system"</span>,<span class="str">"content"</span>:<span class="str">"Be brief."</span>},
+    {<span class="str">"role"</span>:<span class="str">"user"</span>,<span class="str">"content"</span>:<span class="str">"Hi"</span>}], sp)</code><span class="star">&#9733;</span><div class="desc"><code>llm.chat()</code> applies the model's chat template for you (vs. <code>generate()</code> which takes raw prompt text).</div></li>
+      <li class="c2"><code class="cmd">{<span class="str">"role"</span>:<span class="str">"user"</span>,<span class="str">"content"</span>:[
+    {<span class="str">"type"</span>:<span class="str">"text"</span>,<span class="str">"text"</span>:<span class="str">"What is this?"</span>},
+    {<span class="str">"type"</span>:<span class="str">"image_url"</span>,<span class="str">"image_url"</span>:{<span class="str">"url"</span>:<span class="str">"https://..."</span>}}]}</code><div class="desc">Vision-language models take OpenAI-style multimodal content parts (image, audio, video for capable models).</div></li>
+      <li class="c2"><code class="cmd">LLM(model=<span class="str">"Qwen/Qwen2.5-VL-7B-Instruct"</span>,
+    limit_mm_per_prompt={<span class="str">"image"</span>: 2})</code><div class="desc">Cap multimodal items per prompt. For offline, images can also be passed via <code>multi_modal_data</code> in the prompt dict.</div></li>
+      <li class="c2"><code class="cmd">tok = llm.get_tokenizer()  <span class="cm"># the HF tokenizer</span></code><div class="desc">Access the underlying tokenizer for manual templating or token counting.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="embed">
+    <div class="card-head"><span class="card-num n2">5</span><span class="card-title">Embeddings &amp; pooling</span><span class="card-sub">encoder tasks</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">llm = LLM(model=<span class="str">"intfloat/e5-mistral-7b-instruct"</span>, runner=<span class="str">"pooling"</span>)</code><span class="star">&#9733;</span><div class="desc">Load a model in pooling mode for embeddings/classification/reranking (the successor to the old <code>task=</code> arg).</div></li>
+      <li class="c2"><code class="cmd">out = llm.embed([<span class="str">"text a"</span>, <span class="str">"text b"</span>])
+out[0].outputs.embedding  <span class="cm"># vector</span></code><span class="star">&#9733;</span><div class="desc">Batched embeddings. Also <code>llm.classify(...)</code>, <code>llm.score(...)</code> (reranking), and <code>llm.reward(...)</code>.</div></li>
+      <li class="c2"><code class="cmd"><span class="cm"># served: POST /v1/embeddings (OpenAI-compatible)</span></code><div class="desc">The online server exposes the same via the OpenAI embeddings endpoint &mdash; drop-in for the OpenAI client.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-serve"><h2 style="color:var(--c3)">Online Serving</h2><p class="sub">One command starts an OpenAI-compatible server; call it with any OpenAI SDK.</p></div>
+<main>
+  <article class="card" id="serve">
+    <div class="card-head"><span class="card-num n3">6</span><span class="card-title">vllm serve (OpenAI server)</span><span class="card-sub">the gateway</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">vllm serve <span class="str">"meta-llama/Llama-3.1-8B-Instruct"</span></code><span class="star">&#9733;</span><div class="desc">Starts an HTTP server on <code>:8000</code> exposing <code>/v1/chat/completions</code>, <code>/v1/completions</code>, <code>/v1/models</code>, <code>/v1/embeddings</code>.</div></li>
+      <li class="c3"><code class="cmd">vllm serve MODEL <span class="flag">--host</span> 0.0.0.0 <span class="flag">--port</span> 8000 <span class="flag">--api-key</span> secret</code><span class="star">&#9733;</span><div class="desc">Bind address/port and require a bearer token. Clients then send <code>Authorization: Bearer secret</code>.</div></li>
+      <li class="c3"><code class="cmd">vllm serve MODEL <span class="flag">--max-model-len</span> 16384 <span class="flag">--dtype</span> bfloat16</code><div class="desc">Same knobs as the <code>LLM</code> constructor, as CLI flags. <code>--served-model-name</code> sets the id clients request.</div></li>
+      <li class="c3"><code class="cmd">vllm serve MODEL <span class="flag">--tensor-parallel-size</span> 4 <span class="flag">--gpu-memory-utilization</span> 0.9</code><span class="star">&#9733;</span><div class="desc">Shard across 4 GPUs and use 90% of VRAM for weights + KV cache. See cards 8&ndash;9.</div></li>
+      <li class="c3"><code class="cmd">curl localhost:8000/v1/models  &middot;  curl localhost:8000/health</code><div class="desc">Sanity endpoints: list loaded models and check liveness. Metrics at <code>/metrics</code> (Prometheus).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="client">
+    <div class="card-head"><span class="card-num n3">7</span><span class="card-title">Query the server</span><span class="card-sub">openai client</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+client = OpenAI(base_url=<span class="str">"http://localhost:8000/v1"</span>, api_key=<span class="str">"EMPTY"</span>)</code><span class="star">&#9733;</span><div class="desc">Point the official OpenAI SDK at vLLM &mdash; no other change. <code>api_key="EMPTY"</code> when the server has no key.</div></li>
+      <li class="c3"><code class="cmd">r = client.chat.completions.create(model=<span class="str">"..."</span>,
+    messages=[{<span class="str">"role"</span>:<span class="str">"user"</span>,<span class="str">"content"</span>:<span class="str">"Hi"</span>}])</code><span class="star">&#9733;</span><div class="desc"><code>model</code> must match the served id (default = the HF path, or <code>--served-model-name</code>). Read <code>r.choices[0].message.content</code>.</div></li>
+      <li class="c3"><code class="cmd">client.chat.completions.create(..., stream=<span class="kw">True</span>)</code><div class="desc">SSE streaming works exactly like OpenAI. Also <code>client.completions</code> and <code>client.embeddings</code>.</div></li>
+      <li class="c3"><code class="cmd">curl localhost:8000/v1/chat/completions -H <span class="str">"Content-Type: application/json"</span> \
+  -d <span class="str">'{"model":"...","messages":[{"role":"user","content":"Hi"}]}'</span></code><div class="desc">Any HTTP client works &mdash; it's just the OpenAI wire format.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-scale"><h2 style="color:var(--c4)">Scaling &amp; Tuning</h2><p class="sub">Spread big models across GPUs, shrink them with quantization, and constrain the output.</p></div>
+<main>
+  <article class="card" id="parallel">
+    <div class="card-head"><span class="card-num n4">8</span><span class="card-title">Parallelism &amp; scaling</span><span class="card-sub">multi-GPU</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="flag">--tensor-parallel-size</span> 4   <span class="cm"># split each layer across 4 GPUs</span></code><span class="star">&#9733;</span><div class="desc"><b>TP</b>: use when the model doesn't fit on one GPU. Set to the number of GPUs on the node.</div></li>
+      <li class="c4"><code class="cmd"><span class="flag">--pipeline-parallel-size</span> 2   <span class="cm"># split layers across nodes/stages</span></code><div class="desc"><b>PP</b>: stack across stages, typically for multi-node. Combine <code>TP &times; PP</code> for very large models.</div></li>
+      <li class="c4"><code class="cmd"><span class="flag">--data-parallel-size</span> 2   <span class="cm"># replicas for throughput</span></code><div class="desc"><b>DP</b> runs independent replicas to raise throughput. <code>--enable-expert-parallel</code> for MoE models.</div></li>
+      <li class="c4"><code class="cmd"><span class="flag">--max-num-seqs</span> 256   &middot;   <span class="flag">--max-num-batched-tokens</span> 8192</code><div class="desc">Batching limits: concurrent sequences and tokens per iteration &mdash; the main throughput/latency dials.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="quant">
+    <div class="card-head"><span class="card-num n4">9</span><span class="card-title">Quantization &amp; memory</span><span class="card-sub">fit more</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">vllm serve MODEL <span class="flag">--quantization</span> awq   <span class="cm"># or gptq, fp8, ...</span></code><span class="star">&#9733;</span><div class="desc">Serve pre-quantized checkpoints (AWQ, GPTQ, FP8, bitsandbytes, compressed-tensors) to cut VRAM &amp; boost speed.</div></li>
+      <li class="c4"><code class="cmd"><span class="flag">--gpu-memory-utilization</span> 0.90</code><span class="star">&#9733;</span><div class="desc">Fraction of VRAM vLLM may use. Lower it if other processes share the GPU; raise it to grow the KV cache.</div></li>
+      <li class="c4"><code class="cmd"><span class="flag">--kv-cache-dtype</span> fp8   &middot;   <span class="flag">--max-model-len</span> 32768</code><div class="desc">FP8 KV cache doubles cache capacity (longer context / more concurrency). Context length is capped by <code>--max-model-len</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># CUDA out of memory on startup?</span></code><span class="badge-warn">gotcha</span><div class="desc">Lower <code>--gpu-memory-utilization</code> or <code>--max-model-len</code>, add TP, or use a quantized model. vLLM pre-allocates the KV cache at load time.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="structured">
+    <div class="card-head"><span class="card-num n4">10</span><span class="card-title">Structured output</span><span class="card-sub">guided decoding</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="kw">from</span> vllm.sampling_params <span class="kw">import</span> GuidedDecodingParams
+gd = GuidedDecodingParams(json=MySchema.model_json_schema())
+SamplingParams(guided_decoding=gd)</code><span class="star">&#9733;</span><div class="desc">Constrain generation offline to a JSON schema, regex, grammar, or choice list &mdash; the model <b>cannot</b> emit invalid output.</div></li>
+      <li class="c4"><code class="cmd">GuidedDecodingParams(regex=<span class="str">r"\d{3}-\d{4}"</span>)  &middot;  choice=[<span class="str">"yes"</span>,<span class="str">"no"</span>]</code><div class="desc">Also regex, EBNF <code>grammar=</code>, and a fixed <code>choice=</code> list.</div></li>
+      <li class="c4"><code class="cmd"><span class="cm"># served: response_format={"type":"json_schema", ...}</span>
+<span class="cm"># or extra_body={"guided_json": schema}</span></code><div class="desc">Over HTTP, use OpenAI's <code>response_format</code> or vLLM's <code>guided_json</code>/<code>guided_regex</code> in <code>extra_body</code>.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-deploy"><h2 style="color:var(--c5)">Deploy &amp; Ecosystem</h2><p class="sub">Tune the engine, containerize, and plug vLLM into the wider stack.</p></div>
+<main>
+  <article class="card" id="perf">
+    <div class="card-head"><span class="card-num n5">11</span><span class="card-title">Performance &amp; engine args</span><span class="card-sub">go faster</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="flag">--enable-prefix-caching</span></code><span class="star">&#9733;</span><div class="desc">Cache &amp; reuse shared prompt prefixes (system prompts, few-shot) across requests &mdash; big win for repeated context. On by default in recent versions.</div></li>
+      <li class="c5"><code class="cmd"><span class="flag">--enable-chunked-prefill</span></code><div class="desc">Interleave prefill with decode for smoother latency under load. Also default on for many configs.</div></li>
+      <li class="c5"><code class="cmd"><span class="flag">--speculative-config</span> <span class="str">'{"model":"...","num_speculative_tokens":5}'</span></code><div class="desc">Speculative decoding with a draft model (or n-gram/EAGLE) to accelerate token generation.</div></li>
+      <li class="c5"><code class="cmd">vllm serve MODEL <span class="flag">--enable-lora</span> <span class="flag">--lora-modules</span> sql=<span class="str">/path</span></code><div class="desc">Serve multiple LoRA adapters on one base model; clients pick the adapter by <code>model</code> name.</div></li>
+      <li class="c5"><code class="cmd">vllm serve MODEL <span class="flag">--enable-auto-tool-choice</span> <span class="flag">--tool-call-parser</span> hermes</code><div class="desc">Enable OpenAI-style function/tool calling (parser depends on the model family).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="ecosystem">
+    <div class="card-head"><span class="card-num n5">12</span><span class="card-title">Deploy &amp; ecosystem</span><span class="card-sub">ship it</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd">docker run --gpus all -p 8000:8000 \
+  vllm/vllm-openai:latest --model MODEL</code><span class="star">&#9733;</span><div class="desc">Official image bundles the OpenAI server. Mount <code>~/.cache/huggingface</code> to avoid re-downloading weights.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># Kubernetes: vLLM Production Stack / KServe / Ray Serve</span></code><div class="desc">Autoscaling &amp; routing via the vLLM production stack, KServe, or Ray Serve; <code>llm-d</code> for large distributed deployments.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># drop-in backend for LangChain, LlamaIndex, OpenAI SDK</span></code><div class="desc">Because it speaks the OpenAI API, vLLM slots under any framework that targets OpenAI &mdash; just change the base URL.</div></li>
+      <li class="c5"><code class="cmd">vllm bench serve  &middot;  vllm bench latency  &middot;  vllm bench throughput</code><div class="desc">Built-in benchmarking subcommands to measure your config before shipping.</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">two modes</span><span class="v">LLM() offline &middot; vllm serve online</span></div>
+    <div><span class="k">LLM(model=)</span><span class="v">load once; generate([prompts], sp)</span></div>
+    <div><span class="k">SamplingParams</span><span class="v">temperature / top_p / max_tokens / stop</span></div>
+    <div><span class="k">llm.chat()</span><span class="v">applies the chat template (vs generate)</span></div>
+    <div><span class="k">vllm serve MODEL</span><span class="v">OpenAI server on :8000</span></div>
+    <div><span class="k">OpenAI client</span><span class="v">base_url .../v1, api_key="EMPTY"</span></div>
+    <div><span class="k">--tensor-parallel-size</span><span class="v">= #GPUs when model won't fit</span></div>
+    <div><span class="k">--gpu-memory-utilization</span><span class="v">VRAM fraction (default 0.9)</span></div>
+    <div><span class="k">--quantization</span><span class="v">awq / gptq / fp8 to shrink</span></div>
+    <div><span class="k">guided_decoding</span><span class="v">json / regex / grammar / choice</span></div>
+    <div><span class="k">--enable-prefix-caching</span><span class="v">reuse shared prompt prefixes</span></div>
+    <div><span class="k">OOM fix</span><span class="v">lower util / max-model-len, add TP, quantize</span></div>
+  </div>
+</section>
+
+<footer>
+  <b>vLLM cheat sheet</b> &middot; v0 &middot; content verified 2026-08-31 against docs.vllm.ai (vLLM 0.28.0, released 2026-08-26; Python 3.10&ndash;3.14, Linux + NVIDIA/AMD/Intel GPU; CPU/TPU/Gaudi/Apple builds separate).<br>
+  Core ideas: PagedAttention + continuous batching for throughput; one <code>LLM</code> class offline and an OpenAI-compatible <code>vllm serve</code> online. Tensor/pipeline/data parallelism, quantization, prefix caching, speculative decoding, LoRA, and guided decoding are built in.<br>
+  Star (&#9733;) marks the most common operations. Flags evolve fast &mdash; confirm exact flag names/defaults against your installed version (<code>vllm serve --help</code>) before shipping.
+</footer>
+</body>
+</html>

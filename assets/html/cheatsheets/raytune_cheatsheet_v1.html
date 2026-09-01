@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ray Tune Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b;  --setup-bg:#f1f3f6;
+    --space:#d97706;  --space-bg:#fdf6ec;
+    --train:#059669;  --train-bg:#ecf7f2;
+    --tuner:#4f46e5;  --tuner-bg:#eef0fd;
+    --opt:#7c3aed;    --opt-bg:#f3eefd;
+    --io:#0d9488;     --io-bg:#e8f6f4;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --brand:#0b8ce8;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .ray{font-family:var(--mono); color:var(--brand)}
+  h1 .ray .t{color:#5bb8f0}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)} .dot.space{background:var(--space)}
+  .dot.train{background:var(--train)} .dot.tuner{background:var(--tuner)}
+  .dot.opt{background:var(--opt)} .dot.io{background:var(--io)}
+  .dot.danger{background:var(--danger)}
+
+  /* ---------- hero diagram ---------- */
+  .flow-wrap{ max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem; }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- quickstart panel ---------- */
+  .quick{
+    max-width:1120px; margin:1.4rem auto 0; background:var(--ink);
+    border-radius:10px; overflow:hidden;
+  }
+  .quick-head{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.06em;
+    color:#cbd5e1; padding:.55rem .95rem; border-bottom:1px solid #333a46;
+    display:flex; justify-content:space-between;
+  }
+  .quick-head .tag{color:#fbbf24}
+  pre.quick-inner{
+    margin:0; padding:.9rem 1.1rem; white-space:pre; overflow-x:auto;
+    font-family:var(--mono); font-size:.79rem; line-height:1.65; color:#e8e6e1; tab-size:2;
+  }
+  pre.quick-inner .kw{color:#c792ea} pre.quick-inner .fn{color:#82aaff}
+  pre.quick-inner .mod{color:#4fd1c5} pre.quick-inner .str{color:#c3e88d}
+  pre.quick-inner .num{color:#f7c66a} pre.quick-inner .cm{color:#8792a2; font-style:italic}
+  pre.quick-inner .arg{color:#f78c6c}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.space{border-left-color:var(--space)}
+  ul.cmds li.train{border-left-color:var(--train)}
+  ul.cmds li.tuner{border-left-color:var(--tuner)}
+  ul.cmds li.opt{border-left-color:var(--opt)}
+  ul.cmds li.io{border-left-color:var(--io)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .mod{color:var(--io)}
+  code.cmd .fn{color:var(--tuner); font-weight:600}
+  code.cmd .arg{color:var(--star)}
+  code.cmd .str{color:var(--train)}
+  code.cmd .num{color:var(--space)}
+  code.cmd .kw{color:#a626a4}
+  code.cmd .cm{color:#9ca3af; font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  li.danger code.cmd .fn,li.danger code.cmd .mod{color:var(--danger)}
+  .desc{font-size:.77rem; color:#525761; margin-top:.2rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f3f0ea; padding:0 .2em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge{
+    font-size:.62rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+    padding:.05rem .3rem; border-radius:4px;
+  }
+  .badge-danger{color:var(--danger); background:var(--danger-bg)}
+  .badge-new{color:var(--opt); background:var(--opt-bg)}
+  .badge-io{color:var(--io); background:var(--io-bg)}
+
+  /* ---------- diagram section ---------- */
+  .diagrams{ max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem; }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:var(--mono)}
+
+  /* ---------- refs strip ---------- */
+  .refs{ max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem; }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#7fd8c4}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:var(--brand)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · distributed hyperparameter tuning · Ray 2.57</div>
+  <h1><span class="ray">ray<span class="t">.tune</span></span> cheat sheet</h1>
+  <p class="lede">Define a <b>search space</b>, wrap your objective in a <b>trainable</b>, hand both to a <b>Tuner</b>. A <b>search algorithm</b> proposes configs, a <b>scheduler</b> kills weak trials early, and <code>tuner.fit()</code> runs many <b>trials</b> in parallel as Ray actors — then hands back a <b>ResultGrid</b>. Two config objects do the steering: <code>TuneConfig</code> (how to search) and <code>RunConfig</code> (where results go).</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>setup &amp; Ray</span>
+    <span><i class="dot space"></i>search space</span>
+    <span><i class="dot train"></i>trainable &amp; results</span>
+    <span><i class="dot tuner"></i>Tuner &amp; config</span>
+    <span><i class="dot opt"></i>search algs &amp; schedulers</span>
+    <span><i class="dot io"></i>resources · scale · analyze</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; verified against <b>docs.ray.io/en/latest/tune</b> (Key Concepts · Lifecycle · API, v2.57) · examples live-introspected from Ray&nbsp;2.56.1 (Tuner API unchanged through 2.57). Verified 2026-08-27 against Ray 2.57.</p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">Search space + trainable → Tuner → parallel trials → ResultGrid</div>
+  <svg class="flow-svg" viewBox="0 0 1120 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ray Tune pipeline: a search space and a trainable feed a Tuner configured with TuneConfig and RunConfig; fit() spawns many trials as parallel Ray actors, each reporting metrics while a scheduler stops weak ones; results come back as a ResultGrid with the best config.">
+    <defs>
+      <marker id="rtArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="rtArrowV" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+      </marker>
+      <marker id="rtArrowR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+      </marker>
+    </defs>
+
+    <!-- band A label -->
+    <text x="24" y="26" font-size="10.5" letter-spacing="2.5" fill="#94a3b8">THE PIPELINE</text>
+
+    <!-- inputs: search space + trainable -->
+    <rect x="20" y="42" width="168" height="46" rx="10" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+    <text x="104" y="63" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">search space</text>
+    <text x="104" y="79" text-anchor="middle" font-size="9.5" fill="#b45309">{"lr": tune.loguniform(…)}</text>
+
+    <rect x="20" y="98" width="168" height="46" rx="10" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <text x="104" y="119" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">trainable</text>
+    <text x="104" y="135" text-anchor="middle" font-size="9.5" fill="#059669">def objective(config): …</text>
+
+    <!-- Tuner -->
+    <line x1="188" y1="65" x2="238" y2="88" stroke="#1a1d24" stroke-width="2" marker-end="url(#rtArrow)"/>
+    <line x1="188" y1="121" x2="238" y2="98" stroke="#1a1d24" stroke-width="2" marker-end="url(#rtArrow)"/>
+    <rect x="242" y="58" width="150" height="70" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+    <text x="317" y="82" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">Tuner</text>
+    <text x="317" y="99" text-anchor="middle" font-size="9" fill="#4f46e5">TuneConfig — how to search</text>
+    <text x="317" y="112" text-anchor="middle" font-size="9" fill="#4f46e5">RunConfig — where results go</text>
+    <text x="317" y="124" text-anchor="middle" font-size="8.5" fill="#6b7280">search_alg · scheduler</text>
+
+    <!-- fit -->
+    <line x1="392" y1="93" x2="428" y2="93" stroke="#1a1d24" stroke-width="2" marker-end="url(#rtArrow)"/>
+    <text x="410" y="85" text-anchor="middle" font-size="9.5" fill="#4f46e5">.fit()</text>
+
+    <!-- trials as actors -->
+    <rect x="432" y="34" width="392" height="150" rx="14" fill="none" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="4 4"/>
+    <text x="448" y="28" font-size="10" fill="#64748b">trials run in parallel as Ray actors  ×num_samples</text>
+    <g font-size="9.5">
+      <rect x="448" y="46" width="168" height="30" rx="8" fill="#fff" stroke="#059669" stroke-width="1.5"/>
+      <text x="460" y="65" fill="#1a1d24">Trial 0 · config → report()</text>
+      <rect x="448" y="82" width="168" height="30" rx="8" fill="#fff" stroke="#059669" stroke-width="1.5"/>
+      <text x="460" y="101" fill="#1a1d24">Trial 1 · config → report()</text>
+      <rect x="448" y="118" width="168" height="30" rx="8" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.5"/>
+      <text x="460" y="137" fill="#1a1d24">Trial 2 · ✂ stopped early</text>
+      <rect x="448" y="154" width="168" height="24" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.3" stroke-dasharray="4 3"/>
+      <text x="532" y="170" text-anchor="middle" fill="#4f46e5">Trial 3… RUNNING</text>
+    </g>
+    <!-- scheduler + search box -->
+    <rect x="636" y="52" width="176" height="56" rx="10" fill="#f3eefd" stroke="#7c3aed" stroke-width="1.8"/>
+    <text x="724" y="72" text-anchor="middle" font-size="10" font-weight="700" fill="#1a1d24">search_alg</text>
+    <text x="724" y="86" text-anchor="middle" font-size="8.5" fill="#7c3aed">picks WHICH configs</text>
+    <text x="724" y="100" text-anchor="middle" font-size="8.5" fill="#7c3aed">TPE / Bayes / random</text>
+    <rect x="636" y="116" width="176" height="56" rx="10" fill="#f3eefd" stroke="#7c3aed" stroke-width="1.8"/>
+    <text x="724" y="136" text-anchor="middle" font-size="10" font-weight="700" fill="#1a1d24">scheduler</text>
+    <text x="724" y="150" text-anchor="middle" font-size="8.5" fill="#7c3aed">decides HOW LONG</text>
+    <text x="724" y="164" text-anchor="middle" font-size="8.5" fill="#7c3aed">ASHA early-stops losers</text>
+    <line x1="616" y1="133" x2="634" y2="120" stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#rtArrowV)"/>
+
+    <!-- results -->
+    <line x1="824" y1="93" x2="860" y2="93" stroke="#1a1d24" stroke-width="2" marker-end="url(#rtArrow)"/>
+    <rect x="864" y="52" width="164" height="82" rx="12" fill="#1a1d24"/>
+    <text x="946" y="78" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">ResultGrid</text>
+    <text x="946" y="97" text-anchor="middle" font-size="9.5" fill="#fbbf24">.get_best_result()</text>
+    <text x="946" y="112" text-anchor="middle" font-size="9" fill="#cbd5e1">.config · .metrics</text>
+    <text x="946" y="126" text-anchor="middle" font-size="9" fill="#cbd5e1">.get_dataframe()</text>
+
+    <!-- band B: driver / worker architecture -->
+    <text x="24" y="228" font-size="10.5" letter-spacing="2.5" fill="#94a3b8">WHAT RUNS WHERE</text>
+    <rect x="20" y="244" width="1008" height="150" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+
+    <!-- driver -->
+    <rect x="44" y="272" width="220" height="96" rx="10" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.8"/>
+    <text x="154" y="296" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">Driver process</text>
+    <text x="154" y="314" text-anchor="middle" font-size="9.5" fill="#4f46e5">your script — calls tuner.fit()</text>
+    <text x="154" y="330" text-anchor="middle" font-size="9.5" fill="#4f46e5">→ ray.init() under the hood</text>
+    <text x="154" y="350" text-anchor="middle" font-size="9" fill="#6b7280">hosts search_alg + scheduler</text>
+
+    <!-- arrow -->
+    <line x1="264" y1="320" x2="320" y2="320" stroke="#1a1d24" stroke-width="2" marker-end="url(#rtArrow)"/>
+    <text x="292" y="312" text-anchor="middle" font-size="9" fill="#64748b">schedules</text>
+
+    <!-- worker actors -->
+    <g font-size="9.5">
+      <rect x="326" y="266" width="150" height="44" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+      <text x="401" y="284" text-anchor="middle" font-weight="700" fill="#1a1d24">Trainable actor</text>
+      <text x="401" y="299" text-anchor="middle" fill="#059669">1 CPU · 0 GPU</text>
+      <rect x="326" y="322" width="150" height="44" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+      <text x="401" y="340" text-anchor="middle" font-weight="700" fill="#1a1d24">Trainable actor</text>
+      <text x="401" y="355" text-anchor="middle" fill="#059669">1 CPU · 0.5 GPU</text>
+      <rect x="486" y="266" width="150" height="44" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+      <text x="561" y="284" text-anchor="middle" font-weight="700" fill="#1a1d24">Trainable actor</text>
+      <text x="561" y="299" text-anchor="middle" fill="#059669">tune.with_resources</text>
+      <rect x="486" y="322" width="150" height="44" rx="9" fill="#f6f7f9" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="4 3"/>
+      <text x="561" y="347" text-anchor="middle" fill="#64748b">… on any node</text>
+    </g>
+    <text x="481" y="258" font-size="9" fill="#64748b" text-anchor="middle">worker actors — one per trial, placed anywhere in the cluster</text>
+
+    <!-- storage -->
+    <line x1="636" y1="320" x2="688" y2="320" stroke="#0d9488" stroke-width="2" marker-end="url(#rtArrow)"/>
+    <rect x="692" y="284" width="150" height="72" rx="10" fill="#e8f6f4" stroke="#0d9488" stroke-width="1.8"/>
+    <text x="767" y="308" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a1d24">storage_path</text>
+    <text x="767" y="325" text-anchor="middle" font-size="9" fill="#0d9488">checkpoints + results</text>
+    <text x="767" y="339" text-anchor="middle" font-size="9" fill="#0d9488">local · NFS · S3</text>
+    <text x="767" y="351" text-anchor="middle" font-size="8.5" fill="#6b7280">shared for multi-node</text>
+
+    <rect x="866" y="284" width="140" height="72" rx="10" fill="#fff" stroke="#cbd5e1" stroke-width="1.4"/>
+    <text x="936" y="312" text-anchor="middle" font-size="9.5" fill="#64748b">Tuner.restore(path)</text>
+    <text x="936" y="330" text-anchor="middle" font-size="9" fill="#94a3b8">resume a crashed run</text>
+  </svg>
+
+  <!-- quickstart -->
+  <div class="quick">
+    <div class="quick-head"><span>the whole thing, function API</span><span class="tag">use tune.report inside the trainable</span></div>
+<pre class="quick-inner"><span class="kw">from</span> <span class="mod">ray</span> <span class="kw">import</span> tune
+<span class="kw">from</span> <span class="mod">ray.tune.schedulers</span> <span class="kw">import</span> ASHAScheduler
+
+<span class="kw">def</span> <span class="fn">objective</span>(config):                          <span class="cm"># the trainable (function API)</span>
+    <span class="kw">for</span> step <span class="kw">in</span> <span class="fn">range</span>(<span class="num">100</span>):
+        score = train_one_epoch(config[<span class="str">"lr"</span>])   <span class="cm"># your code</span>
+        tune.<span class="fn">report</span>({<span class="str">"score"</span>: score})            <span class="cm"># report each iteration</span>
+
+space = {<span class="str">"lr"</span>: tune.<span class="fn">loguniform</span>(<span class="num">1e-4</span>, <span class="num">1e-1</span>), <span class="str">"bs"</span>: tune.<span class="fn">choice</span>([<span class="num">16</span>, <span class="num">32</span>, <span class="num">64</span>])}
+
+tuner = tune.<span class="fn">Tuner</span>(
+    tune.<span class="fn">with_resources</span>(objective, {<span class="str">"cpu"</span>: <span class="num">1</span>, <span class="str">"gpu"</span>: <span class="num">0</span>}),
+    <span class="arg">param_space</span>=space,
+    <span class="arg">tune_config</span>=tune.<span class="fn">TuneConfig</span>(<span class="arg">metric</span>=<span class="str">"score"</span>, <span class="arg">mode</span>=<span class="str">"max"</span>, <span class="arg">num_samples</span>=<span class="num">20</span>,
+                              <span class="arg">scheduler</span>=<span class="fn">ASHAScheduler</span>()),
+    <span class="arg">run_config</span>=tune.<span class="fn">RunConfig</span>(<span class="arg">name</span>=<span class="str">"exp"</span>, <span class="arg">storage_path</span>=<span class="str">"~/ray_results"</span>),
+)
+results = tuner.<span class="fn">fit</span>()
+<span class="fn">print</span>(results.<span class="fn">get_best_result</span>().config)</pre>
+  </div>
+</section>
+
+<main>
+
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Ray</span><span class="card-sub">install &amp; init</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">pip install <span class="str">"ray[tune]"</span></code><span class="star">★</span><div class="desc">Tune + its deps (core Ray is <code>pip install ray</code>).</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">from</span> <span class="mod">ray</span> <span class="kw">import</span> tune</code><span class="star">★</span><div class="desc">The one import you need for everything here.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">ray</span>.<span class="fn">init</span>()</code><div class="desc">Optional — <code>fit()</code> auto-inits; call to set CPUs/GPUs/address.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">ray</span>.<span class="fn">init</span>(<span class="arg">num_cpus</span>=<span class="num">8</span>, <span class="arg">num_gpus</span>=<span class="num">2</span>)</code><div class="desc">Cap local resources for the trial pool.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">ray</span>.<span class="fn">init</span>(<span class="arg">address</span>=<span class="str">"auto"</span>)</code><div class="desc">Attach to an existing cluster.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">ray</span>.<span class="fn">shutdown</span>()</code><div class="desc">Tear the runtime down.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 THE WORKFLOW -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">The Workflow</span><span class="card-sub">space → Tuner → fit</span></div>
+    <ul class="cmds">
+      <li class="space"><code class="cmd">space = {<span class="str">"lr"</span>: tune.<span class="fn">uniform</span>(<span class="num">0</span>, <span class="num">1</span>)}</code><span class="star">★</span><div class="desc">1 · define the search space (a dict).</div></li>
+      <li class="train"><code class="cmd"><span class="kw">def</span> <span class="fn">objective</span>(config): … tune.<span class="fn">report</span>({…})</code><span class="star">★</span><div class="desc">2 · the trainable — read <code>config</code>, report metrics.</div></li>
+      <li class="tuner"><code class="cmd">tuner = tune.<span class="fn">Tuner</span>(objective, <span class="arg">param_space</span>=space, …)</code><span class="star">★</span><div class="desc">3 · assemble the run.</div></li>
+      <li class="train"><code class="cmd">results = tuner.<span class="fn">fit</span>()</code><span class="star">★</span><div class="desc">4 · launch all trials, block till done.</div></li>
+      <li class="train"><code class="cmd">results.<span class="fn">get_best_result</span>().config</code><span class="star">★</span><div class="desc">5 · the winning hyperparameters.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 SEARCH SPACE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Search Space · Sampling</span><span class="card-sub">tune.* domains</span></div>
+    <ul class="cmds">
+      <li class="space"><code class="cmd">tune.<span class="fn">uniform</span>(<span class="num">0</span>, <span class="num">1</span>)</code><span class="star">★</span><div class="desc">Continuous float in a range.</div></li>
+      <li class="space"><code class="cmd">tune.<span class="fn">loguniform</span>(<span class="num">1e-4</span>, <span class="num">1e-1</span>)</code><span class="star">★</span><div class="desc">Log scale — for learning rates &amp; the like.</div></li>
+      <li class="space"><code class="cmd">tune.<span class="fn">randint</span>(<span class="num">1</span>, <span class="num">100</span>)</code><span class="star">★</span><div class="desc">Integer in <code>[lower, upper)</code>.</div></li>
+      <li class="space"><code class="cmd">tune.<span class="fn">choice</span>([<span class="str">"a"</span>, <span class="str">"b"</span>, <span class="str">"c"</span>])</code><span class="star">★</span><div class="desc">Pick one from a list.</div></li>
+      <li class="space"><code class="cmd">tune.<span class="fn">quniform</span>(<span class="num">0</span>, <span class="num">10</span>, <span class="num">0.5</span>) · tune.<span class="fn">qrandint</span>(…)</code><div class="desc">Quantized (stepped) float / int.</div></li>
+      <li class="space"><code class="cmd">tune.<span class="fn">randn</span>(<span class="num">0</span>, <span class="num">1</span>) · tune.<span class="fn">lograndint</span>(…)</code><div class="desc">Gaussian · log-scaled integer.</div></li>
+      <li class="space"><code class="cmd">tune.<span class="fn">grid_search</span>([<span class="num">16</span>, <span class="num">32</span>, <span class="num">64</span>])</code><div class="desc">Try every value — multiplies trial count.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 SEARCH SPACE ADVANCED -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Search Space · Advanced</span><span class="card-sub">conditional &amp; custom</span></div>
+    <ul class="cmds">
+      <li class="space"><code class="cmd">tune.<span class="fn">sample_from</span>(<span class="kw">lambda</span> c: c.config.a * <span class="num">2</span>)</code><div class="desc">Derive one param from another / arbitrary Python.</div></li>
+      <li class="space"><code class="cmd"><span class="str">"b"</span>: tune.<span class="fn">sample_from</span>(<span class="kw">lambda</span> c: np.random.randint(c.config.a))</code><div class="desc">Conditional ranges that depend on a sibling.</div></li>
+      <li class="space"><code class="cmd"><span class="str">"net"</span>: {<span class="str">"lr"</span>: tune.<span class="fn">uniform</span>(…), <span class="str">"units"</span>: tune.<span class="fn">choice</span>(…)}</code><div class="desc">Nest dicts — Tune recurses into the space.</div></li>
+      <li class="space"><code class="cmd">tune.<span class="fn">qloguniform</span>(<span class="num">1e-4</span>, <span class="num">1e-1</span>, <span class="num">5e-5</span>)</code><div class="desc">Quantized log range.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 TRAINABLE FUNCTION API -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Trainable · Function API</span><span class="card-sub">recommended</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd"><span class="kw">def</span> <span class="fn">objective</span>(config): …</code><span class="star">★</span><div class="desc">One arg: the sampled <code>config</code> dict.</div></li>
+      <li class="train"><code class="cmd">config[<span class="str">"lr"</span>]</code><div class="desc">Read your hyperparameters off it.</div></li>
+      <li class="train"><code class="cmd"><span class="kw">for</span> step <span class="kw">in</span> <span class="fn">range</span>(epochs): tune.<span class="fn">report</span>({…})</code><span class="star">★</span><div class="desc">Report each iteration so schedulers can act.</div></li>
+      <li class="train"><code class="cmd">tune.<span class="fn">report</span>({<span class="str">"score"</span>: final})</code><div class="desc">A single report also works for one-shot objectives.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">from</span> <span class="mod">ray.train</span> <span class="kw">import</span> report</code><span class="badge badge-danger">deprecated</span><div class="desc">Inside a Tune function use <code>tune.report</code>, not <code>train.report</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 REPORTING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Reporting Metrics</span><span class="card-sub">tune.report</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd">tune.<span class="fn">report</span>({<span class="str">"loss"</span>: l, <span class="str">"acc"</span>: a})</code><div class="desc">Report several metrics at once.</div></li>
+      <li class="train"><code class="cmd"><span class="cm"># training_iteration is added automatically</span></code><div class="desc">Use it as a <code>time_attr</code> / stop key for free.</div></li>
+      <li class="train"><code class="cmd">tune.<span class="fn">report</span>(m, <span class="arg">checkpoint</span>=ckpt)</code><div class="desc">Attach a checkpoint to this step (see card 08).</div></li>
+      <li class="train"><code class="cmd">tune.<span class="fn">get_context</span>().get_trial_id()</code><div class="desc">Trial id / dir from inside the trainable.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 TRAINABLE CLASS API -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Trainable · Class API</span><span class="card-sub">stateful control</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd"><span class="kw">class</span> MyTrainable(tune.<span class="fn">Trainable</span>):</code><div class="desc">For fine control over checkpoint/restore &amp; PBT.</div></li>
+      <li class="train"><code class="cmd"><span class="kw">def</span> <span class="fn">setup</span>(self, config): …</code><div class="desc">Build model/optimizer once.</div></li>
+      <li class="train"><code class="cmd"><span class="kw">def</span> <span class="fn">step</span>(self): <span class="kw">return</span> {<span class="str">"score"</span>: …}</code><div class="desc">One iteration; the dict is auto-reported.</div></li>
+      <li class="train"><code class="cmd"><span class="kw">def</span> <span class="fn">save_checkpoint</span> / <span class="fn">load_checkpoint</span>(self, dir)</code><div class="desc">Persist &amp; restore trial state.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 CHECKPOINTING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Checkpointing</span><span class="card-sub">save · resume</span></div>
+    <ul class="cmds">
+      <li class="opt"><code class="cmd">ckpt = tune.<span class="fn">Checkpoint</span>.<span class="fn">from_directory</span>(d)</code><div class="desc">Wrap a local dir of saved files.</div></li>
+      <li class="opt"><code class="cmd">tune.<span class="fn">report</span>(metrics, <span class="arg">checkpoint</span>=ckpt)</code><span class="star">★</span><div class="desc">Report + checkpoint together, per step.</div></li>
+      <li class="opt"><code class="cmd">ckpt = tune.<span class="fn">get_checkpoint</span>()</code><span class="star">★</span><div class="desc">At trial start — resume from here if not <code>None</code>.</div></li>
+      <li class="opt"><code class="cmd"><span class="kw">with</span> ckpt.<span class="fn">as_directory</span>() <span class="kw">as</span> d: …</code><div class="desc">Materialize the checkpoint to read files back.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 THE TUNER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">The Tuner</span><span class="card-sub">the entry point</span></div>
+    <ul class="cmds">
+      <li class="tuner"><code class="cmd">tune.<span class="fn">Tuner</span>(trainable, <span class="arg">param_space</span>=space)</code><span class="star">★</span><div class="desc">Minimal Tuner — random search, 1 sample.</div></li>
+      <li class="tuner"><code class="cmd">tune.<span class="fn">Tuner</span>(…, <span class="arg">tune_config</span>=…, <span class="arg">run_config</span>=…)</code><div class="desc">Full form — the two config objects steer everything.</div></li>
+      <li class="tuner"><code class="cmd">results = tuner.<span class="fn">fit</span>()</code><div class="desc">Run all trials → returns a <code>ResultGrid</code>.</div></li>
+      <li class="tuner"><code class="cmd">tune.<span class="fn">Tuner</span>.<span class="fn">restore</span>(path, trainable)</code><div class="desc">Reload an interrupted experiment, then <code>.fit()</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 TUNECONFIG -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">TuneConfig</span><span class="card-sub">how to search</span></div>
+    <ul class="cmds">
+      <li class="tuner"><code class="cmd"><span class="arg">metric</span>=<span class="str">"score"</span>, <span class="arg">mode</span>=<span class="str">"max"</span></code><span class="star">★</span><div class="desc">Which metric, and which direction is better.</div></li>
+      <li class="tuner"><code class="cmd"><span class="arg">num_samples</span>=<span class="num">20</span></code><span class="star">★</span><div class="desc">How many configs to sample (×grid, if any).</div></li>
+      <li class="tuner"><code class="cmd"><span class="arg">search_alg</span>=OptunaSearch()</code><div class="desc">Smart search instead of random.</div></li>
+      <li class="tuner"><code class="cmd"><span class="arg">scheduler</span>=ASHAScheduler()</code><span class="star">★</span><div class="desc">Early-stop weak trials.</div></li>
+      <li class="tuner"><code class="cmd"><span class="arg">max_concurrent_trials</span>=<span class="num">4</span></code><div class="desc">Cap trials running at once.</div></li>
+      <li class="tuner"><code class="cmd"><span class="arg">time_budget_s</span>=<span class="num">3600</span></code><div class="desc">Wall-clock budget for the whole search.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 RUNCONFIG -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">RunConfig</span><span class="card-sub">where results go</span></div>
+    <ul class="cmds">
+      <li class="tuner"><code class="cmd"><span class="arg">name</span>=<span class="str">"my_exp"</span></code><div class="desc">Experiment folder name.</div></li>
+      <li class="tuner"><code class="cmd"><span class="arg">storage_path</span>=<span class="str">"s3://bucket/runs"</span></code><span class="star">★</span><div class="desc">Where checkpoints + results land (local/NFS/S3/GCS).</div></li>
+      <li class="tuner"><code class="cmd"><span class="arg">stop</span>={<span class="str">"training_iteration"</span>: <span class="num">100</span>}</code><div class="desc">Global stop condition per trial.</div></li>
+      <li class="tuner"><code class="cmd"><span class="arg">checkpoint_config</span>=tune.<span class="fn">CheckpointConfig</span>(…)</code><div class="desc">Keep-N, checkpoint scoring &amp; frequency.</div></li>
+      <li class="tuner"><code class="cmd"><span class="arg">callbacks</span>=[…], <span class="arg">verbose</span>=<span class="num">1</span></code><div class="desc">Loggers/hooks + console verbosity.</div></li>
+      <li class="tuner"><code class="cmd"><span class="arg">failure_config</span>=tune.<span class="fn">FailureConfig</span>(<span class="arg">max_failures</span>=<span class="num">3</span>)</code><div class="desc">Auto-retry flaky trials.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 SEARCH ALGORITHMS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Search Algorithms</span><span class="card-sub">which configs to try</span></div>
+    <ul class="cmds">
+      <li class="opt"><code class="cmd">BasicVariantGenerator()</code><span class="star">★</span><div class="desc"><b>Default</b> — random / grid search.</div></li>
+      <li class="opt"><code class="cmd"><span class="kw">from</span> <span class="mod">ray.tune.search.optuna</span> <span class="kw">import</span> OptunaSearch</code><span class="star">★</span><div class="desc">TPE / Optuna backend — great general default.</div></li>
+      <li class="opt"><code class="cmd"><span class="kw">from</span> <span class="mod">ray.tune.search.hyperopt</span> <span class="kw">import</span> HyperOptSearch</code><div class="desc">Tree-Parzen via HyperOpt.</div></li>
+      <li class="opt"><code class="cmd"><span class="kw">from</span> <span class="mod">ray.tune.search.bayesopt</span> <span class="kw">import</span> BayesOptSearch</code><div class="desc">Gaussian-process Bayesian search.</div></li>
+      <li class="opt"><code class="cmd">AxSearch · TuneBOHB · HEBOSearch · NevergradSearch</code><div class="desc">More backends — each a <code>pip install</code> extra.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 CONCURRENCY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Limiting the Searcher</span><span class="card-sub">concurrency &amp; repeats</span></div>
+    <ul class="cmds">
+      <li class="opt"><code class="cmd">ConcurrencyLimiter(searcher, <span class="arg">max_concurrent</span>=<span class="num">4</span>)</code><span class="star">★</span><div class="desc">Sequential searchers need this to parallelize sanely.</div></li>
+      <li class="opt"><code class="cmd">Repeater(searcher, <span class="arg">repeat</span>=<span class="num">3</span>)</code><div class="desc">Average noisy objectives over repeats.</div></li>
+      <li class="opt"><code class="cmd">search_alg.<span class="fn">save</span>(<span class="str">"algo.pkl"</span>) · <span class="fn">restore</span>(…)</code><div class="desc">Persist searcher state across restarts.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 SCHEDULERS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Schedulers</span><span class="card-sub">how long trials run</span></div>
+    <ul class="cmds">
+      <li class="opt"><code class="cmd">ASHAScheduler()</code><span class="star">★</span><div class="desc">Async successive halving — the usual first choice.</div></li>
+      <li class="opt"><code class="cmd">PopulationBasedTraining(…)</code><span class="star">★</span><div class="desc">PBT — evolve hyperparameters mid-training.</div></li>
+      <li class="opt"><code class="cmd">HyperBandScheduler() · HyperBandForBOHB()</code><div class="desc">HyperBand · pair BOHB search with it.</div></li>
+      <li class="opt"><code class="cmd">MedianStoppingRule()</code><div class="desc">Stop trials below the running median.</div></li>
+      <li class="opt"><code class="cmd">FIFOScheduler()</code><div class="desc">Default — no early stopping at all.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 ASHA CONFIG -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Tuning ASHA</span><span class="card-sub">the halving knobs</span></div>
+    <ul class="cmds">
+      <li class="opt"><code class="cmd"><span class="arg">time_attr</span>=<span class="str">"training_iteration"</span></code><span class="star">★</span><div class="desc">What "budget" means (iterations, or <code>time_total_s</code>).</div></li>
+      <li class="opt"><code class="cmd"><span class="arg">max_t</span>=<span class="num">100</span></code><div class="desc">Max budget a trial can reach.</div></li>
+      <li class="opt"><code class="cmd"><span class="arg">grace_period</span>=<span class="num">10</span></code><div class="desc">Never stop before this many units — give trials a chance.</div></li>
+      <li class="opt"><code class="cmd"><span class="arg">reduction_factor</span>=<span class="num">4</span></code><div class="desc">Keep top 1/4 at each rung.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 RESOURCES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Resources per Trial</span><span class="card-sub">CPUs · GPUs</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd">tune.<span class="fn">with_resources</span>(obj, {<span class="str">"cpu"</span>: <span class="num">2</span>, <span class="str">"gpu"</span>: <span class="num">1</span>})</code><span class="star">★</span><div class="desc">Reserve per trial; controls how many run in parallel.</div></li>
+      <li class="io"><code class="cmd">{<span class="str">"gpu"</span>: <span class="num">0.5</span>}</code><div class="desc">Fractional GPUs — pack 2 trials per card.</div></li>
+      <li class="io"><code class="cmd">tune.<span class="fn">with_resources</span>(obj, PlacementGroupFactory([…]))</code><div class="desc">Multi-node / multi-worker trials (e.g. distributed training).</div></li>
+      <li class="io"><code class="cmd"><span class="kw">lambda</span> cfg: {<span class="str">"gpu"</span>: cfg[<span class="str">"n_gpu"</span>]}</code><div class="desc">Resources that depend on the sampled config.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 WITH_PARAMETERS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Passing Big Objects</span><span class="card-sub">with_parameters</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd">tune.<span class="fn">with_parameters</span>(obj, <span class="arg">data</span>=big_df)</code><span class="star">★</span><div class="desc">Put large data in the object store, not a closure.</div></li>
+      <li class="io"><code class="cmd"><span class="kw">def</span> <span class="fn">objective</span>(config, data): …</code><div class="desc">Extra args arrive after <code>config</code>.</div></li>
+      <li class="io"><code class="cmd">ref = <span class="mod">ray</span>.<span class="fn">put</span>(model); <span class="mod">ray</span>.<span class="fn">get</span>(ref)</code><div class="desc">Manual object-store handle when you need it.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 RESULTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Results &amp; Analysis</span><span class="card-sub">the ResultGrid</span></div>
+    <ul class="cmds">
+      <li class="train"><code class="cmd">best = results.<span class="fn">get_best_result</span>()</code><span class="star">★</span><div class="desc">Best trial (needs metric+mode if not in TuneConfig).</div></li>
+      <li class="train"><code class="cmd">best.config · best.metrics</code><div class="desc">Its hyperparameters · last reported metrics.</div></li>
+      <li class="train"><code class="cmd">results.<span class="fn">get_dataframe</span>()</code><span class="star">★</span><div class="desc">All trials as a pandas DataFrame.</div></li>
+      <li class="train"><code class="cmd">best.<span class="fn">get_best_checkpoint</span>(<span class="arg">metric</span>, <span class="arg">mode</span>)</code><div class="desc">Best checkpoint of the best trial.</div></li>
+      <li class="train"><code class="cmd">results.errors · results.num_errors</code><div class="desc">What failed, and how many.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 STOPPING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Stopping &amp; Resuming</span><span class="card-sub">end early · restart</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd"><span class="arg">stop</span>={<span class="str">"score"</span>: <span class="num">0.98</span>, <span class="str">"training_iteration"</span>: <span class="num">50</span>}</code><span class="star">★</span><div class="desc">Stop a trial when any threshold is hit.</div></li>
+      <li class="io"><code class="cmd"><span class="kw">class</span> Stop(tune.<span class="fn">Stopper</span>): <span class="kw">def</span> <span class="fn">__call__</span>(…)</code><div class="desc">Custom logic — e.g. plateau / whole-experiment stop.</div></li>
+      <li class="io"><code class="cmd">tune.<span class="fn">Tuner</span>.<span class="fn">restore</span>(path, trainable, <span class="arg">resume_errored</span>=<span class="kw">True</span>)</code><span class="star">★</span><div class="desc">Resume after a crash; retry the errored trials.</div></li>
+      <li class="io"><code class="cmd"><span class="arg">time_budget_s</span>=<span class="num">1800</span></code><div class="desc">Or just cap the whole search by wall-clock.</div></li>
+    </ul>
+  </article>
+
+  <!-- 20 DISTRIBUTED / INTEGRATIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">20</span><span class="card-title">Scale &amp; Integrations</span><span class="card-sub">cluster · loggers</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd"><span class="arg">storage_path</span>=<span class="str">"s3://…"</span></code><span class="star">★</span><div class="desc">Shared storage is required for multi-node runs.</div></li>
+      <li class="io"><code class="cmd">$ ray up cluster.yaml · $ ray submit …</code><div class="desc">Same script scales from laptop to cluster unchanged.</div></li>
+      <li class="io"><code class="cmd"><span class="kw">from</span> <span class="mod">ray.air.integrations.wandb</span> <span class="kw">import</span> WandbLoggerCallback</code><div class="desc">Log every trial to W&amp;B (also MLflow, Comet).</div></li>
+      <li class="io"><code class="cmd">$ tensorboard --logdir ~/ray_results</code><div class="desc">TensorBoard reads Tune's logs out of the box.</div></li>
+      <li class="io"><code class="cmd">TuneReportCheckpointCallback</code><div class="desc">Bridge Keras/Lightning/XGBoost training into Tune.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four ideas worth a picture</h2>
+  <p class="sub">The two ways to write a trainable, how ASHA saves compute, why search algorithm and scheduler are different knobs, and the trial-count arithmetic that surprises everyone.</p>
+  <div class="merge-grid">
+
+    <!-- D1 function vs class API -->
+    <div class="merge-card">
+      <h3>Function API vs Class API</h3>
+      <p>Two ways to define the trainable. The <b>function API</b> is recommended — a plain <code>def</code> with a report loop. The <b>class API</b> gives explicit save/restore hooks for PBT.</p>
+      <svg viewBox="0 0 390 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Left: a function objective(config) with a loop calling tune.report. Right: a Trainable class with setup, step, save_checkpoint and load_checkpoint methods.">
+        <text x="8" y="16" font-size="10" fill="#059669">FUNCTION API  ★ recommended</text>
+        <rect x="10" y="24" width="180" height="170" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+        <g font-size="9" fill="#1a1d24" font-family="JetBrains Mono, monospace">
+          <text x="24" y="48">def objective(config):</text>
+          <text x="34" y="66" fill="#6b7280">for step in range(N):</text>
+          <text x="44" y="84">s = train(config)</text>
+          <text x="44" y="102" fill="#059669">tune.report({"s": s})</text>
+        </g>
+        <rect x="24" y="120" width="152" height="30" rx="6" fill="#fff" stroke="#059669" stroke-dasharray="3 3"/>
+        <text x="100" y="139" text-anchor="middle" font-size="8.5" fill="#059669">report drives the scheduler</text>
+        <text x="100" y="175" text-anchor="middle" font-size="8.5" fill="#6b7280">less code · most use-cases</text>
+
+        <text x="204" y="16" font-size="10" fill="#7c3aed">CLASS API</text>
+        <rect x="200" y="24" width="182" height="170" rx="8" fill="#f3eefd" stroke="#7c3aed" stroke-width="1.5"/>
+        <g font-size="9" fill="#1a1d24" font-family="JetBrains Mono, monospace">
+          <text x="214" y="48">class T(tune.Trainable):</text>
+          <text x="224" y="66" fill="#7c3aed">def setup(self, cfg)</text>
+          <text x="224" y="84" fill="#7c3aed">def step(self)</text>
+          <text x="224" y="102" fill="#7c3aed">def save_checkpoint()</text>
+          <text x="224" y="120" fill="#7c3aed">def load_checkpoint()</text>
+        </g>
+        <rect x="214" y="134" width="154" height="30" rx="6" fill="#fff" stroke="#7c3aed" stroke-dasharray="3 3"/>
+        <text x="291" y="153" text-anchor="middle" font-size="8.5" fill="#7c3aed">explicit state control</text>
+        <text x="291" y="182" text-anchor="middle" font-size="8.5" fill="#6b7280">needed for PBT / pause-resume</text>
+      </svg>
+    </div>
+
+    <!-- D2 ASHA -->
+    <div class="merge-card">
+      <h3>How ASHA saves compute</h3>
+      <p>Successive halving: start many trials cheap; at each <b>rung</b> keep only the top fraction and give survivors more budget. Weak configs die young.</p>
+      <svg viewBox="0 0 390 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bracket diagram: eight trials at rung 1, halved to four at rung 2, two at rung 3, one winner at rung 4, budget increasing each rung.">
+        <!-- rungs axis -->
+        <text x="8" y="20" font-size="8.5" fill="#94a3b8">trials</text>
+        <text x="330" y="196" font-size="8.5" fill="#94a3b8">budget →</text>
+        <!-- rung labels -->
+        <g font-size="8" fill="#64748b" text-anchor="middle">
+          <text x="70" y="196">rung 1</text><text x="160" y="196">rung 2</text><text x="250" y="196">rung 3</text><text x="335" y="196">rung 4</text>
+        </g>
+        <!-- rung 1: 8 trials -->
+        <g>
+          <rect x="52" y="30" width="36" height="12" rx="3" fill="#059669"/>
+          <rect x="52" y="46" width="36" height="12" rx="3" fill="#059669"/>
+          <rect x="52" y="62" width="36" height="12" rx="3" fill="#059669"/>
+          <rect x="52" y="78" width="36" height="12" rx="3" fill="#059669"/>
+          <rect x="52" y="94" width="36" height="12" rx="3" fill="#dc2626"/>
+          <rect x="52" y="110" width="36" height="12" rx="3" fill="#dc2626"/>
+          <rect x="52" y="126" width="36" height="12" rx="3" fill="#dc2626"/>
+          <rect x="52" y="142" width="36" height="12" rx="3" fill="#dc2626"/>
+        </g>
+        <!-- rung 2: 4 trials, wider -->
+        <g>
+          <rect x="130" y="34" width="60" height="14" rx="3" fill="#059669"/>
+          <rect x="130" y="54" width="60" height="14" rx="3" fill="#059669"/>
+          <rect x="130" y="74" width="60" height="14" rx="3" fill="#dc2626"/>
+          <rect x="130" y="94" width="60" height="14" rx="3" fill="#dc2626"/>
+        </g>
+        <!-- rung 3: 2 trials -->
+        <g>
+          <rect x="216" y="40" width="84" height="16" rx="3" fill="#059669"/>
+          <rect x="216" y="64" width="84" height="16" rx="3" fill="#dc2626"/>
+        </g>
+        <!-- rung 4: 1 winner -->
+        <rect x="308" y="44" width="60" height="18" rx="3" fill="#b45309"/>
+        <text x="338" y="57" text-anchor="middle" font-size="9" fill="#fff">★ best</text>
+        <!-- legend -->
+        <rect x="52" y="164" width="10" height="10" rx="2" fill="#059669"/><text x="66" y="173" font-size="8.5" fill="#64748b">promoted</text>
+        <rect x="150" y="164" width="10" height="10" rx="2" fill="#dc2626"/><text x="164" y="173" font-size="8.5" fill="#64748b">stopped (grace_period first)</text>
+      </svg>
+    </div>
+
+    <!-- D3 search alg vs scheduler -->
+    <div class="merge-card">
+      <h3>search_alg vs scheduler</h3>
+      <p>Two orthogonal knobs. The <b>search algorithm</b> picks <i>which</i> config each trial gets; the <b>scheduler</b> decides <i>how long</i> each trial is allowed to run.</p>
+      <svg viewBox="0 0 390 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A 2D plot: the horizontal axis is which config chosen by the search algorithm; the vertical axis is training time controlled by the scheduler, with some trials cut short.">
+        <!-- axes -->
+        <line x1="52" y1="30" x2="52" y2="168" stroke="#cbd5e1" stroke-width="1.5"/>
+        <line x1="52" y1="168" x2="360" y2="168" stroke="#cbd5e1" stroke-width="1.5"/>
+        <text x="205" y="192" text-anchor="middle" font-size="9" fill="#7c3aed">search_alg → WHICH config (position in space)</text>
+        <text x="20" y="100" font-size="9" fill="#7c3aed" transform="rotate(-90 20 100)" text-anchor="middle">scheduler → HOW LONG</text>
+        <!-- bars = trials, height = how long each ran -->
+        <g>
+          <rect x="74" y="120" width="20" height="48" rx="3" fill="#4f46e5"/>
+          <rect x="116" y="70" width="20" height="98" rx="3" fill="#4f46e5"/>
+          <rect x="158" y="140" width="20" height="28" rx="3" fill="#dc2626"/>
+          <rect x="200" y="44" width="20" height="124" rx="3" fill="#4f46e5"/>
+          <rect x="242" y="150" width="20" height="18" rx="3" fill="#dc2626"/>
+          <rect x="284" y="90" width="20" height="78" rx="3" fill="#4f46e5"/>
+          <rect x="326" y="150" width="20" height="18" rx="3" fill="#dc2626"/>
+        </g>
+        <text x="210" y="40" font-size="8.5" fill="#4f46e5">tall = ran to full budget</text>
+        <text x="250" y="140" font-size="8.5" fill="#dc2626">short = scheduler cut it</text>
+      </svg>
+    </div>
+
+    <!-- D4 trial count math -->
+    <div class="merge-card">
+      <h3>num_samples × grid = trial count</h3>
+      <p>The count that surprises people: <code>num_samples</code> repeats the <i>whole</i> space, and every <code>grid_search</code> axis multiplies on top. Random domains are re-sampled each time.</p>
+      <svg viewBox="0 0 390 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="num_samples of 4 times a grid_search over three batch sizes equals twelve trials, shown as a 4 by 3 grid of dots.">
+        <text x="10" y="24" font-size="10" fill="#1a1d24" font-family="JetBrains Mono, monospace">num_samples=<tspan fill="#d97706">4</tspan> × grid_search([<tspan fill="#4f46e5">16,32,64</tspan>])</text>
+        <text x="10" y="42" font-size="10" fill="#059669" font-family="JetBrains Mono, monospace">= 12 trials</text>
+        <!-- grid of dots: 4 rows (samples) x 3 cols (grid) -->
+        <g>
+          <!-- column headers -->
+          <text x="150" y="66" font-size="8.5" fill="#4f46e5" text-anchor="middle">bs=16</text>
+          <text x="230" y="66" font-size="8.5" fill="#4f46e5" text-anchor="middle">bs=32</text>
+          <text x="310" y="66" font-size="8.5" fill="#4f46e5" text-anchor="middle">bs=64</text>
+        </g>
+        <g font-size="8.5" fill="#d97706" text-anchor="end" font-family="JetBrains Mono, monospace">
+          <text x="120" y="90">sample 1</text><text x="120" y="120">sample 2</text><text x="120" y="150">sample 3</text><text x="120" y="180">sample 4</text>
+        </g>
+        <g fill="#0d9488">
+          <circle cx="150" cy="86" r="8"/><circle cx="230" cy="86" r="8"/><circle cx="310" cy="86" r="8"/>
+          <circle cx="150" cy="116" r="8"/><circle cx="230" cy="116" r="8"/><circle cx="310" cy="116" r="8"/>
+          <circle cx="150" cy="146" r="8"/><circle cx="230" cy="146" r="8"/><circle cx="310" cy="146" r="8"/>
+          <circle cx="150" cy="176" r="8"/><circle cx="230" cy="176" r="8"/><circle cx="310" cy="176" r="8"/>
+        </g>
+        <text x="200" y="204" font-size="8" fill="#94a3b8" text-anchor="middle">every other tune.* domain is re-drawn for each of the 12</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WORTH MEMORIZING ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">tune.report inside trainables</span><span class="v"><code>ray.train.report</code>/<code>session.report</code> are deprecated there</span></div>
+    <div><span class="k">Tuner is the API</span><span class="v">the new entry point — replaces the old <code>tune.run()</code></span></div>
+    <div><span class="k">set metric + mode</span><span class="v">in TuneConfig (or on the searcher/scheduler) — Tune must know</span></div>
+    <div><span class="k">num_samples × grid</span><span class="v">grid multiplies: N samples × |grid| = N·|grid| trials</span></div>
+    <div><span class="k">default = random</span><span class="v"><code>BasicVariantGenerator</code>; add a searcher for smart search</span></div>
+    <div><span class="k">schedulers need reports</span><span class="v">report an intermediate metric every iteration to prune</span></div>
+    <div><span class="k">with_resources</span><span class="v">sets per-trial CPUs/GPUs — fractional GPUs OK (<code>"gpu":0.5</code>)</span></div>
+    <div><span class="k">with_parameters</span><span class="v">pass big data via the object store, not a closure</span></div>
+    <div><span class="k">storage_path</span><span class="v">must be shared (S3/NFS) for multi-node runs</span></div>
+    <div><span class="k">checkpoint = resume</span><span class="v"><code>report(m, checkpoint=…)</code> then <code>tune.get_checkpoint()</code></span></div>
+    <div><span class="k">fit() calls ray.init()</span><span class="v">driver process + one worker actor per trial</span></div>
+    <div><span class="k">grace_period</span><span class="v">stops ASHA from killing trials before they warm up</span></div>
+  </div>
+</section>
+
+<footer>
+  Ray Tune cheat sheet · verified 2026-08-27 · synthesized from the official docs at <code>docs.ray.io/en/latest/tune</code> (Key Concepts · How Tune Works · Search Space / Trainable / Tuner / Scheduler API references, v2.57).<br>
+  API shown for Ray ≈ 2.57 · the <code>Tuner</code> API (with <code>TuneConfig</code> + <code>RunConfig</code>) is current; older guides using <code>tune.run()</code>, <code>session.report()</code>, or <code>ray.train.report()</code> inside Tune functions are deprecated. Examples live-introspected from Ray 2.56.1 (Tuner API unchanged through 2.57).
+</footer>
+
+</body>
+</html>

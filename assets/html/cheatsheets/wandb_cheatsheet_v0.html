@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>wandb &mdash; Weights &amp; Biases Python SDK Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+:root{
+  --slate:#64748b; --amber:#d97706; --green:#059669; --indigo:#4f46e5;
+  --violet:#7c3aed; --teal:#0d9488; --red:#dc2626; --gold:#b7791f;
+  --wb:#e0a500;
+  --ink:#1a1d24; --body:#3f444f; --muted:#6b7280; --faint:#94a3b8;
+  --line:#e7e3db; --line2:#efece4; --bg:#fbfaf8; --card:#ffffff; --dark:#1a1d24;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--body);font-family:var(--sans);
+     font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1720px;margin:0 auto;padding:34px 22px 60px}
+
+/* ---------- header ---------- */
+header.sheet{border-bottom:2px solid var(--ink);padding-bottom:22px;margin-bottom:26px}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.19em;text-transform:uppercase;
+         color:var(--muted);font-weight:500;margin-bottom:10px}
+h1.wordmark{font-family:var(--mono);font-size:52px;font-weight:700;letter-spacing:-.028em;
+            margin:0 0 2px;line-height:1.02}
+h1.wordmark .w{color:var(--wb)}
+h1.wordmark .and{color:var(--faint)}
+h1.wordmark .b{color:var(--wb)}
+.subline{font-family:var(--mono);font-size:12px;color:var(--muted);margin:0 0 12px;letter-spacing:.01em}
+.lede{max-width:78ch;font-size:14.5px;color:var(--body);margin:0 0 18px}
+.lede b{color:var(--ink);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:7px 16px;font-size:11.5px;color:var(--muted);
+        font-family:var(--mono);align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:11px;height:11px;border-radius:2.5px;display:inline-block;flex:none}
+.srcline{margin-top:13px;font-size:11px;color:var(--faint);font-family:var(--mono);line-height:1.7}
+.srcline b{color:var(--muted);font-weight:500}
+
+/* ---------- hero ---------- */
+.hero{background:var(--card);border:1px solid var(--line);border-radius:10px;
+      padding:16px 18px 10px;margin-bottom:16px;overflow-x:auto}
+.hero svg{display:block;width:100%;min-width:940px;height:auto}
+.quick{background:var(--dark);border-radius:10px;padding:16px 18px;margin-bottom:26px;overflow-x:auto}
+.quick .qh{font-family:var(--mono);font-size:10.5px;letter-spacing:.17em;text-transform:uppercase;
+           color:#64748b;margin-bottom:10px}
+pre.quick-inner{white-space:pre;margin:0;tab-size:2;font-family:var(--mono);font-size:12.5px;
+                line-height:1.72;color:#e2e8f0}
+pre.quick-inner .cm{color:#64748b}
+pre.quick-inner .kw{color:#c084fc}
+pre.quick-inner .fn{color:#7dd3fc}
+pre.quick-inner .mod{color:#fbbf24}
+pre.quick-inner .str{color:#86efac}
+pre.quick-inner .num{color:#fdba74}
+pre.quick-inner .arg{color:#f0abfc}
+
+/* ---------- part bars ---------- */
+.partbar{display:flex;align-items:center;gap:14px;margin:34px 0 16px}
+.partbar:first-of-type{margin-top:6px}
+.part-tag{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.15em;
+          text-transform:uppercase;background:var(--ink);color:#fff;padding:5px 11px;border-radius:4px;flex:none}
+.partbar h2{font-size:15px;font-weight:700;color:var(--ink);margin:0;letter-spacing:-.01em;flex:none}
+.partbar .rule{height:1px;background:var(--line);flex:1}
+.partbar .note{font-family:var(--mono);font-size:11px;color:var(--faint);flex:none}
+
+/* ---------- masonry cards ---------- */
+main.grid{column-count:1;column-gap:16px}
+@media(min-width:780px){main.grid{column-count:2}}
+@media(min-width:1220px){main.grid{column-count:3}}
+@media(min-width:1620px){main.grid{column-count:4}}
+main.grid{column-fill:balance}
+article.card{break-inside:avoid;page-break-inside:avoid;background:var(--card);
+             border:1px solid var(--line);border-left:3px solid var(--slate);
+             border-radius:8px;padding:13px 15px 11px;margin:0 0 16px;display:inline-block;width:100%}
+.head{display:flex;align-items:baseline;gap:9px;margin-bottom:9px;
+      border-bottom:1px solid var(--line2);padding-bottom:7px}
+.head .num{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--faint);flex:none}
+.head h3{font-size:13.5px;font-weight:700;color:var(--ink);margin:0;letter-spacing:-.008em;flex:1}
+.head .star{color:var(--gold);font-size:12px;flex:none}
+article.card ul{list-style:none;margin:0;padding:0}
+article.card li{margin:0 0 8px;padding:0}
+article.card li:last-child{margin-bottom:3px}
+code.cmd{font-family:var(--mono);font-size:11.8px;color:var(--ink);background:var(--line2);
+         border-radius:3.5px;padding:1.5px 5px;display:inline-block;line-height:1.5;
+         word-break:break-word;font-weight:500}
+.d{display:block;font-size:12.3px;color:var(--muted);margin-top:3px;line-height:1.5}
+.d b{color:var(--body);font-weight:600}
+.tag{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.06em;
+     padding:1px 5px;border-radius:3px;margin-left:5px;vertical-align:1px;white-space:nowrap}
+.tag.new{background:#ede9fe;color:var(--violet)}
+.tag.gone{background:#fee2e2;color:var(--red)}
+
+/* syntax tokens inside cards */
+code.cmd .mod{color:#b45309}
+code.cmd .fn{color:#4f46e5}
+code.cmd .kw{color:#a626a4}
+code.cmd .arg{color:#0d9488}
+code.cmd .str{color:#047857}
+code.cmd .num{color:#c2410c}
+code.cmd .cm{color:#94a3b8}
+code.cmd .p{color:#94a3b8}
+
+/* colour variants */
+.c-slate{border-left-color:var(--slate)}
+.c-amber{border-left-color:var(--amber)}
+.c-green{border-left-color:var(--green)}
+.c-indigo{border-left-color:var(--indigo)}
+.c-violet{border-left-color:var(--violet)}
+.c-teal{border-left-color:var(--teal)}
+.c-red{border-left-color:var(--red)}
+
+/* ---------- concept diagrams ---------- */
+.concepts{display:grid;grid-template-columns:1fr;gap:16px;margin:34px 0 0}
+@media(min-width:900px){.concepts{grid-template-columns:1fr 1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:15px 16px 12px;overflow-x:auto}
+.panel h4{font-size:12.5px;font-weight:700;color:var(--ink);margin:0 0 3px;letter-spacing:-.005em}
+.panel p.cap{font-size:12px;color:var(--muted);margin:0 0 11px;line-height:1.5}
+.panel svg{display:block;width:100%;min-width:440px;height:auto}
+
+/* ---------- memorize strip ---------- */
+.memorize{background:var(--dark);border-radius:10px;padding:20px 22px 18px;margin-top:34px;color:#cbd5e1}
+.memorize h3{font-family:var(--mono);font-size:11px;letter-spacing:.19em;text-transform:uppercase;
+             color:#f8fafc;margin:0 0 14px;font-weight:700}
+.memorize ol{margin:0;padding:0;list-style:none;counter-reset:m;
+             display:grid;grid-template-columns:1fr;gap:9px 26px}
+@media(min-width:820px){.memorize ol{grid-template-columns:1fr 1fr}}
+@media(min-width:1400px){.memorize ol{grid-template-columns:1fr 1fr 1fr}}
+.memorize li{counter-increment:m;font-size:12.4px;line-height:1.5;padding-left:26px;position:relative}
+.memorize li::before{content:counter(m,decimal-leading-zero);position:absolute;left:0;top:1px;
+                     font-family:var(--mono);font-size:10px;font-weight:700;color:#f59e0b}
+.memorize li b{color:#f8fafc;font-weight:600}
+.memorize code{font-family:var(--mono);font-size:11.5px;color:#7dd3fc;background:#1e293b;
+               padding:1px 4px;border-radius:3px}
+
+/* ---------- footer ---------- */
+footer.sheet{margin-top:30px;padding-top:16px;border-top:1px solid var(--line);
+             font-size:11.5px;color:var(--faint);font-family:var(--mono);line-height:1.85}
+footer.sheet b{color:var(--muted);font-weight:500}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="sheet">
+  <div class="eyebrow">Python &middot; experiment tracking &middot; SDK 0.28.x &middot; July 2026</div>
+  <h1 class="wordmark"><span class="w">w</span><span class="and">and</span><span class="b">b</span></h1>
+  <p class="subline">Weights &amp; Biases &mdash; <span class="w" style="color:var(--wb)">w</span><span style="color:var(--faint)">eights</span> <span style="color:var(--faint)">and</span> <span style="color:var(--wb)">b</span><span style="color:var(--faint)">iases</span> &middot; the name is hiding in the import</p>
+  <p class="lede">One mental model carries the whole library: <b>a run is a record, and everything you call hangs off it.</b>
+     <code class="cmd"><span class="mod">wandb</span>.<span class="fn">init</span>()</code> opens the record and returns a <b>Run</b>; the Run owns your
+     <b>config</b> (inputs you chose), your <b>history</b> (one row per <code class="cmd"><span class="fn">log</span>()</code> call),
+     your <b>summary</b> (one final number per metric), your <b>files &amp; media</b>, and your <b>artifacts</b> (versioned data and models).
+     A <b>sweep</b> is just a controller that writes a different config into each run. Learn those five buckets and the API stops being a list of functions.</p>
+  <div class="legend">
+    <span><i class="sw" style="background:var(--slate)"></i>setup &middot; CLI &middot; env</span>
+    <span><i class="sw" style="background:var(--indigo)"></i>the run object</span>
+    <span><i class="sw" style="background:var(--amber)"></i>config &middot; hyperparameters</span>
+    <span><i class="sw" style="background:var(--green)"></i>logging &mdash; the core</span>
+    <span><i class="sw" style="background:var(--teal)"></i>media &middot; artifacts &middot; API</span>
+    <span><i class="sw" style="background:var(--violet)"></i>sweeps &middot; tuning</span>
+    <span><i class="sw" style="background:var(--red)"></i>gotcha &middot; removed</span>
+    <span style="color:var(--gold)">&#9733; most common</span>
+  </div>
+  <div class="srcline">
+    <b>Validated against:</b> docs.wandb.ai &mdash; Quickstart, Python SDK reference (init/Run/functions), the official
+    <b>W&amp;B SDK Python coding cheat sheet</b> (runs &middot; logging &middot; artifacts), sweep configuration keys, log media &amp; objects,
+    log tables, environment variables, Keras integration, and the full <b>SDK release notes through v0.28.0</b> (22 Jun 2026) &middot; github.com/wandb/wandb
+  </div>
+</header>
+
+<div class="hero">
+<svg viewBox="0 0 1180 336" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Top band: the end-to-end run pipeline from login to finish. Bottom band: the five things a Run holds.">
+  <defs>
+    <marker id="wbArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <marker id="wbArrowV" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+    </marker>
+    <marker id="wbArrowG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#059669"/>
+    </marker>
+  </defs>
+
+  <!-- ===== BAND A : the pipeline ===== -->
+  <text x="6" y="16" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700"
+        letter-spacing="1.7" fill="#94a3b8">ONE RUN, END TO END</text>
+
+  <g font-family="JetBrains Mono, monospace">
+    <rect x="6" y="30" width="150" height="48" rx="7" fill="#f8fafc" stroke="#64748b" stroke-width="1.4"/>
+    <text x="81" y="49" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">wandb.login()</text>
+    <text x="81" y="65" text-anchor="middle" font-size="9.5" fill="#64748b">once per machine</text>
+
+    <rect x="196" y="30" width="216" height="48" rx="7" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.4"/>
+    <text x="304" y="49" text-anchor="middle" font-size="11.5" font-weight="700" fill="#312e81">wandb.init(project, config)</text>
+    <text x="304" y="65" text-anchor="middle" font-size="9.5" fill="#4f46e5">opens the record &#8594; returns Run</text>
+
+    <rect x="452" y="30" width="188" height="48" rx="7" fill="#ecfdf5" stroke="#059669" stroke-width="1.8"/>
+    <text x="546" y="49" text-anchor="middle" font-size="11.5" font-weight="700" fill="#064e3b">run.log({"loss": l})</text>
+    <text x="546" y="65" text-anchor="middle" font-size="9.5" fill="#059669">one row of history per call</text>
+
+    <rect x="680" y="30" width="204" height="48" rx="7" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.4"/>
+    <text x="782" y="49" text-anchor="middle" font-size="11.5" font-weight="700" fill="#134e4a">run.log_artifact(model)</text>
+    <text x="782" y="65" text-anchor="middle" font-size="9.5" fill="#0d9488">versioned output</text>
+
+    <rect x="924" y="30" width="150" height="48" rx="7" fill="#f8fafc" stroke="#64748b" stroke-width="1.4"/>
+    <text x="999" y="49" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">run.finish()</text>
+    <text x="999" y="65" text-anchor="middle" font-size="9.5" fill="#64748b">or exit the with-block</text>
+
+    <line x1="160" y1="54" x2="190" y2="54" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#wbArrow)"/>
+    <line x1="416" y1="54" x2="446" y2="54" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#wbArrow)"/>
+    <line x1="644" y1="54" x2="674" y2="54" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#wbArrow)"/>
+    <line x1="888" y1="54" x2="918" y2="54" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#wbArrow)"/>
+
+    <path d="M 644 70 H 664 V 100 H 500 V 84" fill="none" stroke="#059669" stroke-width="1.4"
+          stroke-dasharray="4 3" marker-end="url(#wbArrowG)"/>
+    <text x="582" y="114" text-anchor="middle" font-size="9.5" fill="#059669">every step / epoch &mdash; the step counter auto-increments</text>
+
+    <text x="1092" y="50" font-size="9.5" fill="#94a3b8">exit code 0</text>
+    <text x="1092" y="63" font-size="9.5" fill="#94a3b8">&#8594; finished</text>
+  </g>
+
+  <line x1="0" y1="134" x2="1180" y2="134" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- ===== BAND B : what a run holds ===== -->
+  <text x="6" y="156" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700"
+        letter-spacing="1.7" fill="#94a3b8">WHAT A RUN HOLDS &mdash; FIVE BUCKETS, ONE OBJECT</text>
+
+  <g font-family="JetBrains Mono, monospace">
+    <rect x="490" y="172" width="176" height="46" rx="7" fill="#1a1d24"/>
+    <text x="578" y="191" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">Run</text>
+    <text x="578" y="207" text-anchor="middle" font-size="9.5" fill="#94a3b8">run = wandb.init(...)</text>
+
+    <rect x="756" y="176" width="230" height="38" rx="6" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.3" stroke-dasharray="4 3"/>
+    <text x="871" y="191" text-anchor="middle" font-size="10.5" font-weight="700" fill="#5b21b6">sweep controller</text>
+    <text x="871" y="205" text-anchor="middle" font-size="9" fill="#7c3aed">wandb.agent() writes the config</text>
+    <line x1="752" y1="195" x2="672" y2="195" stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#wbArrowV)"/>
+
+    <!-- five buckets -->
+    <rect x="6" y="252" width="220" height="72" rx="7" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+    <text x="116" y="272" text-anchor="middle" font-size="11" font-weight="700" fill="#92400e">run.config</text>
+    <text x="116" y="288" text-anchor="middle" font-size="9.3" fill="#b45309">the inputs you chose</text>
+    <text x="116" y="302" text-anchor="middle" font-size="9.3" fill="#b45309">lr &middot; batch_size &middot; arch</text>
+    <text x="116" y="316" text-anchor="middle" font-size="9" fill="#d97706">written once, filterable in UI</text>
+
+    <rect x="240" y="252" width="220" height="72" rx="7" fill="#ecfdf5" stroke="#059669" stroke-width="1.9"/>
+    <text x="350" y="272" text-anchor="middle" font-size="11" font-weight="700" fill="#064e3b">history</text>
+    <text x="350" y="288" text-anchor="middle" font-size="9.3" fill="#047857">every run.log() call</text>
+    <text x="350" y="302" text-anchor="middle" font-size="9.3" fill="#047857">one row per step &#8594; charts</text>
+    <text x="350" y="316" text-anchor="middle" font-size="9" fill="#059669">step must always increase</text>
+
+    <rect x="474" y="252" width="220" height="72" rx="7" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+    <text x="584" y="272" text-anchor="middle" font-size="11" font-weight="700" fill="#064e3b">run.summary</text>
+    <text x="584" y="288" text-anchor="middle" font-size="9.3" fill="#047857">one final number / metric</text>
+    <text x="584" y="302" text-anchor="middle" font-size="9.3" fill="#047857">last value, or min/max</text>
+    <text x="584" y="316" text-anchor="middle" font-size="9" fill="#059669">this is what run tables sort on</text>
+
+    <rect x="708" y="252" width="220" height="72" rx="7" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+    <text x="818" y="272" text-anchor="middle" font-size="11" font-weight="700" fill="#134e4a">files &amp; media</text>
+    <text x="818" y="288" text-anchor="middle" font-size="9.3" fill="#0f766e">Image &middot; Video &middot; Audio &middot; Table</text>
+    <text x="818" y="302" text-anchor="middle" font-size="9.3" fill="#0f766e">Html &middot; Molecule &middot; Object3D</text>
+    <text x="818" y="316" text-anchor="middle" font-size="9" fill="#0d9488">run.save() &middot; run.log_code()</text>
+
+    <rect x="942" y="252" width="220" height="72" rx="7" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+    <text x="1052" y="272" text-anchor="middle" font-size="11" font-weight="700" fill="#134e4a">artifacts</text>
+    <text x="1052" y="288" text-anchor="middle" font-size="9.3" fill="#0f766e">versioned datasets &amp; models</text>
+    <text x="1052" y="302" text-anchor="middle" font-size="9.3" fill="#0f766e">:v0 :v1 &hellip; :latest :best</text>
+    <text x="1052" y="316" text-anchor="middle" font-size="9" fill="#0d9488">carry lineage between runs</text>
+
+    <path d="M 540 220 L 200 248" fill="none" stroke="#cbd5e1" stroke-width="1.3" marker-end="url(#wbArrow)"/>
+    <path d="M 560 220 L 372 248" fill="none" stroke="#cbd5e1" stroke-width="1.3" marker-end="url(#wbArrow)"/>
+    <line x1="578" y1="220" x2="578" y2="248" stroke="#cbd5e1" stroke-width="1.3" marker-end="url(#wbArrow)"/>
+    <path d="M 596 220 L 784 248" fill="none" stroke="#cbd5e1" stroke-width="1.3" marker-end="url(#wbArrow)"/>
+    <path d="M 616 220 L 968 248" fill="none" stroke="#cbd5e1" stroke-width="1.3" marker-end="url(#wbArrow)"/>
+  </g>
+</svg>
+</div>
+
+<div class="quick">
+  <div class="qh">the whole library in fourteen lines</div>
+<pre class="quick-inner"><span class="kw">import</span> <span class="mod">wandb</span>
+
+<span class="mod">wandb</span>.<span class="fn">login</span>()                                          <span class="cm"># reads WANDB_API_KEY / ~/.netrc</span>
+
+<span class="kw">with</span> <span class="mod">wandb</span>.<span class="fn">init</span>(                                       <span class="cm"># with-block == auto finish(), and</span>
+        <span class="arg">project</span>=<span class="str">"my-project"</span>,                            <span class="cm"># marks the run FAILED on exception</span>
+        <span class="arg">config</span>={<span class="str">"lr"</span>: <span class="num">3e-4</span>, <span class="str">"epochs"</span>: <span class="num">10</span>},
+        <span class="arg">tags</span>=[<span class="str">"baseline"</span>]) <span class="kw">as</span> run:
+
+    run.<span class="fn">watch</span>(model, <span class="arg">log</span>=<span class="str">"all"</span>, <span class="arg">log_freq</span>=<span class="num">100</span>)          <span class="cm"># PyTorch grads + params</span>
+
+    <span class="kw">for</span> epoch <span class="kw">in</span> <span class="fn">range</span>(run.config.epochs):            <span class="cm"># config is attribute-accessible</span>
+        loss, acc = train_one_epoch()
+        run.<span class="fn">log</span>({<span class="str">"train/loss"</span>: loss, <span class="str">"val/acc"</span>: acc})  <span class="cm"># "/" makes UI sections</span>
+
+    run.summary[<span class="str">"best_acc"</span>] = best                       <span class="cm"># the number the run table sorts on</span>
+    run.<span class="fn">log_artifact</span>(<span class="str">"./ckpt.pt"</span>, <span class="arg">type</span>=<span class="str">"model"</span>)          <span class="cm"># versioned, with lineage</span></pre>
+</div>
+
+<div class="partbar">
+  <span class="part-tag">Part I</span>
+  <h2>Setup &amp; the Run object</h2>
+  <div class="rule"></div>
+  <span class="note">everything starts and ends here</span>
+</div>
+
+<main class="grid">
+
+<article class="card c-slate">
+  <div class="head"><span class="num">01</span><h3>Install &amp; authenticate</h3></div>
+  <ul>
+    <li><code class="cmd">pip install wandb</code><span class="d">Core SDK. Python <b>3.10+</b> since 0.27.0 (3.9 dropped there, 3.8 in 0.25.0). Requires <b>pydantic &ge; 2.6</b>.</span></li>
+    <li><code class="cmd">pip install wandb[media]</code><span class="d">Extra deps for images, video, audio, molecules. Other extras: <code class="cmd">[aws]</code>, <code class="cmd">[azure]</code>, <code class="cmd">[gcp]</code>, <code class="cmd">[launch]</code>, <code class="cmd">[sweeps]</code>.</span></li>
+    <li><code class="cmd">wandb login</code><span class="d">Prompts for the key, stores it in <code class="cmd">~/.netrc</code>. Do this once per machine.</span></li>
+    <li><code class="cmd"><span class="mod">wandb</span>.<span class="fn">login</span>()</code><span class="d">Same, from Python / a notebook. Optional <code class="cmd"><span class="arg">key</span>=</code>, <code class="cmd"><span class="arg">relogin</span>=<span class="kw">True</span></code>, <code class="cmd"><span class="arg">host</span>=</code> for self-managed.</span></li>
+    <li><code class="cmd">export WANDB_API_KEY=&hellip;</code><span class="d">The way to do it in CI, Docker, Slurm, SageMaker. <b>The key is shown only once at creation</b> &mdash; store it in a secret manager.</span></li>
+    <li><code class="cmd">wandb login --host https://wandb.acme.com</code><span class="d">Point at a Dedicated Cloud or self-managed server. Same as <code class="cmd">WANDB_BASE_URL</code>.</span></li>
+  </ul>
+</article>
+
+<article class="card c-slate">
+  <div class="head"><span class="num">02</span><h3>The CLI</h3></div>
+  <ul>
+    <li><code class="cmd">wandb sync ./wandb/offline-run-&hellip;</code><span class="d">Upload a run recorded offline. The whole point of <code class="cmd">WANDB_MODE=offline</code>.</span></li>
+    <li><code class="cmd">wandb offline</code> / <code class="cmd">wandb online</code><span class="d">Flip the default mode for this directory. <code class="cmd">wandb disabled</code> / <code class="cmd">enabled</code> turn the SDK into no-ops.</span></li>
+    <li><code class="cmd">wandb sweep sweep.yaml</code><span class="d">Register a sweep from YAML; prints the sweep ID.</span></li>
+    <li><code class="cmd">wandb agent entity/project/SWEEP_ID</code><span class="d">Start a worker. Run it on N machines to parallelise. <code class="cmd">--count N</code> caps runs per agent.</span></li>
+    <li><code class="cmd">wandb artifact put ./data -n dataset -t dataset</code><span class="d">Also <code class="cmd">artifact get</code>, <code class="cmd">artifact ls</code>, <code class="cmd">artifact cache cleanup 1GB</code>.</span></li>
+    <li><code class="cmd">wandb leet</code><span class="d">Terminal UI for browsing runs, live charts and system metrics. <b>GA in 0.28.0</b> &mdash; was <code class="cmd">wandb beta leet</code>.<span class="tag new">0.28</span></span></li>
+    <li><code class="cmd">wandb status</code> &middot; <code class="cmd">wandb verify</code><span class="d">Show local settings; run a connectivity/permissions self-test against the server.</span></li>
+    <li><code class="cmd">wandb purge-cache</code><span class="d">Clean cached artifact files. The cache defaults to <code class="cmd">~/.cache/wandb</code> and grows silently.</span></li>
+  </ul>
+</article>
+
+<article class="card c-slate">
+  <div class="head"><span class="num">03</span><h3>Environment variables</h3></div>
+  <ul>
+    <li><code class="cmd">WANDB_API_KEY</code><span class="d">Auth. Required on any machine where <code class="cmd">wandb login</code> hasn't run.</span></li>
+    <li><code class="cmd">WANDB_PROJECT</code> &middot; <code class="cmd">WANDB_ENTITY</code><span class="d">Defaults for every run. Overridden by explicit <code class="cmd"><span class="fn">init</span>()</code> arguments.</span></li>
+    <li><code class="cmd">WANDB_MODE=offline|disabled</code><span class="d"><b>offline</b> = record locally, sync later. <b>disabled</b> = every call is a no-op (use in unit tests).</span></li>
+    <li><code class="cmd">WANDB_RUN_ID</code> &middot; <code class="cmd">WANDB_RESUME</code><span class="d">The pair that makes preemptible jobs resumable. <code class="cmd">WANDB_RESUME=auto</code> + a stable ID survives a crash.</span></li>
+    <li><code class="cmd">WANDB_NAME</code> &middot; <code class="cmd">WANDB_NOTES</code> &middot; <code class="cmd">WANDB_TAGS</code><span class="d">Display name, a markdown description, and a comma-separated tag list.</span></li>
+    <li><code class="cmd">WANDB_RUN_GROUP</code> &middot; <code class="cmd">WANDB_JOB_TYPE</code><span class="d">Grouping without touching code &mdash; useful for launcher scripts and DDP.</span></li>
+    <li><code class="cmd">WANDB_DIR</code> &middot; <code class="cmd">WANDB_ARTIFACT_DIR</code> &middot; <code class="cmd">WANDB_CACHE_DIR</code><span class="d">Three <i>different</i> directories: generated files, downloaded artifacts, and the dedup cache.</span></li>
+    <li><code class="cmd">WANDB_SILENT=true</code> &middot; <code class="cmd">WANDB_QUIET=true</code><span class="d">Silence the banner. Logs still go to <code class="cmd">$WANDB_DIR/debug.log</code>.</span></li>
+    <li><code class="cmd">WANDB_DISABLE_CODE</code> &middot; <code class="cmd">WANDB_DISABLE_GIT</code><span class="d">Stop W&amp;B saving notebooks / git diffs. Worth knowing for private repos.</span></li>
+    <li><span class="d"><b>Singularity:</b> prefix any of these with <code class="cmd">SINGULARITYENV_</code>.</span></li>
+  </ul>
+</article>
+
+<article class="card c-indigo">
+  <div class="head"><span class="num">04</span><h3>Start a run</h3><span class="star">&#9733;</span></div>
+  <ul>
+    <li><code class="cmd"><span class="kw">with</span> <span class="mod">wandb</span>.<span class="fn">init</span>(<span class="arg">project</span>=<span class="str">"p"</span>) <span class="kw">as</span> run:</code><span class="d"><b>The recommended form.</b> Exiting the block calls <code class="cmd"><span class="fn">finish</span>()</code>; an uncaught exception marks the run <b>failed</b> instead of leaving it "running" forever.</span></li>
+    <li><code class="cmd">run = <span class="mod">wandb</span>.<span class="fn">init</span>(&hellip;)</code> &hellip; <code class="cmd">run.<span class="fn">finish</span>()</code><span class="d">The notebook-friendly form. If you never call <code class="cmd"><span class="fn">finish</span>()</code> the run ends when the process exits.</span></li>
+    <li><code class="cmd">run.<span class="fn">log</span>({<span class="str">"acc"</span>: <span class="num">0.9</span>})</code><span class="d"><b>Log through the run object.</b> The current reference documents run methods, not module-level <code class="cmd"><span class="mod">wandb</span>.<span class="fn">log</span>()</code> &mdash; see card 24.</span></li>
+    <li><code class="cmd">run.<span class="fn">finish</span>(<span class="arg">exit_code</span>=<span class="num">1</span>)</code><span class="d">Non-zero exit code &#8594; run state <b>Failed</b>. States: Running &middot; Finished &middot; Failed &middot; Crashed &middot; Killed.</span></li>
+    <li><span class="d"><b>Run IDs may not contain</b> <code class="cmd">/ \ # ? % :</code> and are immutable once a run is deleted.</span></li>
+  </ul>
+</article>
+
+<article class="card c-indigo">
+  <div class="head"><span class="num">05</span><h3>wandb.init() parameters</h3><span class="star">&#9733;</span></div>
+  <ul>
+    <li><code class="cmd"><span class="arg">project</span>=</code> &middot; <code class="cmd"><span class="arg">entity</span>=</code><span class="d">Where it lands. Entity = user or team and <b>must already exist</b>. No project &#8594; inferred from git root, else <code class="cmd">"uncategorized"</code>.</span></li>
+    <li><code class="cmd"><span class="arg">config</span>={&hellip;}</code><span class="d">dict, <code class="cmd">argparse.Namespace</code>, <code class="cmd">absl FLAGS</code>, or a <b>path to a YAML file</b>. Also <code class="cmd"><span class="arg">config_include_keys</span></code> / <code class="cmd"><span class="arg">config_exclude_keys</span></code>.</span></li>
+    <li><code class="cmd"><span class="arg">name</span>=</code> &middot; <code class="cmd"><span class="arg">id</span>=</code> &middot; <code class="cmd"><span class="arg">notes</span>=</code><span class="d"><b>Three different things.</b> <code class="cmd">name</code> = display label (auto two-word if omitted); <code class="cmd">id</code> = unique key used for resuming; <code class="cmd">notes</code> = markdown commit-message.</span></li>
+    <li><code class="cmd"><span class="arg">tags</span>=[<span class="str">"baseline"</span>]</code> &middot; <code class="cmd"><span class="arg">group</span>=</code> &middot; <code class="cmd"><span class="arg">job_type</span>=</code><span class="d">Filterable labels, an experiment bucket, and a role within it ("train" / "eval").</span></li>
+    <li><code class="cmd"><span class="arg">mode</span>=<span class="str">"online"|"offline"|"disabled"|"shared"</span></code><span class="d"><b>shared</b> lets several processes on several machines write to one run &mdash; still experimental.</span></li>
+    <li><code class="cmd"><span class="arg">save_code</span>=<span class="kw">True</span></code><span class="d">Snapshot the script/notebook so runs are diffable in the UI. <b>Off by default.</b></span></li>
+    <li><code class="cmd"><span class="arg">sync_tensorboard</span>=<span class="kw">True</span></code><span class="d">Mirror TensorBoard/TensorBoardX event files into W&amp;B. (<code class="cmd"><span class="arg">tensorboard</span>=</code> is the deprecated spelling.)</span></li>
+    <li><code class="cmd"><span class="arg">dir</span>=</code> &middot; <code class="cmd"><span class="arg">settings</span>=<span class="mod">wandb</span>.<span class="fn">Settings</span>(&hellip;)</code><span class="d">Where metadata is written, and the escape hatch for every advanced knob (<code class="cmd">quiet</code>, <code class="cmd">finish_timeout</code>, <code class="cmd">capture_loggers</code>&hellip;).</span></li>
+    <li><code class="cmd"><span class="arg">force</span>=<span class="kw">True</span></code><span class="d">Refuse to run unless logged in, instead of silently falling back to offline.</span></li>
+  </ul>
+</article>
+
+<article class="card c-indigo">
+  <div class="head"><span class="num">06</span><h3>The Run object</h3></div>
+  <ul>
+    <li><code class="cmd">run.id</code> &middot; <code class="cmd">run.name</code> &middot; <code class="cmd">run.path</code><span class="d"><code class="cmd">path</code> is <code class="cmd">entity/project/run_id</code> &mdash; the string every Public API call wants.</span></li>
+    <li><code class="cmd">run.url</code> &middot; <code class="cmd">run.project_url</code> &middot; <code class="cmd">run.sweep_url</code><span class="d">Properties, not methods. Offline runs have no URL.</span></li>
+    <li><code class="cmd">run.config</code> &middot; <code class="cmd">run.summary</code><span class="d">The two dict-likes. Inputs vs. outputs.</span></li>
+    <li><code class="cmd">run.step</code><span class="d">The step the <i>next</i> <code class="cmd"><span class="fn">log</span>()</code> will use. Raises in <code class="cmd">mode="shared"</code>.</span></li>
+    <li><code class="cmd">run.resumed</code> &middot; <code class="cmd">run.offline</code> &middot; <code class="cmd">run.disabled</code><span class="d">Booleans worth branching on &mdash; e.g. only reload a checkpoint <code class="cmd"><span class="kw">if</span> run.resumed</code>.</span></li>
+    <li><code class="cmd">run.tags += (<span class="str">"new-tag"</span>,)</code><span class="d"><code class="cmd">tags</code> is a <b>tuple</b>, so you must reassign, and the trailing comma matters.</span></li>
+    <li><code class="cmd">run.<span class="fn">alert</span>(<span class="arg">title</span>=, <span class="arg">text</span>=, <span class="arg">level</span>=<span class="str">"WARN"</span>)</code><span class="d">Slack/email from inside the loop. Title &lt; 64 chars; <code class="cmd"><span class="arg">wait_duration</span></code> throttles repeats.</span></li>
+    <li><code class="cmd">run.<span class="fn">save</span>(<span class="str">"out/*.txt"</span>, <span class="arg">policy</span>=<span class="str">"live"</span>)</code><span class="d">Sync loose files. <code class="cmd">live</code> re-uploads on change, <code class="cmd">now</code> once, <code class="cmd">end</code> at finish. Globs expand <b>at call time</b> &mdash; new files aren't picked up.</span></li>
+    <li><code class="cmd">run.<span class="fn">log_code</span>()</code><span class="d">Saves every <code class="cmd">.py</code> under the cwd as a code artifact. Customise with <code class="cmd"><span class="arg">include_fn</span></code> / <code class="cmd"><span class="arg">exclude_fn</span></code>.</span></li>
+    <li><code class="cmd">run.<span class="fn">mark_preempting</span>()</code><span class="d">Tell the server this run is about to be pre-empted, so a sweep can requeue it rather than count it failed.</span></li>
+    <li><code class="cmd">run.<span class="fn">write_logs</span>(text)</code><span class="d">Write straight to the Logs tab instead of relying on stdout capture.<span class="tag new">0.27</span></span></li>
+  </ul>
+</article>
+
+<article class="card c-indigo">
+  <div class="head"><span class="num">07</span><h3>Resume, fork, rewind</h3></div>
+  <ul>
+    <li><code class="cmd"><span class="fn">init</span>(<span class="arg">id</span>=rid, <span class="arg">resume</span>=<span class="str">"allow"</span>)</code><span class="d"><b>allow</b> resume if it exists else create &middot; <b>must</b> error if missing &middot; <b>never</b> error if present &middot; <b>auto</b> resume only if it crashed here.</span></li>
+    <li><code class="cmd"><span class="arg">resume_from</span>=<span class="str">f"{rid}?_step=200"</span></code><span class="d"><b>Rewind:</b> truncate history at step 200 and carry on in the <i>same</i> run. Fixes a bad logging bug without losing the run.</span></li>
+    <li><code class="cmd"><span class="arg">fork_from</span>=<span class="str">f"{rid}?_step=200"</span></code><span class="d"><b>Fork:</b> branch a <i>new</i> run off step 200. Same syntax, different intent &mdash; try a second LR schedule from a shared warmup.</span></li>
+    <li><span class="d"><b>Pick exactly one.</b> <code class="cmd">resume</code>, <code class="cmd">resume_from</code> and <code class="cmd">fork_from</code> are mutually exclusive.</span></li>
+    <li><span class="d">Resuming <b>replaces</b> the tag list. To add instead, do <code class="cmd">run.tags += (&hellip;,)</code> after init.</span></li>
+    <li><code class="cmd"><span class="arg">reinit</span>=<span class="str">"create_new"</span></code><span class="d">Start a second run without finishing the first. Others: <code class="cmd">finish_previous</code>, <code class="cmd">return_previous</code>, <code class="cmd">default</code>.</span></li>
+  </ul>
+</article>
+
+<article class="card c-indigo">
+  <div class="head"><span class="num">08</span><h3>Organising many runs</h3></div>
+  <ul>
+    <li><code class="cmd"><span class="fn">init</span>(<span class="arg">group</span>=<span class="str">"cv-fold-sweep"</span>)</code><span class="d">Collapses related runs into one row in the UI, with mean&plusmn;band charts. Made for cross-validation and distributed training.</span></li>
+    <li><code class="cmd"><span class="fn">init</span>(<span class="arg">job_type</span>=<span class="str">"eval"</span>)</code><span class="d">The role inside a group: preprocess &#8594; train &#8594; eval. Filterable on its own.</span></li>
+    <li><code class="cmd"><span class="fn">init</span>(<span class="arg">tags</span>=[<span class="str">"v2"</span>, <span class="str">"ablation"</span>])</code><span class="d">Free-form labels, editable later in the UI. Use tags for questions, groups for structure.</span></li>
+    <li><span class="d"><b>Distributed training, two patterns:</b> one run per process (each with its own <code class="cmd">id</code>, shared <code class="cmd">group</code>), or one run for all processes via <code class="cmd">mode="shared"</code> and a common run ID.</span></li>
+    <li><code class="cmd"><span class="kw">if</span> rank == <span class="num">0</span>: run = <span class="mod">wandb</span>.<span class="fn">init</span>(&hellip;)</code><span class="d">The simplest DDP recipe &mdash; only rank 0 logs. Avoids N duplicate runs per job.</span></li>
+    <li><code class="cmd">run.<span class="fn">pin_config_keys</span>([<span class="str">"lr"</span>, <span class="str">"arch"</span>])</code><span class="d">Pin key hyperparameters to the top of the run Overview page.<span class="tag new">0.26</span></span></li>
+  </ul>
+</article>
+
+</main>
+
+<div class="partbar">
+  <span class="part-tag">Part II</span>
+  <h2>Config &amp; logging</h2>
+  <div class="rule"></div>
+  <span class="note">inputs in, numbers and pictures out</span>
+</div>
+
+<main class="grid">
+
+<article class="card c-amber">
+  <div class="head"><span class="num">09</span><h3>Config &mdash; your hyperparameters</h3><span class="star">&#9733;</span></div>
+  <ul>
+    <li><code class="cmd"><span class="fn">init</span>(<span class="arg">config</span>={<span class="str">"lr"</span>: <span class="num">0.01</span>, <span class="str">"bs"</span>: <span class="num">32</span>})</code><span class="d">The normal way. These become the columns you group, filter and sort runs by.</span></li>
+    <li><code class="cmd">run.config.lr</code> &middot; <code class="cmd">run.config[<span class="str">"lr"</span>]</code><span class="d">Both work. Attribute access is what sweep code usually uses.</span></li>
+    <li><code class="cmd">run.config.<span class="fn">update</span>({<span class="str">"n_params"</span>: n})</code><span class="d">Add derived values after the model is built &mdash; parameter counts, dataset size, resolved paths.</span></li>
+    <li><code class="cmd"><span class="fn">init</span>(<span class="arg">config</span>=<span class="fn">vars</span>(args))</code><span class="d">argparse in one line. A raw <code class="cmd">Namespace</code> or <code class="cmd">absl.flags.FLAGS</code> also works directly.</span></li>
+    <li><code class="cmd"><span class="fn">init</span>(<span class="arg">config</span>=<span class="str">"config.yaml"</span>)</code><span class="d">A <b>string</b> config is read as a path to YAML. Handy with Hydra.</span></li>
+    <li><code class="cmd"><span class="arg">allow_val_change</span>=<span class="kw">True</span></code><span class="d">Without it, <b>overwriting a config value raises</b>. Default is False in scripts, True in notebooks. For values that change during training, log them instead.</span></li>
+    <li><span class="d"><b>Two hard limits:</b> config keys must not contain <code class="cmd">.</code>, and each value must be under <b>10 MB</b>.</span></li>
+    <li><code class="cmd">run.config_static</code><span class="d">A frozen snapshot &mdash; useful when you want to be sure a sweep can't mutate under you.</span></li>
+  </ul>
+</article>
+
+<article class="card c-green">
+  <div class="head"><span class="num">10</span><h3>run.log() &mdash; the core call</h3><span class="star">&#9733;</span></div>
+  <ul>
+    <li><code class="cmd">run.<span class="fn">log</span>({<span class="str">"loss"</span>: <span class="num">0.5</span>, <span class="str">"acc"</span>: <span class="num">0.9</span>})</code><span class="d">Appends <b>one row to history</b> and updates the summary for those keys. Log related metrics together in one call, not one call each.</span></li>
+    <li><code class="cmd">run.<span class="fn">log</span>({<span class="str">"train/loss"</span>: l, <span class="str">"val/loss"</span>: v})</code><span class="d">A <code class="cmd">/</code> creates a UI <b>section</b>. <b>Only one level counts</b> &mdash; <code class="cmd">"a/b/c"</code> lands in section <code class="cmd">a</code>.</span></li>
+    <li><code class="cmd">run.<span class="fn">log</span>(d, <span class="arg">commit</span>=<span class="kw">False</span>)</code><span class="d">Accumulate into the current step without advancing it. The next <code class="cmd"><span class="fn">log</span>()</code> without <code class="cmd">commit=False</code> flushes them together.</span></li>
+    <li><code class="cmd">run.<span class="fn">log</span>(d, <span class="arg">step</span>=i)</code><span class="d">Explicit step. Note the default flips: with <code class="cmd">step</code> given, <code class="cmd">commit</code> defaults to <b>False</b>; without it, <b>True</b>.</span></li>
+    <li><code class="cmd">run.<span class="fn">log</span>({<span class="str">"epoch"</span>: e, <span class="str">"loss"</span>: l})</code><span class="d"><b>Treat the W&amp;B step as a timestamp, not a training step.</b> Log <code class="cmd">epoch</code> as an ordinary metric and use it as an x-axis.</span></li>
+    <li><span class="d"><b>The step can only go up.</b> You cannot log to a step you've already passed.</span></li>
+    <li><span class="d"><b>Rate:</b> not designed for more than a few calls per second. Log every N iterations or batch it.</span></li>
+    <li><code class="cmd">run.<span class="fn">log</span>({<span class="str">"chart"</span>: fig})</code><span class="d">A Matplotlib figure is accepted directly and converted. So is <code class="cmd">plotly</code> via <code class="cmd"><span class="mod">wandb</span>.<span class="fn">Plotly</span></code>.</span></li>
+  </ul>
+</article>
+
+<article class="card c-green">
+  <div class="head"><span class="num">11</span><h3>Summary &amp; define_metric</h3></div>
+  <ul>
+    <li><code class="cmd">run.summary[<span class="str">"best_acc"</span>] = <span class="num">0.94</span></code><span class="d">Set a headline number explicitly. This is what the runs table and sweep leaderboard sort on.</span></li>
+    <li><span class="d">By default the summary holds the <b>last</b> logged value of each metric &mdash; which is rarely the best one.</span></li>
+    <li><code class="cmd">run.<span class="fn">define_metric</span>(<span class="str">"val/acc"</span>, <span class="arg">summary</span>=<span class="str">"max"</span>)</code><span class="d">Make the summary track the best instead. Options: <code class="cmd">min max mean last first none</code>.</span></li>
+    <li><code class="cmd">run.<span class="fn">define_metric</span>(<span class="str">"*"</span>, <span class="arg">step_metric</span>=<span class="str">"epoch"</span>)</code><span class="d"><b>Custom x-axis.</b> Charts plot against your <code class="cmd">epoch</code> instead of the internal step counter. Glob patterns are allowed.</span></li>
+    <li><code class="cmd"><span class="fn">define_metric</span>(<span class="str">"val/loss"</span>, <span class="arg">step_metric</span>=<span class="str">"epoch"</span>)</code><span class="d">Per-metric axes &mdash; the fix when train logs per batch and val logs per epoch and the charts look wrong.</span></li>
+    <li><code class="cmd"><span class="arg">hidden</span>=<span class="kw">True</span></code> &middot; <code class="cmd"><span class="arg">overwrite</span>=<span class="kw">True</span></code><span class="d">Hide a metric from auto-generated panels; replace rather than merge earlier <code class="cmd"><span class="fn">define_metric</span></code> calls.</span></li>
+    <li><span class="d"><code class="cmd"><span class="arg">summary</span>=<span class="str">"best"</span></code> with <code class="cmd"><span class="arg">goal</span>=</code> is <b>deprecated</b> &mdash; say <code class="cmd">"min"</code> or <code class="cmd">"max"</code>.<span class="tag gone">deprecated</span></span></li>
+  </ul>
+</article>
+
+<article class="card c-teal">
+  <div class="head"><span class="num">12</span><h3>Images, video, audio</h3></div>
+  <ul>
+    <li><code class="cmd">run.<span class="fn">log</span>({<span class="str">"ex"</span>: <span class="mod">wandb</span>.<span class="fn">Image</span>(arr, <span class="arg">caption</span>=<span class="str">"pred"</span>)})</code><span class="d">Accepts a NumPy array, a <code class="cmd">PIL.Image</code>, a torch tensor, or a file path. Last dim 1&#8594;grey, 3&#8594;RGB, 4&#8594;RGBA; floats are rescaled to 0&ndash;255.</span></li>
+    <li><code class="cmd">run.<span class="fn">log</span>({<span class="str">"ex"</span>: [<span class="mod">wandb</span>.<span class="fn">Image</span>(i) <span class="kw">for</span> i <span class="kw">in</span> imgs]})</code><span class="d">A list under one key gives a scrubbable grid. <b>Keep it under ~50 images per step</b> or logging becomes the bottleneck.</span></li>
+    <li><code class="cmd"><span class="fn">Image</span>(img, <span class="arg">masks</span>={<span class="str">"pred"</span>: {<span class="str">"mask_data"</span>: m, <span class="str">"class_labels"</span>: L}})</code><span class="d">Segmentation overlay: <code class="cmd">mask_data</code> is a 2D int array of class IDs; <code class="cmd">class_labels</code> maps ID&#8594;name.</span></li>
+    <li><code class="cmd"><span class="fn">Image</span>(img, <span class="arg">boxes</span>={<span class="str">"pred"</span>: {<span class="str">"box_data"</span>: [&hellip;]}})</code><span class="d">Boxes take either <code class="cmd">{minX,maxX,minY,maxY}</code> or <code class="cmd">{middle,width,height}</code>, plus <code class="cmd">class_id</code>, <code class="cmd">scores</code>, <code class="cmd">box_caption</code>.</span></li>
+    <li><span class="d"><b>Box coordinates are fractions of the image by default.</b> Pass <code class="cmd"><span class="str">"domain"</span>: <span class="str">"pixel"</span></code> if yours are in pixels &mdash; otherwise everything collapses into a corner.</span></li>
+    <li><code class="cmd"><span class="mod">wandb</span>.<span class="fn">Video</span>(arr, <span class="arg">fps</span>=<span class="num">4</span>, <span class="arg">format</span>=<span class="str">"gif"</span>)</code><span class="d">NumPy axes are <b>(time, channel, height, width)</b>. Needs <code class="cmd">ffmpeg</code> + <code class="cmd">moviepy</code> for arrays. Formats: gif, mp4, webm, ogg.</span></li>
+    <li><code class="cmd"><span class="mod">wandb</span>.<span class="fn">Audio</span>(arr, <span class="arg">sample_rate</span>=<span class="num">22050</span>)</code><span class="d">Max <b>100 clips per step</b>.</span></li>
+    <li><code class="cmd"><span class="mod">wandb</span>.<span class="fn">Histogram</span>(grads, <span class="arg">num_bins</span>=<span class="num">64</span>)</code><span class="d">Flattens and calls <code class="cmd">np.histogram</code>. Max 512 bins. In history it renders as a heatmap over time.</span></li>
+    <li><code class="cmd"><span class="mod">wandb</span>.<span class="fn">Html</span>(s)</code> &middot; <code class="cmd"><span class="fn">Molecule</span></code> &middot; <code class="cmd"><span class="fn">Object3D</span></code><span class="d">Arbitrary HTML panels; 10 molecule formats plus SMILES/rdkit; point clouds and lidar (UI truncates at 300k points).</span></li>
+  </ul>
+</article>
+
+<article class="card c-teal">
+  <div class="head"><span class="num">13</span><h3>Tables</h3></div>
+  <ul>
+    <li><code class="cmd">t = <span class="mod">wandb</span>.<span class="fn">Table</span>(<span class="arg">columns</span>=[&hellip;], <span class="arg">data</span>=[[&hellip;]])</code><span class="d">Row-oriented 2D data. Cells may hold numbers, strings, and any media type &mdash; that's what makes them prediction viewers.</span></li>
+    <li><code class="cmd"><span class="mod">wandb</span>.<span class="fn">Table</span>(<span class="arg">dataframe</span>=df)</code><span class="d">Straight from pandas. The usual route for logging a CSV.</span></li>
+    <li><code class="cmd">t.<span class="fn">add_data</span>(x, <span class="mod">wandb</span>.<span class="fn">Image</span>(img), pred)</code><span class="d">Row at a time. <code class="cmd">t.<span class="fn">add_column</span>(name, values)</code> adds one the other way.</span></li>
+    <li><code class="cmd"><span class="arg">log_mode</span>=<span class="str">"IMMUTABLE"</span></code><span class="d">Default. Log once, cheapest, all rows render. Use it at the end of a run.</span></li>
+    <li><code class="cmd"><span class="arg">log_mode</span>=<span class="str">"MUTABLE"</span></code><span class="d">Re-log the same table after adding columns. Whole table is rewritten each time &mdash; slow for big ones.</span></li>
+    <li><code class="cmd"><span class="arg">log_mode</span>=<span class="str">"INCREMENTAL"</span></code><span class="d">Append batches of rows during training and watch them arrive. <b>Workspaces show only the last 100 increments</b> &mdash; the documented trick is to log an INCREMENTAL table during the run <i>and</i> one IMMUTABLE table at the end.</span></li>
+    <li><span class="d">Default cap is <b>10,000 rows</b>; raise with <code class="cmd"><span class="mod">wandb</span>.<span class="fn">Table</span>.MAX_ROWS = N</code>.</span></li>
+    <li><span class="d">A Table is stored as an <b>artifact</b>, not a plain metric &mdash; which is why it gets versioned and can be joined across runs.</span></li>
+  </ul>
+</article>
+
+<article class="card c-teal">
+  <div class="head"><span class="num">14</span><h3>Custom charts &mdash; wandb.plot</h3></div>
+  <ul>
+    <li><code class="cmd"><span class="mod">wandb</span>.<span class="fn">plot</span>.<span class="fn">line</span>(table, <span class="arg">x</span>=, <span class="arg">y</span>=, <span class="arg">title</span>=)</code><span class="d">Every <code class="cmd">wandb.plot</code> helper takes a Table and returns an object you pass to <code class="cmd">run.<span class="fn">log</span>()</code>.</span></li>
+    <li><code class="cmd"><span class="fn">plot</span>.<span class="fn">scatter</span></code> &middot; <code class="cmd"><span class="fn">bar</span></code> &middot; <code class="cmd"><span class="fn">histogram</span></code><span class="d">The workhorses. Column names must match the <code class="cmd">x</code>/<code class="cmd">y</code>/<code class="cmd">value</code> arguments exactly.</span></li>
+    <li><code class="cmd"><span class="fn">plot</span>.<span class="fn">line_series</span>(<span class="arg">xs</span>=, <span class="arg">ys</span>=, <span class="arg">keys</span>=)</code><span class="d">Several lines on one axis without building a Table first.</span></li>
+    <li><code class="cmd"><span class="fn">plot</span>.<span class="fn">confusion_matrix</span>(<span class="arg">y_true</span>=, <span class="arg">preds</span>=, <span class="arg">class_names</span>=)</code><span class="d">One line instead of a seaborn heatmap, and it stays interactive.</span></li>
+    <li><code class="cmd"><span class="fn">plot</span>.<span class="fn">roc_curve</span>(y_test, y_probas, labels)</code><span class="d">Also <code class="cmd"><span class="fn">pr_curve</span></code>. Takes probability matrices, not hard labels.</span></li>
+    <li><code class="cmd"><span class="mod">wandb</span>.<span class="fn">plot_table</span>(vega_spec, table, fields)</code><span class="d">The escape hatch: render a Table with any Vega-Lite spec you've saved as a preset.</span></li>
+    <li><span class="d">It is <code class="cmd">wandb.plot</code> &mdash; singular. <code class="cmd">wandb.plots</code> was removed in 0.17.0.<span class="tag gone">removed</span></span></li>
+  </ul>
+</article>
+
+<article class="card c-slate">
+  <div class="head"><span class="num">15</span><h3>System metrics, logs, offline</h3></div>
+  <ul>
+    <li><span class="d"><b>Free with every run:</b> CPU%, RAM, disk, network, and per-GPU utilisation / memory / power / temperature (NVIDIA, AMD, Apple Silicon, Google TPU, AWS Trainium). No code needed.</span></li>
+    <li><span class="d">In Linux containers, CPU and memory are reported against the <b>cgroup limit</b>, not the host total.<span class="tag new">0.27</span></span></li>
+    <li><span class="d">stdout and stderr are captured into the run's <b>Logs</b> tab automatically.</span></li>
+    <li><code class="cmd"><span class="fn">Settings</span>(<span class="arg">capture_loggers</span>={<span class="str">"myapp"</span>: <span class="str">"INFO"</span>})</code><span class="d">Pipe named Python <code class="cmd">logging</code> loggers into the run.<span class="tag new">0.27</span></span></li>
+    <li><code class="cmd">WANDB_MODE=offline</code> &#8594; <code class="cmd">wandb sync</code><span class="d">The air-gapped / no-network workflow. <b>Keep the run folder</b> or the data is gone.</span></li>
+    <li><code class="cmd"><span class="fn">Settings</span>(<span class="arg">finish_timeout</span>=<span class="num">300</span>)</code><span class="d">Cap the wait for the final upload. Pair with <code class="cmd">finish_timeout_raises</code> to fail loudly.<span class="tag new">0.27</span></span></li>
+    <li><code class="cmd">WANDB_ENABLE_DCGM_PROFILING=true</code><span class="d">Deep NVIDIA profiling metrics. Costs resources; needs the <code class="cmd">nvidia-dcgm</code> service.</span></li>
+  </ul>
+</article>
+
+</main>
+
+<div class="partbar">
+  <span class="part-tag">Part III</span>
+  <h2>Artifacts, sweeps &amp; the wider platform</h2>
+  <div class="rule"></div>
+  <span class="note">versioning, tuning, integrations, querying back</span>
+</div>
+
+<main class="grid">
+
+<article class="card c-teal">
+  <div class="head"><span class="num">16</span><h3>Artifacts &mdash; create &amp; log</h3><span class="star">&#9733;</span></div>
+  <ul>
+    <li><code class="cmd">a = <span class="mod">wandb</span>.<span class="fn">Artifact</span>(<span class="arg">name</span>=<span class="str">"cifar"</span>, <span class="arg">type</span>=<span class="str">"dataset"</span>)</code><span class="d">An artifact is a named, versioned bundle. <code class="cmd">type</code> is free text; <code class="cmd">"dataset"</code> and <code class="cmd">"model"</code> are the conventions the UI understands.</span></li>
+    <li><code class="cmd">a.<span class="fn">add_file</span>(<span class="str">"data/train.csv"</span>)</code> &middot; <code class="cmd">a.<span class="fn">add_dir</span>(<span class="str">"data/"</span>)</code><span class="d">Copy contents in. Files are content-addressed, so re-logging unchanged data creates no new version.</span></li>
+    <li><code class="cmd">a.<span class="fn">add_reference</span>(<span class="str">"s3://bucket/path"</span>)</code><span class="d"><b>Reference artifact</b> &mdash; W&amp;B stores the URI and checksum, not the bytes. The right call for TB-scale data you already own.</span></li>
+    <li><code class="cmd">a.metadata = {<span class="str">"n_rows"</span>: <span class="num">50000</span>}</code><span class="d">Arbitrary JSON travelling with the version. <code class="cmd">a.description</code> is the human note.</span></li>
+    <li><code class="cmd">run.<span class="fn">log_artifact</span>(a, <span class="arg">aliases</span>=[<span class="str">"best"</span>])</code><span class="d">Declares it an <b>output</b> of this run. Every version silently gets <code class="cmd">latest</code>; pass <code class="cmd">tags=</code> too if you want searchable labels.</span></li>
+    <li><code class="cmd">run.<span class="fn">log_artifact</span>(<span class="str">"./ckpt.pt"</span>, <span class="arg">type</span>=<span class="str">"model"</span>)</code><span class="d">Shorthand &mdash; a path works instead of an Artifact object.</span></li>
+    <li><code class="cmd">a = run.<span class="fn">log_artifact</span>(&hellip;); a.<span class="fn">wait</span>()</code><span class="d"><b>Non-obvious:</b> logging is asynchronous. Call <code class="cmd"><span class="fn">wait</span>()</code> before anything that assumes the upload finished.</span></li>
+    <li><code class="cmd">a.ttl = timedelta(<span class="arg">days</span>=<span class="num">30</span>)</code><span class="d">Time-to-live &#8594; automatic deletion. The main lever on storage bills.</span></li>
+    <li><code class="cmd">run.<span class="fn">upsert_artifact</span>()</code> &#8594; <code class="cmd">run.<span class="fn">finish_artifact</span>()</code><span class="d">Distributed writers all contribute to one version via a shared <code class="cmd">distributed_id</code>, then one finalises it.</span></li>
+  </ul>
+</article>
+
+<article class="card c-teal">
+  <div class="head"><span class="num">17</span><h3>Artifacts &mdash; use &amp; download</h3></div>
+  <ul>
+    <li><code class="cmd">a = run.<span class="fn">use_artifact</span>(<span class="str">"cifar:latest"</span>)</code><span class="d">Declares it an <b>input</b>. This single call is what draws the lineage graph.</span></li>
+    <li><code class="cmd">path = a.<span class="fn">download</span>()</code><span class="d">Returns a local directory. Cached, so a second run on the same machine is instant.</span></li>
+    <li><code class="cmd">a.<span class="fn">download</span>(<span class="arg">path_prefix</span>=<span class="str">"train/"</span>)</code><span class="d">Partial download &mdash; one file or one subfolder out of a huge artifact.</span></li>
+    <li><code class="cmd">entry = a.<span class="fn">get_entry</span>(<span class="str">"labels.json"</span>)</code><span class="d">One file. For a reference artifact this hands back the external URL instead.</span></li>
+    <li><span class="d"><b>Version vs alias:</b> <code class="cmd">name:v3</code> is immutable and reproducible; <code class="cmd">name:latest</code> or <code class="cmd">name:prod</code> is a moving pointer. Pin the version in anything you need to reproduce.</span></li>
+    <li><code class="cmd"><span class="mod">wandb</span>.<span class="fn">Api</span>().<span class="fn">artifact</span>(<span class="str">"ent/proj/name:v2"</span>)</code><span class="d">Fetch outside a run &mdash; no run is created, nothing is logged.</span></li>
+    <li><code class="cmd">a.aliases.<span class="fn">append</span>(<span class="str">"prod"</span>); a.<span class="fn">save</span>()</code><span class="d">Retag an existing version. Same pattern for <code class="cmd">description</code>, <code class="cmd">metadata</code>, <code class="cmd">ttl</code> &mdash; mutate, then <code class="cmd"><span class="fn">save</span>()</code>.</span></li>
+    <li><code class="cmd">run.<span class="fn">link_artifact</span>(a, <span class="str">"wandb-registry-model/my-coll"</span>)</code><span class="d">Publish into the org Registry. The path prefix <code class="cmd">wandb-registry-</code> is mandatory. Linking points at the artifact; it does not copy it.</span></li>
+    <li><code class="cmd">run.<span class="fn">log_model</span>(path)</code> &middot; <code class="cmd">run.<span class="fn">use_model</span>(name)</code><span class="d">Thin model-flavoured wrappers over log/use_artifact.</span></li>
+  </ul>
+</article>
+
+<article class="card c-violet">
+  <div class="head"><span class="num">18</span><h3>Sweeps &mdash; the config</h3><span class="star">&#9733;</span></div>
+  <ul>
+    <li><span class="d"><b>Three required keys:</b> <code class="cmd">method</code>, <code class="cmd">parameters</code>, and <code class="cmd">program</code> (the last only for YAML/CLI sweeps).</span></li>
+    <li><code class="cmd"><span class="str">"method"</span>: <span class="str">"grid" | "random" | "bayes"</span></code><span class="d"><b>grid</b> every combination &middot; <b>random</b> uninformed draws &middot; <b>bayes</b> a surrogate model &mdash; good for a few continuous params, scales poorly.</span></li>
+    <li><code class="cmd"><span class="str">"metric"</span>: {<span class="str">"name"</span>: <span class="str">"val/acc"</span>, <span class="str">"goal"</span>: <span class="str">"maximize"</span>}</code><span class="d">Only bayes and early stopping read it. Default goal is <code class="cmd">minimize</code>. Optional <code class="cmd">target</code> stops the sweep once reached.</span></li>
+    <li><code class="cmd"><span class="str">"lr"</span>: {<span class="str">"min"</span>: <span class="num">1e-5</span>, <span class="str">"max"</span>: <span class="num">1e-1</span>, <span class="str">"distribution"</span>: <span class="str">"log_uniform_values"</span>}</code><span class="d"><b>Use this for learning rates.</b> Plain <code class="cmd">uniform</code> wastes almost every draw on the large end.</span></li>
+    <li><code class="cmd"><span class="str">"opt"</span>: {<span class="str">"values"</span>: [<span class="str">"adam"</span>, <span class="str">"sgd"</span>]}</code><span class="d">Categorical. <code class="cmd">values</code> = a set, <code class="cmd">value</code> = a constant you still want recorded.</span></li>
+    <li><span class="d"><b>Inferred distributions:</b> <code class="cmd">values</code>&#8594;categorical &middot; int <code class="cmd">min/max</code>&#8594;int_uniform &middot; float <code class="cmd">min/max</code>&#8594;uniform &middot; <code class="cmd">value</code>&#8594;constant.</span></li>
+    <li><span class="d">Full family: <code class="cmd">log_uniform_values</code>, <code class="cmd">q_uniform</code>, <code class="cmd">q_log_uniform_values</code>, <code class="cmd">inv_log_uniform_values</code>, <code class="cmd">normal</code>, <code class="cmd">log_normal</code>, <code class="cmd">q_normal</code>&hellip; (<code class="cmd">q</code> = quantisation step; <code class="cmd">mu</code>/<code class="cmd">sigma</code> for normals).</span></li>
+    <li><code class="cmd"><span class="str">"early_terminate"</span>: {<span class="str">"type"</span>: <span class="str">"hyperband"</span>, <span class="str">"min_iter"</span>: <span class="num">3</span>}</code><span class="d">Hyperband kills laggards at bracket boundaries. Give <code class="cmd">min_iter</code> <b>or</b> <code class="cmd">max_iter</code>+<code class="cmd">s</code>; <code class="cmd">eta</code> defaults to 3.</span></li>
+    <li><code class="cmd"><span class="str">"run_cap"</span>: <span class="num">50</span></code><span class="d"><b>Set it.</b> random and bayes sweeps otherwise run until you stop them.</span></li>
+    <li><code class="cmd"><span class="str">"command"</span>: [<span class="str">"${env}"</span>, <span class="str">"${interpreter}"</span>, <span class="str">"${program}"</span>, <span class="str">"${args}"</span>]</code><span class="d">How the agent invokes your script. Variants: <code class="cmd">${args_no_hyphens}</code>, <code class="cmd">${args_json}</code>, <code class="cmd">${args_no_boolean_flags}</code>, <code class="cmd">${envvar:NAME}</code>.</span></li>
+  </ul>
+</article>
+
+<article class="card c-violet">
+  <div class="head"><span class="num">19</span><h3>Sweeps &mdash; running them</h3></div>
+  <ul>
+    <li><code class="cmd">sweep_id = <span class="mod">wandb</span>.<span class="fn">sweep</span>(cfg, <span class="arg">project</span>=<span class="str">"p"</span>)</code><span class="d">Registers the search space and returns an ID. Or <code class="cmd">wandb sweep sweep.yaml</code> from the shell.</span></li>
+    <li><code class="cmd"><span class="mod">wandb</span>.<span class="fn">agent</span>(sweep_id, <span class="arg">function</span>=main, <span class="arg">count</span>=<span class="num">10</span>)</code><span class="d">The worker: ask for a config, call your function, repeat. Launch it on N machines and they coordinate through the server.</span></li>
+    <li><code class="cmd"><span class="kw">def</span> <span class="fn">main</span>():<br>&nbsp;&nbsp;<span class="kw">with</span> <span class="mod">wandb</span>.<span class="fn">init</span>() <span class="kw">as</span> run:<br>&nbsp;&nbsp;&nbsp;&nbsp;train(run.config)</code><span class="d">The training function takes <b>no arguments</b> &mdash; the agent injects hyperparameters through <code class="cmd">run.config</code>. This surprises everyone once.</span></li>
+    <li><span class="d"><b>The sweep's project and the run's project must match</b>, or your runs vanish into a different project and the sweep never sees them.</span></li>
+    <li><code class="cmd"><span class="kw">if</span> __name__ == <span class="str">"__main__"</span>:</code><span class="d">Mandatory around <code class="cmd"><span class="fn">agent</span>()</code>/<code class="cmd"><span class="fn">sweep</span>()</code> when using <code class="cmd">multiprocessing</code> or <code class="cmd">torch.multiprocessing</code> &mdash; otherwise workers re-import and re-spawn.</span></li>
+    <li><span class="d"><b>Grid search over a continuous range never terminates.</b> Grid needs <code class="cmd">values</code>/<code class="cmd">value</code>, not <code class="cmd">min</code>/<code class="cmd">max</code>.</span></li>
+    <li><code class="cmd">wandb sweep --pause | --resume | --stop | --cancel ID</code><span class="d"><b>stop</b> lets running runs finish; <b>cancel</b> kills them.</span></li>
+    <li><code class="cmd"><span class="mod">wandb</span>.<span class="fn">controller</span>(sweep_id)</code><span class="d">Run the search/stopping logic locally instead of in the cloud.</span></li>
+    <li><span class="d">Read results with a <b>parallel coordinates</b> panel and the <b>parameter importance</b> panel &mdash; the two that actually tell you which knob mattered.</span></li>
+  </ul>
+</article>
+
+<article class="card c-teal">
+  <div class="head"><span class="num">20</span><h3>PyTorch &amp; framework hooks</h3></div>
+  <ul>
+    <li><code class="cmd">run.<span class="fn">watch</span>(model, <span class="arg">log</span>=<span class="str">"all"</span>, <span class="arg">log_freq</span>=<span class="num">100</span>)</code><span class="d">Hooks a <code class="cmd">nn.Module</code> for gradient and parameter histograms. <code class="cmd">log</code>&#8712;<code class="cmd">"gradients"</code> (default), <code class="cmd">"parameters"</code>, <code class="cmd">"all"</code>, <code class="cmd">None</code>. <code class="cmd"><span class="arg">log_graph</span>=<span class="kw">True</span></code> adds the graph.</span></li>
+    <li><code class="cmd">run.<span class="fn">unwatch</span>(model)</code><span class="d">Removes the hooks. Worth doing before a long eval loop &mdash; <code class="cmd">log_freq=1</code> on a big model is genuinely slow.</span></li>
+    <li><code class="cmd"><span class="kw">from</span> <span class="mod">lightning.pytorch.loggers</span> <span class="kw">import</span> WandbLogger</code><span class="d"><code class="cmd">Trainer(<span class="arg">logger</span>=WandbLogger(<span class="arg">project</span>=<span class="str">"p"</span>, <span class="arg">log_model</span>=<span class="str">"all"</span>))</code> &mdash; <code class="cmd">log_model</code> pushes checkpoints as artifacts.</span></li>
+    <li><code class="cmd">TrainingArguments(<span class="arg">report_to</span>=<span class="str">"wandb"</span>)</code><span class="d">HuggingFace Transformers. Add <code class="cmd">WANDB_LOG_MODEL=checkpoint</code> to version checkpoints; <code class="cmd"><span class="arg">run_name</span>=</code> sets the display name.</span></li>
+    <li><code class="cmd"><span class="kw">from</span> <span class="mod">wandb.integration.keras</span> <span class="kw">import</span> WandbMetricsLogger</code><span class="d">Pass to <code class="cmd">model.fit(<span class="arg">callbacks</span>=[&hellip;])</code>. <code class="cmd"><span class="arg">log_freq</span></code> = <code class="cmd">"epoch"</code> (default), <code class="cmd">"batch"</code>, or an int.</span></li>
+    <li><code class="cmd">WandbModelCheckpoint(<span class="str">"models/"</span>, <span class="arg">save_best_only</span>=<span class="kw">True</span>)</code><span class="d">Subclasses Keras' own <code class="cmd">ModelCheckpoint</code> and uploads each save as an artifact. Use alongside <code class="cmd">WandbMetricsLogger</code>.</span></li>
+    <li><code class="cmd">WandbEvalCallback</code><span class="d">Abstract base &mdash; implement <code class="cmd">add_ground_truth</code> and <code class="cmd">add_model_predictions</code> to get a prediction Table per epoch.</span></li>
+    <li><span class="d">Also shipped: XGBoost, LightGBM, CatBoost, Ignite, PyTorch Geometric, torchtune, Accelerate, Diffusers, Hydra, YOLOX, SB3.</span></li>
+  </ul>
+</article>
+
+<article class="card c-teal">
+  <div class="head"><span class="num">21</span><h3>Public API &mdash; querying back</h3></div>
+  <ul>
+    <li><code class="cmd">api = <span class="mod">wandb</span>.<span class="fn">Api</span>()</code><span class="d">A separate, read/write client for <b>runs that already exist</b>. Note its <code class="cmd">Run</code> class is not the same object <code class="cmd"><span class="fn">init</span>()</code> returns.</span></li>
+    <li><code class="cmd">runs = api.<span class="fn">runs</span>(<span class="str">"entity/project"</span>)</code><span class="d">Iterable of runs, oldest first. Lazy by default &mdash; config and summary load on access.</span></li>
+    <li><code class="cmd">api.<span class="fn">runs</span>(p, {<span class="str">"config.lr"</span>: {<span class="str">"$lt"</span>: <span class="num">0.01</span>}})</code><span class="d">MongoDB-style filters over <code class="cmd">config.*</code>, <code class="cmd">summary_metrics.*</code>, <code class="cmd">tags</code>, <code class="cmd">state</code>, <code class="cmd">display_name</code>.</span></li>
+    <li><code class="cmd">run.summary</code> &middot; <code class="cmd">run.config</code> &middot; <code class="cmd">run.<span class="fn">history</span>()</code><span class="d"><code class="cmd"><span class="fn">history</span>()</code> returns a <b>sampled</b> DataFrame; <code class="cmd"><span class="fn">scan_history</span>()</code> streams every row.</span></li>
+    <li><code class="cmd">run = api.<span class="fn">run</span>(<span class="str">"ent/proj/run_id"</span>)</code><span class="d">Then <code class="cmd">run.tags.<span class="fn">append</span>(&hellip;); run.<span class="fn">update</span>()</code> to edit stored data. <b><code class="cmd"><span class="fn">update</span>()</code> is what persists it.</b></span></li>
+    <li><code class="cmd">run.<span class="fn">logged_artifacts</span>()</code> &middot; <code class="cmd">run.<span class="fn">used_artifacts</span>()</code><span class="d">Outputs and inputs &mdash; walk these to traverse a lineage graph.</span></li>
+    <li><code class="cmd">api.<span class="fn">sweep</span>(&hellip;).best_run()</code><span class="d">Straight to the winner of a sweep.</span></li>
+    <li><code class="cmd">api.<span class="fn">artifacts</span>()</code> &middot; <code class="cmd">api.<span class="fn">registries</span>()</code> &middot; <code class="cmd">api.<span class="fn">automations</span>()</code><span class="d">Paginated; all accept <code class="cmd">per_page</code>, <code class="cmd">order</code> and a resumable <code class="cmd">start</code> cursor.</span></li>
+    <li><span class="d">Since 0.27.1 these route through <code class="cmd">wandb-core</code> and raise <code class="cmd">WandbApiFailedError</code>, not <code class="cmd">requests</code> exceptions &mdash; update your <code class="cmd">except</code> clauses.<span class="tag new">0.27</span></span></li>
+  </ul>
+</article>
+
+<article class="card c-teal">
+  <div class="head"><span class="num">22</span><h3>Beyond experiment tracking</h3></div>
+  <ul>
+    <li><span class="d"><b>Registry</b> &mdash; org-wide model shelf. Link versions into <code class="cmd">wandb-registry-{name}/{collection}</code>, promote with aliases, audit through lineage.</span></li>
+    <li><span class="d"><b>Reports</b> &mdash; narrative documents mixing prose with live panels. Buildable in code via <code class="cmd">wandb_workspaces.reports</code>.</span></li>
+    <li><span class="d"><b>Automations</b> &mdash; trigger a Slack message or webhook on events: new artifact version, alias added, run finished, or a metric crossing a threshold / z-score.</span></li>
+    <li><span class="d"><b>Launch</b> &mdash; package a run as a job and queue it onto Kubernetes, SageMaker, Vertex or Docker.</span></li>
+    <li><span class="d"><b>Weave</b> &mdash; the separate <code class="cmd">weave</code> package for LLM app tracing and evals. Different SDK, same platform; <code class="cmd">wandb.integration.weave</code> bridges them.</span></li>
+    <li><span class="d"><b>MCP server</b> &mdash; point an AI coding agent at your workspace data and the W&amp;B docs.</span></li>
+  </ul>
+</article>
+
+<article class="card c-red">
+  <div class="head"><span class="num">23</span><h3>Stale APIs the tutorials still teach</h3><span class="star">&#9733;</span></div>
+  <ul>
+    <li><code class="cmd"><span class="mod">wandb</span>.<span class="fn">log</span>(&hellip;)</code> &#8594; <code class="cmd">run.<span class="fn">log</span>(&hellip;)</code><span class="d"><b>The single biggest drift.</b> Nearly every blog post uses the module-level form. W&amp;B's own global-function reference now lists only <code class="cmd">init login setup teardown sweep agent controller restore finish</code> &mdash; everything else is a method on the Run you got back.</span></li>
+    <li><code class="cmd">WandbCallback</code> (Keras) <span class="tag gone">removed 0.27.1</span><span class="d">Deleted from the SDK &mdash; though the docs page still describes it as "legacy". Use <code class="cmd">WandbMetricsLogger</code> + <code class="cmd">WandbModelCheckpoint</code>.</span></li>
+    <li><code class="cmd"><span class="mod">wandb.beta.workflows</span></code> <span class="tag gone">removed 0.24.0</span><span class="d">Its <code class="cmd">log_model/use_model/link_model</code> became <code class="cmd">Run.log_artifact / use_artifact / link_artifact</code>.</span></li>
+    <li><code class="cmd"><span class="mod">wandb</span>.<span class="fn">plots</span></code> &#8594; <code class="cmd"><span class="mod">wandb</span>.<span class="fn">plot</span></code> <span class="tag gone">0.17.0</span><span class="d">Same release moved <code class="cmd">wandb.keras</code>, <code class="cmd">wandb.xgboost</code>, <code class="cmd">wandb.fastai</code>&hellip; under <code class="cmd">wandb.integration.*</code>.</span></li>
+    <li><code class="cmd">Run.<span class="fn">plot_table</span>()</code> &#8594; <code class="cmd"><span class="mod">wandb</span>.<span class="fn">plot_table</span>()</code> <span class="tag gone">0.19.0</span></li>
+    <li><code class="cmd">run.<span class="fn">get_url</span>()</code> &#8594; <code class="cmd">run.url</code><span class="d">Likewise <code class="cmd">project_name()</code>&#8594;<code class="cmd">project</code>, <code class="cmd">get_project_url()</code>&#8594;<code class="cmd">project_url</code>, <code class="cmd">get_sweep_url()</code>&#8594;<code class="cmd">sweep_url</code>. And <code class="cmd">run.join()</code> is long gone &mdash; it's <code class="cmd">finish()</code>.</span></li>
+    <li><code class="cmd">OpenAI / Cohere / LangChain autolog</code> <span class="tag gone">removed 0.27.1</span><span class="d">The old tracing shims are gone. LLM work belongs in <b>Weave</b> now.</span></li>
+    <li><code class="cmd"><span class="fn">init</span>(<span class="arg">anonymous</span>=&hellip;)</code> <span class="tag gone">deprecated</span><span class="d">Anonymous mode emits warnings since 0.23.1.</span></li>
+    <li><span class="d"><code class="cmd"><span class="mod">wandb</span>.<span class="fn">require</span>(<span class="str">"core"</span>)</code> is unnecessary &mdash; the Go backend has been the default since 0.18.0, and <code class="cmd">"legacy-service"</code> now raises.</span></li>
+  </ul>
+</article>
+
+<article class="card c-red">
+  <div class="head"><span class="num">24</span><h3>When something goes wrong</h3></div>
+  <ul>
+    <li><span class="d"><b>Run stuck "running" forever</b> &#8594; the process died without <code class="cmd"><span class="fn">finish</span>()</code>. Use the <code class="cmd">with</code> block; it also marks the run failed on exception.</span></li>
+    <li><span class="d"><b>"You must call wandb.init() before &hellip;"</b> &#8594; a worker process. Under Keras <code class="cmd">use_multiprocessing=True</code>, init inside the <code class="cmd">Sequence</code> constructor and guard <code class="cmd">main</code>.</span></li>
+    <li><span class="d"><b>Charts are jagged / x-axis is nonsense</b> &#8594; you're logging train per batch and val per epoch onto one step counter. Fix with <code class="cmd"><span class="fn">define_metric</span>(<span class="arg">step_metric</span>=)</code>.</span></li>
+    <li><span class="d"><b>Config raises on assignment</b> &#8594; you set the same key twice. That's intentional; pass <code class="cmd">allow_val_change=True</code> or log it as a metric.</span></li>
+    <li><span class="d"><b>Training got slow</b> &#8594; logging too often, too many images per step, or <code class="cmd"><span class="fn">watch</span>()</code> with a small <code class="cmd">log_freq</code>.</span></li>
+    <li><span class="d"><b>CUDA OOM only under a sweep</b> &#8594; agents reuse the process; free the model and empty the cache at the end of each trial.</span></li>
+    <li><span class="d"><b>Artifact "missing" right after logging</b> &#8594; you skipped <code class="cmd">artifact.<span class="fn">wait</span>()</code>.</span></li>
+    <li><span class="d"><b>Storage bill climbing</b> &#8594; set TTLs, use reference artifacts for large data, and run <code class="cmd">wandb artifact cache cleanup</code>.</span></li>
+    <li><span class="d"><b>Version floor:</b> SDK 0.28.0 requires W&amp;B Server &ge; 0.65.0. Self-managed users, check before upgrading.</span></li>
+    <li><span class="d">Debug logs live at <code class="cmd">wandb/debug.log</code> and <code class="cmd">wandb/debug-internal.log</code> &mdash; the first place to look, and what support will ask for.</span></li>
+  </ul>
+</article>
+
+</main>
+
+<div class="concepts">
+
+<div class="panel">
+  <h4>Where does a number live? config vs history vs summary</h4>
+  <p class="cap">Three buckets, three lifetimes. Most confusion about W&amp;B is really confusion about which one you wanted.</p>
+  <svg viewBox="0 0 520 274" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="Three lanes: config holds static inputs, history holds one row per log call, summary holds one final number per metric.">
+    <g font-family="JetBrains Mono, monospace">
+      <!-- config lane -->
+      <rect x="6" y="14" width="100" height="60" rx="6" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+      <text x="56" y="38" text-anchor="middle" font-size="10.5" font-weight="700" fill="#92400e">config</text>
+      <text x="56" y="53" text-anchor="middle" font-size="8.5" fill="#b45309">set once,</text>
+      <text x="56" y="64" text-anchor="middle" font-size="8.5" fill="#b45309">before training</text>
+      <rect x="122" y="20" width="86" height="22" rx="4" fill="#fef3c7"/>
+      <text x="165" y="35" text-anchor="middle" font-size="9" fill="#92400e">lr = 3e-4</text>
+      <rect x="216" y="20" width="86" height="22" rx="4" fill="#fef3c7"/>
+      <text x="259" y="35" text-anchor="middle" font-size="9" fill="#92400e">bs = 32</text>
+      <rect x="310" y="20" width="112" height="22" rx="4" fill="#fef3c7"/>
+      <text x="366" y="35" text-anchor="middle" font-size="9" fill="#92400e">arch = "resnet50"</text>
+      <text x="122" y="62" font-size="8.5" fill="#94a3b8">&#8594; these become the columns you filter, group and sort runs by</text>
+
+      <line x1="6" y1="88" x2="514" y2="88" stroke="#f1f5f9" stroke-width="1"/>
+
+      <!-- history lane -->
+      <rect x="6" y="100" width="100" height="62" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.9"/>
+      <text x="56" y="124" text-anchor="middle" font-size="10.5" font-weight="700" fill="#064e3b">history</text>
+      <text x="56" y="139" text-anchor="middle" font-size="8.5" fill="#047857">one row per</text>
+      <text x="56" y="150" text-anchor="middle" font-size="8.5" fill="#047857">run.log() call</text>
+      <line x1="126" y1="152" x2="430" y2="152" stroke="#cbd5e1" stroke-width="1"/>
+      <line x1="126" y1="152" x2="126" y2="104" stroke="#cbd5e1" stroke-width="1"/>
+      <polyline points="140,110 186,124 232,133 278,140 324,144 370,147 416,148"
+                fill="none" stroke="#059669" stroke-width="2"/>
+      <circle cx="140" cy="110" r="3" fill="#059669"/><circle cx="186" cy="124" r="3" fill="#059669"/>
+      <circle cx="232" cy="133" r="3" fill="#059669"/><circle cx="278" cy="140" r="3" fill="#059669"/>
+      <circle cx="324" cy="144" r="3" fill="#059669"/><circle cx="370" cy="147" r="3" fill="#059669"/>
+      <circle cx="416" cy="148" r="3" fill="#059669"/>
+      <text x="140" y="164" text-anchor="middle" font-size="8" fill="#94a3b8">0</text>
+      <text x="232" y="164" text-anchor="middle" font-size="8" fill="#94a3b8">2</text>
+      <text x="324" y="164" text-anchor="middle" font-size="8" fill="#94a3b8">4</text>
+      <text x="416" y="164" text-anchor="middle" font-size="8" fill="#94a3b8">6</text>
+      <text x="452" y="130" font-size="8.5" fill="#059669">step &#8594;</text>
+      <text x="440" y="164" font-size="8" fill="#94a3b8">monotonic</text>
+
+      <line x1="6" y1="180" x2="514" y2="180" stroke="#f1f5f9" stroke-width="1"/>
+
+      <!-- summary lane -->
+      <rect x="6" y="192" width="100" height="62" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+      <text x="56" y="216" text-anchor="middle" font-size="10.5" font-weight="700" fill="#064e3b">summary</text>
+      <text x="56" y="231" text-anchor="middle" font-size="8.5" fill="#047857">one number</text>
+      <text x="56" y="242" text-anchor="middle" font-size="8.5" fill="#047857">per metric</text>
+      <rect x="122" y="198" width="130" height="22" rx="4" fill="#d1fae5"/>
+      <text x="187" y="213" text-anchor="middle" font-size="9" fill="#064e3b">loss = 0.11 (last)</text>
+      <rect x="260" y="198" width="162" height="22" rx="4" fill="#d1fae5"/>
+      <text x="341" y="213" text-anchor="middle" font-size="9" fill="#064e3b">acc = 0.94 (max)</text>
+      <text x="122" y="240" font-size="8.5" fill="#94a3b8">&#8594; defaults to the LAST value &mdash; use define_metric(summary="max")</text>
+      <text x="122" y="252" font-size="8.5" fill="#94a3b8">&#8203;&nbsp;&nbsp;&nbsp;to make it the best one. This is what leaderboards sort on.</text>
+    </g>
+  </svg>
+</div>
+
+<div class="panel">
+  <h4>The step counter &mdash; three ways to log the same thing</h4>
+  <p class="cap">Every <code>run.log()</code> creates a new step by default. Two knobs change that, and one of them is why your charts look wrong.</p>
+  <svg viewBox="0 0 520 274" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="Three logging patterns: default auto-increment, commit=False accumulation, and a custom step_metric x-axis.">
+    <defs>
+      <marker id="stepArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+      </marker>
+    </defs>
+    <g font-family="JetBrains Mono, monospace">
+      <!-- A -->
+      <text x="6" y="16" font-size="9.5" font-weight="700" fill="#1a1d24">A &nbsp;default &mdash; each call is its own step</text>
+      <text x="6" y="32" font-size="9" fill="#475569">run.log({"loss": l}) ; run.log({"acc": a})</text>
+      <rect x="6" y="42" width="122" height="34" rx="5" fill="#ecfdf5" stroke="#059669" stroke-width="1.4"/>
+      <text x="67" y="56" text-anchor="middle" font-size="9" font-weight="700" fill="#064e3b">step 0</text>
+      <text x="67" y="69" text-anchor="middle" font-size="8.5" fill="#047857">loss only</text>
+      <rect x="146" y="42" width="122" height="34" rx="5" fill="#ecfdf5" stroke="#059669" stroke-width="1.4"/>
+      <text x="207" y="56" text-anchor="middle" font-size="9" font-weight="700" fill="#064e3b">step 1</text>
+      <text x="207" y="69" text-anchor="middle" font-size="8.5" fill="#047857">acc only</text>
+      <line x1="130" y1="59" x2="143" y2="59" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#stepArr)"/>
+      <text x="286" y="55" font-size="8.5" fill="#dc2626">two half-empty rows &mdash;</text>
+      <text x="286" y="67" font-size="8.5" fill="#dc2626">charts look sparse and gappy</text>
+
+      <line x1="6" y1="92" x2="514" y2="92" stroke="#f1f5f9" stroke-width="1"/>
+
+      <!-- B -->
+      <text x="6" y="110" font-size="9.5" font-weight="700" fill="#1a1d24">B &nbsp;commit=False &mdash; accumulate into one step</text>
+      <text x="6" y="126" font-size="9" fill="#475569">run.log({"loss": l}, commit=False) ; run.log({"acc": a})</text>
+      <rect x="6" y="136" width="262" height="34" rx="5" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+      <text x="137" y="150" text-anchor="middle" font-size="9" font-weight="700" fill="#064e3b">step 0</text>
+      <text x="137" y="163" text-anchor="middle" font-size="8.5" fill="#047857">loss + acc together</text>
+      <text x="286" y="149" font-size="8.5" fill="#059669">the second call (no commit=False)</text>
+      <text x="286" y="161" font-size="8.5" fill="#059669">flushes and advances the step</text>
+
+      <line x1="6" y1="186" x2="514" y2="186" stroke="#f1f5f9" stroke-width="1"/>
+
+      <!-- C -->
+      <text x="6" y="204" font-size="9.5" font-weight="700" fill="#1a1d24">C &nbsp;step_metric &mdash; change the x-axis itself</text>
+      <text x="6" y="220" font-size="9" fill="#475569">run.define_metric("val/*", step_metric="epoch")</text>
+      <rect x="6" y="230" width="180" height="34" rx="5" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.4"/>
+      <text x="96" y="244" text-anchor="middle" font-size="9" font-weight="700" fill="#312e81">x-axis = epoch</text>
+      <text x="96" y="257" text-anchor="middle" font-size="8.5" fill="#4f46e5">not the internal counter</text>
+      <text x="204" y="243" font-size="8.5" fill="#4f46e5">the fix when train logs per batch</text>
+      <text x="204" y="255" font-size="8.5" fill="#4f46e5">and val logs per epoch</text>
+    </g>
+  </svg>
+</div>
+
+<div class="panel">
+  <h4>Artifact lineage &mdash; what <code>use_artifact</code> actually buys you</h4>
+  <p class="cap">Logging an output and declaring an input are the two edges of a graph. W&amp;B draws the rest.</p>
+  <svg viewBox="0 0 520 250" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="A lineage chain: preprocess run produces dataset v3, which a train run consumes to produce model v7, which is linked into a registry collection with aliases.">
+    <defs>
+      <marker id="linArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+      </marker>
+    </defs>
+    <g font-family="JetBrains Mono, monospace">
+      <rect x="6" y="40" width="104" height="42" rx="21" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.4"/>
+      <text x="58" y="57" text-anchor="middle" font-size="9.5" font-weight="700" fill="#312e81">run</text>
+      <text x="58" y="71" text-anchor="middle" font-size="8.5" fill="#4f46e5">job_type=prep</text>
+
+      <rect x="150" y="38" width="118" height="46" rx="6" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.6"/>
+      <text x="209" y="56" text-anchor="middle" font-size="9.5" font-weight="700" fill="#134e4a">cifar:v3</text>
+      <text x="209" y="70" text-anchor="middle" font-size="8.5" fill="#0f766e">type="dataset"</text>
+
+      <rect x="308" y="40" width="104" height="42" rx="21" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.4"/>
+      <text x="360" y="57" text-anchor="middle" font-size="9.5" font-weight="700" fill="#312e81">run</text>
+      <text x="360" y="71" text-anchor="middle" font-size="8.5" fill="#4f46e5">job_type=train</text>
+
+      <line x1="114" y1="61" x2="146" y2="61" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#linArr)"/>
+      <text x="130" y="30" text-anchor="middle" font-size="7.5" fill="#0d9488">log_</text>
+      <text x="130" y="39" text-anchor="middle" font-size="7.5" fill="#0d9488">artifact</text>
+      <line x1="272" y1="61" x2="304" y2="61" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#linArr)"/>
+      <text x="288" y="30" text-anchor="middle" font-size="7.5" fill="#0d9488">use_</text>
+      <text x="288" y="39" text-anchor="middle" font-size="7.5" fill="#0d9488">artifact</text>
+
+      <path d="M 360 86 V 118 H 209 V 132" fill="none" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#linArr)"/>
+      <text x="372" y="106" font-size="7.5" fill="#0d9488">log_artifact</text>
+
+      <rect x="150" y="136" width="118" height="46" rx="6" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.6"/>
+      <text x="209" y="154" text-anchor="middle" font-size="9.5" font-weight="700" fill="#134e4a">resnet:v7</text>
+      <text x="209" y="168" text-anchor="middle" font-size="8.5" fill="#0f766e">type="model"</text>
+
+      <rect x="130" y="196" width="52" height="17" rx="8.5" fill="#ccfbf1"/>
+      <text x="156" y="208" text-anchor="middle" font-size="8" fill="#134e4a">latest</text>
+      <rect x="188" y="196" width="46" height="17" rx="8.5" fill="#ccfbf1"/>
+      <text x="211" y="208" text-anchor="middle" font-size="8" fill="#134e4a">best</text>
+      <rect x="240" y="196" width="70" height="17" rx="8.5" fill="#fef3c7"/>
+      <text x="275" y="208" text-anchor="middle" font-size="8" fill="#92400e">production</text>
+      <line x1="200" y1="186" x2="180" y2="194" stroke="#cbd5e1" stroke-width="1.1"/>
+      <line x1="212" y1="186" x2="212" y2="194" stroke="#cbd5e1" stroke-width="1.1"/>
+      <line x1="224" y1="186" x2="262" y2="194" stroke="#cbd5e1" stroke-width="1.1"/>
+      <text x="209" y="232" text-anchor="middle" font-size="8" fill="#94a3b8">aliases are movable pointers &middot; :v7 is forever</text>
+
+      <line x1="272" y1="159" x2="304" y2="159" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#linArr)"/>
+      <rect x="308" y="134" width="204" height="50" rx="6" fill="#f8fafc" stroke="#64748b" stroke-width="1.3" stroke-dasharray="4 3"/>
+      <text x="410" y="153" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1a1d24">Registry collection</text>
+      <text x="410" y="167" text-anchor="middle" font-size="8" fill="#64748b">wandb-registry-model/detector</text>
+      <text x="410" y="178" text-anchor="middle" font-size="8" fill="#94a3b8">link_artifact &mdash; a pointer, not a copy</text>
+    </g>
+  </svg>
+</div>
+
+<div class="panel">
+  <h4>Anatomy of a sweep</h4>
+  <p class="cap">One config, one cloud controller, N agents anywhere. Hyperband is the part that saves you money.</p>
+  <svg viewBox="0 0 520 274" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="A sweep config feeds a controller which hands configs to three agents; below, a hyperband bracket chart shows poor runs terminated early.">
+    <defs>
+      <marker id="swArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#a78bfa"/>
+      </marker>
+    </defs>
+    <g font-family="JetBrains Mono, monospace">
+      <rect x="6" y="14" width="150" height="70" rx="6" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6"/>
+      <text x="81" y="32" text-anchor="middle" font-size="9.5" font-weight="700" fill="#5b21b6">sweep config</text>
+      <text x="16" y="47" font-size="8" fill="#7c3aed">method: bayes</text>
+      <text x="16" y="59" font-size="8" fill="#7c3aed">metric: val/acc &#8593;</text>
+      <text x="16" y="71" font-size="8" fill="#7c3aed">parameters: {lr, bs}</text>
+
+      <rect x="192" y="24" width="120" height="50" rx="6" fill="#1a1d24"/>
+      <text x="252" y="44" text-anchor="middle" font-size="9.5" font-weight="700" fill="#ffffff">controller</text>
+      <text x="252" y="58" text-anchor="middle" font-size="8" fill="#94a3b8">wandb.sweep() &#8594; ID</text>
+      <line x1="160" y1="49" x2="188" y2="49" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#swArr)"/>
+
+      <rect x="356" y="6" width="158" height="26" rx="5" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.2"/>
+      <text x="435" y="23" text-anchor="middle" font-size="8.5" fill="#5b21b6">agent &mdash; laptop</text>
+      <rect x="356" y="38" width="158" height="26" rx="5" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.2"/>
+      <text x="435" y="55" text-anchor="middle" font-size="8.5" fill="#5b21b6">agent &mdash; GPU box</text>
+      <rect x="356" y="70" width="158" height="26" rx="5" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.2"/>
+      <text x="435" y="87" text-anchor="middle" font-size="8.5" fill="#5b21b6">agent &mdash; cluster node</text>
+      <path d="M 316 45 L 352 19" fill="none" stroke="#a78bfa" stroke-width="1.3" marker-end="url(#swArr)"/>
+      <line x1="316" y1="50" x2="352" y2="51" stroke="#a78bfa" stroke-width="1.3" marker-end="url(#swArr)"/>
+      <path d="M 316 56 L 352 83" fill="none" stroke="#a78bfa" stroke-width="1.3" marker-end="url(#swArr)"/>
+      <text x="252" y="88" text-anchor="middle" font-size="7.5" fill="#94a3b8">each agent asks for the next config</text>
+
+      <line x1="6" y1="112" x2="514" y2="112" stroke="#f1f5f9" stroke-width="1"/>
+      <text x="6" y="132" font-size="9.5" font-weight="700" fill="#1a1d24">early_terminate: hyperband &mdash; check at brackets, kill the laggards</text>
+
+      <line x1="40" y1="250" x2="500" y2="250" stroke="#cbd5e1" stroke-width="1"/>
+      <line x1="40" y1="250" x2="40" y2="146" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="22" y="152" font-size="7.5" fill="#94a3b8">acc</text>
+      <text x="496" y="264" text-anchor="end" font-size="7.5" fill="#94a3b8">iterations logged</text>
+
+      <line x1="150" y1="146" x2="150" y2="250" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="150" y="142" text-anchor="middle" font-size="7.5" fill="#dc2626">min_iter=3</text>
+      <line x1="280" y1="146" x2="280" y2="250" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="280" y="142" text-anchor="middle" font-size="7.5" fill="#dc2626">9</text>
+      <line x1="410" y1="146" x2="410" y2="250" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="410" y="142" text-anchor="middle" font-size="7.5" fill="#dc2626">27 &nbsp;(eta=3)</text>
+
+      <polyline points="40,240 90,214 150,192 220,176 280,166 350,160 420,157 490,156"
+                fill="none" stroke="#059669" stroke-width="2"/>
+      <text x="494" y="153" font-size="7.5" fill="#059669">survives</text>
+      <polyline points="40,242 90,224 150,208 220,198 280,192" fill="none" stroke="#f59e0b" stroke-width="1.6"/>
+      <circle cx="280" cy="192" r="3.4" fill="#dc2626"/>
+      <text x="292" y="196" font-size="7.5" fill="#dc2626">stopped at bracket 9</text>
+      <polyline points="40,244 90,236 150,232" fill="none" stroke="#f59e0b" stroke-width="1.6"/>
+      <circle cx="150" cy="232" r="3.4" fill="#dc2626"/>
+      <text x="162" y="236" font-size="7.5" fill="#dc2626">stopped at bracket 3</text>
+      <text x="40" y="266" font-size="7.5" fill="#94a3b8">brackets count logged iterations, not the value of the step counter</text>
+    </g>
+  </svg>
+</div>
+
+</div>
+
+<div class="memorize">
+  <h3>Worth memorizing</h3>
+  <ol>
+    <li><b>Use the context manager.</b> <code>with wandb.init(...) as run:</code> finishes the run on exit and marks it <b>failed</b> on exception. A bare <code>init()</code> without <code>finish()</code> leaves zombie "running" runs.</li>
+    <li><b>Log through the run, not the module.</b> <code>run.log()</code>, <code>run.config</code>, <code>run.summary</code>. The module-level <code>wandb.log()</code> in every tutorial predates the current API surface.</li>
+    <li><b>config = inputs, history = the curve, summary = the headline.</b> If you can name the bucket, you can find the call.</li>
+    <li><b>The step only goes up.</b> You can never log to a step you've passed. Treat W&amp;B's step like a timestamp and log <code>epoch</code> as a normal metric.</li>
+    <li><b>One slash makes a section.</b> <code>"train/loss"</code> groups; <code>"a/b/c"</code> still lands in section <code>a</code>.</li>
+    <li><b>Summary defaults to the LAST value</b>, not the best. <code>define_metric("val/acc", summary="max")</code> is the one line that fixes every leaderboard.</li>
+    <li><b>Log related metrics in one call.</b> Separate <code>log()</code> calls create separate steps with holes in them; <code>commit=False</code> merges them.</li>
+    <li><b>Config keys can't contain <code>.</code></b>, values cap at 10 MB, and reassigning a key raises unless <code>allow_val_change=True</code>.</li>
+    <li><b><code>use_artifact</code> is what draws lineage.</b> Downloading a file by hand gets you the data and none of the graph.</li>
+    <li><b><code>artifact.wait()</code> after <code>log_artifact()</code></b> before anything that assumes the upload finished. It's asynchronous.</li>
+    <li><b>Pin <code>:v3</code>, don't ship <code>:latest</code>.</b> Aliases move; version numbers don't.</li>
+    <li><b>Sweep project must equal run project</b>, and the training function takes <b>no arguments</b> &mdash; the agent injects hyperparameters via <code>run.config</code>.</li>
+    <li><b>Learning rates want <code>log_uniform_values</code>.</b> A plain uniform range spends almost every trial on the useless end.</li>
+    <li><b>Set <code>run_cap</code>.</b> Random and Bayesian sweeps run forever; grid over a continuous range never terminates at all.</li>
+    <li><b>Wrap <code>wandb.agent()</code> in <code>if __name__ == "__main__":</code></b> whenever multiprocessing is in play, or workers re-import and re-spawn.</li>
+    <li><b>Under 50 images per step, under 100 audio clips</b>, and don't call <code>log()</code> more than a few times a second &mdash; logging becomes the bottleneck fast.</li>
+    <li><b>Bounding boxes are fractional by default.</b> Pass <code>"domain": "pixel"</code> or everything piles into one corner.</li>
+    <li><b>Keras <code>WandbCallback</code> was removed in 0.27.1</b>, even though the docs page still lists it. Use <code>WandbMetricsLogger</code> + <code>WandbModelCheckpoint</code>.</li>
+    <li><b><code>offline</code> records and needs <code>wandb sync</code>; <code>disabled</code> is a no-op.</b> Keep the run folder or offline data is lost.</li>
+    <li><b>Python 3.10+ and pydantic &ge; 2.6 since 0.27.0</b>, and SDK 0.28.0 needs W&amp;B Server &ge; 0.65.0.</li>
+  </ol>
+</div>
+
+<footer class="sheet">
+  <b>Sources &mdash;</b> docs.wandb.ai: Quickstart &middot; Python SDK reference (<b>init()</b>, <b>Run</b>, Global Functions, Data Types) &middot; the official
+  <b>W&amp;B SDK Python coding cheat sheet</b> (Runs, Logging, Artifacts, Registry) &middot; Sweep configuration options &middot; Sweeps walkthrough &middot;
+  Log media and objects &middot; Log tables &middot; Environment variables &middot; Keras integration &middot; <b>SDK release notes v0.17.0 &rarr; v0.28.0</b> &middot;
+  github.com/wandb/wandb &middot; pypi.org/project/wandb<br>
+  <b>Note &mdash;</b> the API reference pages are headed <b>SDK 0.26.1</b> while the release notes run to <b>0.28.0</b> (22 Jun 2026); where the two disagree,
+  the release notes are newer. Verified July 2026 &mdash; check the release notes before relying on any version-tagged item.<br>
+  Built in the house cheat-sheet style: Inter + JetBrains Mono, colour-coded left-border cards, masonry grid, inline SVG diagrams.
+</footer>
+
+</div>
+</body>
+</html>

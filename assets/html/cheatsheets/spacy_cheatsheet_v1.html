@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>spaCy — Python Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1a1d24; --body:#3f444f; --muted:#6b7280; --faint:#94a3b8;
+  --bg:#fbfaf8; --paper:#ffffff; --line:#e7e3db; --line2:#efece4;
+  --slate:#64748b; --amber:#d97706; --green:#059669; --indigo:#4f46e5;
+  --violet:#7c3aed; --teal:#0d9488; --red:#dc2626; --gold:#b45309;
+  --spacy:#09a3d5;
+  --mod:#0891b2; --arg:#7c3aed; --kw:#b45309; --num:#c2410c; --str:#047857; --cm:#94a3b8;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--body);
+  font-family:'Inter',system-ui,sans-serif; font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1500px; margin:0 auto; padding:34px 22px 70px}
+
+/* ---------- header ---------- */
+header{margin-bottom:26px}
+.eyebrow{font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:10px}
+.wordmark{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:52px; letter-spacing:-.01em; line-height:1; margin:0 0 4px; color:var(--ink)}
+.wordmark .cy{color:var(--spacy)}
+.wordmark .tail{font-size:20px; color:var(--muted); font-weight:600; letter-spacing:0}
+.lede{font-size:15px; color:var(--body); max-width:850px; margin:12px 0 0}
+.lede b{color:var(--ink); font-weight:600}
+.lede code{font-family:'JetBrains Mono',monospace; font-size:12.5px; background:#eef2f7; padding:1px 5px; border-radius:4px; color:var(--ink)}
+.legend{display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:18px; padding-top:16px; border-top:1px solid var(--line)}
+.lg{display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600; color:var(--muted)}
+.dot{width:10px; height:10px; border-radius:3px; flex:none}
+.lg .star{color:var(--gold); font-size:13px}
+.srcs{margin-top:12px; font-size:11.5px; color:var(--faint)}
+.srcs b{color:var(--muted)}
+.srcs code{font-family:'JetBrains Mono',monospace}
+
+/* ---------- hero ---------- */
+.hero{background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:16px; margin:22px 0 26px; box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.hero svg{display:block; width:100%; height:auto}
+
+/* ---------- masonry grid ---------- */
+.grid{column-count:3; column-gap:16px}
+@media(max-width:1180px){.grid{column-count:2}}
+@media(max-width:720px){.grid{column-count:1}}
+.card{
+  break-inside:avoid; background:var(--paper); border:1px solid var(--line);
+  border-left:3px solid var(--slate); border-radius:10px; padding:13px 15px 14px;
+  margin:0 0 16px; box-shadow:0 1px 2px rgba(15,23,42,.035);
+}
+.chead{display:flex; align-items:center; gap:9px; margin-bottom:9px}
+.cnum{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:11px; color:#fff; background:var(--slate); border-radius:5px; padding:2px 6px; flex:none}
+.chead h3{margin:0; font-size:14.5px; font-weight:700; color:var(--ink); letter-spacing:-.01em}
+.card ul{margin:0; padding:0; list-style:none}
+.card li{position:relative; padding:5px 0 5px 15px; font-size:12.7px; color:var(--body); border-top:1px solid var(--line2)}
+.card li:first-child{border-top:none}
+.card li::before{content:"›"; position:absolute; left:2px; top:5px; color:var(--faint); font-weight:700}
+.card li .star{position:absolute; left:0; top:5px; color:var(--gold); font-size:11px}
+.card li.s{padding-left:16px}
+.card li.s::before{content:none}
+.desc{color:var(--muted); font-size:11.7px}
+.desc b{color:var(--body); font-weight:600}
+.hl{color:var(--ink); font-weight:600}
+
+/* colour coding */
+.c-slate{border-left-color:var(--slate)} .c-slate .cnum{background:var(--slate)}
+.c-amber{border-left-color:var(--amber)} .c-amber .cnum{background:var(--amber)}
+.c-green{border-left-color:var(--green)} .c-green .cnum{background:var(--green)}
+.c-indigo{border-left-color:var(--indigo)} .c-indigo .cnum{background:var(--indigo)}
+.c-violet{border-left-color:var(--violet)} .c-violet .cnum{background:var(--violet)}
+.c-teal{border-left-color:var(--teal)} .c-teal .cnum{background:var(--teal)}
+.c-red{border-left-color:var(--red)} .c-red .cnum{background:var(--red)}
+.c-gold{border-left-color:var(--gold)} .c-gold .cnum{background:var(--gold)}
+
+/* code tokens */
+code{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink); line-height:1.65; word-break:break-word}
+.mod{color:var(--mod)} .fn{color:var(--ink); font-weight:700} .ag{color:var(--arg)}
+.kw{color:var(--kw); font-weight:600} .nu{color:var(--num)} .st{color:var(--str)}
+.cm{color:var(--cm); font-style:italic} .op{color:var(--faint)} .at{color:var(--spacy); font-weight:600}
+
+/* concept diagrams */
+.diagrams{margin:30px 0 8px}
+.dh{font-size:12px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:0 0 14px; display:flex; align-items:center; gap:10px}
+.dh::after{content:""; flex:1; height:1px; background:var(--line)}
+.dgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:16px}
+@media(max-width:820px){.dgrid{grid-template-columns:1fr}}
+.diagram{background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:15px 16px 12px; box-shadow:0 1px 2px rgba(15,23,42,.035)}
+.diagram h4{margin:0 0 3px; font-size:13.5px; color:var(--ink); font-weight:700}
+.diagram p{margin:0 0 10px; font-size:12px; color:var(--muted)}
+.diagram p code{font-family:'JetBrains Mono',monospace; font-size:11px}
+.diagram svg{display:block; width:100%; height:auto}
+
+/* dark strip */
+.strip{background:#12161f; border-radius:14px; padding:22px 24px; margin:30px 0 0; color:#cbd5e1}
+.strip h3{margin:0 0 4px; color:#fff; font-size:15px; font-weight:700; letter-spacing:-.01em}
+.strip .sub{color:#7d8ba0; font-size:12px; margin-bottom:16px}
+.slist{display:grid; grid-template-columns:repeat(2,1fr); gap:9px 26px}
+@media(max-width:760px){.slist{grid-template-columns:1fr}}
+.srow{display:flex; gap:10px; align-items:flex-start; font-size:12.6px; padding:5px 0; border-top:1px solid #232a37}
+.srow .n{font-family:'JetBrains Mono',monospace; color:#4b5568; font-weight:700; font-size:11px; flex:none; padding-top:1px}
+.srow b{color:#fff; font-weight:600}
+.srow code{color:#fbbf24; background:none; font-size:11.5px; font-family:'JetBrains Mono',monospace}
+.srow .ok{color:#34d399; font-weight:600}
+.srow .no{color:#f87171; font-weight:600}
+
+footer{margin-top:34px; padding-top:18px; border-top:1px solid var(--line); font-size:11.7px; color:var(--faint); line-height:1.7}
+footer b{color:var(--muted)}
+footer code{font-family:'JetBrains Mono',monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Python · Natural Language Processing · Quick Reference</div>
+  <h1 class="wordmark">spa<span class="cy">Cy</span> <span class="tail">· Industrial-strength NLP 3.8</span></h1>
+  <p class="lede">One idea drives the whole library: <b>load a pipeline once, call it, get objects back</b>. <code>nlp = spacy.load(...)</code> builds a pipeline; <code>doc = nlp(text)</code> runs <em>every</em> component in one pass and hands you a <code>Doc</code> — a rich container of <code>Token</code> and <code>Span</code> objects with POS, lemma, dependency and entity already computed. No lists of tuples: real objects with attributes. Colour-coded by domain; <span style="color:var(--gold)">★</span> marks daily-use calls.</p>
+  <div class="legend">
+    <span class="lg"><span class="dot" style="background:var(--slate)"></span>setup · models · pipeline</span>
+    <span class="lg"><span class="dot" style="background:var(--amber)"></span>Doc · Token · Span</span>
+    <span class="lg"><span class="dot" style="background:var(--green)"></span>POS · dep · lemma</span>
+    <span class="lg"><span class="dot" style="background:var(--indigo)"></span>entities · spans</span>
+    <span class="lg"><span class="dot" style="background:var(--violet)"></span>matchers · rules</span>
+    <span class="lg"><span class="dot" style="background:var(--teal)"></span>scale · serialize · visualize</span>
+    <span class="lg"><span class="dot" style="background:var(--red)"></span>gotcha</span>
+    <span class="lg"><span class="star">★</span>most common</span>
+  </div>
+  <div class="srcs"><b>Verified against</b> a live <code>spacy 3.8.14</code> + <code>en_core_web_sm 3.8.0</code> install (the whole object model + every gotcha run, not remembered) · spacy.io docs, API &amp; the official cheat sheet · Real Python / DataCamp / Explosion course. Re-verified 2026-08-28: current is 3.8.16 (24 Aug 2026, still the 3.8 line — no 4.0); Python 3.9–3.13.</div>
+</header>
+
+<!-- ================= HERO ================= -->
+<div class="hero">
+<svg viewBox="0 0 980 560" xmlns="http://www.w3.org/2000/svg" font-family="Inter,sans-serif">
+  <defs>
+    <marker id="arw" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+    </marker>
+    <marker id="arwc" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M1,1 L9,5 L1,9" fill="none" stroke="#09a3d5" stroke-width="1.6"/>
+    </marker>
+  </defs>
+
+  <!-- ---- BAND A : the pipeline ---- -->
+  <text x="20" y="26" font-size="12" font-weight="700" fill="#64748b" letter-spacing="1.2">ONE CALL RUNS THE WHOLE PIPELINE — nlp(text) → Doc</text>
+
+  <!-- text in -->
+  <rect x="20" y="42" width="104" height="64" rx="9" fill="#f8fafc" stroke="#64748b" stroke-width="1.4"/>
+  <text x="72" y="66" text-anchor="middle" font-size="12" font-weight="700" fill="#334155">text</text>
+  <text x="72" y="84" text-anchor="middle" font-size="9.5" font-family="JetBrains Mono,monospace" fill="#64748b">str</text>
+  <text x="72" y="98" text-anchor="middle" font-size="8.5" fill="#94a3b8">a document</text>
+
+  <!-- pipeline components -->
+  <g font-family="JetBrains Mono,monospace">
+    <rect x="150" y="46" width="86" height="56" rx="7" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.3"/>
+    <text x="193" y="70" text-anchor="middle" font-size="9.5" fill="#3730a3" font-weight="700" font-family="Inter,sans-serif">tokenizer</text>
+    <text x="193" y="86" text-anchor="middle" font-size="8" fill="#6366f1">→ Token[]</text>
+
+    <rect x="244" y="46" width="80" height="56" rx="7" fill="#ecfdf5" stroke="#059669" stroke-width="1.3"/>
+    <text x="284" y="66" text-anchor="middle" font-size="9" fill="#065f46" font-weight="700" font-family="Inter,sans-serif">tagger</text>
+    <text x="284" y="80" text-anchor="middle" font-size="8" fill="#047857">.pos_ .tag_</text>
+    <text x="284" y="92" text-anchor="middle" font-size="7.5" fill="#10b981">.morph</text>
+
+    <rect x="332" y="46" width="80" height="56" rx="7" fill="#ecfdf5" stroke="#059669" stroke-width="1.3"/>
+    <text x="372" y="66" text-anchor="middle" font-size="9" fill="#065f46" font-weight="700" font-family="Inter,sans-serif">parser</text>
+    <text x="372" y="80" text-anchor="middle" font-size="8" fill="#047857">.dep_ .head</text>
+    <text x="372" y="92" text-anchor="middle" font-size="7.5" fill="#10b981">.sents</text>
+
+    <rect x="420" y="46" width="96" height="56" rx="7" fill="#ecfdf5" stroke="#059669" stroke-width="1.3"/>
+    <text x="468" y="66" text-anchor="middle" font-size="9" fill="#065f46" font-weight="700" font-family="Inter,sans-serif">lemmatizer</text>
+    <text x="468" y="82" text-anchor="middle" font-size="8" fill="#047857">.lemma_</text>
+
+    <rect x="524" y="46" width="80" height="56" rx="7" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.3"/>
+    <text x="564" y="66" text-anchor="middle" font-size="9" fill="#3730a3" font-weight="700" font-family="Inter,sans-serif">ner</text>
+    <text x="564" y="82" text-anchor="middle" font-size="8" fill="#6366f1">.ents</text>
+  </g>
+
+  <!-- Doc out -->
+  <rect x="632" y="38" width="328" height="72" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+  <text x="796" y="60" text-anchor="middle" font-size="13" font-weight="800" fill="#b45309">Doc</text>
+  <text x="796" y="78" text-anchor="middle" font-size="9.5" fill="#a16207">a sequence of Token / Span objects</text>
+  <text x="796" y="95" text-anchor="middle" font-size="9" fill="#a16207">every annotation already attached</text>
+
+  <!-- arrows -->
+  <line x1="124" y1="74" x2="148" y2="74" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arw)"/>
+  <line x1="604" y1="74" x2="630" y2="74" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arw)"/>
+
+  <!-- ---- BAND B : dark "results are objects" banner ---- -->
+  <rect x="20" y="130" width="940" height="410" rx="12" fill="#12161f"/>
+  <text x="42" y="164" font-size="19" font-weight="800" fill="#ffffff">RESULTS ARE <tspan fill="#38bdf8">OBJECTS</tspan>, NOT STRINGS</text>
+  <text x="42" y="186" font-size="12" fill="#8b97a8">Everything hangs off the Doc. String attributes end in an underscore — that trips up everyone.</text>
+
+  <!-- container model -->
+  <g transform="translate(42,206)">
+    <text x="0" y="-2" font-size="11" font-weight="700" fill="#cbd5e1">the container model</text>
+    <!-- Doc box holding tokens -->
+    <rect x="0" y="8" width="392" height="60" rx="8" fill="#1b2130" stroke="#334155"/>
+    <text x="10" y="24" font-size="9" font-family="JetBrains Mono,monospace" fill="#fbbf24">Doc</text>
+    <g font-family="JetBrains Mono,monospace" font-size="10">
+      <rect x="12" y="30" width="56" height="28" rx="4" fill="#0f1520" stroke="#475569"/><text x="40" y="48" text-anchor="middle" fill="#e2e8f0">Apple</text>
+      <rect x="72" y="30" width="42" height="28" rx="4" fill="#0f1520" stroke="#475569"/><text x="93" y="48" text-anchor="middle" fill="#e2e8f0">is</text>
+      <rect x="118" y="30" width="72" height="28" rx="4" fill="#0f1520" stroke="#475569"/><text x="154" y="48" text-anchor="middle" fill="#e2e8f0">looking</text>
+      <rect x="194" y="30" width="42" height="28" rx="4" fill="#0f1520" stroke="#475569"/><text x="215" y="48" text-anchor="middle" fill="#e2e8f0">at</text>
+      <rect x="240" y="30" width="66" height="28" rx="4" fill="#0f1520" stroke="#475569"/><text x="273" y="48" text-anchor="middle" fill="#e2e8f0">London</text>
+      <rect x="310" y="30" width="24" height="28" rx="4" fill="#0f1520" stroke="#475569"/><text x="322" y="48" text-anchor="middle" fill="#e2e8f0">.</text>
+    </g>
+    <text x="345" y="48" font-size="9" fill="#64748b" font-family="JetBrains Mono,monospace">Token</text>
+    <!-- span bracket -->
+    <path d="M12,64 L12,72 L190,72 L190,64" fill="none" stroke="#818cf8" stroke-width="1.4"/>
+    <text x="100" y="86" text-anchor="middle" font-size="9" fill="#a5b4fc" font-family="JetBrains Mono,monospace">doc[0:3] → Span</text>
+    <!-- single token -->
+    <path d="M240,64 L240,72 L306,72 L306,64" fill="none" stroke="#34d399" stroke-width="1.4"/>
+    <text x="273" y="86" text-anchor="middle" font-size="9" fill="#6ee7b7" font-family="JetBrains Mono,monospace">doc[4] → Token</text>
+  </g>
+
+  <!-- underscore rule -->
+  <g transform="translate(42,320)">
+    <rect x="0" y="0" width="392" height="200" rx="9" fill="#0f1520" stroke="#334155"/>
+    <text x="16" y="26" font-size="12" font-weight="700" fill="#e2e8f0">the underscore rule · <tspan fill="#f87171">the #1 gotcha</tspan></text>
+    <g font-family="JetBrains Mono,monospace" font-size="11">
+      <text x="16" y="54" fill="#cbd5e1">token.<tspan fill="#38bdf8" font-weight="700">pos_</tspan>   <tspan fill="#64748b">→</tspan> <tspan fill="#6ee7b7">'PROPN'</tspan>  <tspan fill="#64748b" font-family="Inter,sans-serif" font-size="9">the readable string</tspan></text>
+      <text x="16" y="76" fill="#cbd5e1">token.<tspan fill="#fca5a5" font-weight="700">pos</tspan>    <tspan fill="#64748b">→</tspan> <tspan fill="#fbbf24">96</tspan>       <tspan fill="#64748b" font-family="Inter,sans-serif" font-size="9">the hash id (rarely wanted)</tspan></text>
+    </g>
+    <text x="16" y="104" font-size="10" fill="#8b97a8" font-family="Inter,sans-serif">Same for <tspan fill="#cbd5e1" font-family="JetBrains Mono,monospace">.lemma_ .dep_ .tag_ .ent_type_ .label_</tspan> —</text>
+    <text x="16" y="120" font-size="10" fill="#8b97a8" font-family="Inter,sans-serif">without the underscore you get an integer.</text>
+    <line x1="16" y1="134" x2="376" y2="134" stroke="#232a37"/>
+    <text x="16" y="156" font-size="10.5" fill="#e2e8f0" font-weight="700" font-family="Inter,sans-serif">quickstart</text>
+    <g font-family="JetBrains Mono,monospace" font-size="10">
+      <text x="16" y="176" fill="#38bdf8">import spacy</text>
+      <text x="16" y="192" fill="#cbd5e1">nlp = spacy.<tspan fill="#e2e8f0" font-weight="700">load</tspan>(<tspan fill="#6ee7b7">'en_core_web_sm'</tspan>)</text>
+    </g>
+  </g>
+
+  <!-- attributes readout -->
+  <g transform="translate(454,206)">
+    <text x="0" y="-2" font-size="11" font-weight="700" fill="#cbd5e1">what one Token knows</text>
+    <rect x="0" y="8" width="466" height="130" rx="9" fill="#1b2130" stroke="#334155"/>
+    <g font-family="JetBrains Mono,monospace" font-size="10.5">
+      <text x="16" y="32" fill="#e2e8f0" font-weight="700">token = doc[<tspan fill="#fbbf24">2</tspan>]  <tspan fill="#64748b" font-size="9" font-family="Inter,sans-serif"># "looking"</tspan></text>
+      <text x="16" y="54" fill="#cbd5e1">.text     <tspan fill="#64748b">→</tspan> <tspan fill="#6ee7b7">'looking'</tspan></text>
+      <text x="16" y="72" fill="#cbd5e1">.lemma_   <tspan fill="#64748b">→</tspan> <tspan fill="#6ee7b7">'look'</tspan></text>
+      <text x="16" y="90" fill="#cbd5e1">.pos_     <tspan fill="#64748b">→</tspan> <tspan fill="#6ee7b7">'VERB'</tspan></text>
+      <text x="16" y="108" fill="#cbd5e1">.dep_     <tspan fill="#64748b">→</tspan> <tspan fill="#6ee7b7">'ROOT'</tspan></text>
+      <text x="250" y="54" fill="#cbd5e1">.tag_     <tspan fill="#64748b">→</tspan> <tspan fill="#6ee7b7">'VBG'</tspan></text>
+      <text x="250" y="72" fill="#cbd5e1">.is_stop  <tspan fill="#64748b">→</tspan> <tspan fill="#fbbf24">False</tspan></text>
+      <text x="250" y="90" fill="#cbd5e1">.head     <tspan fill="#64748b">→</tspan> <tspan fill="#6ee7b7">looking</tspan></text>
+      <text x="250" y="108" fill="#cbd5e1">.children <tspan fill="#64748b">→</tspan> <tspan fill="#a5b4fc">[Apple,</tspan></text>
+      <text x="322" y="126" fill="#a5b4fc">is, at, ...]</text>
+    </g>
+  </g>
+
+  <!-- ents readout -->
+  <g transform="translate(454,352)">
+    <rect x="0" y="0" width="466" height="168" rx="9" fill="#0f1520" stroke="#334155"/>
+    <text x="16" y="26" font-size="11" font-weight="700" fill="#e2e8f0">named entities · <tspan fill="#38bdf8">doc.ents</tspan> (a tuple of Span)</text>
+    <g font-family="JetBrains Mono,monospace" font-size="10.5">
+      <text x="16" y="52" fill="#cbd5e1"><tspan fill="#c084fc">for</tspan> ent <tspan fill="#c084fc">in</tspan> doc.ents:</text>
+      <text x="16" y="70" fill="#cbd5e1">  ent.text, ent.<tspan fill="#38bdf8">label_</tspan></text>
+    </g>
+    <g font-family="JetBrains Mono,monospace" font-size="10">
+      <rect x="16" y="82" width="120" height="22" rx="4" fill="#1e3a5f"/><text x="26" y="97" fill="#7dd3fc">Apple</text><text x="96" y="97" fill="#38bdf8" font-size="8.5">ORG</text>
+      <rect x="146" y="82" width="120" height="22" rx="4" fill="#3f2d1e"/><text x="156" y="97" fill="#fcd34d">London</text><text x="228" y="97" fill="#fbbf24" font-size="8.5">GPE</text>
+      <rect x="276" y="82" width="140" height="22" rx="4" fill="#1e3f2d"/><text x="286" y="97" fill="#6ee7b7">$1 billion</text><text x="374" y="97" fill="#34d399" font-size="8.5">MONEY</text>
+    </g>
+    <text x="16" y="128" font-size="10" fill="#8b97a8" font-family="Inter,sans-serif">Each entity is a Span with <tspan fill="#cbd5e1" font-family="JetBrains Mono,monospace">.start_char .end_char</tspan>.</text>
+    <text x="16" y="150" font-size="10" fill="#8b97a8" font-family="Inter,sans-serif"><tspan fill="#cbd5e1" font-family="JetBrains Mono,monospace">spacy.explain('GPE')</tspan> → "Countries, cities, states".</text>
+  </g>
+</svg>
+</div>
+
+<!-- ================= CARDS ================= -->
+<main class="grid">
+
+<!-- 01 setup and models -->
+<article class="card c-slate">
+  <div class="chead"><span class="cnum">01</span><h3>Setup &amp; models</h3></div>
+  <ul>
+    <li><code><span class="op">$</span> pip install <span class="hl">spacy</span></code> <span class="desc">— the library ships <b>no models</b>.</span></li>
+    <li class="star"><code><span class="op">$</span> python -m spacy <span class="fn">download</span> en_core_web_sm</code> <span class="desc">— fetch a model; separate step from pip.</span></li>
+    <li class="star"><code>nlp = spacy.<span class="fn">load</span>(<span class="st">'en_core_web_sm'</span>)</code> <span class="desc">— load a pipeline. The everyday first line.</span></li>
+    <li><code>en_core_web_<span class="hl">sm</span> · <span class="hl">md</span> · <span class="hl">lg</span> · <span class="hl">trf</span></code> <span class="desc">— small→large; <b>md/lg</b> add word vectors, <b>trf</b> is transformer-based (most accurate, slowest).</span></li>
+    <li><code><span class="cm"># name = lang_core_genre_size</span></code> <span class="desc"><code>en</code> · <code>core</code> (general) · <code>web</code> (source) · <code>sm</code>.</span></li>
+    <li><code>nlp = spacy.<span class="fn">blank</span>(<span class="st">'en'</span>)</code> <span class="desc">— tokenizer only, no annotations — a base to build on.</span></li>
+    <li class="s"><span class="desc">Other languages: <code>de_</code>, <code>fr_</code>, <code>xx_</code> (multi) core models exist too.</span></li>
+  </ul>
+</article>
+
+<!-- 02 the nlp object and Doc -->
+<article class="card c-amber">
+  <div class="chead"><span class="cnum">02</span><h3>The nlp object &amp; Doc</h3></div>
+  <ul>
+    <li class="star"><code>doc = nlp(<span class="ag">text</span>)</code> <span class="desc">— runs the full pipeline once; returns a <code>Doc</code>.</span></li>
+    <li class="star"><code><span class="mod">for</span> token <span class="mod">in</span> doc: ...</code> <span class="desc">— a <code>Doc</code> iterates as <code>Token</code>s; <code>len(doc)</code> = token count.</span></li>
+    <li><code>doc.<span class="hl">text</span></code> <span class="desc">— reconstruct the original string.</span></li>
+    <li class="star"><code>docs = nlp.<span class="fn">pipe</span>(texts)</code> <span class="desc">— <b>batch</b> processing; far faster than a Python loop over <code>nlp()</code>.</span></li>
+    <li><code>doc = nlp.<span class="fn">make_doc</span>(text)</code> <span class="desc">— tokenize only, skip the pipeline (cheap).</span></li>
+    <li class="s"><span class="desc">You never build a <code>Doc</code> by hand — <code>nlp()</code> creates it, fully annotated.</span></li>
+  </ul>
+</article>
+
+<!-- 03 Token attributes -->
+<article class="card c-amber">
+  <div class="chead"><span class="cnum">03</span><h3>Token attributes</h3></div>
+  <ul>
+    <li class="star"><code>token.<span class="at">text</span></code> · <code>.<span class="at">lemma_</span></code> · <code>.<span class="at">pos_</span></code> · <code>.<span class="at">tag_</span></code> · <code>.<span class="at">dep_</span></code> <span class="desc">— the core five. <b>Trailing <code>_</code> = string</b>.</span></li>
+    <li class="star"><code>token.<span class="at">pos</span></code> (no <code>_</code>) <span class="desc">→ an <b>integer hash</b> (<code>96</code>), not text. Almost always you want <code>pos_</code>.</span></li>
+    <li><code>token.<span class="at">is_stop</span></code> · <code>.<span class="at">is_alpha</span></code> · <code>.<span class="at">is_punct</span></code> · <code>.<span class="at">like_num</span></code> <span class="desc">— boolean flags for filtering.</span></li>
+    <li><code>token.<span class="at">shape_</span></code> <span class="desc">→ <code>'Xxxx'</code>, <code>'dd'</code> — orthographic shape.</span></li>
+    <li><code>token.<span class="at">i</span></code> · <code>.<span class="at">idx</span></code> <span class="desc">— token index · character offset in the doc.</span></li>
+    <li><code>token.<span class="at">lower_</span></code> · <code>.<span class="at">is_title</span></code> · <code>.<span class="at">is_digit</span></code> <span class="desc">— casing &amp; string helpers.</span></li>
+  </ul>
+</article>
+
+<!-- 04 POS and morphology -->
+<article class="card c-green">
+  <div class="chead"><span class="cnum">04</span><h3>POS &amp; morphology</h3></div>
+  <ul>
+    <li class="star"><code>token.<span class="at">pos_</span></code> <span class="desc">→ coarse <b>Universal</b> POS (<code>NOUN VERB ADJ</code>).</span></li>
+    <li class="star"><code>token.<span class="at">tag_</span></code> <span class="desc">→ fine-grained <b>Penn Treebank</b> tag (<code>NN VBG JJR</code>).</span></li>
+    <li><code>token.<span class="at">morph</span></code> <span class="desc">→ features like <code>Tense=Past|Number=Sing</code>; <code>.morph.get('Tense')</code>.</span></li>
+    <li class="star"><code>spacy.<span class="fn">explain</span>(<span class="st">'VBG'</span>)</code> <span class="desc">→ "verb, gerund…". Works on any tag, dep or ent label.</span></li>
+    <li class="s"><span class="desc">POS &amp; tag come from the <code>tagger</code>; a <code>blank</code> pipeline leaves them empty.</span></li>
+  </ul>
+</article>
+
+<!-- 05 dependency parsing -->
+<article class="card c-green">
+  <div class="chead"><span class="cnum">05</span><h3>Dependency parsing</h3></div>
+  <ul>
+    <li class="star"><code>token.<span class="at">dep_</span></code> <span class="desc">→ syntactic relation to its head (<code>nsubj</code>, <code>dobj</code>, <code>ROOT</code>).</span></li>
+    <li class="star"><code>token.<span class="at">head</span></code> <span class="desc">→ the parent <code>Token</code>. The root's head is itself.</span></li>
+    <li><code>token.<span class="fn">children</span></code> · <code>.<span class="fn">subtree</span></code> · <code>.<span class="fn">ancestors</span></code> <span class="desc">— walk the parse tree.</span></li>
+    <li class="star"><code>doc.<span class="fn">noun_chunks</span></code> <span class="desc">→ base noun phrases as <code>Span</code>s ("the red car").</span></li>
+    <li><code>token.<span class="at">left_edge</span></code> · <code>.<span class="at">right_edge</span></code> <span class="desc">— span boundaries of a token's subtree.</span></li>
+    <li class="s"><span class="desc">Provided by the <code>parser</code>. Visualize with <code>displacy</code> (card 17).</span></li>
+  </ul>
+</article>
+
+<!-- 06 named entities -->
+<article class="card c-indigo">
+  <div class="chead"><span class="cnum">06</span><h3>Named entities</h3></div>
+  <ul>
+    <li class="star"><code><span class="mod">for</span> ent <span class="mod">in</span> doc.<span class="hl">ents</span>: ...</code> <span class="desc"><code>doc.ents</code> is a <b>tuple of Span</b>, not a list.</span></li>
+    <li class="star"><code>ent.<span class="at">text</span></code> · <code>ent.<span class="at">label_</span></code> <span class="desc">— surface text · type string (<code>PERSON</code>, <code>ORG</code>, <code>GPE</code>, <code>DATE</code>, <code>MONEY</code>).</span></li>
+    <li><code>ent.<span class="at">start_char</span></code> · <code>ent.<span class="at">end_char</span></code> <span class="desc">— character offsets into <code>doc.text</code>.</span></li>
+    <li><code>token.<span class="at">ent_type_</span></code> · <code>.<span class="at">ent_iob_</span></code> <span class="desc">— per-token entity type · <code>B</code>/<code>I</code>/<code>O</code> scheme.</span></li>
+    <li class="star"><code>spacy.<span class="fn">explain</span>(<span class="st">'GPE'</span>)</code> <span class="desc">→ "Countries, cities, states". Demystifies any label.</span></li>
+    <li class="s"><span class="desc">Entities come from the <code>ner</code> component; add your own with the <code>EntityRuler</code> (card 12).</span></li>
+  </ul>
+</article>
+
+<!-- 07 lemmatization and normalization -->
+<article class="card c-green">
+  <div class="chead"><span class="cnum">07</span><h3>Lemmatize &amp; normalize</h3></div>
+  <ul>
+    <li class="star"><code>token.<span class="at">lemma_</span></code> <span class="desc">→ base form (<code>'running'→'run'</code>). Context-aware, real words.</span></li>
+    <li class="star"><code>[t.lemma_ <span class="mod">for</span> t <span class="mod">in</span> doc <span class="mod">if</span> <span class="mod">not</span> t.is_stop <span class="mod">and</span> t.is_alpha]</code> <span class="desc">— the standard clean-token list.</span></li>
+    <li><code>token.<span class="at">lower_</span></code> <span class="desc">— lowercase string (an attribute, no call).</span></li>
+    <li><code>token.<span class="at">is_stop</span></code> <span class="desc">— stopword flag; edit <code>nlp.Defaults.stop_words</code> to customize.</span></li>
+    <li class="s"><span class="desc">Unlike NLTK's stemmer, spaCy only lemmatizes — always dictionary forms.</span></li>
+  </ul>
+</article>
+
+<!-- 08 spans and slicing -->
+<article class="card c-indigo">
+  <div class="chead"><span class="cnum">08</span><h3>Spans &amp; slicing</h3></div>
+  <ul>
+    <li class="star"><code>doc[<span class="nu">2</span>]</code> <span class="desc">→ a <b>Token</b>.</span></li>
+    <li class="star"><code>doc[<span class="nu">2</span>:<span class="nu">5</span>]</code> <span class="desc">→ a <b>Span</b> (a view, not a list). <code>span.text</code>, <code>span[0]</code>.</span></li>
+    <li><code>span.<span class="at">label_</span></code> · <code>span.<span class="fn">root</span></code> · <code>span.<span class="fn">sent</span></code> <span class="desc">— optional label · head token · containing sentence.</span></li>
+    <li><code>doc.<span class="fn">char_span</span>(<span class="nu">0</span>, <span class="nu">5</span>, label=<span class="st">'ORG'</span>)</code> <span class="desc">— build a Span from character offsets (returns <code>None</code> if it doesn't align to tokens).</span></li>
+    <li><code>span.<span class="fn">as_doc</span>()</code> <span class="desc">— promote a Span to a standalone Doc.</span></li>
+    <li class="s"><span class="desc">Slicing <b>never</b> returns a Python list — it's always a <code>Span</code>.</span></li>
+  </ul>
+</article>
+
+<!-- 09 sentences -->
+<article class="card c-green">
+  <div class="chead"><span class="cnum">09</span><h3>Sentence segmentation</h3></div>
+  <ul>
+    <li class="star"><code><span class="mod">for</span> sent <span class="mod">in</span> doc.<span class="hl">sents</span>: ...</code> <span class="desc">→ each sentence as a <code>Span</code>.</span></li>
+    <li><code>token.<span class="at">is_sent_start</span></code> <span class="desc">— boolean flag per token.</span></li>
+    <li class="star"><code><span class="cm"># needs the parser OR the senter</span></code> <span class="desc"><code>doc.sents</code> raises if neither is in the pipe — a <code>blank</code> model has neither.</span></li>
+    <li><code>nlp.<span class="fn">add_pipe</span>(<span class="st">'senter'</span>)</code> <span class="desc">— a fast, parser-free sentence splitter.</span></li>
+    <li><code>nlp.<span class="fn">add_pipe</span>(<span class="st">'sentencizer'</span>)</code> <span class="desc">— rule-based splitter for blank pipelines.</span></li>
+  </ul>
+</article>
+
+<!-- 10 similarity and vectors -->
+<article class="card c-indigo">
+  <div class="chead"><span class="cnum">10</span><h3>Similarity &amp; vectors</h3></div>
+  <ul>
+    <li class="star"><code>doc1.<span class="fn">similarity</span>(doc2)</code> <span class="desc">→ 0–1 cosine of averaged vectors. Also on Token / Span.</span></li>
+    <li class="star"><code><span class="cm"># sm has NO word vectors!</span></code> <span class="desc">Use <code>en_core_web_<b>md</b></code> or <code><b>lg</b></code> (300-d) — on <code>sm</code>, similarity still runs but <b>warns (W007)</b> and is unreliable.</span></li>
+    <li><code>token.<span class="at">vector</span></code> · <code>.<span class="at">vector_norm</span></code> <span class="desc">— the raw array · its length.</span></li>
+    <li><code>token.<span class="at">has_vector</span></code> · <code>.<span class="at">is_oov</span></code> <span class="desc">— has a vector? · out of vocabulary?</span></li>
+    <li class="s"><span class="desc">For semantic search reach for sentence-transformers; spaCy vectors are word-level averages.</span></li>
+  </ul>
+</article>
+
+<!-- 11 Matcher -->
+<article class="card c-violet">
+  <div class="chead"><span class="cnum">11</span><h3>Token Matcher</h3></div>
+  <ul>
+    <li class="star"><code><span class="mod">from</span> spacy.matcher <span class="mod">import</span> Matcher</code><br><code>m = <span class="fn">Matcher</span>(nlp.vocab)</code></li>
+    <li class="star"><code>pattern = [{<span class="st">'LOWER'</span>: <span class="st">'hello'</span>}, {<span class="st">'POS'</span>: <span class="st">'PROPN'</span>}]</code> <span class="desc">— a <b>list of dicts</b>; keys are <b>UPPERCASE</b> token attributes.</span></li>
+    <li><code>m.<span class="fn">add</span>(<span class="st">'RULE'</span>, [pattern])</code> <span class="desc">— note the pattern is wrapped in a list.</span></li>
+    <li class="star"><code>matches = m(doc)</code> <span class="desc">→ <code>[(match_id, start, end), ...]</code>; slice <code>doc[start:end]</code> for the Span.</span></li>
+    <li><code>{<span class="st">'OP'</span>: <span class="st">'?'</span>}</code> <span class="desc">— quantifiers: <code>?</code> 0-1 · <code>*</code> 0-many · <code>+</code> 1-many · <code>!</code> negate.</span></li>
+    <li><code>{<span class="st">'LOWER'</span>: {<span class="st">'IN'</span>: [<span class="st">'a'</span>,<span class="st">'b'</span>]}}</code> · <code>{<span class="st">'TEXT'</span>: {<span class="st">'REGEX'</span>: ...}}</code> <span class="desc">— rich value operators.</span></li>
+  </ul>
+</article>
+
+<!-- 12 PhraseMatcher and EntityRuler -->
+<article class="card c-violet">
+  <div class="chead"><span class="cnum">12</span><h3>Phrases &amp; entity rules</h3></div>
+  <ul>
+    <li><code><span class="mod">from</span> spacy.matcher <span class="mod">import</span> PhraseMatcher</code> <span class="desc">— match against big <b>terminology lists</b>, fast.</span></li>
+    <li class="star"><code>pm.<span class="fn">add</span>(<span class="st">'TECH'</span>, [nlp.<span class="fn">make_doc</span>(t) <span class="mod">for</span> t <span class="mod">in</span> terms])</code> <span class="desc">— feed <code>Doc</code>s, not strings.</span></li>
+    <li><code>PhraseMatcher(nlp.vocab, attr=<span class="st">'LOWER'</span>)</code> <span class="desc">— case-insensitive matching.</span></li>
+    <li class="star"><code>ruler = nlp.<span class="fn">add_pipe</span>(<span class="st">'entity_ruler'</span>)</code><br><code>ruler.<span class="fn">add_patterns</span>([{<span class="st">'label'</span>:<span class="st">'ORG'</span>, <span class="st">'pattern'</span>:<span class="st">'spaCy'</span>}])</code> <span class="desc">— inject rule-based entities <b>into <code>doc.ents</code></b>.</span></li>
+    <li class="s"><span class="desc">Place the ruler <code>before</code> or <code>after</code> <code>'ner'</code> to override or supplement the model.</span></li>
+  </ul>
+</article>
+
+<!-- 13 the pipeline -->
+<article class="card c-slate">
+  <div class="chead"><span class="cnum">13</span><h3>The pipeline</h3></div>
+  <ul>
+    <li class="star"><code>nlp.<span class="hl">pipe_names</span></code> <span class="desc">→ <code>['tok2vec','tagger','parser','attribute_ruler','lemmatizer','ner']</code>.</span></li>
+    <li class="star"><code>nlp.<span class="fn">pipe</span>(texts, disable=[<span class="st">'parser'</span>,<span class="st">'ner'</span>])</code> <span class="desc">— skip components you don't need — <b>big speedup</b>.</span></li>
+    <li><code>nlp.<span class="fn">add_pipe</span>(<span class="st">'sentencizer'</span>, first=<span class="mod">True</span>)</code> <span class="desc">— insert a component (<code>first</code>/<code>last</code>/<code>before=</code>/<code>after=</code>).</span></li>
+    <li><code><span class="mod">with</span> nlp.<span class="fn">select_pipes</span>(disable=[...]): ...</code> <span class="desc">— temporarily turn components off.</span></li>
+    <li><code>nlp.<span class="fn">analyze_pipes</span>(pretty=<span class="mod">True</span>)</code> <span class="desc">— show what each component sets &amp; needs.</span></li>
+    <li><code>spacy.load(m, exclude=[<span class="st">'ner'</span>])</code> <span class="desc"><code>exclude</code> = don't load at all; <code>disable</code> = load but skip.</span></li>
+  </ul>
+</article>
+
+<!-- 14 custom components and extensions -->
+<article class="card c-violet">
+  <div class="chead"><span class="cnum">14</span><h3>Custom components</h3></div>
+  <ul>
+    <li class="star"><code><span class="ag">@Language.component</span>(<span class="st">'my_comp'</span>)</code><br><code><span class="mod">def</span> <span class="fn">my_comp</span>(doc): ...; <span class="mod">return</span> doc</code> <span class="desc">— a component takes a Doc, returns a Doc.</span></li>
+    <li><code>nlp.<span class="fn">add_pipe</span>(<span class="st">'my_comp'</span>, last=<span class="mod">True</span>)</code> <span class="desc">— then it runs on every <code>nlp()</code> call.</span></li>
+    <li class="star"><code>Doc.<span class="fn">set_extension</span>(<span class="st">'is_greeting'</span>, default=<span class="mod">False</span>)</code> <span class="desc">— custom attributes live under <code>._.</code></span></li>
+    <li><code>doc.<span class="hl">_</span>.is_greeting</code> · <code>token._.foo</code> · <code>span._.bar</code> <span class="desc">— access them via the <code>._</code> namespace.</span></li>
+    <li class="s"><span class="desc">Extensions keep custom data on the objects without subclassing.</span></li>
+  </ul>
+</article>
+
+<!-- 15 processing at scale -->
+<article class="card c-teal">
+  <div class="chead"><span class="cnum">15</span><h3>Processing at scale</h3></div>
+  <ul>
+    <li class="star"><code>docs = nlp.<span class="fn">pipe</span>(texts, batch_size=<span class="nu">1000</span>)</code> <span class="desc">— stream many texts efficiently (a generator).</span></li>
+    <li><code>nlp.<span class="fn">pipe</span>(texts, n_process=<span class="nu">4</span>)</code> <span class="desc">— multiprocessing across CPU cores.</span></li>
+    <li><code>nlp.<span class="fn">pipe</span>(pairs, as_tuples=<span class="mod">True</span>)</code> <span class="desc">— carry <code>(text, context)</code> pairs through; get <code>(doc, context)</code> back.</span></li>
+    <li><code>doc.<span class="fn">to_array</span>([<span class="st">'POS'</span>,<span class="st">'DEP'</span>])</code> <span class="desc">— dump attributes to a numpy array for bulk work.</span></li>
+    <li class="s"><span class="desc">Always prefer <code>nlp.pipe()</code> over a <code>for</code>-loop of <code>nlp()</code> for more than a handful of texts.</span></li>
+  </ul>
+</article>
+
+<!-- 16 serialization -->
+<article class="card c-teal">
+  <div class="chead"><span class="cnum">16</span><h3>Save &amp; load</h3></div>
+  <ul>
+    <li class="star"><code><span class="mod">from</span> spacy.tokens <span class="mod">import</span> DocBin</code><br><code>db = <span class="fn">DocBin</span>(); db.<span class="fn">add</span>(doc)</code> <span class="desc">— the efficient way to store <b>many</b> Docs.</span></li>
+    <li><code>db.<span class="fn">to_disk</span>(<span class="st">'data.spacy'</span>)</code> · <code><span class="fn">DocBin</span>().<span class="fn">from_disk</span>(...)</code> <span class="desc">— the training data format too.</span></li>
+    <li><code>doc.<span class="fn">to_bytes</span>()</code> · <code>Doc(vocab).<span class="fn">from_bytes</span>(b)</code> <span class="desc">— one doc to/from bytes.</span></li>
+    <li><code>nlp.<span class="fn">to_disk</span>(<span class="st">'./model'</span>)</code> · <code>spacy.<span class="fn">load</span>(<span class="st">'./model'</span>)</code> <span class="desc">— persist a whole pipeline.</span></li>
+    <li class="s"><span class="desc">Don't <code>pickle</code> a Doc directly — <code>DocBin</code>/<code>to_bytes</code> are smaller &amp; version-safe.</span></li>
+  </ul>
+</article>
+
+<!-- 17 visualization -->
+<article class="card c-teal">
+  <div class="chead"><span class="cnum">17</span><h3>Visualize · displaCy</h3></div>
+  <ul>
+    <li class="star"><code><span class="mod">from</span> spacy <span class="mod">import</span> displacy</code></li>
+    <li class="star"><code>displacy.<span class="fn">render</span>(doc, style=<span class="st">'dep'</span>)</code> <span class="desc">— draw the dependency arcs.</span></li>
+    <li class="star"><code>displacy.<span class="fn">render</span>(doc, style=<span class="st">'ent'</span>)</code> <span class="desc">— highlight named entities inline.</span></li>
+    <li><code>displacy.<span class="fn">render</span>(doc, style=<span class="st">'span'</span>)</code> <span class="desc">— overlapping spans (<code>doc.spans</code>).</span></li>
+    <li><code>displacy.<span class="fn">serve</span>(doc, ...)</code> <span class="desc">— open in a browser; add <code>jupyter=<span class="mod">True</span></code> inside notebooks.</span></li>
+    <li><code>options={<span class="st">'compact'</span>:<span class="mod">True</span>, <span class="st">'distance'</span>:<span class="nu">90</span>}</code> <span class="desc">— tune the layout.</span></li>
+  </ul>
+</article>
+
+<!-- 18 training -->
+<article class="card c-teal">
+  <div class="chead"><span class="cnum">18</span><h3>Training (v3 config)</h3></div>
+  <ul>
+    <li class="star"><code><span class="op">$</span> python -m spacy <span class="fn">init config</span> config.cfg --lang en --pipeline ner</code> <span class="desc">— v3 training is <b>config-driven</b>, not code.</span></li>
+    <li class="star"><code><span class="op">$</span> python -m spacy <span class="fn">train</span> config.cfg --output ./out</code> <span class="desc">— reads <code>.spacy</code> DocBin data, writes a model.</span></li>
+    <li><code><span class="mod">from</span> spacy.training <span class="mod">import</span> Example</code> <span class="desc"><code>Example.from_dict(doc, {<span class="st">'entities'</span>: [...]})</code> — the annotation unit.</span></li>
+    <li><code><span class="op">$</span> python -m spacy <span class="fn">debug data</span> config.cfg</code> <span class="desc">— sanity-check your training set first.</span></li>
+    <li class="s"><span class="desc">The old <code>nlp.update()</code> loop still works, but the CLI + config is the recommended path.</span></li>
+  </ul>
+</article>
+
+<!-- 19 interop and when to use -->
+<article class="card c-slate">
+  <div class="chead"><span class="cnum">19</span><h3>Interop &amp; when to use</h3></div>
+  <ul>
+    <li><code>doc.<span class="fn">to_json</span>()</code> <span class="desc">— tokens, ents &amp; spans as plain dicts for APIs.</span></li>
+    <li><code>[(t.text, t.pos_, t.dep_) <span class="mod">for</span> t <span class="mod">in</span> doc]</code> <span class="desc">— drop into a pandas DataFrame in one line.</span></li>
+    <li><code>pip install spacy[transformers]</code> <span class="desc">— <code>en_core_web_trf</code> wraps 🤗 transformers as a pipeline component.</span></li>
+    <li class="star"><span class="desc"><b>spaCy vs NLTK:</b> spaCy is fast, object-oriented &amp; production-first with one opinionated pipeline; NLTK is a teaching toolbox of many algorithms + corpora. <b>spaCy to ship, NLTK to explore.</b></span></li>
+    <li class="s"><span class="desc">For raw embeddings/LLMs pair spaCy with sentence-transformers or <code>spacy-llm</code>.</span></li>
+  </ul>
+</article>
+
+<!-- ★ reference -->
+<article class="card c-gold">
+  <div class="chead"><span class="cnum">★</span><h3>Attribute &amp; label map</h3></div>
+  <ul>
+    <li><code>Token</code> <span class="desc"><code>.text .lemma_ .pos_ .tag_ .dep_ .head .is_stop .ent_type_ .shape_ .i .idx .vector</code></span></li>
+    <li><code>Span</code> <span class="desc"><code>.text .label_ .root .sent .start .end .start_char .ents</code></span></li>
+    <li><code>Doc</code> <span class="desc"><code>.text .ents .sents .noun_chunks .vocab .cats ._</code></span></li>
+    <li><code>ent labels</code> <span class="desc"><code>PERSON ORG GPE LOC DATE TIME MONEY PERCENT PRODUCT NORP FAC</code></span></li>
+    <li><code>POS (pos_)</code> <span class="desc"><code>NOUN VERB ADJ ADV PROPN PRON DET ADP AUX NUM PUNCT</code></span></li>
+    <li><code>dep (dep_)</code> <span class="desc"><code>nsubj dobj ROOT det amod prep pobj aux conj cc</code></span></li>
+    <li><code>models</code> <span class="desc"><code>sm</code> (no vectors) · <code>md/lg</code> (300-d vectors) · <code>trf</code> (transformer)</span></li>
+    <li class="star"><code>spacy.<span class="fn">explain</span>(x)</code> <span class="desc">— turns ANY tag / dep / label into plain English.</span></li>
+  </ul>
+</article>
+
+</main>
+
+<!-- ================= CONCEPT DIAGRAMS ================= -->
+<section class="diagrams">
+<h2 class="dh">Four ideas that explain the rest</h2>
+<div class="dgrid">
+
+  <!-- D1 one call, whole pipeline -->
+  <div class="diagram">
+    <h4>1 · One call runs the whole pipeline</h4>
+    <p>Each component writes annotations onto the same <code>Doc</code>.</p>
+    <svg viewBox="0 0 440 210" xmlns="http://www.w3.org/2000/svg" font-family="Inter,sans-serif">
+      <rect x="12" y="82" width="60" height="34" rx="6" fill="#f1f5f9" stroke="#64748b"/><text x="42" y="103" text-anchor="middle" font-size="11" fill="#334155">text</text>
+      <!-- components -->
+      <g font-family="JetBrains Mono,monospace" font-size="8.5" text-anchor="middle">
+        <rect x="92" y="82" width="52" height="34" rx="5" fill="#eef2ff" stroke="#4f46e5"/><text x="118" y="103" fill="#3730a3" font-family="Inter,sans-serif" font-size="8.5">token­izer</text>
+        <rect x="150" y="82" width="46" height="34" rx="5" fill="#ecfdf5" stroke="#059669"/><text x="173" y="103" fill="#065f46" font-family="Inter,sans-serif" font-size="9">tagger</text>
+        <rect x="202" y="82" width="46" height="34" rx="5" fill="#ecfdf5" stroke="#059669"/><text x="225" y="103" fill="#065f46" font-family="Inter,sans-serif" font-size="9">parser</text>
+        <rect x="254" y="82" width="40" height="34" rx="5" fill="#eef2ff" stroke="#4f46e5"/><text x="274" y="103" fill="#3730a3" font-family="Inter,sans-serif" font-size="9">ner</text>
+      </g>
+      <!-- Doc -->
+      <rect x="316" y="72" width="112" height="54" rx="7" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+      <text x="372" y="94" text-anchor="middle" font-size="12" font-weight="800" fill="#b45309">Doc</text>
+      <text x="372" y="112" text-anchor="middle" font-size="8" fill="#a16207">Tokens + annotations</text>
+      <!-- flow arrows -->
+      <g stroke="#94a3b8" stroke-width="1.3" fill="none">
+        <line x1="72" y1="99" x2="90" y2="99" marker-end="url(#arw)"/>
+        <line x1="296" y1="99" x2="314" y2="99" marker-end="url(#arw)"/>
+      </g>
+      <!-- each writes to doc (dashed up) -->
+      <g stroke="#cbd5e1" stroke-width="1" stroke-dasharray="2 2">
+        <line x1="173" y1="82" x2="360" y2="74"/>
+        <line x1="225" y1="82" x2="366" y2="74"/>
+      </g>
+      <text x="220" y="150" text-anchor="middle" font-size="10.5" fill="#334155">nlp = spacy.load(...) builds it once; nlp(text) runs it</text>
+      <text x="220" y="168" text-anchor="middle" font-size="9.5" fill="#94a3b8">disable components you don't need for a big speedup</text>
+    </svg>
+  </div>
+
+  <!-- D2 container model -->
+  <div class="diagram">
+    <h4>2 · Doc · Token · Span · Vocab</h4>
+    <p>A Doc holds Tokens; a Span is a slice; the Vocab stores shared strings.</p>
+    <svg viewBox="0 0 440 210" xmlns="http://www.w3.org/2000/svg" font-family="Inter,sans-serif">
+      <!-- Doc row -->
+      <rect x="14" y="20" width="308" height="52" rx="7" fill="#fffbeb" stroke="#d97706" stroke-width="1.4"/>
+      <text x="24" y="36" font-size="9" font-family="JetBrains Mono,monospace" fill="#b45309">Doc</text>
+      <g font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">
+        <rect x="24" y="40" width="52" height="24" rx="4" fill="#fff" stroke="#f59e0b"/><text x="50" y="56" fill="#92400e">Apple</text>
+        <rect x="80" y="40" width="34" height="24" rx="4" fill="#fff" stroke="#f59e0b"/><text x="97" y="56" fill="#92400e">is</text>
+        <rect x="118" y="40" width="62" height="24" rx="4" fill="#fff" stroke="#f59e0b"/><text x="149" y="56" fill="#92400e">looking</text>
+        <rect x="184" y="40" width="34" height="24" rx="4" fill="#fff" stroke="#f59e0b"/><text x="201" y="56" fill="#92400e">at</text>
+        <rect x="222" y="40" width="62" height="24" rx="4" fill="#fff" stroke="#f59e0b"/><text x="253" y="56" fill="#92400e">London</text>
+      </g>
+      <text x="300" y="56" font-size="9" fill="#a16207" font-family="JetBrains Mono,monospace">Token</text>
+      <!-- Span bracket -->
+      <path d="M24,90 L24,82 L180,82 L180,90" fill="none" stroke="#4f46e5" stroke-width="1.5"/>
+      <text x="102" y="104" text-anchor="middle" font-size="10" fill="#4f46e5" font-family="JetBrains Mono,monospace">doc[0:3] = Span</text>
+      <!-- Vocab / StringStore -->
+      <rect x="14" y="126" width="412" height="66" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.3"/>
+      <text x="24" y="144" font-size="10" font-weight="700" fill="#334155" font-family="Inter,sans-serif">Vocab · StringStore <tspan font-weight="400" fill="#64748b" font-size="9">— one shared table, hash ↔ string</tspan></text>
+      <g font-family="JetBrains Mono,monospace" font-size="10">
+        <rect x="28" y="152" width="150" height="30" rx="5" fill="#fff" stroke="#cbd5e1"/><text x="40" y="171" fill="#0891b2">'London'</text><text x="120" y="171" fill="#94a3b8">↔</text><text x="140" y="171" fill="#c2410c">hash</text>
+        <text x="196" y="171" fill="#64748b" font-family="Inter,sans-serif" font-size="9.5">every token stores the hash,</text>
+        <text x="196" y="185" fill="#64748b" font-family="Inter,sans-serif" font-size="9.5">not a copy of the string</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- D3 underscore rule -->
+  <div class="diagram">
+    <h4>3 · The underscore rule</h4>
+    <p><code>.pos</code> is a hash int; <code>.pos_</code> is the readable string.</p>
+    <svg viewBox="0 0 440 210" xmlns="http://www.w3.org/2000/svg" font-family="Inter,sans-serif">
+      <rect x="150" y="16" width="140" height="30" rx="6" fill="#f1f5f9" stroke="#64748b"/>
+      <text x="220" y="36" text-anchor="middle" font-size="12" font-family="JetBrains Mono,monospace" fill="#334155">token "Apple"</text>
+      <!-- left: .pos -> int -->
+      <line x1="180" y1="46" x2="110" y2="82" stroke="#dc2626" stroke-width="1.4" marker-end="url(#arw)"/>
+      <text x="120" y="66" font-size="10" font-family="JetBrains Mono,monospace" fill="#dc2626">.pos</text>
+      <rect x="44" y="84" width="120" height="34" rx="6" fill="#fef2f2" stroke="#dc2626"/>
+      <text x="104" y="106" text-anchor="middle" font-size="13" font-family="JetBrains Mono,monospace" fill="#b91c1c">96</text>
+      <text x="104" y="132" text-anchor="middle" font-size="9" fill="#94a3b8">a hash int</text>
+      <!-- right: .pos_ -> str -->
+      <line x1="260" y1="46" x2="330" y2="82" stroke="#38bdf8" stroke-width="1.4" marker-end="url(#arwc)"/>
+      <text x="300" y="66" font-size="10" font-family="JetBrains Mono,monospace" fill="#0891b2">.pos_</text>
+      <rect x="276" y="84" width="120" height="34" rx="6" fill="#ecfeff" stroke="#09a3d5"/>
+      <text x="336" y="106" text-anchor="middle" font-size="13" font-family="JetBrains Mono,monospace" fill="#0e7490">'PROPN'</text>
+      <text x="336" y="132" text-anchor="middle" font-size="9" fill="#94a3b8">the string you want</text>
+      <!-- bridge -->
+      <line x1="164" y1="101" x2="276" y2="101" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3 2"/>
+      <text x="220" y="97" text-anchor="middle" font-size="8.5" fill="#94a3b8" font-family="JetBrains Mono,monospace">StringStore</text>
+      <text x="220" y="164" text-anchor="middle" font-size="10.5" fill="#334155">Trailing <tspan font-family="JetBrains Mono,monospace" fill="#09a3d5">_</tspan> means "give me the string".</text>
+      <text x="220" y="182" text-anchor="middle" font-size="9.5" fill="#94a3b8">Same for .lemma_ .dep_ .tag_ .label_ .ent_type_</text>
+    </svg>
+  </div>
+
+  <!-- D4 dependency parse -->
+  <div class="diagram">
+    <h4>4 · A dependency parse (displaCy)</h4>
+    <p>Arcs point from head → child; each is labelled with a relation.</p>
+    <svg viewBox="0 0 440 210" xmlns="http://www.w3.org/2000/svg" font-family="Inter,sans-serif">
+      <!-- words + POS -->
+      <g text-anchor="middle" font-family="JetBrains Mono,monospace">
+        <text x="50"  y="170" font-size="12" fill="#1a1d24">Apple</text><text x="50"  y="186" font-size="9" fill="#4f46e5">PROPN</text>
+        <text x="140" y="170" font-size="12" fill="#1a1d24">is</text><text x="140" y="186" font-size="9" fill="#4f46e5">AUX</text>
+        <text x="240" y="170" font-size="12" fill="#1a1d24">looking</text><text x="240" y="186" font-size="9" fill="#4f46e5">VERB</text>
+        <text x="340" y="170" font-size="12" fill="#1a1d24">London</text><text x="340" y="186" font-size="9" fill="#4f46e5">PROPN</text>
+      </g>
+      <!-- arcs -->
+      <g fill="none" stroke-width="1.6">
+        <path d="M240,150 C200,90 90,90 52,148" stroke="#0d9488" marker-end="url(#arw)"/>
+        <path d="M240,150 C210,110 160,110 142,148" stroke="#7c3aed" marker-end="url(#arw)"/>
+        <path d="M240,150 C280,100 330,100 342,148" stroke="#d97706" marker-end="url(#arw)"/>
+      </g>
+      <g font-size="9" text-anchor="middle" font-family="JetBrains Mono,monospace">
+        <rect x="128" y="70" width="42" height="15" rx="3" fill="#f0fdfa"/><text x="149" y="82" fill="#0f766e">nsubj</text>
+        <rect x="176" y="94" width="34" height="15" rx="3" fill="#f5f3ff"/><text x="193" y="106" fill="#6d28d9">aux</text>
+        <rect x="290" y="80" width="38" height="15" rx="3" fill="#fffbeb"/><text x="309" y="92" fill="#b45309">prep</text>
+      </g>
+      <text x="240" y="30" text-anchor="middle" font-size="10" fill="#334155">"looking" is the <tspan font-family="JetBrains Mono,monospace" fill="#059669">ROOT</tspan> — its head is itself</text>
+      <text x="220" y="48" text-anchor="middle" font-size="9" fill="#94a3b8">token.head + token.children walk this tree</text>
+    </svg>
+  </div>
+
+</div>
+</section>
+
+<!-- ================= DARK STRIP ================= -->
+<div class="strip">
+  <h3>Worth memorizing</h3>
+  <div class="sub">The dozen facts behind most spaCy confusion — all confirmed on a live spacy 3.8.14 + en_core_web_sm install.</div>
+  <div class="slist">
+    <div class="srow"><span class="n">01</span><div><b>Trailing underscore = string.</b> <code>token.pos_</code> → <span class="ok">'PROPN'</span>; <code>token.pos</code> → <span class="no">96</span> (a hash). Same for <code>.lemma_ .dep_ .label_</code>.</div></div>
+    <div class="srow"><span class="n">02</span><div><b>Results are objects, not strings.</b> <code>nlp(text)</code> returns a <code>Doc</code> of <code>Token</code>s with attributes — no lists of tuples.</div></div>
+    <div class="srow"><span class="n">03</span><div><b>One call runs everything.</b> <code>nlp(text)</code> executes the whole pipeline; for many texts use <code>nlp.pipe()</code>.</div></div>
+    <div class="srow"><span class="n">04</span><div><b>doc[i] is a Token, doc[i:j] is a Span</b> — slicing never gives a Python list.</div></div>
+    <div class="srow"><span class="n">05</span><div><b>doc.ents is a tuple of Span</b>, not a list you append to. Add rules via the <code>EntityRuler</code>.</div></div>
+    <div class="srow"><span class="n">06</span><div><b>sm has no word vectors.</b> <code>.similarity()</code> still runs but <span class="no">warns (W007)</span> and is poor — use <code>md</code>/<code>lg</code>/<code>trf</code>.</div></div>
+    <div class="srow"><span class="n">07</span><div><b>Download ≠ install.</b> <code>pip install spacy</code> then <code>python -m spacy download en_core_web_sm</code> separately.</div></div>
+    <div class="srow"><span class="n">08</span><div><b>Sentences need the parser or senter.</b> <code>doc.sents</code> errors on a <code>blank</code> pipeline with neither.</div></div>
+    <div class="srow"><span class="n">09</span><div><b>Matcher patterns are lists of dicts</b> with <code>UPPERCASE</code> keys (<code>LOWER, POS, OP</code>); the pattern is wrapped in a list.</div></div>
+    <div class="srow"><span class="n">10</span><div><b>Disable to go faster.</b> <code>nlp.pipe(texts, disable=['parser','ner'])</code> skips work you don't need.</div></div>
+    <div class="srow"><span class="n">11</span><div><b><code>spacy.explain(x)</code></b> turns any tag, dep or label into plain English — keep it handy.</div></div>
+    <div class="srow"><span class="n">12</span><div><b>pos_ = coarse (Universal), tag_ = fine (Penn).</b> <code>NOUN</code> vs <code>NN</code>; custom data lives under <code>doc._.</code></div></div>
+  </div>
+</div>
+
+<footer>
+  <b>Built &amp; verified:</b> every claim here was checked against a live <code>spacy 3.8.14</code> + <code>en_core_web_sm 3.8.0</code> install — the underscore rule (<code>pos_</code>='PROPN' vs <code>pos</code>=96), <code>Doc</code>/<code>Token</code>/<code>Span</code> types, <code>doc.ents</code> as a tuple of ORG/GPE/MONEY spans, head/children navigation, the StringStore hash↔string mapping, that <code>sm</code> has zero word vectors and <code>.similarity()</code> raises W007, Matcher/PhraseMatcher patterns, and <code>spacy.explain</code> were all run, not recalled.<br>
+  <b>Sources:</b> spacy.io Usage, API reference &amp; the official spaCy cheat sheet · the Explosion "Advanced NLP with spaCy" course · Real Python · DataCamp. Layout follows the house cheat-sheet design system (Inter · JetBrains Mono · colour-coded masonry). <b>spaCy 3.8.16 (current, re-verified 2026-08-28; no 4.0 yet) · Industrial-strength NLP · Python 3.9–3.13.</b>
+</footer>
+
+</div>
+</body>
+</html>

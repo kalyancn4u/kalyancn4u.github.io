@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>uv Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --proj:#7c3aed;   --proj-bg:#f4f0fe;   /* projects / core */
+    --dep:#059669;    --dep-bg:#ecf7f2;    /* deps / add-remove */
+    --run:#d97706;    --run-bg:#fdf6ec;    /* run / sync / lock */
+    --py:#2563eb;     --py-bg:#eef3fd;     /* python versions */
+    --tool:#0d9488;   --tool-bg:#e8f6f4;   /* tools / uvx */
+    --pip:#64748b;    --pip-bg:#f1f3f6;    /* pip interface / utility */
+    --danger:#dc2626; --danger-bg:#fdf0ef; /* gotcha */
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .uv{font-family:var(--mono); color:var(--proj)}
+  h1 .ver{
+    font-family:var(--mono); font-size:.34em; color:var(--dep);
+    vertical-align:middle; margin-left:.5rem; letter-spacing:0;
+  }
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink); font-weight:600}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.proj{background:var(--proj)}  .dot.dep{background:var(--dep)}
+  .dot.run{background:var(--run)}    .dot.py{background:var(--py)}
+  .dot.tool{background:var(--tool)}  .dot.pip{background:var(--pip)}
+  .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- quickstart ---------- */
+  .quick{ max-width:1500px; margin:0 auto; padding:1.4rem clamp(1rem,4vw,3rem) .5rem; }
+  .quick-grid{
+    max-width:1120px; margin:0 auto; display:grid; gap:1rem;
+    grid-template-columns:1fr;
+  }
+  @media(min-width:820px){ .quick-grid{grid-template-columns:1fr 1fr} }
+  .quick-box{ background:var(--ink); border-radius:10px; padding:1.1rem 1.3rem; overflow-x:auto; }
+  .quick-box .qlabel{
+    font-family:var(--mono); font-size:.68rem; letter-spacing:.12em;
+    text-transform:uppercase; color:#94a3b8; margin-bottom:.6rem;
+  }
+  pre.quick-inner{
+    font-family:var(--mono); font-size:.78rem; line-height:1.7;
+    color:#e8e6e1; white-space:pre; margin:0; tab-size:2;
+  }
+  pre.quick-inner .cmd{color:#c792ea; font-weight:700}
+  pre.quick-inner .sub{color:#82aaff}
+  pre.quick-inner .arg{color:#8bd49c}
+  pre.quick-inner .cm{color:#7b8494; font-style:italic}
+  pre.quick-inner .op{color:#f78c6c}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 1rem;
+    column-gap:1.4rem; column-fill:balance;
+  }
+  @media(min-width:760px){  main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  @media(min-width:1620px){ main{column-count:4} }
+  main.part{padding-top:.5rem; padding-bottom:.5rem}
+
+  .part-bar{
+    max-width:1500px; margin:0 auto; padding:1.4rem clamp(1rem,4vw,3rem) 0;
+    display:flex; align-items:center; gap:.8rem;
+  }
+  .part-bar .pt{
+    font-family:var(--mono); font-size:.7rem; font-weight:700; color:#fff;
+    background:var(--ink); border-radius:5px; padding:.2rem .5rem; letter-spacing:.08em;
+  }
+  .part-bar h2{font-size:1.15rem; font-weight:700; letter-spacing:-.01em}
+  .part-bar .pdesc{font-size:.8rem; color:var(--muted); font-family:var(--mono); margin-left:auto}
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.proj{border-left-color:var(--proj)}
+  ul.cmds li.dep{border-left-color:var(--dep)}
+  ul.cmds li.run{border-left-color:var(--run)}
+  ul.cmds li.py{border-left-color:var(--py)}
+  ul.cmds li.tool{border-left-color:var(--tool)}
+  ul.cmds li.pip{border-left-color:var(--pip)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .arg{color:var(--proj); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .str{color:var(--dep)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.77rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.94em; color:#3f444f}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-repl{
+    color:#fff; background:var(--pip); font-size:.6rem; font-weight:700;
+    font-family:var(--mono); border-radius:4px; padding:.05rem .3rem;
+    margin-left:.35rem; vertical-align:1px; letter-spacing:.02em;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{ max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem; }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:var(--mono)}
+
+  /* ---------- refs strip ---------- */
+  .refs{ max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem; }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.8rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#d7ff64; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner .v code{color:#c792ea}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference &middot; the fast Python package &amp; project manager</div>
+  <h1><span class="uv">uv</span> cheat sheet<span class="ver">0.11.x</span></h1>
+  <p class="lede">One Rust binary that replaces <b>pip, pipx, pyenv, poetry, virtualenv &amp; pip-tools</b>. For a project, three files stay in lockstep: <b>pyproject.toml</b> declares what you want, <b>uv.lock</b> pins the exact resolved versions, and <b>.venv</b> holds what's installed. Every command &mdash; <code>add</code>, <code>run</code>, <code>sync</code> &mdash; keeps all three honest for you.</p>
+  <div class="legend">
+    <span><i class="dot proj"></i>project / core</span>
+    <span><i class="dot dep"></i>dependencies</span>
+    <span><i class="dot run"></i>run &middot; sync &middot; lock</span>
+    <span><i class="dot py"></i>Python versions</span>
+    <span><i class="dot tool"></i>tools / uvx</span>
+    <span><i class="dot pip"></i>pip interface &amp; utility</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified against <b>uv 0.11.32</b> (installed &amp; run, Jul 2026) &middot; every command from <code>uv --help</code>, every workflow confirmed by execution &mdash; <code>init</code>&rarr;<code>add</code>&rarr;<code>run</code>, the generated <b>uv.lock</b>, PEP 723 scripts, tools &amp; the pip interface all run live. Structure follows the official <b>docs.astral.sh/uv</b> feature map.</p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The project loop &mdash; three files uv keeps in sync for you</div>
+  <svg class="flow-svg" viewBox="0 0 1120 468" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Top band: pyproject.toml declares broad requirements, uv resolves them into uv.lock which pins exact versions, and sync installs those into the .venv. Bottom band: the everyday commands — uv add, uv run, uv sync, uv lock — all operate on this loop, and uv run re-verifies the whole chain before every command.">
+    <defs>
+      <marker id="uvarrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="uvarrowp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+      </marker>
+    </defs>
+
+    <!-- ===== BAND A : the three files ===== -->
+    <text x="20" y="26" font-size="10" letter-spacing="2.5" fill="#94a3b8">YOU DECLARE INTENT</text>
+    <text x="416" y="26" font-size="10" letter-spacing="2.5" fill="#94a3b8">uv RESOLVES &amp; PINS</text>
+    <text x="812" y="26" font-size="10" letter-spacing="2.5" fill="#94a3b8">uv INSTALLS</text>
+
+    <!-- pyproject -->
+    <g>
+      <rect x="20" y="40" width="330" height="150" rx="11" fill="#f4f0fe" stroke="#7c3aed" stroke-width="2"/>
+      <text x="38" y="64" font-size="13" font-weight="700" fill="#1a1d24">pyproject.toml</text>
+      <text x="38" y="80" font-size="9.5" fill="#7c3aed" font-style="italic">broad requirements &mdash; hand-edited or via uv add</text>
+      <text x="38" y="104" font-size="10" fill="#64748b">[project]</text>
+      <text x="48" y="119" font-size="10" fill="#334155">requires-python = "&gt;=3.12"</text>
+      <text x="48" y="134" font-size="10" fill="#334155">dependencies = [</text>
+      <text x="58" y="149" font-size="10" fill="#059669">"httpx&gt;=0.27",</text>
+      <text x="48" y="164" font-size="10" fill="#334155">]</text>
+      <text x="38" y="182" font-size="9.5" fill="#7c3aed">[dependency-groups] dev = [...]</text>
+    </g>
+    <line x1="350" y1="115" x2="386" y2="115" stroke="#1a1d24" stroke-width="2" marker-end="url(#uvarrow)"/>
+    <text x="368" y="107" text-anchor="middle" font-size="8.5" fill="#6b7280">resolve</text>
+
+    <!-- uv.lock -->
+    <g>
+      <rect x="388" y="40" width="330" height="150" rx="11" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="406" y="64" font-size="13" font-weight="700" fill="#1a1d24">uv.lock</text>
+      <text x="406" y="80" font-size="9.5" fill="#b45309" font-style="italic">exact, cross-platform, hashed &mdash; commit it</text>
+      <text x="406" y="104" font-size="10" fill="#64748b">version = 1  revision = 3</text>
+      <text x="406" y="122" font-size="10" fill="#334155">[[package]] name = "httpx"</text>
+      <text x="416" y="137" font-size="10" fill="#334155">version = "0.28.1"</text>
+      <text x="416" y="152" font-size="10" fill="#334155">+ anyio, certifi, h11,</text>
+      <text x="416" y="167" font-size="10" fill="#334155">&nbsp;&nbsp;httpcore, idna &hellip;</text>
+      <text x="406" y="184" font-size="9.5" fill="#b45309">every transitive dep, fully pinned</text>
+    </g>
+    <line x1="718" y1="115" x2="754" y2="115" stroke="#1a1d24" stroke-width="2" marker-end="url(#uvarrow)"/>
+    <text x="736" y="107" text-anchor="middle" font-size="8.5" fill="#6b7280">sync</text>
+
+    <!-- venv -->
+    <g>
+      <rect x="756" y="40" width="344" height="150" rx="11" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="774" y="64" font-size="13" font-weight="700" fill="#1a1d24">.venv/</text>
+      <text x="774" y="80" font-size="9.5" fill="#047857" font-style="italic">the real installed environment &mdash; git-ignored</text>
+      <text x="774" y="106" font-size="10" fill="#334155">bin/python &rarr; 3.12</text>
+      <text x="774" y="124" font-size="10" fill="#334155">site-packages/</text>
+      <text x="784" y="139" font-size="10" fill="#059669">httpx  anyio  certifi</text>
+      <text x="784" y="154" font-size="10" fill="#059669">httpcore  h11  idna</text>
+      <text x="774" y="180" font-size="9.5" fill="#047857">hard-linked from the global cache &mdash; near-zero copy</text>
+    </g>
+
+    <!-- ===== BAND B : the commands ===== -->
+    <rect x="20" y="214" width="1080" height="150" rx="13" fill="none" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="6 5"/>
+    <text x="34" y="209" font-size="10" letter-spacing="2" fill="#7c3aed">THE EVERYDAY COMMANDS OPERATE ON THIS LOOP</text>
+
+    <g font-size="11" text-anchor="middle">
+      <rect x="42" y="238" width="230" height="52" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="1.8"/>
+      <text x="157" y="260" font-weight="700" fill="#1a1d24">uv add httpx</text>
+      <text x="157" y="278" font-size="9" fill="#059669">edits pyproject + lock + venv</text>
+
+      <rect x="292" y="238" width="230" height="52" rx="9" fill="#fdf6ec" stroke="#d97706" stroke-width="1.8"/>
+      <text x="407" y="260" font-weight="700" fill="#1a1d24">uv lock</text>
+      <text x="407" y="278" font-size="9" fill="#b45309">re-resolve &rarr; refresh uv.lock</text>
+
+      <rect x="542" y="238" width="230" height="52" rx="9" fill="#fdf6ec" stroke="#d97706" stroke-width="1.8"/>
+      <text x="657" y="260" font-weight="700" fill="#1a1d24">uv sync</text>
+      <text x="657" y="278" font-size="9" fill="#b45309">make .venv match the lock</text>
+
+      <rect x="792" y="238" width="286" height="52" rx="9" fill="#f4f0fe" stroke="#7c3aed" stroke-width="1.8"/>
+      <text x="935" y="260" font-weight="700" fill="#1a1d24">uv run &lt;cmd&gt;</text>
+      <text x="935" y="278" font-size="9" fill="#7c3aed">verifies lock+venv, THEN runs</text>
+    </g>
+
+    <!-- the guarantee -->
+    <path d="M935 290 L935 312 L157 312 L157 292" fill="none" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#uvarrowp)"/>
+    <text x="546" y="308" text-anchor="middle" font-size="9.5" fill="#7c3aed">before every run, uv checks pyproject &rarr; lock &rarr; venv are all in sync &mdash; no manual activate, no stale env</text>
+
+    <!-- ===== BAND C : the one-liner truth ===== -->
+    <g font-size="11">
+      <rect x="20" y="330" width="1080" height="120" rx="11" fill="#1a1d24"/>
+      <text x="40" y="356" font-family="'JetBrains Mono'" font-size="11" fill="#d7ff64">$ uv add httpx</text>
+      <text x="40" y="376" font-family="'JetBrains Mono'" font-size="11" fill="#94a3b8">Using CPython 3.12.3 &middot; Creating virtual environment at: .venv</text>
+      <text x="40" y="396" font-family="'JetBrains Mono'" font-size="11" fill="#8bd49c">Resolved 8 packages in 345ms &middot; Installed 7 packages in 9ms</text>
+      <text x="40" y="418" font-family="'JetBrains Mono'" font-size="11" fill="#c792ea">$ uv run python -c "import httpx"   <tspan fill="#7b8494"># auto-syncs first, then runs</tspan></text>
+      <text x="40" y="438" font-family="'JetBrains Mono'" font-size="10.5" fill="#e8e6e1">one command did what pip + venv + pip-tools + activate used to &mdash; and in milliseconds</text>
+    </g>
+  </svg>
+</section>
+
+<!-- ============ QUICKSTART ============ -->
+<section class="quick">
+  <div class="flow-title">Two ways in &mdash; a project, or a single script</div>
+  <div class="quick-grid">
+    <div class="quick-box">
+      <div class="qlabel">a project &middot; the poetry / pipenv replacement</div>
+<pre class="quick-inner"><span class="cmd">uv</span> <span class="sub">init</span> myapp <span class="op">&amp;&amp;</span> <span class="cmd">cd</span> myapp   <span class="cm"># scaffold</span>
+<span class="cmd">uv</span> <span class="sub">add</span> httpx <span class="arg">"pytest"</span> <span class="op">--dev</span>   <span class="cm"># deps + dev group</span>
+<span class="cmd">uv</span> <span class="sub">run</span> python main.py       <span class="cm"># auto-syncs, runs</span>
+<span class="cmd">uv</span> <span class="sub">run</span> pytest               <span class="cm"># in the locked env</span>
+<span class="cmd">uv</span> <span class="sub">lock</span> <span class="op">--upgrade</span>            <span class="cm"># bump the lockfile</span>
+<span class="cmd">uv</span> <span class="sub">sync</span>                     <span class="cm"># reproduce it exactly</span>
+<span class="cm"># commit pyproject.toml + uv.lock</span></pre>
+    </div>
+    <div class="quick-box">
+      <div class="qlabel">a standalone script &middot; PEP 723 inline deps</div>
+<pre class="quick-inner"><span class="cmd">uv</span> <span class="sub">init</span> <span class="op">--script</span> fetch.py         <span class="cm"># add header</span>
+<span class="cmd">uv</span> <span class="sub">add</span> <span class="op">--script</span> fetch.py rich       <span class="cm"># pin dep</span>
+<span class="cm"># fetch.py now starts with:</span>
+<span class="cm"># /// script</span>
+<span class="cm"># requires-python = "&gt;=3.12"</span>
+<span class="cm"># dependencies = ["rich&gt;=13"]</span>
+<span class="cm"># ///</span>
+<span class="cmd">uv</span> <span class="sub">run</span> fetch.py     <span class="cm"># ephemeral env, just works</span>
+<span class="cmd">uvx</span> ruff check .    <span class="cm"># a tool, no install needed</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PART I : PROJECTS ============ -->
+<div class="part-bar"><span class="pt">PART I</span><h2>Projects</h2><span class="pdesc">pyproject.toml + uv.lock + .venv</span></div>
+<main class="part">
+
+  <!-- 01 INSTALL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install uv</span><span class="card-sub">one binary</span></div>
+    <ul class="cmds">
+      <li class="pip"><code class="cmd">curl -LsSf https://astral.sh/uv/install.sh | sh</code><span class="star">&#9733;</span><div class="desc">Standalone installer, macOS/Linux. No Python or Rust needed.</div></li>
+      <li class="pip"><code class="cmd">powershell -c "irm https://astral.sh/uv/install.ps1 | iex"</code><div class="desc">Windows equivalent.</div></li>
+      <li class="pip"><code class="cmd">pip install uv</code> &middot; <code class="cmd">brew install uv</code><div class="desc">Also on PyPI, Homebrew, Scoop, WinGet, Docker, and as a GitHub Action.</div></li>
+      <li class="pip"><code class="cmd">uv self update</code><span class="star">&#9733;</span><div class="desc">Upgrade uv in place (standalone installs only).</div></li>
+      <li class="pip"><code class="cmd">uv --version</code> &middot; <code class="cmd">uv help</code><div class="desc">Version + full CLI reference in the terminal.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 INIT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Start a Project</span><span class="card-sub">uv init</span></div>
+    <ul class="cmds">
+      <li class="proj"><code class="cmd">uv <span class="arg">init</span> myapp</code><span class="star">&#9733;</span><div class="desc">Scaffold: <code>pyproject.toml</code>, <code>main.py</code>, <code>README.md</code>, <code>.python-version</code>, git.</div></li>
+      <li class="proj"><code class="cmd">uv <span class="arg">init</span></code><div class="desc">Initialize in the current directory.</div></li>
+      <li class="proj"><code class="cmd">uv <span class="arg">init</span> <span class="flag">--lib</span> mylib</code><span class="star">&#9733;</span><div class="desc">A packaged library (src layout + build backend) instead of an app.</div></li>
+      <li class="proj"><code class="cmd">uv <span class="arg">init</span> <span class="flag">--app</span></code> &middot; <code class="cmd"><span class="flag">--package</span></code><div class="desc">App (default) vs a packaged app you can publish.</div></li>
+      <li class="proj"><code class="cmd">uv <span class="arg">init</span> <span class="flag">--bare</span></code><div class="desc">Just a <code>pyproject.toml</code> &mdash; no sample files, no README, no VCS.</div></li>
+      <li class="proj"><code class="cmd">uv <span class="arg">init</span> <span class="flag">--python</span> 3.13</code><div class="desc">Pin the project's Python at creation.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 ADD/REMOVE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Add &amp; Remove Deps</span><span class="card-sub">uv add / remove</span></div>
+    <ul class="cmds">
+      <li class="dep"><code class="cmd">uv <span class="arg">add</span> httpx</code><span class="star">&#9733;</span><div class="desc">Resolve, update <code>pyproject.toml</code> + <code>uv.lock</code>, install into <code>.venv</code> &mdash; all at once.</div></li>
+      <li class="dep"><code class="cmd">uv <span class="arg">add</span> <span class="str">"httpx>=0.27,&lt;1"</span></code><div class="desc">Any PEP 508 spec: version ranges, extras, markers.</div></li>
+      <li class="dep"><code class="cmd">uv <span class="arg">add</span> <span class="flag">--dev</span> pytest ruff</code><span class="star">&#9733;</span><div class="desc">Into the <code>dev</code> group under <code>[dependency-groups]</code> &mdash; not shipped to users.</div></li>
+      <li class="dep"><code class="cmd">uv <span class="arg">add</span> <span class="flag">--group</span> docs sphinx</code><div class="desc">A named dependency group (PEP 735). <code>--optional NAME</code> for an extra instead.</div></li>
+      <li class="dep"><code class="cmd">uv <span class="arg">add</span> <span class="flag">--editable</span> ../mylib</code><div class="desc">A local path dep, editable. Also <code>--git URL</code>, <code>--branch</code>, <code>--tag</code>.</div></li>
+      <li class="dep"><code class="cmd">uv <span class="arg">add</span> <span class="flag">--bounds</span> major httpx</code><div class="desc">Control the written constraint style: <code>&gt;=0.28,&lt;1.0</code> style bounds.</div></li>
+      <li class="dep"><code class="cmd">uv <span class="arg">remove</span> httpx</code><span class="star">&#9733;</span><div class="desc">Drop it from all three files. <code>--dev</code>/<code>--group</code> to target a group.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 RUN -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Run Commands</span><span class="card-sub">uv run</span></div>
+    <ul class="cmds">
+      <li class="run"><code class="cmd">uv <span class="arg">run</span> python main.py</code><span class="star">&#9733;</span><div class="desc">Verifies lock + venv are current, <b>then</b> runs. No activate needed.</div></li>
+      <li class="run"><code class="cmd">uv <span class="arg">run</span> pytest</code> &middot; <code class="cmd">uv <span class="arg">run</span> ruff check</code><span class="star">&#9733;</span><div class="desc">Any entry point installed in the env.</div></li>
+      <li class="run"><code class="cmd">uv <span class="arg">run</span> <span class="flag">--</span> flask run -p 3000</code><div class="desc">Use <code>--</code> so flags reach your command, not uv.</div></li>
+      <li class="run"><code class="cmd">uv <span class="arg">run</span> <span class="flag">--with</span> rich script.py</code><span class="star">&#9733;</span><div class="desc">Add a one-off dependency for this run only &mdash; not written to the project.</div></li>
+      <li class="run"><code class="cmd">uv <span class="arg">run</span> <span class="flag">--no-sync</span> python</code><div class="desc">Skip the auto-sync check &mdash; faster when you know the env is fresh.</div></li>
+      <li class="run"><code class="cmd">uv <span class="arg">run</span> <span class="flag">--env-file</span> .env python app.py</code><div class="desc">Load env vars from a file before running.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 LOCK/SYNC -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Lock &amp; Sync</span><span class="card-sub">reproduce exactly</span></div>
+    <ul class="cmds">
+      <li class="run"><code class="cmd">uv <span class="arg">lock</span></code><span class="star">&#9733;</span><div class="desc">Resolve the whole project into <code>uv.lock</code> without installing.</div></li>
+      <li class="run"><code class="cmd">uv <span class="arg">lock</span> <span class="flag">--upgrade</span></code><span class="star">&#9733;</span><div class="desc">Re-resolve to newest allowed versions. <code>--upgrade-package httpx</code> for just one.</div></li>
+      <li class="run"><code class="cmd">uv <span class="arg">sync</span></code><span class="star">&#9733;</span><div class="desc">Make <code>.venv</code> exactly match <code>uv.lock</code> &mdash; installs missing, removes extra.</div></li>
+      <li class="run"><code class="cmd">uv <span class="arg">sync</span> <span class="flag">--frozen</span></code><span class="star">&#9733;</span><div class="desc">Install from the lock as-is; error if it's stale. The CI/production install.</div></li>
+      <li class="run"><code class="cmd">uv <span class="arg">sync</span> <span class="flag">--locked</span></code><div class="desc">Assert the lock is already up to date, then sync &mdash; fails if <code>pyproject</code> drifted.</div></li>
+      <li class="run"><code class="cmd">uv <span class="arg">sync</span> <span class="flag">--all-extras</span> <span class="flag">--all-groups</span></code><div class="desc">Pull in every optional extra and group. <code>--no-dev</code> to exclude dev.</div></li>
+      <li class="run"><code class="cmd">uv <span class="arg">lock</span> <span class="flag">--check</span></code><div class="desc">CI guard: exit non-zero if the lockfile is out of date.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 INSPECT PROJECT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Inspect &amp; Export</span><span class="card-sub">tree / export</span></div>
+    <ul class="cmds">
+      <li class="proj"><code class="cmd">uv <span class="arg">tree</span></code><span class="star">&#9733;</span><div class="desc">The project's dependency tree. <code>--depth 1</code>, <code>--package httpx</code> to focus.</div></li>
+      <li class="proj"><code class="cmd">uv <span class="arg">tree</span> <span class="flag">--invert</span></code><div class="desc">Who depends on <i>this</i>? &mdash; trace a transitive dep back up.</div></li>
+      <li class="proj"><code class="cmd">uv <span class="arg">export</span> <span class="flag">--format</span> requirements-txt <span class="flag">-o</span> requirements.txt</code><span class="star">&#9733;</span><div class="desc">Emit a classic pinned <code>requirements.txt</code> from the lock (with hashes).</div></li>
+      <li class="proj"><code class="cmd">uv <span class="arg">export</span> <span class="flag">--no-hashes</span> <span class="flag">--no-dev</span></code><div class="desc">Trim for a slim runtime requirements file.</div></li>
+      <li class="proj"><code class="cmd">uv <span class="arg">version</span></code> &middot; <code class="cmd">uv <span class="arg">version</span> <span class="flag">--bump</span> minor</code><div class="desc">Read or bump the project's own version (patch/minor/major).</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 PROJECT LAYOUT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">The Files uv Manages</span><span class="card-sub">what's on disk</span></div>
+    <ul class="cmds">
+      <li class="proj"><code class="cmd">pyproject.toml</code><span class="star">&#9733;</span><div class="desc">Your declared requirements &amp; config. <b>Commit it.</b> Hand-edit or use <code>uv add</code>.</div></li>
+      <li class="run"><code class="cmd">uv.lock</code><span class="star">&#9733;</span><div class="desc">Exact, cross-platform, hashed resolution. <b>Commit it.</b> Never hand-edit.</div></li>
+      <li class="dep"><code class="cmd">.venv/</code><span class="star">&#9733;</span><div class="desc">The real environment. <b>Git-ignore it</b> &mdash; it's rebuilt from the lock.</div></li>
+      <li class="py"><code class="cmd">.python-version</code><div class="desc">The project's default Python. Written by <code>uv python pin</code>.</div></li>
+      <li class="proj"><code class="cmd">[tool.uv] in pyproject.toml</code><div class="desc">uv-specific config: <code>[tool.uv.sources]</code>, index URLs, resolution knobs.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ PART II : SCRIPTS, TOOLS AND PYTHON ============ -->
+<div class="part-bar"><span class="pt">PART II</span><h2>Scripts, Tools &amp; Python</h2><span class="pdesc">the pipx + pyenv replacement</span></div>
+<main class="part">
+
+  <!-- 08 SCRIPTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Standalone Scripts</span><span class="card-sub">PEP 723</span></div>
+    <ul class="cmds">
+      <li class="run"><code class="cmd">uv <span class="arg">run</span> script.py</code><span class="star">&#9733;</span><div class="desc">Run a script in an ephemeral env. Reads inline metadata if present.</div></li>
+      <li class="dep"><code class="cmd">uv <span class="arg">init</span> <span class="flag">--script</span> app.py</code><div class="desc">Add the PEP 723 metadata header to a new or existing script.</div></li>
+      <li class="dep"><code class="cmd">uv <span class="arg">add</span> <span class="flag">--script</span> app.py rich <span class="str">"httpx>=0.27"</span></code><span class="star">&#9733;</span><div class="desc">Pin deps <i>inside the script</i> &mdash; the file becomes self-contained &amp; shareable.</div></li>
+      <li class="run"><code class="cmd">uv <span class="arg">run</span> <span class="flag">--with</span> pandas <span class="flag">--</span> script.py</code><div class="desc">Ad-hoc deps for a script that has no header.</div></li>
+      <li class="run"><code class="cmd">uv <span class="arg">run</span> <span class="flag">--python</span> 3.11 script.py</code><div class="desc">Run under a specific Python &mdash; uv fetches it if missing.</div></li>
+      <li class="dep"><code class="cmd"><span class="cm"># /// script ... # dependencies = [...] # ///</span></code><div class="desc">The inline block uv reads. No project, no venv to manage &mdash; just the file.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 TOOLS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Tools &amp; uvx</span><span class="card-sub">the pipx replacement</span></div>
+    <ul class="cmds">
+      <li class="tool"><code class="cmd">uvx ruff check .</code><span class="star">&#9733;</span><div class="desc"><code>uvx</code> = <code>uv tool run</code>. Runs a CLI in a cached, ephemeral env &mdash; nothing installed.</div></li>
+      <li class="tool"><code class="cmd">uvx <span class="flag">--from</span> httpie http GET example.com</code><div class="desc">When the command name differs from the package name.</div></li>
+      <li class="tool"><code class="cmd">uvx ruff@0.6.0 check</code><div class="desc">Pin a specific version for this run.</div></li>
+      <li class="tool"><code class="cmd">uv <span class="arg">tool</span> install ruff</code><span class="star">&#9733;</span><div class="desc">Install a CLI user-wide onto your <code>PATH</code> &mdash; persists across shells.</div></li>
+      <li class="tool"><code class="cmd">uv <span class="arg">tool</span> list</code> &middot; <code class="cmd">upgrade <span class="flag">--all</span></code> &middot; <code class="cmd">uninstall ruff</code><div class="desc">Manage installed tools. <code>uv tool upgrade --all</code> bumps everything.</div></li>
+      <li class="tool"><code class="cmd">uv <span class="arg">tool</span> update-shell</code><div class="desc">Put the tool bin dir on your <code>PATH</code> if it isn't already.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 PYTHON VERSIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Python Versions</span><span class="card-sub">the pyenv replacement</span></div>
+    <ul class="cmds">
+      <li class="py"><code class="cmd">uv <span class="arg">python</span> install 3.12 3.13</code><span class="star">&#9733;</span><div class="desc">Download &amp; install standalone CPython builds &mdash; no system Python touched.</div></li>
+      <li class="py"><code class="cmd">uv <span class="arg">python</span> list</code><span class="star">&#9733;</span><div class="desc">Every version available/installed. <code>--only-installed</code> to filter.</div></li>
+      <li class="py"><code class="cmd">uv <span class="arg">python</span> pin 3.13</code><span class="star">&#9733;</span><div class="desc">Write <code>.python-version</code> so this project uses 3.13.</div></li>
+      <li class="py"><code class="cmd">uv <span class="arg">python</span> install 3.13t</code><div class="desc">Free-threaded (no-GIL) builds via the <code>t</code> suffix.</div></li>
+      <li class="py"><code class="cmd">uv <span class="arg">python</span> find</code> &middot; <code class="cmd">upgrade</code> &middot; <code class="cmd">uninstall</code><div class="desc">Locate, patch-upgrade, or remove a managed Python.</div></li>
+      <li class="py"><code class="cmd">uv <span class="arg">run</span> <span class="flag">--python</span> 3.11 ...</code><div class="desc">Almost any command takes <code>--python</code>; uv fetches on demand.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 CACHE / SELF / AUTH -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Cache, Auth &amp; Self</span><span class="card-sub">uv's own state</span></div>
+    <ul class="cmds">
+      <li class="pip"><code class="cmd">uv <span class="arg">cache</span> clean</code> &middot; <code class="cmd">prune</code><span class="star">&#9733;</span><div class="desc">Wipe the global cache, or just prune dangling/outdated entries.</div></li>
+      <li class="pip"><code class="cmd">uv <span class="arg">cache</span> dir</code> &middot; <code class="cmd">size</code><div class="desc">Where the cache lives &amp; how big it is. Dedup means it's shared across projects.</div></li>
+      <li class="tool"><code class="cmd">uv <span class="arg">auth</span> login</code> &middot; <code class="cmd">token</code> &middot; <code class="cmd">logout</code><div class="desc">Store &amp; read credentials for private indexes.<span class="badge-repl">newer</span></div></li>
+      <li class="pip"><code class="cmd">uv <span class="arg">self</span> update</code><div class="desc">Upgrade the uv binary itself.</div></li>
+      <li class="pip"><code class="cmd">uv <span class="arg">python</span> dir</code> &middot; <code class="cmd">uv <span class="arg">tool</span> dir</code><div class="desc">Where managed Pythons &amp; installed tools live.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ PART III : pip INTERFACE, BUILD AND CONFIG ============ -->
+<div class="part-bar"><span class="pt">PART III</span><h2>pip Interface, Build &amp; Config</h2><span class="pdesc">low-level control + publishing</span></div>
+<main class="part">
+
+  <!-- 12 VENV -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Virtual Environments</span><span class="card-sub">uv venv</span></div>
+    <ul class="cmds">
+      <li class="pip"><code class="cmd">uv <span class="arg">venv</span></code><span class="star">&#9733;</span><div class="desc">Create <code>.venv</code> in milliseconds. <code>replaces</code> <code>python -m venv</code>.<span class="badge-repl">venv</span></div></li>
+      <li class="pip"><code class="cmd">uv <span class="arg">venv</span> <span class="flag">--python</span> 3.12</code><div class="desc">Pick the interpreter; uv downloads it if needed.</div></li>
+      <li class="pip"><code class="cmd">uv <span class="arg">venv</span> myenv</code><div class="desc">Name it something other than <code>.venv</code>.</div></li>
+      <li class="pip"><code class="cmd">source .venv/bin/activate</code><div class="desc">Optional &mdash; with <code>uv run</code>/<code>uv pip</code> you rarely need to activate at all.</div></li>
+      <li class="pip"><code class="cmd">uv <span class="arg">venv</span> <span class="flag">--seed</span></code><div class="desc">Seed with pip/setuptools for tools that expect them present.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 PIP INTERFACE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">The pip Interface</span><span class="card-sub">uv pip</span></div>
+    <ul class="cmds">
+      <li class="pip"><code class="cmd">uv <span class="arg">pip</span> install httpx</code><span class="star">&#9733;</span><div class="desc">Drop-in, 10&ndash;100&times; faster pip. Installs into the active/<code>.venv</code> env.<span class="badge-repl">pip</span></div></li>
+      <li class="pip"><code class="cmd">uv <span class="arg">pip</span> install <span class="flag">-r</span> requirements.txt</code><span class="star">&#9733;</span><div class="desc">Same flags you know. <code>-e .</code> for editable installs too.</div></li>
+      <li class="pip"><code class="cmd">uv <span class="arg">pip</span> sync requirements.txt</code><div class="desc">Make the env <i>exactly</i> match the file &mdash; removes anything extra.</div></li>
+      <li class="pip"><code class="cmd">uv <span class="arg">pip</span> list</code> &middot; <code class="cmd">freeze</code> &middot; <code class="cmd">show httpx</code><div class="desc">Inspect installed packages. <code>uv pip tree</code> for the graph.</div></li>
+      <li class="pip"><code class="cmd">uv <span class="arg">pip</span> check</code><div class="desc">Verify installed packages have compatible dependencies.</div></li>
+      <li class="danger"><code class="cmd">uv pip is NOT the project API</code><div class="desc">It manages a raw env &mdash; it won't touch <code>pyproject.toml</code> or <code>uv.lock</code>. Use <code>uv add</code> for projects.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 COMPILE (pip-tools) -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Compile Requirements</span><span class="card-sub">the pip-tools replacement</span></div>
+    <ul class="cmds">
+      <li class="pip"><code class="cmd">uv <span class="arg">pip</span> compile requirements.in <span class="flag">-o</span> requirements.txt</code><span class="star">&#9733;</span><div class="desc">Pin loose requirements into a fully-resolved file.<span class="badge-repl">pip-tools</span></div></li>
+      <li class="pip"><code class="cmd">uv <span class="arg">pip</span> compile <span class="flag">--universal</span> ...</code><span class="star">&#9733;</span><div class="desc">One platform-independent output that resolves for all OSes.</div></li>
+      <li class="pip"><code class="cmd">uv <span class="arg">pip</span> compile <span class="flag">--upgrade</span></code><div class="desc">Re-pin to the newest allowed versions.</div></li>
+      <li class="pip"><code class="cmd">uv <span class="arg">pip</span> compile pyproject.toml</code><div class="desc">Compile straight from project metadata.</div></li>
+      <li class="pip"><code class="cmd">uv <span class="arg">pip</span> compile <span class="flag">--generate-hashes</span></code><div class="desc">Include hashes for a verifiable install.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 BUILD/PUBLISH -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Build &amp; Publish</span><span class="card-sub">the twine replacement</span></div>
+    <ul class="cmds">
+      <li class="proj"><code class="cmd">uv <span class="arg">build</span></code><span class="star">&#9733;</span><div class="desc">Build sdist + wheel into <code>dist/</code>. <code>--wheel</code> or <code>--sdist</code> for just one.</div></li>
+      <li class="proj"><code class="cmd">uv <span class="arg">publish</span></code><span class="star">&#9733;</span><div class="desc">Upload <code>dist/*</code> to PyPI. <code>--index</code> / <code>--publish-url</code> for others.<span class="badge-repl">twine</span></div></li>
+      <li class="proj"><code class="cmd">uv <span class="arg">publish</span> <span class="flag">--token</span> $PYPI_TOKEN</code><div class="desc">Or use trusted publishing in CI &mdash; no token in the repo.</div></li>
+      <li class="proj"><code class="cmd">[build-system] &rarr; uv_build</code><div class="desc">uv ships its own fast build backend; or use hatchling, setuptools, etc.</div></li>
+      <li class="proj"><code class="cmd">uv <span class="arg">build</span> <span class="flag">--all-packages</span></code><div class="desc">Build every member of a workspace.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 WORKSPACES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Workspaces</span><span class="card-sub">Cargo-style monorepos</span></div>
+    <ul class="cmds">
+      <li class="proj"><code class="cmd">[tool.uv.workspace] members = ["packages/*"]</code><span class="star">&#9733;</span><div class="desc">Multiple packages, <b>one</b> shared <code>uv.lock</code> &mdash; consistent versions across all.</div></li>
+      <li class="proj"><code class="cmd">uv <span class="arg">sync</span></code><div class="desc">From the root, syncs the whole workspace at once.</div></li>
+      <li class="proj"><code class="cmd">uv <span class="arg">run</span> <span class="flag">--package</span> api uvicorn app:app</code><div class="desc">Target one member by name.</div></li>
+      <li class="proj"><code class="cmd">uv <span class="arg">add</span> <span class="flag">--package</span> api httpx</code><div class="desc">Add a dep to a specific member.</div></li>
+      <li class="proj"><code class="cmd">[tool.uv.sources] mylib = {workspace = true}</code><div class="desc">Members depend on each other by name, resolved locally.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 SOURCES/INDEXES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Sources &amp; Indexes</span><span class="card-sub">where deps come from</span></div>
+    <ul class="cmds">
+      <li class="proj"><code class="cmd">[tool.uv.sources] mylib = {git = "https://..."}</code><span class="star">&#9733;</span><div class="desc">Override where a dep resolves from: git, path, url, or a named index.</div></li>
+      <li class="dep"><code class="cmd">[[tool.uv.index]] url = "https://..."</code><div class="desc">Declare extra package indexes; pin a package to one with <code>explicit = true</code>.</div></li>
+      <li class="dep"><code class="cmd">uv add torch <span class="flag">--index</span> pytorch=https://...</code><div class="desc">The clean way to install e.g. CUDA-specific PyTorch wheels.</div></li>
+      <li class="dep"><code class="cmd">UV_INDEX_...  <span class="flag">--default-index</span></code><div class="desc">Replace PyPI as the default index entirely.</div></li>
+      <li class="dep"><code class="cmd">uv add <span class="flag">--no-sources</span> ...</code><div class="desc">Ignore <code>[tool.uv.sources]</code> &mdash; resolve as a published package would.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 CONFIG/ENV -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Config &amp; Env Vars</span><span class="card-sub">tune behaviour</span></div>
+    <ul class="cmds">
+      <li class="pip"><code class="cmd">UV_PYTHON=3.12</code> &middot; <code class="cmd">UV_PROJECT_ENVIRONMENT</code><div class="desc">Env vars mirror most flags &mdash; handy in CI &amp; Docker.</div></li>
+      <li class="pip"><code class="cmd">UV_PYTHON_DOWNLOADS=never</code><span class="star">&#9733;</span><div class="desc">Forbid auto-downloading Python &mdash; use only what's installed.</div></li>
+      <li class="pip"><code class="cmd">UV_CACHE_DIR</code> &middot; <code class="cmd">UV_NO_CACHE=1</code><div class="desc">Relocate or disable the cache (e.g. ephemeral CI runners).</div></li>
+      <li class="pip"><code class="cmd">uv.toml</code> or <code class="cmd">[tool.uv]</code><div class="desc">Persistent config: project-level in <code>pyproject.toml</code>, or a standalone <code>uv.toml</code>.</div></li>
+      <li class="pip"><code class="cmd">--offline</code> &middot; <code class="cmd">--refresh</code> &middot; <code class="cmd">--no-cache</code><div class="desc">Global flags: work offline, force re-fetch, or bypass the cache.</div></li>
+      <li class="pip"><code class="cmd">--exclude-newer 2026-01-01</code><div class="desc">Reproducible resolutions &mdash; ignore anything published after a date.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 GOTCHAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Gotchas &amp; Habits</span><span class="card-sub">what bites</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">uv pip install won't update pyproject</code><div class="desc">In a project, reach for <code>uv add</code>. <code>uv pip</code> is the low-level escape hatch.</div></li>
+      <li class="danger"><code class="cmd">commit uv.lock, ignore .venv</code><span class="star">&#9733;</span><div class="desc">The lock is your reproducibility; the venv is disposable and rebuilt by <code>sync</code>.</div></li>
+      <li class="danger"><code class="cmd">don't hand-edit uv.lock</code><div class="desc">Change <code>pyproject.toml</code> then <code>uv lock</code>. Manual edits get overwritten.</div></li>
+      <li class="danger"><code class="cmd">uv ignores an active VIRTUAL_ENV in projects</code><div class="desc">It prefers the project <code>.venv</code>. Use <code>--active</code> to target the activated one.</div></li>
+      <li class="danger"><code class="cmd">CI: use --frozen (or --locked)</code><span class="star">&#9733;</span><div class="desc">Install from the lock without re-resolving &mdash; fast, deterministic, no surprise upgrades.</div></li>
+      <li class="danger"><code class="cmd">uv is pre-1.0</code><div class="desc">Minor versions (0.11&rarr;0.12) can carry breaking changes; pin uv in CI.</div></li>
+    </ul>
+  </article>
+
+  <!-- OUTPUT READING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Reading uv Output</span><span class="card-sub">the log lines</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">Resolved 8 packages in 345ms</code><div class="desc">the resolver built the full graph</div></li>
+      <li><code class="cmd">Prepared 7 packages</code><div class="desc">downloaded/built into the cache</div></li>
+      <li><code class="cmd">Installed 7 packages in 9ms</code><div class="desc">hard-linked from cache into <code>.venv</code></div></li>
+      <li><code class="cmd">+ httpx==0.28.1</code><div class="desc"><code>+</code> added &middot; <code>-</code> removed &middot; <code>~</code> changed</div></li>
+      <li><code class="cmd">Audited 8 packages</code><div class="desc">already satisfied &mdash; nothing to do</div></li>
+      <li><code class="cmd">Using CPython 3.12.3</code><div class="desc">which interpreter was selected</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four things worth seeing once</h2>
+  <p class="sub">Which command to reach for, why the lockfile matters, how the cache makes installs near-instant, and which classic tool each uv command retires &mdash; all drawn from behaviour verified against uv 0.11.32.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>uv add vs uv pip install</h3>
+      <p>The single most common confusion. <code>uv add</code> is the project API and touches all three files; <code>uv pip install</code> is a low-level env tool that touches none of them.</p>
+      <svg viewBox="0 0 420 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="uv add updates pyproject.toml, uv.lock and the venv together. uv pip install only changes the venv, leaving pyproject and the lock untouched.">
+        <text x="14" y="20" font-size="10.5" font-weight="700" fill="#059669">uv add httpx</text>
+        <g font-size="9">
+          <rect x="14" y="30" width="120" height="26" rx="5" fill="#f4f0fe" stroke="#7c3aed" stroke-width="1.3"/><text x="74" y="47" text-anchor="middle" fill="#1a1d24">pyproject.toml &#10003;</text>
+          <rect x="146" y="30" width="120" height="26" rx="5" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/><text x="206" y="47" text-anchor="middle" fill="#1a1d24">uv.lock &#10003;</text>
+          <rect x="278" y="30" width="120" height="26" rx="5" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/><text x="338" y="47" text-anchor="middle" fill="#1a1d24">.venv &#10003;</text>
+        </g>
+        <text x="14" y="76" font-size="8.5" fill="#059669">all three stay consistent &mdash; reproducible</text>
+
+        <line x1="14" y1="92" x2="406" y2="92" stroke="#e7e3db" stroke-width="1"/>
+
+        <text x="14" y="116" font-size="10.5" font-weight="700" fill="#64748b">uv pip install httpx</text>
+        <g font-size="9">
+          <rect x="14" y="126" width="120" height="26" rx="5" fill="#f6f6f6" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 2"/><text x="74" y="143" text-anchor="middle" fill="#94a3b8">pyproject &mdash; untouched</text>
+          <rect x="146" y="126" width="120" height="26" rx="5" fill="#f6f6f6" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 2"/><text x="206" y="143" text-anchor="middle" fill="#94a3b8">uv.lock &mdash; untouched</text>
+          <rect x="278" y="126" width="120" height="26" rx="5" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/><text x="338" y="143" text-anchor="middle" fill="#1a1d24">.venv &#10003;</text>
+        </g>
+        <text x="14" y="172" font-size="8.5" fill="#dc2626">env now has a package nothing records &mdash; not reproducible</text>
+        <rect x="14" y="182" width="392" height="22" rx="6" fill="#f1f3f6"/>
+        <text x="24" y="197" font-size="9" fill="#475569">Rule: <tspan font-weight="700">in a project use uv add</tspan>; use uv pip only for raw envs.</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>pyproject vs lockfile</h3>
+      <p>pyproject says what you'll <i>accept</i>; the lock records what you actually <i>got</i>. That gap is the whole point &mdash; loose specs resolve to exact, shared versions.</p>
+      <svg viewBox="0 0 420 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="pyproject.toml lists a loose requirement httpx greater-or-equal 0.27. The resolver turns it into an exact locked graph: httpx 0.28.1 plus its pinned transitive dependencies anyio, certifi, h11, httpcore, idna.">
+        <rect x="14" y="24" width="150" height="160" rx="8" fill="#f4f0fe" stroke="#7c3aed" stroke-width="1.6"/>
+        <text x="89" y="44" text-anchor="middle" font-size="10.5" font-weight="700" fill="#6d28d9">pyproject.toml</text>
+        <text x="89" y="58" text-anchor="middle" font-size="8" fill="#7c3aed">what you accept</text>
+        <g font-size="10" font-family="'JetBrains Mono'" fill="#1a1d24">
+          <text x="28" y="84">dependencies:</text>
+          <text x="34" y="104" fill="#059669">httpx&gt;=0.27</text>
+        </g>
+        <text x="28" y="132" font-size="8.5" fill="#7c3aed">one loose line</text>
+        <text x="28" y="148" font-size="8.5" fill="#7c3aed">no transitive deps</text>
+        <text x="28" y="164" font-size="8.5" fill="#7c3aed">may differ per machine</text>
+
+        <line x1="164" y1="104" x2="196" y2="104" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#uvarrow)"/>
+        <text x="180" y="96" text-anchor="middle" font-size="8" fill="#6b7280">resolve</text>
+
+        <rect x="198" y="24" width="208" height="160" rx="8" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+        <text x="302" y="44" text-anchor="middle" font-size="10.5" font-weight="700" fill="#b45309">uv.lock</text>
+        <text x="302" y="58" text-anchor="middle" font-size="8" fill="#b45309">what everyone gets</text>
+        <g font-size="9.5" font-family="'JetBrains Mono'" fill="#1a1d24">
+          <text x="212" y="82">httpx    ==0.28.1</text>
+          <text x="212" y="99" fill="#64748b">anyio    ==4.14.2</text>
+          <text x="212" y="116" fill="#64748b">certifi  ==2026.7.22</text>
+          <text x="212" y="133" fill="#64748b">h11      ==0.16.0</text>
+          <text x="212" y="150" fill="#64748b">httpcore ==1.0.9</text>
+          <text x="212" y="167" fill="#64748b">idna     ==3.18</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>why installs are near-instant</h3>
+      <p>uv downloads and builds each package <i>once</i> into a global cache, then hard-links it into every project's <code>.venv</code>. The second project pays almost nothing.</p>
+      <svg viewBox="0 0 420 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A single global cache holds each package once. Three project venvs hard-link the same cached files instead of re-downloading, so installs after the first are near-instant and disk-cheap.">
+        <rect x="130" y="18" width="160" height="46" rx="9" fill="#f1f3f6" stroke="#64748b" stroke-width="1.8"/>
+        <text x="210" y="38" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a1d24">global cache</text>
+        <text x="210" y="54" text-anchor="middle" font-size="8.5" fill="#64748b">each wheel downloaded &amp; built once</text>
+
+        <line x1="170" y1="64" x2="80" y2="104" stroke="#059669" stroke-width="1.5" marker-end="url(#uvarrow)"/>
+        <line x1="210" y1="64" x2="210" y2="104" stroke="#059669" stroke-width="1.5" marker-end="url(#uvarrow)"/>
+        <line x1="250" y1="64" x2="340" y2="104" stroke="#059669" stroke-width="1.5" marker-end="url(#uvarrow)"/>
+        <text x="120" y="90" font-size="8" fill="#059669">hard-link</text>
+        <text x="270" y="90" font-size="8" fill="#059669">hard-link</text>
+
+        <g font-size="9" text-anchor="middle">
+          <rect x="24" y="106" width="112" height="40" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/>
+          <text x="80" y="124" fill="#1a1d24">projA/.venv</text>
+          <text x="80" y="138" font-size="8" fill="#047857">first: ~ms</text>
+          <rect x="154" y="106" width="112" height="40" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/>
+          <text x="210" y="124" fill="#1a1d24">projB/.venv</text>
+          <text x="210" y="138" font-size="8" fill="#047857">near-zero copy</text>
+          <rect x="284" y="106" width="112" height="40" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/>
+          <text x="340" y="124" fill="#1a1d24">projC/.venv</text>
+          <text x="340" y="138" font-size="8" fill="#047857">near-zero copy</text>
+        </g>
+        <rect x="24" y="162" width="372" height="24" rx="6" fill="#1a1d24"/>
+        <text x="210" y="178" text-anchor="middle" font-size="9" fill="#d7ff64">no re-download, no duplicate bytes on disk &mdash; that's the speed</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>one tool, many retired</h3>
+      <p>uv folds a whole toolbox into a single binary. Each classic command maps to a uv equivalent &mdash; usually faster and with a shared cache.</p>
+      <svg viewBox="0 0 420 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapping of legacy tools to uv commands: pip to uv pip, virtualenv to uv venv, pyenv to uv python, pipx to uv tool and uvx, pip-tools to uv pip compile, poetry and pipenv to uv add and lock, twine to uv publish.">
+        <g font-size="9.5" font-family="'JetBrains Mono'">
+          <text x="14" y="30" fill="#64748b">pip</text>
+          <text x="14" y="52" fill="#64748b">virtualenv</text>
+          <text x="14" y="74" fill="#64748b">pyenv</text>
+          <text x="14" y="96" fill="#64748b">pipx</text>
+          <text x="14" y="118" fill="#64748b">pip-tools</text>
+          <text x="14" y="140" fill="#64748b">poetry / pipenv</text>
+          <text x="14" y="162" fill="#64748b">twine</text>
+        </g>
+        <g stroke="#c7bde8" stroke-width="1.3" marker-end="url(#uvarrowp)">
+          <line x1="150" y1="26" x2="196" y2="26"/>
+          <line x1="150" y1="48" x2="196" y2="48"/>
+          <line x1="150" y1="70" x2="196" y2="70"/>
+          <line x1="150" y1="92" x2="196" y2="92"/>
+          <line x1="150" y1="114" x2="196" y2="114"/>
+          <line x1="150" y1="136" x2="196" y2="136"/>
+          <line x1="150" y1="158" x2="196" y2="158"/>
+        </g>
+        <g font-size="9.5" font-family="'JetBrains Mono'" font-weight="700" fill="#6d28d9">
+          <text x="204" y="30">uv pip</text>
+          <text x="204" y="52">uv venv</text>
+          <text x="204" y="74">uv python</text>
+          <text x="204" y="96">uv tool / uvx</text>
+          <text x="204" y="118">uv pip compile</text>
+          <text x="204" y="140">uv add / lock / sync</text>
+          <text x="204" y="162">uv publish</text>
+        </g>
+        <rect x="14" y="176" width="392" height="20" rx="6" fill="#f4f0fe"/>
+        <text x="210" y="190" text-anchor="middle" font-size="8.5" fill="#6d28d9">one install, one cache, one lockfile format across all of it</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">three project files</span><span class="v"><code>pyproject.toml</code> + <code>uv.lock</code> + <code>.venv</code>, kept in sync</span></div>
+    <div><span class="k">commit / ignore</span><span class="v">commit lock &amp; pyproject; git-ignore <code>.venv</code></span></div>
+    <div><span class="k">add, don't pip install</span><span class="v"><code>uv add</code> in projects; <code>uv pip</code> only for raw envs</span></div>
+    <div><span class="k">uv run auto-syncs</span><span class="v">checks lock+venv before every command</span></div>
+    <div><span class="k">no activate needed</span><span class="v"><code>uv run</code> / <code>uv pip</code> target <code>.venv</code> directly</span></div>
+    <div><span class="k">uvx = ephemeral tool</span><span class="v"><code>uvx ruff</code> runs without installing anything</span></div>
+    <div><span class="k">--dev / --group</span><span class="v">dev &amp; named groups stay out of your shipped deps</span></div>
+    <div><span class="k">CI install</span><span class="v"><code>uv sync --frozen</code> &mdash; deterministic, no re-resolve</span></div>
+    <div><span class="k">bump the lock</span><span class="v"><code>uv lock --upgrade</code> (or <code>--upgrade-package X</code>)</span></div>
+    <div><span class="k">PEP 723 scripts</span><span class="v"><code>uv add --script f.py dep</code> &mdash; self-contained files</span></div>
+    <div><span class="k">manage Python too</span><span class="v"><code>uv python install / pin</code> replaces pyenv</span></div>
+    <div><span class="k">global cache</span><span class="v">hard-links, not copies &mdash; installs after the first are ~free</span></div>
+    <div><span class="k">export back out</span><span class="v"><code>uv export</code> &rarr; a classic <code>requirements.txt</code></span></div>
+    <div><span class="k">reproducible resolves</span><span class="v"><code>--exclude-newer DATE</code> freezes the index in time</span></div>
+    <div><span class="k">workspaces</span><span class="v">many packages, one shared lockfile</span></div>
+    <div><span class="k">pre-1.0</span><span class="v">pin uv itself in CI; minors can break</span></div>
+  </div>
+</section>
+
+<footer>
+  uv cheat sheet &middot; built against <b>uv 0.11.32</b> on Python 3.12 &middot; every command was taken from <code>uv --help</code>, and the core workflows &mdash; <code>uv init</code> &rarr; <code>uv add</code> &rarr; <code>uv run</code>, the generated <code>uv.lock</code>, dev groups, PEP 723 scripts, <code>uv tool</code>/<code>uvx</code>, the pip interface and <code>uv export</code> &mdash; were confirmed by running them.<br>
+  Sources: docs.astral.sh/uv (features map, projects/scripts/tools/python guides, concepts, pip-interface reference) &middot; the installed <code>uv</code> binary (authoritative) &middot; astral-sh/uv on GitHub &middot; PyPI. Card order mirrors the official feature taxonomy: Projects &rarr; Scripts/Tools/Python &rarr; pip interface, build &amp; config.<br>
+  Note: uv is pre-1.0 and evolving quickly &mdash; a few newer surfaces (e.g. <code>uv auth</code>, <code>uv format</code>) are recent additions; pin the uv version in CI and check the changelog when upgrading across minor releases.
+</footer>
+
+</body>
+</html>
