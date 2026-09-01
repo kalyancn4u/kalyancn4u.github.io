@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NumPy Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --create:#2563eb;  --create-bg:#eff4fe;
+    --inspect:#64748b; --inspect-bg:#f1f3f6;
+    --index:#d97706;   --index-bg:#fdf6ec;
+    --shape:#7c3aed;   --shape-bg:#f5f0fd;
+    --math:#059669;    --math-bg:#ecf7f2;
+    --stats:#0891b2;   --stats-bg:#eafafd;
+    --danger:#dc2626;  --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .np{font-family:var(--mono); color:var(--create)}
+  .lede{max-width:62ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.create{background:var(--create)} .dot.inspect{background:var(--inspect)}
+  .dot.index{background:var(--index)} .dot.shape{background:var(--shape)}
+  .dot.math{background:var(--math)} .dot.stats{background:var(--stats)}
+  .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1080px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1240px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.create{border-left-color:var(--create)}
+  ul.cmds li.inspect{border-left-color:var(--inspect)}
+  ul.cmds li.index{border-left-color:var(--index)}
+  ul.cmds li.shape{border-left-color:var(--shape)}
+  ul.cmds li.math{border-left-color:var(--math)}
+  ul.cmds li.stats{border-left-color:var(--stats)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  ul.cmds li.note{border-left-color:var(--line); background:#faf9f6}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .arg{color:var(--create); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .num{color:var(--stats); font-weight:400}
+  li.danger code.cmd{color:var(--danger)}
+  li.note code.cmd{color:#525761; font-style:italic; font-weight:400}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-view{
+    color:var(--math); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-copy{
+    color:var(--index); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference &middot; array programming with Python</div>
+  <h1><span class="np">numpy</span> cheat sheet</h1>
+  <p class="lede">Everything in NumPy revolves around one object &mdash; the <b>ndarray</b> &mdash; and a small set of ideas that repeat everywhere: <b>shape</b>, <b>axis</b>, <b>broadcasting</b>, and <b>views vs. copies</b>. Learn those four once and the 200+ functions stop being a list to memorize.</p>
+  <div class="legend">
+    <span><i class="dot create"></i>create / load</span>
+    <span><i class="dot inspect"></i>inspect</span>
+    <span><i class="dot index"></i>index &amp; search</span>
+    <span><i class="dot shape"></i>shape &amp; combine</span>
+    <span><i class="dot math"></i>math &amp; linalg</span>
+    <span><i class="dot stats"></i>aggregate / stats</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked across: <b>numpy.org/doc</b> &middot; <b>DataCamp</b> &middot; <b>Dataquest</b> &middot; <b>GeeksforGeeks</b> &middot; <b>Real Python</b> &middot; <b>TutorialsPoint</b> &middot; <b>vanitaAI</b> &middot; Ontario Tech SLC</p>
+</header>
+
+<!-- ============ SIGNATURE ANATOMY DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">Anatomy of an ndarray</div>
+  <svg class="flow-svg" viewBox="0 0 1080 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of a 3 by 4 NumPy array showing axis 0 down the rows, axis 1 across the columns, and its shape, ndim, size and dtype attributes.">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="arrowIndex" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#d97706"/>
+      </marker>
+    </defs>
+
+    <!-- axis 1 arrow (columns, horizontal) -->
+    <line x1="70" y1="78" x2="342" y2="78" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="206" y="64" text-anchor="middle" font-size="13" font-weight="700" fill="#7c3aed">axis=1 (columns) &#8594;</text>
+
+    <!-- axis 0 arrow (rows, vertical) -->
+    <line x1="35" y1="100" x2="35" y2="262" stroke="#d97706" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="35" y="292" text-anchor="middle" font-size="13" font-weight="700" fill="#d97706">axis=0 (rows) &#8595;</text>
+
+    <!-- grid: a = np.array([[1,2,3,4],[5,6,7,8],[9,10,11,12]]) -->
+    <g font-family="JetBrains Mono, monospace" font-size="16" text-anchor="middle">
+      <!-- row 0 -->
+      <rect x="70"  y="100" width="68" height="54" rx="6" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="104" y="132" fill="#1a1d24">1</text>
+      <rect x="138" y="100" width="68" height="54" rx="6" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="172" y="132" fill="#1a1d24">2</text>
+      <rect x="206" y="100" width="68" height="54" rx="6" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="240" y="132" fill="#1a1d24">3</text>
+      <rect x="274" y="100" width="68" height="54" rx="6" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="308" y="132" fill="#1a1d24">4</text>
+      <!-- row 1 -->
+      <rect x="70"  y="154" width="68" height="54" rx="6" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="104" y="186" fill="#1a1d24">5</text>
+      <rect x="138" y="154" width="68" height="54" rx="6" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="172" y="186" fill="#1a1d24">6</text>
+      <rect x="206" y="154" width="68" height="54" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="2.5"/>
+      <text x="240" y="186" fill="#1a1d24" font-weight="700">7</text>
+      <rect x="274" y="154" width="68" height="54" rx="6" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="308" y="186" fill="#1a1d24">8</text>
+      <!-- row 2 -->
+      <rect x="70"  y="208" width="68" height="54" rx="6" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="104" y="240" fill="#1a1d24">9</text>
+      <rect x="138" y="208" width="68" height="54" rx="6" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="172" y="240" fill="#1a1d24">10</text>
+      <rect x="206" y="208" width="68" height="54" rx="6" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="240" y="240" fill="#1a1d24">11</text>
+      <rect x="274" y="208" width="68" height="54" rx="6" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="308" y="240" fill="#1a1d24">12</text>
+    </g>
+    <text x="206" y="300" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" fill="#64748b">a = np.array([[1,2,3,4],[5,6,7,8],[9,10,11,12]])</text>
+
+    <!-- callout to a[1,2] -->
+    <path d="M470,177 C 400,177 380,181 278,181" fill="none" stroke="#d97706" stroke-width="1.6" stroke-dasharray="4 4" marker-end="url(#arrowIndex)"/>
+    <text x="475" y="182" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" fill="#d97706">a[1, 2] &#8594; 7</text>
+
+    <!-- attribute readout box -->
+    <g font-family="JetBrains Mono, monospace" font-size="13.5">
+      <rect x="470" y="95" width="565" height="70" rx="8" fill="#f1f3f6" stroke="#64748b" stroke-width="1.5"/>
+      <text x="486" y="118" fill="#64748b">a.ndim</text><text x="600" y="118" fill="#1a1d24" font-weight="700">2</text>
+      <text x="700" y="118" fill="#64748b">a.shape</text><text x="820" y="118" fill="#1a1d24" font-weight="700">(3, 4)</text>
+      <text x="486" y="145" fill="#64748b">a.size</text><text x="600" y="145" fill="#1a1d24" font-weight="700">12</text>
+      <text x="700" y="145" fill="#64748b">a.dtype</text><text x="820" y="145" fill="#1a1d24" font-weight="700">int64</text>
+
+      <rect x="470" y="200" width="565" height="62" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+      <text x="486" y="222" fill="#059669">a.itemsize</text><text x="640" y="222" fill="#1a1d24" font-weight="700">8 bytes</text>
+      <text x="700" y="222" fill="#059669">a.nbytes</text><text x="820" y="222" fill="#1a1d24" font-weight="700">96</text>
+      <text x="486" y="248" fill="#059669" font-size="11.5">nbytes = size &#215; itemsize (12 &#215; 8 = 96)</text>
+    </g>
+  </svg>
+</section>
+
+<main>
+
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Import</span><span class="card-sub">create</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">import numpy <span class="flag">as</span> <span class="arg">np</span></code><span class="star">&#9733;</span><div class="desc">Universal alias — always <code>np</code>.</div></li>
+      <li class="create"><code class="cmd">pip install numpy</code><div class="desc">Install (or <code>conda install numpy</code>).</div></li>
+      <li class="create"><code class="cmd">np.__version__</code><div class="desc">Check the installed NumPy version.</div></li>
+      <li class="create"><code class="cmd">np.show_config()</code><div class="desc">Show the BLAS/LAPACK backend in use.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 ARRAY CREATION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Array Creation</span><span class="card-sub">create</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">np.array(<span class="arg">[1,2,3]</span>)</code><span class="star">&#9733;</span><div class="desc">Build an array from a list / tuple.</div></li>
+      <li class="create"><code class="cmd">np.zeros(<span class="arg">(3,4)</span>)</code><span class="star">&#9733;</span><div class="desc">Array of zeros with the given shape.</div></li>
+      <li class="create"><code class="cmd">np.ones(<span class="arg">(2,3)</span>)</code><div class="desc">Array of ones with the given shape.</div></li>
+      <li class="create"><code class="cmd">np.full(<span class="arg">(2,3), 7</span>)</code><div class="desc">Array filled with a constant value.</div></li>
+      <li class="create"><code class="cmd">np.eye(<span class="num">4</span>)</code><div class="desc">Identity matrix — 1s on the diagonal.</div></li>
+      <li class="create"><code class="cmd">np.arange(<span class="num">0, 10, 2</span>)</code><span class="star">&#9733;</span><div class="desc">Range with a fixed step size.</div></li>
+      <li class="create"><code class="cmd">np.linspace(<span class="num">0, 1, 5</span>)</code><span class="star">&#9733;</span><div class="desc">N evenly spaced values in an interval.</div></li>
+      <li class="create"><code class="cmd">np.empty(<span class="arg">(2,2)</span>)</code><div class="desc">Uninitialized array — fast, values are junk.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 ATTRIBUTES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Attributes &amp; Inspection</span><span class="card-sub">inspect</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">arr.shape</code><span class="star">&#9733;</span><div class="desc">Tuple of sizes along each axis.</div></li>
+      <li class="inspect"><code class="cmd">arr.ndim</code><span class="star">&#9733;</span><div class="desc">Number of axes / dimensions.</div></li>
+      <li class="inspect"><code class="cmd">arr.size</code><div class="desc">Total element count (product of shape).</div></li>
+      <li class="inspect"><code class="cmd">arr.dtype</code><span class="star">&#9733;</span><div class="desc">Data type of the elements.</div></li>
+      <li class="inspect"><code class="cmd">arr.itemsize</code><div class="desc">Bytes used by a single element.</div></li>
+      <li class="inspect"><code class="cmd">arr.nbytes</code><div class="desc">Total bytes consumed by the array.</div></li>
+      <li class="inspect"><code class="cmd">arr.astype(<span class="arg">np.float32</span>)</code><span class="star">&#9733;</span><div class="desc">Cast to a new dtype — returns a copy.</div></li>
+      <li class="inspect"><code class="cmd">arr.tolist()</code><div class="desc">Convert back to a plain Python list.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 INDEXING & SLICING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Indexing &amp; Slicing</span><span class="card-sub">index &amp; search</span></div>
+    <ul class="cmds">
+      <li class="index"><code class="cmd">arr[<span class="num">2</span>]</code><span class="star">&#9733;</span><div class="desc">Element at index 2 (0-indexed).</div></li>
+      <li class="index"><code class="cmd">arr[<span class="num">1, 3</span>]</code><span class="star">&#9733;</span><div class="desc">Row 1, column 3 of a 2D array.</div></li>
+      <li class="index"><code class="cmd">arr[<span class="num">1:4</span>]</code><span class="star">&#9733;</span><div class="desc">Slice — elements at indices 1, 2, 3.</div></li>
+      <li class="index"><code class="cmd">arr[<span class="arg">:</span>, <span class="num">1</span>]</code><span class="star">&#9733;</span><div class="desc">All rows, column 1.</div></li>
+      <li class="index"><code class="cmd">arr[<span class="arg">::-1</span>]</code><div class="desc">Reverse the array along an axis.</div></li>
+      <li class="index"><code class="cmd">arr[<span class="arg">start:stop:step</span>]</code><div class="desc">Full slice syntax, on any axis.</div></li>
+      <li class="note"><code class="cmd">basic slices &#8594; views</code><span class="badge-view">view</span><div class="desc">No copy is made; the data is shared.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 BOOLEAN & FANCY INDEXING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Boolean &amp; Fancy Indexing</span><span class="card-sub">index &amp; search</span></div>
+    <ul class="cmds">
+      <li class="index"><code class="cmd">arr[arr <span class="arg">&gt;</span> <span class="num">5</span>]</code><span class="star">&#9733;</span><div class="desc">Elements matching a boolean condition.</div></li>
+      <li class="index"><code class="cmd">arr[(arr&gt;2)&amp;(arr&lt;9)]</code><div class="desc">Combine masks with <code>&amp; | ~</code> (not <code>and/or</code>).</div></li>
+      <li class="index"><code class="cmd">np.where(<span class="arg">cond, a, b</span>)</code><span class="star">&#9733;</span><div class="desc">Elementwise conditional — a vectorized if/else.</div></li>
+      <li class="index"><code class="cmd">arr[[<span class="num">0,2,4</span>]]</code><div class="desc">Fancy indexing — pick rows by index list.</div></li>
+      <li class="index"><code class="cmd">np.nonzero(<span class="arg">arr</span>)</code><div class="desc">Indices of non-zero (or True) elements.</div></li>
+      <li class="note"><code class="cmd">boolean / fancy &#8594; copy</code><span class="badge-copy">copy</span><div class="desc">Always returns new, independent memory.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 RESHAPING & TRANSPOSING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Reshaping &amp; Transposing</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">arr.reshape(<span class="num">3, 4</span>)</code><span class="star">&#9733;</span><div class="desc">New shape, same data &amp; element count.</div></li>
+      <li class="shape"><code class="cmd">arr.T</code><span class="star">&#9733;</span><div class="desc">Transpose — swap rows and columns.</div></li>
+      <li class="shape"><code class="cmd">arr.flatten()</code><span class="badge-copy">copy</span><div class="desc">Collapse to 1D — always a new array.</div></li>
+      <li class="shape"><code class="cmd">arr.ravel()</code><span class="badge-view">view</span><div class="desc">Collapse to 1D, sharing memory if possible.</div></li>
+      <li class="shape"><code class="cmd">arr[:, np.newaxis]</code><div class="desc">Insert a new length-1 axis.</div></li>
+      <li class="shape"><code class="cmd">np.expand_dims(<span class="arg">arr, axis=0</span>)</code><div class="desc">Insert an axis at a chosen position.</div></li>
+      <li class="shape"><code class="cmd">np.squeeze(<span class="arg">arr</span>)</code><div class="desc">Remove all length-1 axes.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 COMBINING & SPLITTING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Combining &amp; Splitting</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">np.concatenate(<span class="arg">[a,b], axis=0</span>)</code><span class="star">&#9733;</span><div class="desc">Join arrays along an existing axis.</div></li>
+      <li class="shape"><code class="cmd">np.vstack(<span class="arg">[a,b]</span>)</code><span class="star">&#9733;</span><div class="desc">Stack row-wise (adds rows, axis 0).</div></li>
+      <li class="shape"><code class="cmd">np.hstack(<span class="arg">[a,b]</span>)</code><span class="star">&#9733;</span><div class="desc">Stack column-wise (adds columns, axis 1).</div></li>
+      <li class="shape"><code class="cmd">np.stack(<span class="arg">[a,b], axis=0</span>)</code><div class="desc">Join along a brand-new axis.</div></li>
+      <li class="shape"><code class="cmd">np.split(<span class="arg">arr, 3</span>)</code><div class="desc">Split into 3 equal-size sub-arrays.</div></li>
+      <li class="shape"><code class="cmd">np.hsplit(<span class="arg">arr, 2</span>)</code><div class="desc">Split horizontally (or <code>vsplit</code> vertically).</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 ADDING/REMOVING/UNIQUE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Adding, Removing &amp; Unique</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">np.append(<span class="arg">arr, [7,8]</span>)</code><span class="badge-copy">copy</span><div class="desc">Append values to the end of an array.</div></li>
+      <li class="shape"><code class="cmd">np.insert(<span class="arg">arr, 1, 99</span>)</code><div class="desc">Insert values before a given index.</div></li>
+      <li class="shape"><code class="cmd">np.delete(<span class="arg">arr, 2, axis=0</span>)</code><div class="desc">Remove a row/column by index.</div></li>
+      <li class="shape"><code class="cmd">np.unique(<span class="arg">arr</span>)</code><span class="star">&#9733;</span><div class="desc">Sorted, unique values in the array.</div></li>
+      <li class="shape"><code class="cmd">np.unique(<span class="arg">arr, return_counts=True</span>)</code><div class="desc">Unique values + how often each appears.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 COPIES VS VIEWS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Copies vs. Views</span><span class="card-sub">inspect</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">arr.copy()</code><span class="star">&#9733;</span><div class="desc">Independent deep copy — safe to mutate.</div></li>
+      <li class="inspect"><code class="cmd">arr.view()</code><div class="desc">New array object, same underlying memory.</div></li>
+      <li class="danger"><code class="cmd">b = arr[1:3]</code><span class="badge-danger">alias</span><div class="desc">A slice is a view — editing <code>b</code> edits <code>arr</code>.</div></li>
+      <li class="inspect"><code class="cmd">b = arr[arr &gt; 0]</code><span class="badge-copy">copy</span><div class="desc">Boolean indexing isolates <code>b</code> from <code>arr</code>.</div></li>
+      <li class="inspect"><code class="cmd">np.shares_memory(<span class="arg">a, b</span>)</code><div class="desc">Check if two arrays alias the same data.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 ARITHMETIC & UFUNCS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Arithmetic &amp; Universal Functions</span><span class="card-sub">math &amp; linalg</span></div>
+    <ul class="cmds">
+      <li class="math"><code class="cmd">a + b &nbsp;a - b &nbsp;a * b &nbsp;a / b</code><span class="star">&#9733;</span><div class="desc">Elementwise ops — no explicit loops needed.</div></li>
+      <li class="math"><code class="cmd">a ** <span class="num">2</span></code><div class="desc">Elementwise power.</div></li>
+      <li class="math"><code class="cmd">np.sqrt(<span class="arg">arr</span>) &nbsp;np.exp(<span class="arg">arr</span>) &nbsp;np.log(<span class="arg">arr</span>)</code><span class="star">&#9733;</span><div class="desc">Elementwise math — all are ufuncs.</div></li>
+      <li class="math"><code class="cmd">np.abs(<span class="arg">arr</span>) &nbsp;np.round(<span class="arg">arr</span>)</code><div class="desc">Absolute value / rounding.</div></li>
+      <li class="math"><code class="cmd">np.floor(<span class="arg">arr</span>) &nbsp;np.ceil(<span class="arg">arr</span>)</code><div class="desc">Round down / up to the nearest integer.</div></li>
+      <li class="math"><code class="cmd">a @ b</code><span class="star">&#9733;</span><div class="desc">Matrix multiplication — <b>not</b> elementwise.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 BROADCASTING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Broadcasting</span><span class="card-sub">math &amp; linalg</span></div>
+    <ul class="cmds">
+      <li class="math"><code class="cmd">compare shapes right-to-left</code><span class="star">&#9733;</span><div class="desc">Trailing dims must match, or one must be 1.</div></li>
+      <li class="math"><code class="cmd">(3,4) + (4,) &#8594; (3,4)</code><div class="desc">A row vector broadcasts across every row.</div></li>
+      <li class="math"><code class="cmd">(3,1) + (1,4) &#8594; (3,4)</code><div class="desc">Column &amp; row vectors combine into a grid.</div></li>
+      <li class="danger"><code class="cmd">(3,4) + (2,4) &#8594; error</code><span class="badge-danger">ValueError</span><div class="desc">Mismatched dims that aren't 1 don't align.</div></li>
+      <li class="math"><code class="cmd">arr - arr.mean(<span class="arg">axis=0</span>)</code><span class="star">&#9733;</span><div class="desc">Common pattern: centering columns via broadcasting.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 AGGREGATIONS & STATISTICS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Aggregations &amp; Statistics</span><span class="card-sub">aggregate / stats</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">arr.sum() &nbsp;arr.sum(<span class="arg">axis=0</span>)</code><span class="star">&#9733;</span><div class="desc">Total, or per-column/row totals.</div></li>
+      <li class="stats"><code class="cmd">arr.mean() &nbsp;arr.std() &nbsp;arr.var()</code><span class="star">&#9733;</span><div class="desc">Average, standard deviation, variance.</div></li>
+      <li class="stats"><code class="cmd">arr.min() &nbsp;arr.max()</code><span class="star">&#9733;</span><div class="desc">Smallest / largest value.</div></li>
+      <li class="stats"><code class="cmd">arr.argmin() &nbsp;arr.argmax()</code><div class="desc">Index of the smallest / largest value.</div></li>
+      <li class="stats"><code class="cmd">np.median(<span class="arg">arr</span>)</code><div class="desc">Middle value of the sorted data.</div></li>
+      <li class="stats"><code class="cmd">np.corrcoef(<span class="arg">a, b</span>)</code><div class="desc">Pearson correlation coefficient matrix.</div></li>
+      <li class="stats"><code class="cmd">np.cumsum(<span class="arg">arr</span>)</code><div class="desc">Running cumulative sum.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 SORTING & SEARCHING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Sorting &amp; Searching</span><span class="card-sub">index &amp; search</span></div>
+    <ul class="cmds">
+      <li class="index"><code class="cmd">np.sort(<span class="arg">arr</span>)</code><span class="star">&#9733;</span><div class="desc">Sorted copy (<code>arr.sort()</code> sorts in place).</div></li>
+      <li class="index"><code class="cmd">np.argsort(<span class="arg">arr</span>)</code><span class="star">&#9733;</span><div class="desc">Indices that would sort the array.</div></li>
+      <li class="index"><code class="cmd">np.searchsorted(<span class="arg">arr, x</span>)</code><div class="desc">Index to insert x, keeping order.</div></li>
+      <li class="index"><code class="cmd">np.partition(<span class="arg">arr, k</span>)</code><div class="desc">The k smallest elements moved to the front.</div></li>
+      <li class="index"><code class="cmd">np.where(<span class="arg">condition</span>)</code><span class="star">&#9733;</span><div class="desc">Indices where a condition is True.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 LINEAR ALGEBRA -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Linear Algebra</span><span class="card-sub">np.linalg</span></div>
+    <ul class="cmds">
+      <li class="math"><code class="cmd">np.dot(<span class="arg">a, b</span>) &nbsp;/ a @ b</code><span class="star">&#9733;</span><div class="desc">Dot / matrix product.</div></li>
+      <li class="math"><code class="cmd">np.linalg.inv(<span class="arg">A</span>)</code><div class="desc">Matrix inverse.</div></li>
+      <li class="math"><code class="cmd">np.linalg.det(<span class="arg">A</span>)</code><div class="desc">Determinant of a square matrix.</div></li>
+      <li class="math"><code class="cmd">np.linalg.solve(<span class="arg">A, b</span>)</code><span class="star">&#9733;</span><div class="desc">Solve Ax = b directly — faster than <code>inv</code>.</div></li>
+      <li class="math"><code class="cmd">np.linalg.eig(<span class="arg">A</span>)</code><div class="desc">Eigenvalues and eigenvectors.</div></li>
+      <li class="math"><code class="cmd">np.linalg.norm(<span class="arg">v</span>)</code><div class="desc">Vector / matrix norm (length/magnitude).</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 RANDOM NUMBERS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Random Numbers</span><span class="card-sub">Generator API</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">rng = np.random.default_rng(<span class="arg">seed</span>)</code><span class="star">&#9733;</span><div class="desc">Modern, recommended entry point.</div></li>
+      <li class="create"><code class="cmd">rng.random(<span class="arg">(2,3)</span>)</code><span class="star">&#9733;</span><div class="desc">Uniform floats in [0, 1).</div></li>
+      <li class="create"><code class="cmd">rng.integers(<span class="num">0, 10, size=5</span>)</code><span class="star">&#9733;</span><div class="desc">Random ints — low inclusive, high exclusive.</div></li>
+      <li class="create"><code class="cmd">rng.normal(<span class="num">0, 1, size=100</span>)</code><div class="desc">Draws from a normal (Gaussian) distribution.</div></li>
+      <li class="create"><code class="cmd">rng.shuffle(<span class="arg">arr</span>)</code><div class="desc">Shuffle an array in place.</div></li>
+      <li class="create"><code class="cmd">rng.choice(<span class="arg">arr, size=3</span>)</code><div class="desc">Random sample drawn from an array.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 COMPARISON & LOGICAL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Comparison &amp; Logical Ops</span><span class="card-sub">math &amp; linalg</span></div>
+    <ul class="cmds">
+      <li class="math"><code class="cmd">np.array_equal(<span class="arg">a, b</span>)</code><span class="star">&#9733;</span><div class="desc">True if same shape &amp; all elements equal.</div></li>
+      <li class="math"><code class="cmd">np.allclose(<span class="arg">a, b</span>)</code><div class="desc">True if elements match within float tolerance.</div></li>
+      <li class="danger"><code class="cmd">np.isnan(<span class="arg">arr</span>)</code><span class="badge-danger">use this</span><div class="desc">NaN check — never use <code>arr == np.nan</code>.</div></li>
+      <li class="math"><code class="cmd">np.any(<span class="arg">arr</span>) &nbsp;np.all(<span class="arg">arr</span>)</code><span class="star">&#9733;</span><div class="desc">At least one / every element truthy.</div></li>
+      <li class="math"><code class="cmd">np.logical_and(<span class="arg">a, b</span>)</code><div class="desc">Elementwise AND (same as <code>&amp;</code> on bool arrays).</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 SET OPERATIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Set Operations</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">np.union1d(<span class="arg">a, b</span>)</code><div class="desc">Sorted union of two arrays.</div></li>
+      <li class="shape"><code class="cmd">np.intersect1d(<span class="arg">a, b</span>)</code><span class="star">&#9733;</span><div class="desc">Sorted values common to both arrays.</div></li>
+      <li class="shape"><code class="cmd">np.setdiff1d(<span class="arg">a, b</span>)</code><div class="desc">Values in <code>a</code> but not in <code>b</code>.</div></li>
+      <li class="shape"><code class="cmd">np.isin(<span class="arg">a, b</span>)</code><div class="desc">Boolean mask — is each element of a in b?</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 SAVE / LOAD / IO -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Save, Load &amp; I/O</span><span class="card-sub">inspect</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">np.save(<span class="arg">'f.npy', arr</span>)</code><span class="star">&#9733;</span><div class="desc">Save one array — binary .npy format.</div></li>
+      <li class="inspect"><code class="cmd">np.load(<span class="arg">'f.npy'</span>)</code><span class="star">&#9733;</span><div class="desc">Load a .npy / .npz file back into memory.</div></li>
+      <li class="inspect"><code class="cmd">np.savez(<span class="arg">'f.npz', a=arr1, b=arr2</span>)</code><div class="desc">Save several named arrays together.</div></li>
+      <li class="inspect"><code class="cmd">np.savetxt(<span class="arg">'f.csv', arr, delimiter=','</span>)</code><div class="desc">Write a plain-text / CSV file.</div></li>
+      <li class="inspect"><code class="cmd">np.loadtxt(<span class="arg">'f.csv', delimiter=','</span>)</code><div class="desc">Read a simple, fully-regular text file.</div></li>
+      <li class="inspect"><code class="cmd">np.genfromtxt(<span class="arg">'f.csv', delimiter=','</span>)</code><span class="star">&#9733;</span><div class="desc">Read text files, gracefully handling gaps.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 PERFORMANCE & GOTCHAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Performance Tips &amp; Gotchas</span><span class="card-sub">handle with care</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">vectorize, don't loop</code><div class="desc">Python for-loops over elements are slow — use ufuncs.</div></li>
+      <li class="danger"><code class="cmd">arr += 1</code><span class="badge-danger">truncates</span><div class="desc">In-place op on an int array silently truncates floats.</div></li>
+      <li class="danger"><code class="cmd">np.append() in a loop</code><span class="badge-danger">slow</span><div class="desc">Reallocates every call — build a list, then <code>np.array()</code> once.</div></li>
+      <li class="danger"><code class="cmd">int + float &#8594; float</code><div class="desc">Mixing dtypes upcasts the whole array.</div></li>
+      <li class="danger"><code class="cmd">slices are cheap; masks aren't</code><div class="desc">Prefer views (slicing) over fancy/boolean copies in hot loops.</div></li>
+    </ul>
+  </article>
+
+  <!-- STAR: COMMON DTYPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Common dtypes</span><span class="card-sub">anywhere you see dtype=</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">int8 / int16 / int32 / int64</code><div class="desc">Signed integers, 8 to 64 bits.</div></li>
+      <li class="inspect"><code class="cmd">uint8 / uint16 / uint32 / uint64</code><div class="desc">Unsigned integers (no negatives).</div></li>
+      <li class="inspect"><code class="cmd">float32 / float64</code><span class="star">&#9733;</span><div class="desc">Single / double precision (default: float64).</div></li>
+      <li class="inspect"><code class="cmd">bool</code><div class="desc">True / False, stored as 1 byte.</div></li>
+      <li class="inspect"><code class="cmd">complex64 / complex128</code><div class="desc">Complex numbers (real + imaginary parts).</div></li>
+      <li class="inspect"><code class="cmd">object</code><div class="desc">Fallback for arbitrary Python objects — slow.</div></li>
+      <li class="inspect"><code class="cmd">str_</code><div class="desc">Fixed-width Unicode string type.</div></li>
+    </ul>
+  </article>
+
+  <!-- STAR: AXIS QUICK-READ -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Axis Quick-Read</span><span class="card-sub">anywhere you see axis=</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">axis=<span class="num">0</span></code><span class="star">&#9733;</span><div class="desc">Collapse rows — operate down each column.</div></li>
+      <li class="stats"><code class="cmd">axis=<span class="num">1</span></code><span class="star">&#9733;</span><div class="desc">Collapse columns — operate across each row.</div></li>
+      <li class="stats"><code class="cmd">axis=<span class="arg">None</span> (default)</code><div class="desc">Flatten first, then aggregate the whole array.</div></li>
+      <li class="stats"><code class="cmd">axis=<span class="arg">-1</span></code><div class="desc">Always means "the last axis", for any ndim.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ AXIS REDUCTION + BROADCASTING DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Axis reduction &amp; broadcasting, visually</h2>
+  <p class="sub">Same array, four different results — depending on which axis you collapse (or don't). Based on the official NumPy quickstart/broadcasting reference diagrams.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>arr.sum(axis=0)</h3>
+      <p>Collapses the rows: walk down each column and add. A 2&times;3 array becomes a length-3 row.</p>
+      <svg viewBox="0 0 390 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="sum axis 0: arrows point down each column, producing a row of column sums">
+        <g font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">
+          <rect x="60"  y="15" width="50" height="38" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="85"  y="39" fill="#1a1d24">1</text>
+          <rect x="115" y="15" width="50" height="38" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="140" y="39" fill="#1a1d24">2</text>
+          <rect x="170" y="15" width="50" height="38" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="195" y="39" fill="#1a1d24">3</text>
+          <rect x="60"  y="53" width="50" height="38" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="85"  y="77" fill="#1a1d24">4</text>
+          <rect x="115" y="53" width="50" height="38" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="140" y="77" fill="#1a1d24">5</text>
+          <rect x="170" y="53" width="50" height="38" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="195" y="77" fill="#1a1d24">6</text>
+        </g>
+        <line x1="85"  y1="94" x2="85"  y2="118" stroke="#0891b2" stroke-width="2" marker-end="url(#arrowD1)"/>
+        <line x1="140" y1="94" x2="140" y2="118" stroke="#0891b2" stroke-width="2" marker-end="url(#arrowD1)"/>
+        <line x1="195" y1="94" x2="195" y2="118" stroke="#0891b2" stroke-width="2" marker-end="url(#arrowD1)"/>
+        <defs><marker id="arrowD1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0891b2"/></marker></defs>
+        <g font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle" font-weight="700">
+          <rect x="60"  y="122" width="50" height="30" rx="5" fill="#eafafd" stroke="#0891b2" stroke-width="2"/><text x="85"  y="142" fill="#0891b2">5</text>
+          <rect x="115" y="122" width="50" height="30" rx="5" fill="#eafafd" stroke="#0891b2" stroke-width="2"/><text x="140" y="142" fill="#0891b2">7</text>
+          <rect x="170" y="122" width="50" height="30" rx="5" fill="#eafafd" stroke="#0891b2" stroke-width="2"/><text x="195" y="142" fill="#0891b2">9</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>arr.sum(axis=1)</h3>
+      <p>Collapses the columns: walk across each row and add. A 2&times;3 array becomes a length-2 column.</p>
+      <svg viewBox="0 0 390 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="sum axis 1: arrows point right across each row, producing a column of row sums">
+        <g font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">
+          <rect x="30" y="20" width="50" height="38" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="55" y="44" fill="#1a1d24">1</text>
+          <rect x="85" y="20" width="50" height="38" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="110" y="44" fill="#1a1d24">2</text>
+          <rect x="140" y="20" width="50" height="38" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="165" y="44" fill="#1a1d24">3</text>
+          <rect x="30" y="63" width="50" height="38" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="55" y="87" fill="#1a1d24">4</text>
+          <rect x="85" y="63" width="50" height="38" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="110" y="87" fill="#1a1d24">5</text>
+          <rect x="140" y="63" width="50" height="38" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="165" y="87" fill="#1a1d24">6</text>
+        </g>
+        <line x1="194" y1="39" x2="220" y2="39" stroke="#0891b2" stroke-width="2" marker-end="url(#arrowR1)"/>
+        <line x1="194" y1="82" x2="220" y2="82" stroke="#0891b2" stroke-width="2" marker-end="url(#arrowR1)"/>
+        <defs><marker id="arrowR1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0891b2"/></marker></defs>
+        <g font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle" font-weight="700">
+          <rect x="228" y="20" width="40" height="38" rx="5" fill="#eafafd" stroke="#0891b2" stroke-width="2"/><text x="248" y="44" fill="#0891b2">6</text>
+          <rect x="228" y="63" width="40" height="38" rx="5" fill="#eafafd" stroke="#0891b2" stroke-width="2"/><text x="248" y="87" fill="#0891b2">15</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>arr.sum() &mdash; no axis</h3>
+      <p>Default behavior: flatten completely first, then reduce to a single scalar.</p>
+      <svg viewBox="0 0 390 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="sum with no axis: whole array collapses into one scalar total">
+        <g font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">
+          <rect x="30" y="30" width="46" height="34" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="53" y="52" fill="#1a1d24">1</text>
+          <rect x="80" y="30" width="46" height="34" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="103" y="52" fill="#1a1d24">2</text>
+          <rect x="130" y="30" width="46" height="34" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="153" y="52" fill="#1a1d24">3</text>
+          <rect x="30" y="68" width="46" height="34" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="53" y="90" fill="#1a1d24">4</text>
+          <rect x="80" y="68" width="46" height="34" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="103" y="90" fill="#1a1d24">5</text>
+          <rect x="130" y="68" width="46" height="34" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="153" y="90" fill="#1a1d24">6</text>
+        </g>
+        <line x1="180" y1="65" x2="235" y2="65" stroke="#1a1d24" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#arrowR2)"/>
+        <defs><marker id="arrowR2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker></defs>
+        <circle cx="270" cy="65" r="26" fill="#1a1d24"/>
+        <text x="270" y="71" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#fff">21</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Broadcasting: (2,3) + (3,)</h3>
+      <p>A shorter shape stretches across the missing dimension — no data is actually copied.</p>
+      <svg viewBox="0 0 390 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="broadcasting: a length 3 row vector is repeated across both rows of a 2 by 3 array">
+        <g font-family="JetBrains Mono, monospace" font-size="12.5" text-anchor="middle">
+          <rect x="20" y="15" width="44" height="32" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="42" y="36" fill="#1a1d24">1</text>
+          <rect x="68" y="15" width="44" height="32" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="90" y="36" fill="#1a1d24">2</text>
+          <rect x="116" y="15" width="44" height="32" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="138" y="36" fill="#1a1d24">3</text>
+          <rect x="20" y="50" width="44" height="32" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="42" y="71" fill="#1a1d24">4</text>
+          <rect x="68" y="50" width="44" height="32" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="90" y="71" fill="#1a1d24">5</text>
+          <rect x="116" y="50" width="44" height="32" rx="5" fill="#eff4fe" stroke="#2563eb" stroke-width="1.5"/><text x="138" y="71" fill="#1a1d24">6</text>
+        </g>
+        <text x="180" y="52" font-family="JetBrains Mono, monospace" font-size="18" fill="#7c3aed">+</text>
+        <g font-family="JetBrains Mono, monospace" font-size="12.5" text-anchor="middle">
+          <rect x="200" y="15" width="40" height="30" rx="5" fill="#f5f0fd" stroke="#7c3aed" stroke-width="2"/><text x="220" y="35" fill="#7c3aed">10</text>
+          <rect x="242" y="15" width="40" height="30" rx="5" fill="#f5f0fd" stroke="#7c3aed" stroke-width="2"/><text x="262" y="35" fill="#7c3aed">20</text>
+          <rect x="284" y="15" width="40" height="30" rx="5" fill="#f5f0fd" stroke="#7c3aed" stroke-width="2"/><text x="304" y="35" fill="#7c3aed">30</text>
+          <rect x="200" y="52" width="40" height="30" rx="5" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.2" stroke-dasharray="3 3" opacity=".55"/><text x="220" y="72" fill="#7c3aed" opacity=".55">10</text>
+          <rect x="242" y="52" width="40" height="30" rx="5" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.2" stroke-dasharray="3 3" opacity=".55"/><text x="262" y="72" fill="#7c3aed" opacity=".55">20</text>
+          <rect x="284" y="52" width="40" height="30" rx="5" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.2" stroke-dasharray="3 3" opacity=".55"/><text x="304" y="72" fill="#7c3aed" opacity=".55">30</text>
+        </g>
+        <text x="180" y="107" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="18" fill="#1a1d24">=</text>
+        <g font-family="JetBrains Mono, monospace" font-size="12.5" text-anchor="middle" font-weight="700">
+          <rect x="20" y="105" width="44" height="32" rx="5" fill="#ecf7f2" stroke="#059669" stroke-width="2"/><text x="42" y="126" fill="#059669">11</text>
+          <rect x="68" y="105" width="44" height="32" rx="5" fill="#ecf7f2" stroke="#059669" stroke-width="2"/><text x="90" y="126" fill="#059669">22</text>
+          <rect x="116" y="105" width="44" height="32" rx="5" fill="#ecf7f2" stroke="#059669" stroke-width="2"/><text x="138" y="126" fill="#059669">33</text>
+          <rect x="20" y="105" width="44" height="32" rx="5" fill="none" stroke="none"/>
+          <text x="200" y="126" fill="#64748b" font-weight="400" font-size="11" text-anchor="start">row vector reused for every row</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">copy vs view</span><span class="v">slices are views; boolean/fancy indexing makes a copy</span></div>
+    <div><span class="k">arr += 1</span><span class="v">in-place op on an int array silently truncates float math</span></div>
+    <div><span class="k">axis=0 vs axis=1</span><span class="v">0 walks down rows (per-column); 1 walks across columns (per-row)</span></div>
+    <div><span class="k">* vs @</span><span class="v"><code>*</code> is elementwise; <code>@</code>/<code>matmul</code> is true matrix multiply</span></div>
+    <div><span class="k">reshape()</span><span class="v">returns a view when possible, silently falls back to a copy</span></div>
+    <div><span class="k">broadcasting rule</span><span class="v">compare shapes trailing-dim first; dims must match or be 1</span></div>
+    <div><span class="k">NaN != NaN</span><span class="v">use <code>np.isnan()</code>, never <code>arr == np.nan</code></span></div>
+    <div><span class="k">default_rng()</span><span class="v">the modern random API — prefer it over legacy <code>np.random.seed()</code></span></div>
+  </div>
+</section>
+
+<footer>
+  NumPy cheat sheet &middot; synthesized from the official NumPy documentation (numpy.org), and the reference sheets of DataCamp, Dataquest, GeeksforGeeks, Real Python, TutorialsPoint, vanitaAI, and Ontario Tech University's Student Learning Centre.<br>
+  Examples shown for NumPy 2.x &middot; the modern <code>np.random.default_rng()</code> Generator API is preferred over the legacy global <code>np.random.seed()</code> functions.
+</footer>
+
+</body>
+</html>

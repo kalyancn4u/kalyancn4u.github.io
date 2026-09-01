@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>openTSNE Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --data:#64748b;   --data-bg:#f1f3f6;
+    --affin:#d97706;  --affin-bg:#fdf6ec;
+    --init:#7c3aed;   --init-bg:#f3effd;
+    --optim:#059669;  --optim-bg:#ecf7f2;
+    --embed:#4f46e5;  --embed-bg:#eef0fd;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .mono{font-family:var(--mono); color:var(--optim)}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink); font-weight:600}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.data{background:var(--data)} .dot.affin{background:var(--affin)}
+  .dot.init{background:var(--init)} .dot.optim{background:var(--optim)}
+  .dot.embed{background:var(--embed)} .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.data{border-left-color:var(--data)}
+  ul.cmds li.affin{border-left-color:var(--affin)}
+  ul.cmds li.init{border-left-color:var(--init)}
+  ul.cmds li.optim{border-left-color:var(--optim)}
+  ul.cmds li.embed{border-left-color:var(--embed)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .arg{color:var(--embed); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--init); font-weight:500}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.94em; background:#f4f1ea; padding:0 .2em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* code-block card (modular recipe) */
+  pre.block{
+    font-family:var(--mono); font-size:.76rem; line-height:1.65;
+    background:#12151b; color:#e8e6e1; margin:0; padding:.9rem 1rem;
+    overflow-x:auto; white-space:pre;
+  }
+  pre.block .c{color:#7f8794}
+  pre.block .k{color:#c4b5fd}
+  pre.block .s{color:#fbbf24}
+  pre.block .f{color:#6ee7b7}
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:var(--mono)}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#a5b4fc; font-size:.95em}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:var(--ink)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · t-SNE dimensionality reduction &amp; embedding</div>
+  <h1><span class="mono">openTSNE</span> cheat sheet</h1>
+  <p class="lede">Every run follows one pipeline: turn high-dimensional data into a <b>neighbor graph</b> (affinities&nbsp;<b>P</b>), pick a <b>starting layout</b> (init), then <b>optimize</b> it in two phases into a 2-D map. Learn the pipeline once and every parameter finds its place — and unlike other t-SNE tools, openTSNE can drop <b>new points</b> onto a finished map.</p>
+  <div class="legend">
+    <span><i class="dot data"></i>data &amp; setup</span>
+    <span><i class="dot affin"></i>affinities (P)</span>
+    <span><i class="dot init"></i>initialization</span>
+    <span><i class="dot optim"></i>optimize / fit</span>
+    <span><i class="dot embed"></i>embedding &amp; new points</span>
+    <span><i class="dot danger"></i>pitfall</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked across: <b>opentsne.readthedocs.io</b> (official docs + parameter guide) · <b>Poličar et&nbsp;al., JSS 2024</b> · <b>Kobak &amp; Berens, Nature Comms 2019</b> · <b>Wattenberg et&nbsp;al., distill.pub</b> · <b>scikit-learn</b> · <b>van&nbsp;der&nbsp;Maaten &amp; Hinton, 2008</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The pipeline &amp; the calls that move data through it</div>
+  <svg class="flow-svg" viewBox="0 0 1120 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the openTSNE pipeline: data X becomes an affinity matrix P, gets a PCA initialization, is optimized in an early-exaggeration then a normal phase, and produces a 2-D embedding, which can also absorb new points via transform.">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="arrowV" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+      </marker>
+      <marker id="arrowE" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#4f46e5"/>
+      </marker>
+    </defs>
+
+    <!-- top-row boxes -->
+    <g>
+      <rect x="18" y="118" width="176" height="104" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="106" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Data X</text>
+      <text x="106" y="171" text-anchor="middle" font-size="10.5" fill="#64748b">n × d, high-dim</text>
+      <text x="106" y="199" text-anchor="middle" font-size="10.5" fill="#64748b">PCA → 50-D first</text>
+    </g>
+    <g>
+      <rect x="268" y="118" width="176" height="104" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="356" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Affinities P</text>
+      <text x="356" y="171" text-anchor="middle" font-size="10.5" fill="#b45309">neighbor graph, n × n</text>
+      <text x="356" y="199" text-anchor="middle" font-size="10.5" fill="#b45309">PerplexityBasedNN</text>
+    </g>
+    <g>
+      <rect x="518" y="118" width="204" height="104" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="620" y="148" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Optimize</text>
+      <text x="620" y="169" text-anchor="middle" font-size="10.5" fill="#059669">1 · early exaggeration ×12</text>
+      <text x="620" y="185" text-anchor="middle" font-size="10.5" fill="#059669">2 · normal phase</text>
+      <text x="620" y="207" text-anchor="middle" font-size="10.5" fill="#059669">gradient descent + momentum</text>
+    </g>
+    <g>
+      <rect x="796" y="118" width="196" height="104" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="894" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Embedding Y</text>
+      <text x="894" y="171" text-anchor="middle" font-size="10.5" fill="#4f46e5">n × 2, a numpy array</text>
+      <text x="894" y="199" text-anchor="middle" font-size="10.5" fill="#4f46e5">TSNEEmbedding</text>
+    </g>
+
+    <!-- init box (below, feeds optimize) -->
+    <g>
+      <rect x="518" y="278" width="204" height="60" rx="12" fill="#f3effd" stroke="#7c3aed" stroke-width="2"/>
+      <text x="620" y="303" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">Init Y₀</text>
+      <text x="620" y="323" text-anchor="middle" font-size="10.5" fill="#7c3aed">pca · spectral · random</text>
+    </g>
+
+    <!-- forward arrows (top) -->
+    <line x1="194" y1="150" x2="266" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="230" y="141" text-anchor="middle" font-size="10.5" font-weight="700" fill="#d97706">.affinity</text>
+
+    <line x1="444" y1="150" x2="516" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="480" y="141" text-anchor="middle" font-size="10.5" font-weight="700" fill="#059669">.optimize</text>
+
+    <line x1="722" y1="150" x2="794" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="758" y="141" text-anchor="middle" font-size="10.5" font-weight="700" fill="#4f46e5">result</text>
+
+    <!-- init feeds up into optimize -->
+    <line x1="620" y1="276" x2="620" y2="224" stroke="#7c3aed" stroke-width="1.8" marker-end="url(#arrowV)"/>
+    <!-- X feeds init (thin dashed) -->
+    <path d="M106 222 L106 308 L516 308" fill="none" stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arrowV)"/>
+    <text x="300" y="325" text-anchor="middle" font-size="9.5" fill="#7c3aed">pca init reads X</text>
+
+    <!-- transform loopback (bottom, dashed) -->
+    <path d="M894 222 L894 258 L360 258 L360 224" fill="none" stroke="#4f46e5" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrowE)"/>
+    <text x="628" y="250" text-anchor="middle" font-size="10.5" font-weight="600" fill="#4f46e5">embedding.transform(X_new) — drop new points onto the finished map</text>
+
+    <!-- group labels -->
+    <text x="106" y="100" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">INPUT</text>
+    <text x="620" y="100" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#059669">THE TWO-PHASE FIT</text>
+    <text x="894" y="100" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#4f46e5">OUTPUT</text>
+  </svg>
+</section>
+
+<!-- ============ COMMAND CARDS ============ -->
+<main>
+
+  <!-- 01 INSTALL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; Import</span><span class="card-sub">once per env</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">pip install openTSNE</code><span class="star">★</span><div class="desc">From PyPI (needs a C/C++ compiler).</div></li>
+      <li class="data"><code class="cmd">conda install <span class="flag">-c</span> conda-forge opentsne</code><div class="desc">Prebuilt conda-forge wheel — no compiler.</div></li>
+      <li class="data"><code class="cmd"><span class="kw">from</span> openTSNE <span class="kw">import</span> TSNE</code><span class="star">★</span><div class="desc">The main estimator.</div></li>
+      <li class="data"><code class="cmd"><span class="kw">from</span> openTSNE <span class="kw">import</span> affinity, initialization</code><div class="desc">Modular building blocks (low-level API).</div></li>
+      <li class="data"><code class="cmd"><span class="kw">from</span> openTSNE <span class="kw">import</span> TSNEEmbedding</code><div class="desc">The optimizable, array-like embedding.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 QUICKSTART -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">60-Second Start</span><span class="card-sub">the daily loop</span></div>
+    <ul class="cmds">
+      <li class="optim"><code class="cmd">emb = TSNE().fit(<span class="arg">X</span>)</code><span class="star">★</span><div class="desc">All sensible defaults → a 2-D embedding.</div></li>
+      <li class="optim"><code class="cmd">emb = TSNE(<span class="flag">n_jobs</span>=<span class="arg">-1</span>, <span class="flag">random_state</span>=<span class="arg">42</span>).fit(<span class="arg">X</span>)</code><span class="star">★</span><div class="desc">All cores + reproducible layout.</div></li>
+      <li class="embed"><code class="cmd">plt.scatter(emb[<span class="arg">:, 0</span>], emb[<span class="arg">:, 1</span>], <span class="flag">c</span>=<span class="arg">y</span>, <span class="flag">s</span>=<span class="arg">5</span>)</code><span class="star">★</span><div class="desc"><code>emb</code> <b>is</b> an array — plot it directly.</div></li>
+      <li class="optim"><code class="cmd"><span class="kw">from</span> openTSNE.sklearn <span class="kw">import</span> TSNE</code><div class="desc">scikit-learn wrapper …</div></li>
+      <li class="optim"><code class="cmd">Y = TSNE().fit_transform(<span class="arg">X</span>)</code><div class="desc">… returns a plain <code>np.ndarray</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 KEY PARAMETERS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">TSNE() Parameters</span><span class="card-sub">the knobs</span></div>
+    <ul class="cmds">
+      <li class="affin"><code class="cmd"><span class="flag">perplexity</span>=<span class="arg">30</span></code><span class="star">★</span><div class="desc">≈ number of neighbors to preserve.</div></li>
+      <li class="init"><code class="cmd"><span class="flag">initialization</span>=<span class="arg">"pca"</span></code><span class="star">★</span><div class="desc">Default; deterministic, keeps global shape.</div></li>
+      <li class="affin"><code class="cmd"><span class="flag">metric</span>=<span class="arg">"euclidean"</span></code><div class="desc">Or <code>"cosine"</code>, <code>"manhattan"</code>, a callable…</div></li>
+      <li class="data"><code class="cmd"><span class="flag">n_jobs</span>=<span class="arg">-1</span></code><span class="star">★</span><div class="desc">Threads; <code>-1</code> = all cores.</div></li>
+      <li class="data"><code class="cmd"><span class="flag">random_state</span>=<span class="arg">42</span></code><span class="star">★</span><div class="desc">Fix it for a reproducible map.</div></li>
+      <li class="optim"><code class="cmd"><span class="flag">negative_gradient_method</span>=<span class="arg">"fft"</span></code><div class="desc">FIt-SNE (big data); <code>"bh"</code> for small.</div></li>
+      <li class="optim"><code class="cmd"><span class="flag">learning_rate</span>=<span class="arg">"auto"</span></code><div class="desc">= N / exaggeration — leave it be.</div></li>
+      <li class="data"><code class="cmd"><span class="flag">verbose</span>=<span class="arg">True</span></code><div class="desc">Print KL divergence + timings.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 PERPLEXITY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Perplexity</span><span class="card-sub">the key dial</span></div>
+    <ul class="cmds">
+      <li class="affin"><code class="cmd">TSNE(<span class="flag">perplexity</span>=<span class="arg">30</span>)</code><span class="star">★</span><div class="desc">Default; good for small–medium sets.</div></li>
+      <li class="affin"><code class="cmd">TSNE(<span class="flag">perplexity</span>=<span class="arg">500</span>)</code><div class="desc">Large data → far better global structure.</div></li>
+      <li class="affin"><code class="cmd"><span class="c"># continuous k of nearest neighbors</span></code><div class="desc">Balances local vs global structure.</div></li>
+      <li class="affin"><code class="cmd"><span class="c"># k_neighbors auto = 3 × perplexity</span></code><div class="desc">And <b>perplexity must be &lt; n_samples.</b></div></li>
+      <li class="data"><code class="cmd"><span class="c"># runtime scales linearly with it</span></code><div class="desc">Higher perplexity = longer to run.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 AFFINITIES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Affinities · the P matrix</span><span class="card-sub">build the graph</span></div>
+    <ul class="cmds">
+      <li class="affin"><code class="cmd">affinity.PerplexityBasedNN(<span class="arg">X</span>, <span class="flag">perplexity</span>=<span class="arg">30</span>)</code><span class="star">★</span><div class="desc">Standard Gaussian kNN affinities.</div></li>
+      <li class="affin"><code class="cmd">affinity.Multiscale(<span class="arg">X</span>, <span class="flag">perplexities</span>=<span class="arg">[50, 500]</span>)</code><span class="star">★</span><div class="desc">Multi-scale → best global structure.</div></li>
+      <li class="affin"><code class="cmd">affinity.MultiscaleMixture(<span class="arg">X</span>, <span class="flag">perplexities</span>=<span class="arg">[...]</span>)</code><div class="desc">Gaussian-mixture kernel variant.</div></li>
+      <li class="affin"><code class="cmd">affinity.FixedSigmaNN(<span class="arg">X</span>, <span class="flag">sigma</span>=<span class="arg">1</span>, <span class="flag">k</span>=<span class="arg">30</span>)</code><div class="desc">Fixed bandwidth; teases out tiny clusters.</div></li>
+      <li class="affin"><code class="cmd">affinity.Uniform(<span class="arg">X</span>, <span class="flag">k_neighbors</span>=<span class="arg">30</span>)</code><div class="desc">Uniform kernel over the kNN graph.</div></li>
+      <li class="affin"><code class="cmd">affinity.PrecomputedAffinities(<span class="arg">P</span>)</code><div class="desc">Bring your own N×N affinity matrix.</div></li>
+      <li class="optim"><code class="cmd">TSNE().fit(<span class="flag">affinities</span>=<span class="arg">aff</span>)</code><span class="star">★</span><div class="desc">Pass it in — overrides perplexity/metric.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 INITIALIZATION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Initialization</span><span class="card-sub">the starting layout</span></div>
+    <ul class="cmds">
+      <li class="init"><code class="cmd">initialization.pca(<span class="arg">X</span>, <span class="flag">random_state</span>=<span class="arg">42</span>)</code><span class="star">★</span><div class="desc">Default; deterministic + global structure.</div></li>
+      <li class="init"><code class="cmd">initialization.spectral(<span class="arg">aff.P</span>)</code><div class="desc">Spectral embedding of the affinity graph.</div></li>
+      <li class="init"><code class="cmd">initialization.random(<span class="arg">n_samples</span>, <span class="flag">random_state</span>=<span class="arg">0</span>)</code><div class="desc">Gaussian noise — layout not reproducible.</div></li>
+      <li class="init"><code class="cmd">initialization.rescale(<span class="arg">Y</span>)</code><div class="desc">Scale a custom init to a safe variance.</div></li>
+      <li class="init"><code class="cmd">initialization.jitter(<span class="arg">Y</span>)</code><div class="desc">Add small noise to break ties.</div></li>
+      <li class="danger"><code class="cmd"><span class="c"># custom init: std(Y) &lt; 1e-4</span></code><span class="badge-danger">care</span><div class="desc">Large variance → poor embeddings.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 OPTIMIZATION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Optimization · 2 phases</span><span class="card-sub">how the fit runs</span></div>
+    <ul class="cmds">
+      <li class="optim"><code class="cmd"><span class="flag">early_exaggeration</span>=<span class="arg">12</span>, <span class="flag">early_exaggeration_iter</span>=<span class="arg">250</span></code><span class="star">★</span><div class="desc">Phase 1: pull clusters tightly together.</div></li>
+      <li class="optim"><code class="cmd"><span class="flag">n_iter</span>=<span class="arg">500</span></code><div class="desc">Phase 2: normal regime spreads them out.</div></li>
+      <li class="optim"><code class="cmd"><span class="flag">exaggeration</span>=<span class="arg">4</span></code><div class="desc">Mild exaggeration in phase 2 (big data).</div></li>
+      <li class="optim"><code class="cmd"><span class="flag">initial_momentum</span>=<span class="arg">0.5</span>, <span class="flag">final_momentum</span>=<span class="arg">0.8</span></code><div class="desc">Early phase looser, normal phase firmer.</div></li>
+      <li class="optim"><code class="cmd">emb.optimize(<span class="arg">100</span>, <span class="flag">exaggeration</span>=<span class="arg">1</span>)</code><span class="star">★</span><div class="desc">Run extra steps on an existing embedding.</div></li>
+      <li class="embed"><code class="cmd">emb.kl_divergence</code><div class="desc">Final error — lower ≈ tighter fit.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 MODULAR RECIPE (code block) -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Modular API · full control</span><span class="card-sub">the canonical recipe</span></div>
+<pre class="block"><span class="c"># build each stage yourself, then</span>
+<span class="c"># drive the two-phase optimization</span>
+aff  = affinity.<span class="f">PerplexityBasedNN</span>(
+           X, perplexity=<span class="s">30</span>, n_jobs=<span class="s">-1</span>)
+init = initialization.<span class="f">pca</span>(
+           X, random_state=<span class="s">42</span>)
+
+emb = <span class="f">TSNEEmbedding</span>(
+    init, aff,
+    negative_gradient_method=<span class="s">"fft"</span>,
+    n_jobs=<span class="s">-1</span>,
+)
+<span class="c"># ★ phase 1 — early exaggeration</span>
+emb.<span class="f">optimize</span>(<span class="s">250</span>, exaggeration=<span class="s">12</span>,
+             momentum=<span class="s">0.5</span>, inplace=<span class="k">True</span>)
+<span class="c"># ★ phase 2 — normal regime</span>
+emb.<span class="f">optimize</span>(<span class="s">500</span>, momentum=<span class="s">0.8</span>,
+             inplace=<span class="k">True</span>)</pre>
+  </article>
+
+  <!-- 09 TRANSFORM -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Add new points · transform</span><span class="card-sub">openTSNE's signature</span></div>
+    <ul class="cmds">
+      <li class="embed"><code class="cmd">new = emb.transform(<span class="arg">X_new</span>)</code><span class="star">★</span><div class="desc">Place new samples onto the finished map.</div></li>
+      <li class="embed"><code class="cmd">part = emb.prepare_partial(<span class="arg">X_new</span>, <span class="flag">k</span>=<span class="arg">25</span>)</code><div class="desc">Get an un-optimized partial to tune.</div></li>
+      <li class="embed"><code class="cmd">part.optimize(<span class="arg">250</span>, <span class="flag">learning_rate</span>=<span class="arg">0.1</span>)</code><div class="desc">Refine placement — <b>use a low rate.</b></div></li>
+      <li class="embed"><code class="cmd">aff.to_new(<span class="arg">X_new</span>)</code><div class="desc">Compute new→reference affinities directly.</div></li>
+      <li class="data"><code class="cmd"><span class="c"># only openTSNE does this</span></code><div class="desc">Great for batch effects &amp; streaming data.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 EMBEDDING OBJECT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">The embedding &amp; I/O</span><span class="card-sub">it's just an array</span></div>
+    <ul class="cmds">
+      <li class="embed"><code class="cmd">emb[<span class="arg">:, 0</span>], emb[<span class="arg">:, 1</span>]</code><span class="star">★</span><div class="desc">Subclasses <code>np.ndarray</code> — slice freely.</div></li>
+      <li class="embed"><code class="cmd">np.asarray(emb)</code><div class="desc">Drop back to a plain array.</div></li>
+      <li class="embed"><code class="cmd">plt.scatter(<span class="arg">*emb.T</span>, <span class="flag">c</span>=<span class="arg">y</span>, <span class="flag">s</span>=<span class="arg">3</span>)</code><div class="desc">Unpack the two columns for a quick plot.</div></li>
+      <li class="data"><code class="cmd">pickle.dump(emb, <span class="arg">f</span>)</code><span class="star">★</span><div class="desc">Persist it; reload later to <code>transform</code>.</div></li>
+      <li class="embed"><code class="cmd">emb.kl_divergence</code><div class="desc">KL error attached to the embedding.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 LARGE DATA -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Large data &amp; speed</span><span class="card-sub">millions of points</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">TSNE(<span class="flag">n_jobs</span>=<span class="arg">-1</span>)</code><span class="star">★</span><div class="desc">Use every core — big wins.</div></li>
+      <li class="optim"><code class="cmd">TSNE(<span class="flag">negative_gradient_method</span>=<span class="arg">"fft"</span>)</code><span class="star">★</span><div class="desc">FIt-SNE; scales to millions of points.</div></li>
+      <li class="affin"><code class="cmd">TSNE(<span class="flag">neighbors</span>=<span class="arg">"approx"</span>)</code><div class="desc">Annoy / pynndescent kNN for large N.</div></li>
+      <li class="affin"><code class="cmd">Multiscale(<span class="arg">X</span>, <span class="flag">perplexities</span>=<span class="arg">[50, 500]</span>)</code><div class="desc">Global structure that survives at scale.</div></li>
+      <li class="optim"><code class="cmd">emb.optimize(<span class="arg">750</span>, <span class="flag">exaggeration</span>=<span class="arg">4</span>)</code><div class="desc">Cleaner separation on huge sets.</div></li>
+      <li class="embed"><code class="cmd"><span class="c"># sample → fit → transform the rest</span></code><div class="desc">Downsampling trick for very large data.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 MONITOR -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Monitor &amp; control</span><span class="card-sub">watch it converge</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">TSNE(<span class="flag">verbose</span>=<span class="arg">True</span>)</code><span class="star">★</span><div class="desc">Log KL divergence + timing each 50 iters.</div></li>
+      <li class="data"><code class="cmd">TSNE(<span class="flag">callbacks</span>=<span class="arg">cb</span>, <span class="flag">callbacks_every_iters</span>=<span class="arg">50</span>)</code><div class="desc">Run <code>cb</code> during optimization.</div></li>
+      <li class="data"><code class="cmd"><span class="kw">def</span> cb(<span class="arg">iteration, error, emb</span>): <span class="kw">return</span> <span class="arg">error &lt; 1</span></code><div class="desc">Any callable; return <code>True</code> to stop early.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">except</span> OptimizationInterrupt <span class="kw">as</span> e:</code><div class="desc">The stopped embedding rides on the error.</div></li>
+    </ul>
+  </article>
+
+  <!-- RECIPE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">★</span><span class="card-title">Recommended recipe</span><span class="card-sub">Kobak &amp; Berens protocol</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd"><span class="c"># 1 · PCA-reduce X to ~50 dims first</span></code><div class="desc">Faster + denoises before t-SNE.</div></li>
+      <li class="init"><code class="cmd"><span class="flag">initialization</span>=<span class="arg">"pca"</span></code><div class="desc">Deterministic + preserves global layout.</div></li>
+      <li class="affin"><code class="cmd"><span class="flag">perplexity</span>=<span class="arg">30</span> → <span class="arg">500</span></code><div class="desc">Or <code>Multiscale([50, 500])</code> for the best of both.</div></li>
+      <li class="optim"><code class="cmd"><span class="flag">learning_rate</span>=<span class="arg">"auto"</span></code><div class="desc">= N / exaggeration — the modern default.</div></li>
+      <li class="optim"><code class="cmd"><span class="flag">exaggeration</span>=<span class="arg">4</span></code><div class="desc">For very large sets, tightens clusters.</div></li>
+      <li class="data"><code class="cmd"><span class="flag">random_state</span>=<span class="arg">42</span></code><div class="desc">So the map is the same every run.</div></li>
+    </ul>
+  </article>
+
+  <!-- PITFALLS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">!</span><span class="card-title">Reading the picture</span><span class="card-sub">don't over-read t-SNE</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">cluster sizes mean nothing</code><span class="badge-danger">myth</span><div class="desc">t-SNE expands dense regions, shrinks sparse ones.</div></li>
+      <li class="danger"><code class="cmd">gaps aren't distances</code><span class="badge-danger">myth</span><div class="desc">Spacing between clusters isn't reliable.</div></li>
+      <li class="danger"><code class="cmd">axes have no units</code><span class="badge-danger">myth</span><div class="desc">Rotation and flips are arbitrary.</div></li>
+      <li class="danger"><code class="cmd">one run isn't truth</code><span class="badge-danger">care</span><div class="desc">Try a few seeds &amp; perplexities.</div></li>
+      <li class="danger"><code class="cmd">t-SNE ≠ clustering</code><span class="badge-danger">care</span><div class="desc">Don't run k-means on the 2-D output.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>How the pieces shape the map</h2>
+  <p class="sub">Four ideas that decide what your embedding looks like — based on the openTSNE parameter guide and Kobak &amp; Berens (2019).</p>
+  <div class="merge-grid">
+
+    <!-- two-phase optimization timeline -->
+    <div class="merge-card">
+      <h3>the two-phase fit</h3>
+      <p>Early exaggeration (×12) first packs neighbors into tight clusters; the normal phase then relaxes and spreads them apart.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Timeline: an early-exaggeration phase of 250 iterations with exaggeration 12 and momentum 0.5, followed by a normal phase of 500 iterations with momentum 0.8.">
+        <rect x="24" y="40" width="150" height="34" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+        <rect x="182" y="40" width="194" height="34" rx="6" fill="#eef7f2" stroke="#059669" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="99" y="57" text-anchor="middle" font-size="10" font-weight="700" fill="#047857">phase 1</text>
+        <text x="99" y="69" text-anchor="middle" font-size="8.5" fill="#059669">exaggeration 12</text>
+        <text x="279" y="57" text-anchor="middle" font-size="10" font-weight="700" fill="#047857">phase 2 · normal</text>
+        <text x="279" y="69" text-anchor="middle" font-size="8.5" fill="#059669">no / mild exaggeration</text>
+        <text x="99" y="30" text-anchor="middle" font-size="8.5" fill="#64748b">250 iter · momentum 0.5</text>
+        <text x="279" y="30" text-anchor="middle" font-size="8.5" fill="#64748b">500 iter · momentum 0.8</text>
+        <!-- compact vs spread dots -->
+        <g fill="#059669">
+          <circle cx="90" cy="112" r="2.4"/><circle cx="96" cy="116" r="2.4"/><circle cx="102" cy="110" r="2.4"/><circle cx="97" cy="108" r="2.4"/><circle cx="92" cy="118" r="2.4"/>
+        </g>
+        <g fill="#d97706">
+          <circle cx="230" cy="108" r="2.4"/><circle cx="255" cy="122" r="2.4"/><circle cx="285" cy="106" r="2.4"/><circle cx="310" cy="120" r="2.4"/><circle cx="270" cy="112" r="2.4"/>
+        </g>
+        <line x1="120" y1="112" x2="205" y2="112" stroke="#1a1d24" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <text x="99" y="135" text-anchor="middle" font-size="8" fill="#64748b">tight</text>
+        <text x="279" y="138" text-anchor="middle" font-size="8" fill="#64748b">separated</text>
+      </svg>
+    </div>
+
+    <!-- perplexity effect -->
+    <div class="merge-card">
+      <h3>perplexity's effect</h3>
+      <p>Too low fragments a cluster into specks; too high melts everything into one blob. The sweet spot depends on how many points you have.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three panels: low perplexity fragments the data, balanced perplexity shows three clean clusters, high perplexity merges them into one blob.">
+        <!-- low -->
+        <g fill="#d97706">
+          <circle cx="30" cy="55" r="2"/><circle cx="55" cy="45" r="2"/><circle cx="45" cy="75" r="2"/><circle cx="70" cy="65" r="2"/><circle cx="35" cy="90" r="2"/><circle cx="62" cy="88" r="2"/><circle cx="80" cy="50" r="2"/><circle cx="50" cy="60" r="2"/>
+        </g>
+        <text x="55" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#b45309">low</text>
+        <text x="55" y="132" text-anchor="middle" font-size="8" fill="#64748b">fragmented</text>
+        <!-- balanced -->
+        <g fill="#059669">
+          <circle cx="160" cy="48" r="2"/><circle cx="168" cy="55" r="2"/><circle cx="158" cy="60" r="2"/><circle cx="166" cy="46" r="2"/>
+          <circle cx="200" cy="85" r="2"/><circle cx="208" cy="90" r="2"/><circle cx="198" cy="95" r="2"/><circle cx="206" cy="82" r="2"/>
+          <circle cx="150" cy="90" r="2"/><circle cx="158" cy="95" r="2"/><circle cx="148" cy="82" r="2"/><circle cx="156" cy="86" r="2"/>
+        </g>
+        <text x="178" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#047857">balanced</text>
+        <text x="178" y="132" text-anchor="middle" font-size="8" fill="#64748b">clean clusters</text>
+        <!-- high -->
+        <g fill="#7c3aed">
+          <circle cx="330" cy="65" r="2"/><circle cx="340" cy="60" r="2"/><circle cx="350" cy="70" r="2"/><circle cx="335" cy="72" r="2"/><circle cx="345" cy="66" r="2"/><circle cx="352" cy="62" r="2"/><circle cx="338" cy="68" r="2"/><circle cx="347" cy="74" r="2"/>
+        </g>
+        <ellipse cx="342" cy="67" rx="20" ry="14" fill="none" stroke="#7c3aed" stroke-width="1" stroke-dasharray="3 3"/>
+        <text x="342" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#6d28d9">high</text>
+        <text x="342" y="132" text-anchor="middle" font-size="8" fill="#64748b">one blob</text>
+      </svg>
+    </div>
+
+    <!-- standard vs multiscale -->
+    <div class="merge-card">
+      <h3>standard vs multiscale</h3>
+      <p>Standard t-SNE nails local clusters but scatters them arbitrarily. Multiscale affinities keep related clusters near each other.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Left: standard t-SNE with related clusters scattered. Right: multiscale t-SNE with related clusters grouped by hue.">
+        <text x="100" y="24" text-anchor="middle" font-size="9" font-weight="700" fill="#64748b">standard</text>
+        <text x="300" y="24" text-anchor="middle" font-size="9" font-weight="700" fill="#64748b">multiscale</text>
+        <line x1="200" y1="34" x2="200" y2="140" stroke="#e7e3db" stroke-width="1"/>
+        <!-- standard: colors scattered -->
+        <g><circle cx="40" cy="55" r="6" fill="#059669"/><circle cx="150" cy="60" r="6" fill="#059669"/>
+           <circle cx="60" cy="120" r="6" fill="#4f46e5"/><circle cx="160" cy="115" r="6" fill="#4f46e5"/>
+           <circle cx="110" cy="90" r="6" fill="#d97706"/><circle cx="45" cy="95" r="6" fill="#d97706"/></g>
+        <!-- multiscale: colors grouped -->
+        <g><circle cx="250" cy="55" r="6" fill="#059669"/><circle cx="270" cy="65" r="6" fill="#059669"/>
+           <circle cx="330" cy="110" r="6" fill="#4f46e5"/><circle cx="350" cy="120" r="6" fill="#4f46e5"/>
+           <circle cx="290" cy="105" r="6" fill="#d97706"/><circle cx="310" cy="90" r="6" fill="#d97706"/></g>
+        <text x="100" y="145" text-anchor="middle" font-size="8" fill="#64748b">hues scattered</text>
+        <text x="300" y="145" text-anchor="middle" font-size="8" fill="#64748b">hues grouped</text>
+      </svg>
+    </div>
+
+    <!-- transform to reference -->
+    <div class="merge-card">
+      <h3>map new points to a reference</h3>
+      <p>Fit once on a reference set (grey), then <code>transform</code> unseen samples (colored) — each lands in the matching cluster. Unique to openTSNE.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A grey reference embedding of three clusters, with new colored points dropped into the matching clusters.">
+        <!-- reference clouds -->
+        <g fill="#cbd5e1">
+          <circle cx="80" cy="55" r="4"/><circle cx="92" cy="62" r="4"/><circle cx="72" cy="66" r="4"/><circle cx="88" cy="48" r="4"/><circle cx="100" cy="58" r="4"/>
+          <circle cx="300" cy="50" r="4"/><circle cx="312" cy="58" r="4"/><circle cx="292" cy="60" r="4"/><circle cx="308" cy="44" r="4"/><circle cx="320" cy="54" r="4"/>
+          <circle cx="180" cy="110" r="4"/><circle cx="192" cy="116" r="4"/><circle cx="172" cy="118" r="4"/><circle cx="188" cy="104" r="4"/><circle cx="200" cy="112" r="4"/>
+        </g>
+        <!-- new colored points -->
+        <circle cx="86" cy="58" r="4.5" fill="#059669" stroke="#fff" stroke-width="1"/>
+        <circle cx="306" cy="52" r="4.5" fill="#d97706" stroke="#fff" stroke-width="1"/>
+        <circle cx="186" cy="112" r="4.5" fill="#4f46e5" stroke="#fff" stroke-width="1"/>
+        <!-- incoming arrows -->
+        <line x1="140" y1="25" x2="94" y2="50" stroke="#059669" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <line x1="250" y1="25" x2="300" y2="46" stroke="#d97706" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <text x="200" y="20" text-anchor="middle" font-size="8.5" fill="#64748b">new samples → transform() → matching cluster</text>
+        <text x="360" y="130" text-anchor="end" font-size="8" fill="#94a3b8">grey = reference embedding</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WORTH MEMORIZING STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">perplexity ≈ #neighbors</span><span class="v">default 30; raise it (or use Multiscale) for global structure on big data</span></div>
+    <div><span class="k">pca init is default</span><span class="v">deterministic and keeps global layout — prefer over random</span></div>
+    <div><span class="k">fit() → an array</span><span class="v"><code>TSNEEmbedding</code> subclasses <code>np.ndarray</code>; plot <code>emb[:,0]</code>, <code>emb[:,1]</code></span></div>
+    <div><span class="k">transform() is unique</span><span class="v">openTSNE alone maps new points into an existing embedding</span></div>
+    <div><span class="k">two phases</span><span class="v">early exaggeration (12) packs clusters, normal phase spreads them</span></div>
+    <div><span class="k">axes are meaningless</span><span class="v">only neighborhoods are trustworthy — not cluster size or spacing</span></div>
+    <div><span class="k">learning_rate="auto"</span><span class="v">= N / exaggeration; almost never set it by hand</span></div>
+    <div><span class="k">set random_state</span><span class="v">layouts are otherwise different on every run</span></div>
+    <div><span class="k">fft &gt; bh at scale</span><span class="v">FIt-SNE handles millions of points; Barnes-Hut suits small data</span></div>
+    <div><span class="k">t-SNE ≠ PCA/UMAP</span><span class="v">it's for <em>visualization</em>, not general feature reduction</span></div>
+  </div>
+</section>
+
+<footer>
+  openTSNE cheat sheet · synthesized from the official documentation (opentsne.readthedocs.io — parameter guide &amp; API reference), Poličar, Stražar &amp; Zupan (<i>JSS</i> 2024), Kobak &amp; Berens (<i>Nature Communications</i> 2019), Wattenberg, Viégas &amp; Johnson (distill.pub), scikit-learn, and van&nbsp;der&nbsp;Maaten &amp; Hinton (2008).<br>
+  API shown for openTSNE ≈ 1.0 · defaults: <code>perplexity=30</code>, <code>initialization="pca"</code>, <code>learning_rate="auto"</code>, <code>negative_gradient_method="auto"</code>, <code>n_iter=500</code>.
+</footer>
+
+</body>
+</html>

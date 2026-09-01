@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PyArrow Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b;   --setup-bg:#f1f3f6;
+    --build:#d97706;   --build-bg:#fdf6ec;
+    --compute:#059669; --compute-bg:#ecf7f2;
+    --io:#4f46e5;      --io-bg:#eef0fd;
+    --dataset:#7c3aed; --dataset-bg:#f4effe;
+    --interop:#0d9488; --interop-bg:#e6f5f3;
+    --danger:#dc2626;  --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .pa{font-family:var(--mono); color:var(--build)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .lede code{font-family:var(--mono); font-size:.9em; background:var(--build-bg); color:var(--star); padding:.05em .3em; border-radius:4px}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)} .dot.build{background:var(--build)}
+  .dot.compute{background:var(--compute)} .dot.io{background:var(--io)}
+  .dot.dataset{background:var(--dataset)} .dot.interop{background:var(--interop)}
+  .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.build{border-left-color:var(--build)}
+  ul.cmds li.compute{border-left-color:var(--compute)}
+  ul.cmds li.io{border-left-color:var(--io)}
+  ul.cmds li.dataset{border-left-color:var(--dataset)}
+  ul.cmds li.interop{border-left-color:var(--interop)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.82rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .mod{color:var(--dataset); font-weight:700}
+  code.cmd .arg{color:var(--io); font-weight:400}
+  code.cmd .kw{color:var(--star)}
+  code.cmd .cm{color:var(--muted); font-weight:400; font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  li.danger code.cmd .mod,li.danger code.cmd .arg,li.danger code.cmd .kw{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; color:var(--ink)}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-zc{
+    color:var(--interop); font-size:.62rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.04em; margin-left:.35rem;
+    border:1px solid var(--interop); border-radius:4px; padding:0 .28rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#e8e6e1; background:#2b2f39; padding:0 .3em; border-radius:4px}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:var(--ink)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · Apache Arrow for Python · columnar in-memory data</div>
+  <h1><span class="pa">pyarrow</span> cheat sheet</h1>
+  <p class="lede">Arrow is one <b>columnar</b> memory format that many libraries and languages share. PyArrow gives you the pieces — <code>Array</code> → <code>ChunkedArray</code> → <code>Table</code> — plus compute kernels, fast file I/O, and datasets. The payoff: read only the columns you need, compute on them vectorized, and hand data to pandas / NumPy / Polars <b>often with zero copies</b>.</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>setup / import</span>
+    <span><i class="dot build"></i>data model</span>
+    <span><i class="dot compute"></i>compute</span>
+    <span><i class="dot io"></i>file I/O</span>
+    <span><i class="dot dataset"></i>datasets / cloud</span>
+    <span><i class="dot interop"></i>interop</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>arrow.apache.org/docs/python</b> (data model, compute, parquet, dataset, fs) · <b>PyPI</b> · community guides (<b>Medium</b>, <b>DEV</b>, <b>Substack</b>) &nbsp;— API for PyArrow ≈ 25.x</p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The mental model · one columnar format, shared across storage, compute &amp; other libraries</div>
+  <svg class="flow-svg" viewBox="0 0 1120 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PyArrow sits between storage and analytics libraries. Files on disk are read into an Arrow Table (columnar, in memory); pyarrow.compute filters, groups, sorts and joins it; and it is handed to pandas, NumPy, Polars or DuckDB, often with zero copies.">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="arrowg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#059669"/>
+      </marker>
+      <marker id="arrowt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"/>
+      </marker>
+    </defs>
+
+    <!-- boxes -->
+    <g>
+      <rect x="40"  y="150" width="200" height="112" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="140" y="182" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">On disk</text>
+      <text x="140" y="204" text-anchor="middle" font-size="11" fill="#4f46e5">Parquet · CSV</text>
+      <text x="140" y="220" text-anchor="middle" font-size="11" fill="#4f46e5">Feather/IPC · ORC</text>
+      <text x="140" y="130" text-anchor="middle" font-size="9.5" letter-spacing="2" fill="#94a3b8">STORAGE</text>
+    </g>
+
+    <g>
+      <rect x="440" y="138" width="240" height="136" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2.4"/>
+      <text x="560" y="176" text-anchor="middle" font-size="16" font-weight="700" fill="#1a1d24">Arrow Table</text>
+      <text x="560" y="198" text-anchor="middle" font-size="11" fill="#b45309">columnar · in memory</text>
+      <text x="560" y="214" text-anchor="middle" font-size="11" fill="#b45309">Schema + ChunkedArrays</text>
+      <text x="560" y="252" text-anchor="middle" font-size="10" fill="#94a3b8">the hub — RAM-resident</text>
+    </g>
+
+    <g>
+      <rect x="880" y="150" width="200" height="112" rx="12" fill="#e6f5f3" stroke="#0d9488" stroke-width="2"/>
+      <text x="980" y="182" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Analytics libs</text>
+      <text x="980" y="204" text-anchor="middle" font-size="11" fill="#0d9488">pandas · NumPy</text>
+      <text x="980" y="220" text-anchor="middle" font-size="11" fill="#0d9488">Polars · DuckDB</text>
+      <text x="980" y="130" text-anchor="middle" font-size="9.5" letter-spacing="2" fill="#94a3b8">CONSUMERS</text>
+    </g>
+
+    <!-- storage <-> table -->
+    <line x1="242" y1="178" x2="438" y2="178" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="340" y="170" text-anchor="middle" font-size="10.5" font-weight="700" fill="#4f46e5">read_table · scanner</text>
+    <line x1="438" y1="236" x2="242" y2="236" stroke="#4f46e5" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+    <text x="340" y="252" text-anchor="middle" font-size="9.5" fill="#4f46e5">write_table · write_dataset</text>
+
+    <!-- table <-> libs -->
+    <line x1="682" y1="178" x2="878" y2="178" stroke="#0d9488" stroke-width="2" marker-end="url(#arrowt)"/>
+    <text x="780" y="170" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0d9488">to_pandas · to_numpy</text>
+    <line x1="878" y1="236" x2="684" y2="236" stroke="#0d9488" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrowt)"/>
+    <text x="780" y="252" text-anchor="middle" font-size="9.5" fill="#0d9488">from_pandas · pa.array</text>
+    <text x="780" y="200" text-anchor="middle" font-size="9" fill="#0d9488">often zero-copy</text>
+
+    <!-- compute self-loop -->
+    <path d="M498 138 C 498 92, 622 92, 622 138" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#arrowg)"/>
+    <text x="560" y="86" text-anchor="middle" font-size="10.5" font-weight="700" fill="#059669">pyarrow.compute</text>
+    <text x="560" y="112" text-anchor="middle" font-size="9" fill="#059669">filter · group_by · sort · join</text>
+
+    <!-- pushdown note -->
+    <text x="340" y="300" text-anchor="middle" font-size="9.5" fill="#7c3aed">▲ dataset pushdown: pick columns &amp; filter rows before bytes are even read</text>
+  </svg>
+</section>
+
+<!-- ============ COMMAND CARDS ============ -->
+<main>
+
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Import</span><span class="card-sub">the submodules</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">pip install pyarrow</code><span class="star">★</span><div class="desc">One wheel — Parquet, compute, datasets included.</div></li>
+      <li class="setup"><code class="cmd">import <span class="mod">pyarrow</span> as pa</code><span class="star">★</span><div class="desc">Core: arrays, tables, types, schema.</div></li>
+      <li class="setup"><code class="cmd">import <span class="mod">pyarrow.compute</span> as pc</code><span class="star">★</span><div class="desc">Kernels: filter, aggregate, arithmetic.</div></li>
+      <li class="setup"><code class="cmd">import <span class="mod">pyarrow.parquet</span> as pq</code><span class="star">★</span><div class="desc">Read/write Parquet files.</div></li>
+      <li class="setup"><code class="cmd">import <span class="mod">pyarrow.dataset</span> as ds</code><div class="desc">Multi-file, larger-than-memory datasets.</div></li>
+      <li class="setup"><code class="cmd">import <span class="mod">pyarrow.csv</span>, <span class="mod">pyarrow.feather</span></code><div class="desc">Also <code>pyarrow.json</code>, <code>pyarrow.fs</code>.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">pa</span>.__version__</code><div class="desc">Tracks Apache Arrow, e.g. <code>'25.0.0'</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 DATA MODEL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">★</span><span class="card-title">The Data Model</span><span class="card-sub">know these five</span></div>
+    <ul class="cmds">
+      <li class="build"><code class="cmd"><span class="mod">pa</span>.Array</code><span class="star">★</span><div class="desc">One column, one contiguous chunk (+ null bitmap).</div></li>
+      <li class="build"><code class="cmd"><span class="mod">pa</span>.ChunkedArray</code><div class="desc">One column split across several arrays.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">pa</span>.RecordBatch</code><div class="desc">Arrays + Schema — one contiguous slice.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">pa</span>.Table</code><span class="star">★</span><div class="desc">ChunkedArrays + Schema — the everyday object.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">pa</span>.Schema / Field / DataType</code><div class="desc">Column names + types + metadata.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 CREATE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Create Arrays &amp; Tables</span><span class="card-sub">from Python data</span></div>
+    <ul class="cmds">
+      <li class="build"><code class="cmd"><span class="mod">pa</span>.array([<span class="arg">1, 2, None</span>])</code><span class="star">★</span><div class="desc">Type inferred; nulls allowed.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">pa</span>.array([<span class="arg">1, 2</span>], <span class="kw">type=</span><span class="mod">pa</span>.int32())</code><div class="desc">Force an explicit type.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">pa</span>.table({<span class="arg">"n": [1,2], "s": ["a","b"]</span>})</code><span class="star">★</span><div class="desc">Dict of columns → Table (most common).</div></li>
+      <li class="build"><code class="cmd"><span class="mod">pa</span>.Table.from_arrays([<span class="arg">a, b</span>], <span class="kw">names=</span><span class="arg">[...]</span>)</code><div class="desc">Build from existing arrays.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">pa</span>.chunked_array([[<span class="arg">1,2</span>],[<span class="arg">3,4</span>]])</code><div class="desc">Glue chunks into one logical column.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">pa</span>.record_batch({<span class="arg">...</span>})</code><div class="desc">Contiguous batch (streaming unit).</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 TYPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Types &amp; Schema</span><span class="card-sub">factory functions</span></div>
+    <ul class="cmds">
+      <li class="build"><code class="cmd"><span class="mod">pa</span>.int64() <span class="cm"># float64 · bool_ · string</span></code><span class="star">★</span><div class="desc">Primitive type objects.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">pa</span>.timestamp(<span class="arg">"ms"</span>) <span class="cm"># date32 · decimal128</span></code><div class="desc">Temporal &amp; fixed-precision types.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">pa</span>.list_(<span class="mod">pa</span>.int32())</code><div class="desc">Nested list; also <code>pa.struct([...])</code>.</div></li>
+      <li class="build"><code class="cmd"><span class="mod">pa</span>.dictionary(<span class="mod">pa</span>.int32(), <span class="mod">pa</span>.string())</code><div class="desc">Dictionary-encoded (like pandas category).</div></li>
+      <li class="build"><code class="cmd"><span class="mod">pa</span>.schema([(<span class="arg">"n"</span>, <span class="mod">pa</span>.int64())])</code><span class="star">★</span><div class="desc">Names + types; <code>pa.field(...)</code> for metadata.</div></li>
+      <li class="build"><code class="cmd">table.cast(schema)</code><div class="desc">Cast a whole table to a new schema.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 ANATOMY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Table Anatomy</span><span class="card-sub">inspect &amp; reshape</span></div>
+    <ul class="cmds">
+      <li class="build"><code class="cmd">table.schema</code><span class="star">★</span><div class="desc">Column names, types, metadata.</div></li>
+      <li class="build"><code class="cmd">table.num_rows <span class="cm"># .num_columns</span></code><div class="desc">Shape of the table.</div></li>
+      <li class="build"><code class="cmd">table[<span class="arg">"col"</span>] <span class="cm"># → ChunkedArray</span></code><span class="star">★</span><div class="desc">Select one column.</div></li>
+      <li class="build"><code class="cmd">table.select([<span class="arg">"a", "b"</span>])</code><span class="star">★</span><div class="desc">Project a subset of columns.</div></li>
+      <li class="build"><code class="cmd">table.slice(<span class="arg">0, 5</span>)</code><div class="desc">Zero-copy row slice.</div></li>
+      <li class="build"><code class="cmd">table.rename_columns([<span class="arg">...</span>])</code><div class="desc">Also <code>drop_columns</code>, <code>append_column</code>.</div></li>
+      <li class="build"><code class="cmd">table.combine_chunks()</code><div class="desc">Flatten chunks into contiguous arrays.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 FILTER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Compute · Filter</span><span class="card-sub">expressions &amp; masks</span></div>
+    <ul class="cmds">
+      <li class="compute"><code class="cmd"><span class="mod">pc</span>.field(<span class="arg">"x"</span>) &gt; <span class="arg">5</span></code><span class="star">★</span><div class="desc">Build a filter expression.</div></li>
+      <li class="compute"><code class="cmd">table.filter(expr)</code><span class="star">★</span><div class="desc">Keep rows where the expression is true.</div></li>
+      <li class="compute"><code class="cmd">(<span class="mod">pc</span>.field(<span class="arg">"a"</span>)&gt;<span class="arg">0</span>) &amp; (<span class="mod">pc</span>.field(<span class="arg">"b"</span>)&lt;<span class="arg">9</span>)</code><div class="desc">Combine with <code>&amp;</code> <code>|</code> <code>~</code>.</div></li>
+      <li class="compute"><code class="cmd"><span class="mod">pc</span>.field(<span class="arg">"c"</span>).isin([<span class="arg">"IN","US"</span>])</code><span class="star">★</span><div class="desc">Membership test.</div></li>
+      <li class="compute"><code class="cmd">table.take([<span class="arg">0, 3, 7</span>])</code><div class="desc">Pick rows by index.</div></li>
+      <li class="compute"><code class="cmd">arr.filter(mask)</code><div class="desc">Filter an array by a boolean mask.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 AGGREGATE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Compute · Aggregate</span><span class="card-sub">group &amp; reduce</span></div>
+    <ul class="cmds">
+      <li class="compute"><code class="cmd">table.group_by(<span class="arg">"k"</span>).aggregate([(<span class="arg">"v","sum"</span>)])</code><span class="star">★</span><div class="desc">Split-apply-combine, in Arrow.</div></li>
+      <li class="compute"><code class="cmd">.aggregate([(<span class="arg">"v","sum"</span>),(<span class="arg">"v","mean"</span>)])</code><div class="desc">Several aggregations at once.</div></li>
+      <li class="compute"><code class="cmd">.aggregate([([], <span class="arg">"count_all"</span>)])</code><div class="desc">Rows per group.</div></li>
+      <li class="compute"><code class="cmd"><span class="mod">pc</span>.sum(col) <span class="cm"># mean · min_max · stddev</span></code><span class="star">★</span><div class="desc">Whole-column reductions.</div></li>
+      <li class="compute"><code class="cmd">table.sort_by(<span class="arg">"x"</span>)</code><span class="star">★</span><div class="desc"><code>[("x","descending")]</code> for order.</div></li>
+      <li class="compute"><code class="cmd"><span class="mod">pc</span>.value_counts(col) <span class="cm"># unique</span></code><div class="desc">Frequency table / distinct values.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 TRANSFORM -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Compute · Transform</span><span class="card-sub">per-element kernels</span></div>
+    <ul class="cmds">
+      <li class="compute"><code class="cmd"><span class="mod">pc</span>.add(col, <span class="arg">1</span>) <span class="cm"># multiply · subtract</span></code><div class="desc">Vectorized arithmetic.</div></li>
+      <li class="compute"><code class="cmd"><span class="mod">pc</span>.cast(col, <span class="mod">pa</span>.int32())</code><span class="star">★</span><div class="desc">Change a column's type.</div></li>
+      <li class="compute"><code class="cmd"><span class="mod">pc</span>.fill_null(col, <span class="arg">0</span>)</code><span class="star">★</span><div class="desc">Replace nulls with a value.</div></li>
+      <li class="compute"><code class="cmd"><span class="mod">pc</span>.dictionary_encode(col)</code><div class="desc">Compress low-cardinality strings.</div></li>
+      <li class="compute"><code class="cmd"><span class="mod">pc</span>.utf8_upper(col) <span class="cm"># match_substring</span></code><div class="desc">String kernels.</div></li>
+      <li class="compute"><code class="cmd"><span class="mod">pc</span>.is_null(col) <span class="cm"># is_valid</span></code><div class="desc">Null-checking masks.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 JOIN -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Join</span><span class="card-sub">combine tables</span></div>
+    <ul class="cmds">
+      <li class="compute"><code class="cmd">left.join(right, <span class="kw">keys=</span><span class="arg">"id"</span>)</code><span class="star">★</span><div class="desc">Default is a left-outer join.</div></li>
+      <li class="compute"><code class="cmd"><span class="kw">join_type=</span><span class="arg">"inner"</span></code><div class="desc">Also <code>"left outer"</code>, <code>"full outer"</code>.</div></li>
+      <li class="compute"><code class="cmd"><span class="kw">join_type=</span><span class="arg">"left semi"</span></code><div class="desc">Rows in left that <b>have</b> a match.</div></li>
+      <li class="compute"><code class="cmd"><span class="kw">join_type=</span><span class="arg">"left anti"</span></code><div class="desc">Rows in left with <b>no</b> match.</div></li>
+      <li class="compute"><code class="cmd"><span class="kw">left_suffix=</span><span class="arg">"_l"</span>, <span class="kw">right_suffix=</span><span class="arg">"_r"</span></code><div class="desc">Disambiguate colliding names.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 PARQUET -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Parquet</span><span class="card-sub">the default format</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd"><span class="mod">pq</span>.read_table(<span class="arg">"data.parquet"</span>)</code><span class="star">★</span><div class="desc">File → Arrow Table.</div></li>
+      <li class="io"><code class="cmd"><span class="mod">pq</span>.read_table(p, <span class="kw">columns=</span><span class="arg">[...]</span>, <span class="kw">filters=</span><span class="arg">[...]</span>)</code><span class="star">★</span><div class="desc">Column + row pushdown — reads less.</div></li>
+      <li class="io"><code class="cmd"><span class="mod">pq</span>.write_table(table, p, <span class="kw">compression=</span><span class="arg">"zstd"</span>)</code><span class="star">★</span><div class="desc"><code>snappy</code> (default) · <code>zstd</code> · <code>gzip</code>.</div></li>
+      <li class="io"><code class="cmd"><span class="mod">pq</span>.write_to_dataset(table, root, <span class="kw">partition_cols=</span><span class="arg">[...]</span>)</code><div class="desc">Write a Hive-partitioned tree.</div></li>
+      <li class="io"><code class="cmd"><span class="mod">pq</span>.ParquetFile(p).schema_arrow</code><div class="desc">Peek schema without reading data.</div></li>
+      <li class="io"><code class="cmd"><span class="mod">pq</span>.read_metadata(p)</code><div class="desc">Row counts, row groups, stats.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 OTHER FORMATS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">CSV · Feather · IPC</span><span class="card-sub">other formats</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd"><span class="mod">pa</span>.csv.read_csv(<span class="arg">"f.csv"</span>)</code><span class="star">★</span><div class="desc">Fast multithreaded CSV → Table.</div></li>
+      <li class="io"><code class="cmd"><span class="mod">pa</span>.csv.write_csv(table, <span class="arg">"f.csv"</span>)</code><div class="desc">Table → CSV.</div></li>
+      <li class="io"><code class="cmd"><span class="mod">pa</span>.json.read_json(<span class="arg">"f.json"</span>)</code><div class="desc">Line-delimited JSON → Table.</div></li>
+      <li class="io"><code class="cmd"><span class="mod">pa</span>.feather.write_feather(table, <span class="arg">"f.arrow"</span>)</code><span class="star">★</span><div class="desc">Fastest round-trip; <code>read_feather</code> back.</div></li>
+      <li class="io"><code class="cmd"><span class="mod">pa</span>.ipc.new_stream(sink, schema)</code><div class="desc">Stream RecordBatches (Feather = IPC on disk).</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 DATASETS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Datasets</span><span class="card-sub">bigger than memory</span></div>
+    <ul class="cmds">
+      <li class="dataset"><code class="cmd"><span class="mod">ds</span>.dataset(<span class="arg">"dir/"</span>, <span class="kw">format=</span><span class="arg">"parquet"</span>)</code><span class="star">★</span><div class="desc">Many files as one logical table.</div></li>
+      <li class="dataset"><code class="cmd">dataset.to_table()</code><div class="desc">Materialize the whole thing (careful).</div></li>
+      <li class="dataset"><code class="cmd">dataset.scanner(<span class="kw">columns=</span><span class="arg">c</span>, <span class="kw">filter=</span><span class="arg">e</span>).to_table()</code><span class="star">★</span><div class="desc">Pushdown — prune files/rows before reading.</div></li>
+      <li class="dataset"><code class="cmd">dataset.filter(<span class="mod">pc</span>.field(<span class="arg">"x"</span>)&gt;<span class="arg">5</span>)</code><div class="desc">Lazy filter; also <code>.head(5)</code>.</div></li>
+      <li class="dataset"><code class="cmd"><span class="mod">ds</span>.write_dataset(table, base, <span class="kw">partitioning=</span><span class="arg">...</span>)</code><div class="desc">Write a partitioned dataset.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 FILESYSTEMS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Filesystems</span><span class="card-sub">local &amp; cloud</span></div>
+    <ul class="cmds">
+      <li class="dataset"><code class="cmd"><span class="mod">ds</span>.dataset(<span class="arg">"s3://bucket/path/"</span>)</code><span class="star">★</span><div class="desc">URI → filesystem is inferred.</div></li>
+      <li class="dataset"><code class="cmd"><span class="mod">pa</span>.fs.S3FileSystem(<span class="kw">region=</span><span class="arg">"us-east-1"</span>)</code><div class="desc">Explicit S3 handle.</div></li>
+      <li class="dataset"><code class="cmd"><span class="mod">pa</span>.fs.GcsFileSystem() <span class="cm"># LocalFileSystem</span></code><div class="desc">GCS, local, and more.</div></li>
+      <li class="dataset"><code class="cmd"><span class="mod">pa</span>.fs.HadoopFileSystem(<span class="arg">host, port</span>)</code><div class="desc">HDFS access.</div></li>
+      <li class="dataset"><code class="cmd"><span class="kw">filesystem=</span>fs</code><div class="desc">Pass to any read/write call.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 INTEROP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">pandas / NumPy</span><span class="card-sub">the hand-off</span></div>
+    <ul class="cmds">
+      <li class="interop"><code class="cmd"><span class="mod">pa</span>.Table.from_pandas(df)</code><span class="star">★</span><div class="desc">pandas DataFrame → Arrow Table.</div></li>
+      <li class="interop"><code class="cmd">table.to_pandas()</code><span class="star">★</span><div class="desc">Arrow Table → pandas DataFrame.</div></li>
+      <li class="interop"><code class="cmd">table.to_pandas(<span class="kw">types_mapper=</span>pd.ArrowDtype)</code><span class="star">★</span><span class="badge-zc">arrow-backed</span><div class="desc">Stay Arrow-backed — avoids object dtype.</div></li>
+      <li class="interop"><code class="cmd">arr.to_numpy(<span class="kw">zero_copy_only=</span><span class="arg">True</span>)</code><span class="badge-zc">no copy</span><div class="desc">Share buffers with NumPy where possible.</div></li>
+      <li class="interop"><code class="cmd"><span class="mod">pa</span>.array(np_arr)</code><div class="desc">NumPy → Arrow (zero-copy for numerics).</div></li>
+      <li class="interop"><code class="cmd">pl.from_arrow(table)</code><div class="desc">Polars &amp; DuckDB read Arrow natively.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 GOTCHAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Gotchas</span><span class="card-sub">common surprises</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">table[<span class="arg">"x"</span>][<span class="arg">0</span>] = <span class="arg">9</span></code><span class="badge-danger">immutable</span><div class="desc">Arrow is read-only — build a new object instead.</div></li>
+      <li class="danger"><code class="cmd">to_pandas() <span class="cm"># object dtype</span></code><span class="badge-danger">copies</span><div class="desc">Copies strings — use <code>types_mapper=pd.ArrowDtype</code>.</div></li>
+      <li class="danger"><code class="cmd">chunked.to_numpy(zero_copy_only=True)</code><span class="badge-danger">fails</span><div class="desc">Multiple chunks aren't contiguous — <code>combine_chunks()</code>.</div></li>
+      <li class="danger"><code class="cmd">df.to_parquet() <span class="cm"># whole file</span></code><span class="badge-danger">no pushdown</span><div class="desc">Use <code>ds.scanner</code> to filter before reading.</div></li>
+      <li class="danger"><code class="cmd"><span class="mod">pa</span>.Table</code><span class="badge-danger">not in spec</span><div class="desc">A PyArrow convenience — RecordBatch is the wire unit.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four ideas that make Arrow click</h2>
+  <p class="sub">The columnar data model, why it's fast, how nulls work, and the zero-copy hand-off. Based on the official Apache Arrow docs.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>the data model, nested</h3>
+      <p>An <b>Array</b> is one column-chunk. Stack chunks → <b>ChunkedArray</b> (a column). Line up columns under a schema → <b>Table</b>.</p>
+      <svg viewBox="0 0 390 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="An Array is one chunk; a ChunkedArray stacks chunks into a column; a Table lines up several chunked columns under a shared schema.">
+        <g font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">
+          <text x="42" y="20" fill="#1a1d24" font-size="9.5" font-weight="700">Array</text>
+          <rect x="20" y="28" width="44" height="20" rx="3" fill="#fdf6ec" stroke="#d97706" stroke-width="1.4"/><text x="42" y="42" fill="#b45309">chunk</text>
+
+          <text x="140" y="20" fill="#1a1d24" font-size="9.5" font-weight="700">ChunkedArray</text>
+          <rect x="118" y="28" width="44" height="18" rx="3" fill="#fdf6ec" stroke="#d97706" stroke-width="1.4"/><text x="140" y="41" fill="#b45309">chunk 0</text>
+          <rect x="118" y="48" width="44" height="18" rx="3" fill="#fdf6ec" stroke="#d97706" stroke-width="1.4"/><text x="140" y="61" fill="#b45309">chunk 1</text>
+          <rect x="118" y="68" width="44" height="18" rx="3" fill="#fdf6ec" stroke="#d97706" stroke-width="1.4"/><text x="140" y="81" fill="#b45309">chunk 2</text>
+
+          <text x="300" y="20" fill="#1a1d24" font-size="9.5" font-weight="700">Table = Schema + columns</text>
+          <rect x="222" y="28" width="156" height="16" rx="3" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/><text x="300" y="40" fill="#059669">schema:  a: int64   b: str   c: bool</text>
+          <g fill="#fdf6ec" stroke="#d97706" stroke-width="1.2">
+            <rect x="222" y="48" width="50" height="16" rx="2"/><rect x="222" y="66" width="50" height="16" rx="2"/><rect x="222" y="84" width="50" height="16" rx="2"/>
+            <rect x="275" y="48" width="50" height="16" rx="2"/><rect x="275" y="66" width="50" height="16" rx="2"/><rect x="275" y="84" width="50" height="16" rx="2"/>
+            <rect x="328" y="48" width="50" height="16" rx="2"/><rect x="328" y="66" width="50" height="16" rx="2"/><rect x="328" y="84" width="50" height="16" rx="2"/>
+          </g>
+          <text x="247" y="118" fill="#64748b">col a</text><text x="300" y="118" fill="#64748b">col b</text><text x="353" y="118" fill="#64748b">col c</text>
+          <text x="300" y="138" fill="#64748b" font-size="8.5">each column is a ChunkedArray</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>columnar, not row-wise</h3>
+      <p>Arrow stores each column contiguously. That means SIMD-friendly compute and reading only the columns a query touches.</p>
+      <svg viewBox="0 0 390 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Row layout interleaves a, b, c per row; Arrow's columnar layout stores all a values together, then all b, then all c.">
+        <g font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">
+          <text x="20" y="24" fill="#64748b" font-size="9" text-anchor="start">row layout →</text>
+          <g stroke="#cbd5e1" stroke-width="1">
+            <rect x="118" y="14" width="20" height="16" fill="#fdf6ec"/><rect x="138" y="14" width="20" height="16" fill="#ecf7f2"/><rect x="158" y="14" width="20" height="16" fill="#eef0fd"/>
+            <rect x="180" y="14" width="20" height="16" fill="#fdf6ec"/><rect x="200" y="14" width="20" height="16" fill="#ecf7f2"/><rect x="220" y="14" width="20" height="16" fill="#eef0fd"/>
+            <rect x="242" y="14" width="20" height="16" fill="#fdf6ec"/><rect x="262" y="14" width="20" height="16" fill="#ecf7f2"/><rect x="282" y="14" width="20" height="16" fill="#eef0fd"/>
+          </g>
+          <g fill="#475569"><text x="128" y="26">a</text><text x="148" y="26">b</text><text x="168" y="26">c</text><text x="190" y="26">a</text><text x="210" y="26">b</text><text x="230" y="26">c</text><text x="252" y="26">a</text><text x="272" y="26">b</text><text x="292" y="26">c</text></g>
+          <text x="360" y="26" fill="#94a3b8" font-size="8" text-anchor="end">interleaved</text>
+
+          <text x="20" y="86" fill="#059669" font-size="9" text-anchor="start" font-weight="700">Arrow columnar →</text>
+          <g stroke="#d97706" stroke-width="1"><rect x="118" y="76" width="20" height="16" fill="#fdf6ec"/><rect x="138" y="76" width="20" height="16" fill="#fdf6ec"/><rect x="158" y="76" width="20" height="16" fill="#fdf6ec"/></g>
+          <g stroke="#059669" stroke-width="1"><rect x="184" y="76" width="20" height="16" fill="#ecf7f2"/><rect x="204" y="76" width="20" height="16" fill="#ecf7f2"/><rect x="224" y="76" width="20" height="16" fill="#ecf7f2"/></g>
+          <g stroke="#4f46e5" stroke-width="1"><rect x="250" y="76" width="20" height="16" fill="#eef0fd"/><rect x="270" y="76" width="20" height="16" fill="#eef0fd"/><rect x="290" y="76" width="20" height="16" fill="#eef0fd"/></g>
+          <g fill="#475569"><text x="128" y="88">a</text><text x="148" y="88">a</text><text x="168" y="88">a</text><text x="194" y="88">b</text><text x="214" y="88">b</text><text x="234" y="88">b</text><text x="260" y="88">c</text><text x="280" y="88">c</text><text x="300" y="88">c</text></g>
+          <text x="148" y="106" fill="#b45309" font-size="8">all a</text><text x="214" y="106" fill="#059669" font-size="8">all b</text><text x="280" y="106" fill="#4f46e5" font-size="8">all c</text>
+          <text x="205" y="134" fill="#64748b" font-size="8.5">contiguous per column → vectorized + column projection</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>nulls = a validity bitmap</h3>
+      <p>Every array carries a separate 1-bit-per-value bitmap. No sentinel value, no wasted space — and null checks are just bit ops.</p>
+      <svg viewBox="0 0 390 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="An Arrow array pairs a values buffer with a validity bitmap where 1 marks a valid value and 0 marks a null.">
+        <g font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">
+          <text x="34" y="52" fill="#64748b" font-size="9" text-anchor="start">values</text>
+          <g stroke="#d97706" stroke-width="1.3" fill="#fdf6ec">
+            <rect x="90" y="40" width="40" height="24"/><rect x="130" y="40" width="40" height="24"/><rect x="170" y="40" width="40" height="24"/><rect x="210" y="40" width="40" height="24"/><rect x="250" y="40" width="40" height="24"/>
+          </g>
+          <g fill="#b45309"><text x="110" y="56">7</text><text x="150" y="56">·</text><text x="190" y="56">3</text><text x="230" y="56">9</text><text x="270" y="56">·</text></g>
+
+          <text x="34" y="96" fill="#64748b" font-size="9" text-anchor="start">validity</text>
+          <g stroke="#059669" stroke-width="1.3">
+            <rect x="90" y="84" width="40" height="24" fill="#ecf7f2"/><rect x="130" y="84" width="40" height="24" fill="#fdf0ef"/><rect x="170" y="84" width="40" height="24" fill="#ecf7f2"/><rect x="210" y="84" width="40" height="24" fill="#ecf7f2"/><rect x="250" y="84" width="40" height="24" fill="#fdf0ef"/>
+          </g>
+          <g font-weight="700"><text x="110" y="100" fill="#059669">1</text><text x="150" y="100" fill="#dc2626">0</text><text x="190" y="100" fill="#059669">1</text><text x="230" y="100" fill="#059669">1</text><text x="270" y="100" fill="#dc2626">0</text></g>
+          <text x="205" y="132" fill="#64748b" font-size="8.5">1 = valid · 0 = null (the value slot is ignored)</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>zero-copy sharing</h3>
+      <p>The same memory buffers back an Arrow Table, an Arrow-dtype pandas frame, NumPy, and other languages via the C Data Interface — no serialization.</p>
+      <svg viewBox="0 0 390 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="One set of Arrow buffers in memory is referenced by pandas, NumPy, Polars and other languages without copying.">
+        <g font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">
+          <rect x="150" y="60" width="90" height="34" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+          <text x="195" y="75" fill="#1a1d24" font-weight="700" font-size="9.5">Arrow buffers</text>
+          <text x="195" y="88" fill="#b45309">shared memory</text>
+
+          <g stroke="#0d9488" stroke-width="1.5" fill="none">
+            <line x1="150" y1="72" x2="92" y2="34" marker-end="url(#arrowt)"/>
+            <line x1="150" y1="82" x2="92" y2="120" marker-end="url(#arrowt)"/>
+            <line x1="240" y1="72" x2="298" y2="34" marker-end="url(#arrowt)"/>
+            <line x1="240" y1="82" x2="298" y2="120" marker-end="url(#arrowt)"/>
+          </g>
+          <g fill="#0d9488" font-size="8.5">
+            <rect x="34" y="20" width="58" height="20" rx="4" fill="#e6f5f3" stroke="#0d9488" stroke-width="1"/><text x="63" y="33" fill="#0f766e">pandas</text>
+            <rect x="34" y="112" width="58" height="20" rx="4" fill="#e6f5f3" stroke="#0d9488" stroke-width="1"/><text x="63" y="125" fill="#0f766e">NumPy</text>
+            <rect x="298" y="20" width="58" height="20" rx="4" fill="#e6f5f3" stroke="#0d9488" stroke-width="1"/><text x="327" y="33" fill="#0f766e">Polars</text>
+            <rect x="298" y="112" width="58" height="20" rx="4" fill="#e6f5f3" stroke="#0d9488" stroke-width="1"/><text x="327" y="125" fill="#0f766e">C / Rust / R</text>
+          </g>
+          <text x="195" y="120" fill="#64748b" font-size="8.5">same bytes · many views · no copy</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">columnar</span><span class="v">stored by column → vectorized compute + cheap projection</span></div>
+    <div><span class="k">zero-copy</span><span class="v">Arrow ⇄ pandas/NumPy/Polars often share buffers</span></div>
+    <div><span class="k">immutable</span><span class="v">arrays never change in place; ops return new objects</span></div>
+    <div><span class="k">Array ⊂ ChunkedArray ⊂ Table</span><span class="v">chunk, column, table of columns</span></div>
+    <div><span class="k">pushdown</span><span class="v"><code>ds.scanner(columns=, filter=)</code> prunes before reading</span></div>
+    <div><span class="k">pd.ArrowDtype</span><span class="v"><code>to_pandas(types_mapper=pd.ArrowDtype)</code> stays Arrow-backed</span></div>
+    <div><span class="k">nulls</span><span class="v">a separate validity bitmap, not a sentinel</span></div>
+    <div><span class="k">Feather = Arrow IPC</span><span class="v">the on-disk form of the in-memory format</span></div>
+    <div><span class="k">combine_chunks()</span><span class="v">needed before a zero-copy <code>to_numpy()</code></span></div>
+    <div><span class="k">stay in Arrow</span><span class="v">convert to pandas late &amp; narrow (few cols, filtered)</span></div>
+  </div>
+</section>
+
+<footer>
+  PyArrow cheat sheet · synthesized from the official Apache Arrow Python docs (arrow.apache.org/docs/python — data model, compute, parquet, dataset, fs) and community guides.<br>
+  API shown for PyArrow ≈ 25.x (versioned with Apache Arrow) · Python 3.10–3.14 · pairs naturally with pandas 3.x <code>ArrowDtype</code>, Polars, and DuckDB.
+</footer>
+
+</body>
+</html>

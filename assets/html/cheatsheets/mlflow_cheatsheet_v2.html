@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLflow Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --slate:#64748b;  --slate-bg:#f1f3f6;
+    --amber:#d97706;  --amber-bg:#fdf6ec;
+    --green:#059669;  --green-bg:#ecf7f2;
+    --indigo:#4f46e5; --indigo-bg:#eef0fd;
+    --violet:#7c3aed; --violet-bg:#f4effe;
+    --teal:#0d9488;   --teal-bg:#eaf6f4;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309; --mf:#0194e2;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1560px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .wm{font-family:var(--mono)}
+  h1 .wm .ml{color:var(--mf)}
+  h1 .wm .fl{color:var(--ink)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .lede b{font-weight:600; color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{max-width:1560px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem}
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1180px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- quickstart ---------- */
+  .quick{max-width:1560px; margin:0 auto; padding:1.4rem clamp(1rem,4vw,3rem) .5rem}
+  .quick-box{
+    background:var(--ink); border-radius:10px; overflow:hidden;
+    max-width:1180px; margin:0 auto;
+  }
+  .quick-cap{
+    font-family:var(--mono); font-size:.7rem; letter-spacing:.12em;
+    text-transform:uppercase; color:#8b93a3; padding:.75rem 1.2rem .1rem;
+  }
+  pre.quick-inner{
+    white-space:pre; margin:0; tab-size:2; overflow-x:auto;
+    font-family:var(--mono); font-size:.79rem; line-height:1.75;
+    color:#e8e6e1; padding:.5rem 1.2rem 1.1rem;
+  }
+  pre.quick-inner .cm{color:#7f8896}
+  pre.quick-inner .kw{color:#c792ea}
+  pre.quick-inner .mod{color:#82aaff}
+  pre.quick-inner .fn{color:#7fdbca}
+  pre.quick-inner .str{color:#c3e88d}
+  pre.quick-inner .num{color:#f78c6c}
+  pre.quick-inner .hi{color:#ffcb6b; font-weight:700}
+
+  /* ---------- part bars ---------- */
+  .partbar{
+    max-width:1560px; margin:2.4rem auto .2rem; padding:0 clamp(1rem,4vw,3rem);
+    display:flex; align-items:baseline; gap:.7rem; flex-wrap:wrap;
+  }
+  .partbar .pt{
+    font-family:var(--mono); font-size:.68rem; font-weight:700; letter-spacing:.1em;
+    text-transform:uppercase; color:#fff; background:var(--ink);
+    border-radius:5px; padding:.2rem .5rem;
+  }
+  .partbar h2{font-size:1.22rem; font-weight:700; letter-spacing:-.01em}
+  .partbar .ps{font-size:.78rem; color:var(--muted); font-family:var(--mono)}
+  .partrule{
+    max-width:1560px; margin:.55rem auto 0; padding:0 clamp(1rem,4vw,3rem);
+  }
+  .partrule div{border-top:2px solid var(--ink)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1560px; margin:0 auto; padding:1.3rem clamp(1rem,4vw,3rem) 1.5rem;
+    column-gap:1.4rem; column-fill:balance;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  @media(min-width:1620px){ main{column-count:4} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-left:4px solid var(--slate);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card.c-slate{border-left-color:var(--slate)}
+  .card.c-amber{border-left-color:var(--amber)}
+  .card.c-green{border-left-color:var(--green)}
+  .card.c-indigo{border-left-color:var(--indigo)}
+  .card.c-violet{border-left-color:var(--violet)}
+  .card.c-teal{border-left-color:var(--teal)}
+  .card.c-red{border-left-color:var(--danger)}
+
+  .card-head{
+    display:flex; align-items:baseline; gap:.55rem; flex-wrap:wrap;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.warn{background:var(--danger-bg)}
+  ul.cmds li.good{background:var(--green-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.81rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.55;
+  }
+  code.cmd .mod{color:var(--indigo)}
+  code.cmd .kw{color:#a626a4}
+  code.cmd .fn{color:var(--green); font-weight:700}
+  code.cmd .arg{color:var(--slate)}
+  code.cmd .str{color:var(--amber)}
+  code.cmd .num{color:#b45309}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.warn code.cmd{color:var(--danger)}
+  li.warn code.cmd .fn,li.warn code.cmd .mod{color:var(--danger)}
+  .desc{font-size:.775rem; color:#525761; margin-top:.2rem}
+  .desc code{font-family:var(--mono); font-size:.94em; color:var(--ink)}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.1rem; letter-spacing:.03em;
+  }
+  .tag{
+    font-size:.61rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.3rem;
+    border-radius:4px; padding:.06rem .3rem; white-space:nowrap;
+  }
+  .tag.new{color:var(--violet); background:var(--violet-bg)}
+  .tag.gone{color:var(--danger); background:var(--danger-bg)}
+  .tag.doc{color:var(--teal); background:var(--teal-bg)}
+
+  /* ---------- diagram section ---------- */
+  .diagrams{max-width:1560px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem}
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:900px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:var(--mono)}
+
+  /* ---------- refs strip ---------- */
+  .refs{max-width:1560px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.8rem;
+    display:grid; gap:.6rem; grid-template-columns:1fr;
+  }
+  @media(min-width:820px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner .v code{color:#e8e6e1; font-size:.95em}
+
+  footer{
+    max-width:1560px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.75;
+  }
+  footer b{color:var(--ink); font-weight:500}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head><body>
+
+<header>
+  <div class="eyebrow">Quick Reference &middot; the ML &amp; GenAI lifecycle platform</div>
+  <h1><span class="wm"><span class="ml">ml</span><span class="fl">flow</span></span> cheat sheet</h1>
+  <p class="lede">An <b>experiment</b> holds three kinds of record, and MLflow 3 is the release that made the second one first-class. A <b>Run</b> is one execution &mdash; params, metrics, tags, artifacts. A <b>LoggedModel</b> is one model with its own id, metrics and artifacts, no longer buried inside a run's artifact folder. A <b>Trace</b> is one request through an LLM app, broken into spans. The <b>Registry</b> sits on top and promotes a model by moving an <b>alias</b>.</p>
+  <div class="legend">
+    <span><i class="dot" style="background:var(--slate)"></i>setup &middot; CLI &middot; projects</span>
+    <span><i class="dot" style="background:var(--indigo)"></i>runs</span>
+    <span><i class="dot" style="background:var(--green)"></i>logging</span>
+    <span><i class="dot" style="background:var(--amber)"></i>models &amp; flavors</span>
+    <span><i class="dot" style="background:var(--violet)"></i>registry &amp; serving</span>
+    <span><i class="dot" style="background:var(--teal)"></i>tracing &amp; evaluation</span>
+    <span><i class="dot" style="background:var(--danger)"></i>removed / gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Built against the official docs at <b>mlflow.org/docs/latest</b> &mdash; the ML track (tracking, tracking APIs, model, model registry, evaluation) and the LLMs &amp; Agents track (tracing, scorers, judges) &mdash; plus the <b>MLflow 3 Migration Guide</b>, the <b>Breaking Changes</b> page, the full <b>CLI reference</b>, and the 3.x release notes.</p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">One experiment end to end &middot; and the three records it holds</div>
+  <svg class="flow-svg" viewBox="0 0 1180 404" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of an MLflow workflow from set_experiment through start_run, logging, log_model and registration, and the three record types an experiment holds.">
+    <defs>
+      <marker id="mfA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="mfB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+      </marker>
+      <marker id="mfV" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+      </marker>
+    </defs>
+
+    <text x="20" y="18" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">A &middot; THE PATH OF ONE EXPERIMENT</text>
+
+    <g>
+      <rect x="20" y="34" width="196" height="70" rx="10" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="118" y="58" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">set_experiment()</text>
+      <text x="118" y="76" text-anchor="middle" font-size="9.5" fill="#64748b">where records land</text>
+      <text x="118" y="92" text-anchor="middle" font-size="9.5" fill="#64748b">set_tracking_uri first</text>
+    </g>
+    <g>
+      <rect x="252" y="34" width="196" height="70" rx="10" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="350" y="58" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">start_run()</text>
+      <text x="350" y="76" text-anchor="middle" font-size="9.5" fill="#4f46e5">a context manager</text>
+      <text x="350" y="92" text-anchor="middle" font-size="9.5" fill="#4f46e5">creates the Run</text>
+    </g>
+    <g>
+      <rect x="484" y="34" width="196" height="70" rx="10" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="582" y="58" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">log_params / metrics</text>
+      <text x="582" y="76" text-anchor="middle" font-size="9.5" fill="#059669">or just autolog()</text>
+      <text x="582" y="92" text-anchor="middle" font-size="9.5" fill="#059669">params write once</text>
+    </g>
+    <g>
+      <rect x="716" y="34" width="196" height="70" rx="10" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="814" y="58" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">log_model(name=)</text>
+      <text x="814" y="76" text-anchor="middle" font-size="9.5" fill="#b45309">makes a LoggedModel</text>
+      <text x="814" y="92" text-anchor="middle" font-size="9.5" fill="#b45309">returns model_uri</text>
+    </g>
+    <g>
+      <rect x="948" y="34" width="212" height="70" rx="10" fill="#f4effe" stroke="#7c3aed" stroke-width="2"/>
+      <text x="1054" y="58" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">register &amp; serve</text>
+      <text x="1054" y="76" text-anchor="middle" font-size="9.5" fill="#7c3aed">alias points at a version</text>
+      <text x="1054" y="92" text-anchor="middle" font-size="9.5" fill="#7c3aed">mlflow models serve</text>
+    </g>
+
+    <line x1="218" y1="69" x2="248" y2="69" stroke="#1a1d24" stroke-width="2" marker-end="url(#mfA)"/>
+    <line x1="450" y1="69" x2="480" y2="69" stroke="#1a1d24" stroke-width="2" marker-end="url(#mfA)"/>
+    <line x1="682" y1="69" x2="712" y2="69" stroke="#1a1d24" stroke-width="2" marker-end="url(#mfA)"/>
+    <line x1="914" y1="69" x2="944" y2="69" stroke="#1a1d24" stroke-width="2" marker-end="url(#mfA)"/>
+
+    <text x="814" y="122" text-anchor="middle" font-size="9.5" fill="#dc2626">log_model no longer needs an open run &mdash; models are first-class in MLflow 3</text>
+
+    <line x1="0" y1="142" x2="1180" y2="142" stroke="#e7e3db" stroke-width="1.5"/>
+    <text x="20" y="164" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">B &middot; WHAT AN EXPERIMENT HOLDS</text>
+
+    <g>
+      <rect x="20" y="240" width="152" height="76" rx="10" fill="#1a1d24"/>
+      <text x="96" y="272" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">Experiment</text>
+      <text x="96" y="292" text-anchor="middle" font-size="9" fill="#8b93a3">the container</text>
+    </g>
+
+    <g>
+      <rect x="228" y="190" width="196" height="50" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.8"/>
+      <text x="326" y="211" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">Run</text>
+      <text x="326" y="228" text-anchor="middle" font-size="9" fill="#4f46e5">params &middot; metrics &middot; tags</text>
+    </g>
+    <g>
+      <rect x="228" y="252" width="196" height="50" rx="8" fill="#fdf6ec" stroke="#d97706" stroke-width="1.8"/>
+      <text x="326" y="273" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">LoggedModel</text>
+      <text x="326" y="290" text-anchor="middle" font-size="9" fill="#b45309">own id &middot; own metrics</text>
+    </g>
+    <g>
+      <rect x="228" y="314" width="196" height="50" rx="8" fill="#eaf6f4" stroke="#0d9488" stroke-width="1.8"/>
+      <text x="326" y="335" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">Trace</text>
+      <text x="326" y="352" text-anchor="middle" font-size="9" fill="#0d9488">spans of one request</text>
+    </g>
+
+    <line x1="174" y1="262" x2="224" y2="216" stroke="#64748b" stroke-width="1.5" marker-end="url(#mfB)"/>
+    <line x1="174" y1="278" x2="224" y2="278" stroke="#64748b" stroke-width="1.5" marker-end="url(#mfB)"/>
+    <line x1="174" y1="294" x2="224" y2="338" stroke="#64748b" stroke-width="1.5" marker-end="url(#mfB)"/>
+
+    <g>
+      <rect x="472" y="212" width="216" height="52" rx="8" fill="#f1f3f6" stroke="#64748b" stroke-width="1.6"/>
+      <text x="580" y="233" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">backend store</text>
+      <text x="580" y="250" text-anchor="middle" font-size="9" fill="#64748b">metadata &middot; files or a database</text>
+    </g>
+    <g>
+      <rect x="472" y="288" width="216" height="52" rx="8" fill="#f1f3f6" stroke="#64748b" stroke-width="1.6"/>
+      <text x="580" y="309" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">artifact store</text>
+      <text x="580" y="326" text-anchor="middle" font-size="9" fill="#64748b">the large files themselves</text>
+    </g>
+    <line x1="426" y1="240" x2="468" y2="234" stroke="#64748b" stroke-width="1.4" marker-end="url(#mfB)"/>
+    <line x1="426" y1="300" x2="468" y2="308" stroke="#64748b" stroke-width="1.4" marker-end="url(#mfB)"/>
+    <text x="580" y="360" text-anchor="middle" font-size="8.5" font-style="italic" fill="#94a3b8">the registry needs the database-backed one</text>
+
+    <g>
+      <rect x="736" y="248" width="230" height="60" rx="10" fill="#f4effe" stroke="#7c3aed" stroke-width="2"/>
+      <text x="851" y="272" text-anchor="middle" font-size="12" font-weight="700" fill="#6d28d9">Model Registry</text>
+      <text x="851" y="290" text-anchor="middle" font-size="9" fill="#7c3aed">name &middot; version &middot; alias</text>
+    </g>
+    <path d="M 426 276 C 560 276, 620 200, 732 262" fill="none" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#mfV)"/>
+    <text x="700" y="196" text-anchor="middle" font-size="8.5" fill="#7c3aed">register_model()</text>
+
+    <text x="1000" y="238" font-size="9" font-weight="700" fill="#1a1d24">models:/&lt;model_id&gt;</text>
+    <text x="1000" y="254" font-size="8" fill="#64748b">one logged model</text>
+    <text x="1000" y="276" font-size="9" font-weight="700" fill="#1a1d24">models:/&lt;name&gt;/3</text>
+    <text x="1000" y="292" font-size="8" fill="#64748b">a pinned version</text>
+    <text x="1000" y="314" font-size="9" font-weight="700" fill="#6d28d9">models:/&lt;name&gt;@champion</text>
+    <text x="1000" y="330" font-size="8" fill="#64748b">whatever the alias points at</text>
+    <text x="1000" y="352" font-size="8" font-style="italic" fill="#dc2626">runs:/&hellip; still works, deprecated</text>
+  </svg>
+</section>
+
+<!-- ============ QUICKSTART ============ -->
+<section class="quick">
+  <div class="quick-box">
+    <div class="quick-cap">A tracked, registered, reloadable model in seventeen lines</div>
+<pre class="quick-inner"><span class="kw">import</span> <span class="mod">mlflow</span>
+<span class="kw">from</span> <span class="mod">mlflow.models</span> <span class="kw">import</span> infer_signature
+
+mlflow.<span class="fn">set_tracking_uri</span>(<span class="str">"http://127.0.0.1:5000"</span>)   <span class="cm"># without this it writes to ./mlruns</span>
+mlflow.<span class="fn">set_experiment</span>(<span class="str">"fraud-detection"</span>)         <span class="cm"># created if it does not exist</span>
+mlflow.<span class="fn">autolog</span>()                                 <span class="cm"># params, metrics and the model, for free</span>
+
+<span class="kw">with</span> mlflow.<span class="fn">start_run</span>(run_name=<span class="str">"rf-baseline"</span>) <span class="kw">as</span> run:
+    model.<span class="fn">fit</span>(X_train, y_train)
+    mlflow.<span class="fn">log_params</span>({<span class="str">"n_estimators"</span>: <span class="num">300</span>, <span class="str">"max_depth"</span>: <span class="num">8</span>})
+    mlflow.<span class="fn">log_metric</span>(<span class="str">"val_auc"</span>, auc, step=epoch)      <span class="cm"># step is optional, metrics are a series</span>
+
+    info = mlflow.sklearn.<span class="fn">log_model</span>(
+        model,
+        name=<span class="str">"model"</span>,                              <span class="cm"># MLflow 3: name=, NOT artifact_path=</span>
+        signature=<span class="fn">infer_signature</span>(X_train, model.<span class="fn">predict</span>(X_train)),
+        input_example=X_train[:<span class="num">5</span>],
+        registered_model_name=<span class="str">"fraud-rf"</span>,           <span class="cm"># log and register in one step</span>
+    )
+
+loaded = mlflow.pyfunc.<span class="fn">load_model</span>(info.<span class="hi">model_uri</span>)   <span class="cm"># use the returned URI, not get_artifact_uri()</span>
+</pre>
+  </div>
+</section>
+
+<!-- ============ PART I ============ -->
+<div class="partbar">
+  <span class="pt">Part I</span>
+  <h2>Setup, runs &amp; logging</h2>
+  <span class="ps">point MLflow somewhere, open a run, and record what happened</span>
+</div>
+<div class="partrule"><div></div></div>
+
+<main>
+
+  <!-- 01 -->
+  <article class="card c-slate">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; the packages</span><span class="card-sub">three of them</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">pip install mlflow</code><div class="desc">The full platform, including the server and UI. Python 3.10+ since MLflow 3.</div></li>
+      <li><code class="cmd">pip install mlflow-skinny</code><div class="desc">Client only &mdash; no server, no UI, far fewer dependencies. The right choice inside a training container.</div></li>
+      <li><code class="cmd">pip install mlflow-tracing</code><div class="desc">Tracing SDK alone, for instrumenting an app that only needs to emit traces. Do not co-install with full <code>mlflow</code>.</div></li>
+      <li><code class="cmd">pip install <span class="str">"mlflow[genai]"</span></code><div class="desc">Extras also include <code>databricks</code>, <code>gateway</code>, <code>langchain</code>, <code>mcp</code>, <code>auth</code>, <code>kubernetes</code>, <code>azure</code>, <code>sqlserver</code>.</div></li>
+      <li><code class="cmd">pip install <span class="str">'mlflow&lt;3'</span></code><div class="desc">Pin to 2.x if you are not ready to migrate. MLflow 3 reads 2.x data; the reverse is not true.</div></li>
+      <li><code class="cmd">mlflow --version  &middot;  mlflow doctor</code><div class="desc"><code>doctor</code> dumps environment and config for bug reports; add <code>--mask-envs</code> before pasting it anywhere.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 -->
+  <article class="card c-slate">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">The CLI</span><span class="card-sub">mlflow --help</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">mlflow server --port 5000</code><div class="desc">Starts the tracking server and UI. Binds to localhost only; use <code>--host 0.0.0.0</code> to expose it.</div></li>
+      <li><code class="cmd">mlflow server --backend-store-uri sqlite:///mlflow.db</code><div class="desc">A database backend. <b>Required for the Model Registry</b> &mdash; the file store cannot serve it.</div></li>
+      <li><code class="cmd">mlflow server --artifacts-destination s3://bucket</code><div class="desc">Proxies artifact traffic through the server, so clients need no cloud credentials.</div></li>
+      <li><code class="cmd">mlflow demo</code><span class="tag new">3.x</span><div class="desc">Spins up a server pre-populated with demo data. The fastest way to see what the UI offers.</div></li>
+      <li><code class="cmd">mlflow models serve -m <span class="str">"models:/fraud-rf@champion"</span> -p 1234</code><div class="desc">Local REST endpoint at <code>/invocations</code>. Defaults to a virtualenv built from the model's requirements.</div></li>
+      <li><code class="cmd">mlflow run . -P lr=<span class="num">0.02</span></code><div class="desc">Runs an MLproject entry point with parameters.</div></li>
+      <li><code class="cmd">mlflow gc --older-than 30d</code><div class="desc">Permanently deletes runs already in the <em>deleted</em> stage. Deletion in the UI only soft-deletes.</div></li>
+      <li><code class="cmd">mlflow db upgrade sqlite:///mlflow.db</code><div class="desc">Migrates the schema after an MLflow upgrade. <b>Back up first</b> &mdash; migrations are not transactional.</div></li>
+      <li><code class="cmd">mlflow experiments search  &middot;  mlflow runs list --experiment-id 1</code><div class="desc">Browse from the shell. Both need <code>MLFLOW_TRACKING_URI</code> set.</div></li>
+      <li><code class="cmd">mlflow artifacts download -u <span class="str">"runs:/&lt;id&gt;/plots"</span></code><div class="desc">Pull artifacts without writing Python.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 -->
+  <article class="card c-slate">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Where it writes</span><span class="card-sub">URI &amp; the two stores</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">mlflow.<span class="fn">set_tracking_uri</span>(<span class="str">"http://127.0.0.1:5000"</span>)</code><div class="desc">Call it <b>before</b> anything else. Without it everything lands in a local <code>./mlruns</code> folder.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">set_tracking_uri</span>(<span class="str">"sqlite:///mlflow.db"</span>)</code><div class="desc">Talk to a database directly, no server needed. Enough to unlock the registry for solo work.</div></li>
+      <li><code class="cmd">export MLFLOW_TRACKING_URI=...</code><div class="desc">The CLI does <b>not</b> read your Python config &mdash; most CLI commands need this variable set.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">set_registry_uri</span>(<span class="str">"databricks-uc"</span>)</code><div class="desc">Registry can live somewhere other than tracking &mdash; this is how you target Unity Catalog.</div></li>
+      <li><code class="cmd"><span class="cm"># backend store = metadata &middot; artifact store = files</span></code><div class="desc">Two separate things. Params and metrics go to one, model weights and plots to the other.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">get_tracking_uri</span>()</code><div class="desc">Check what you are actually connected to before blaming the server.</div></li>
+      <li class="warn"><code class="cmd"><span class="cm"># file store cannot serve the Model Registry</span></code><div class="desc">If registry calls fail, this is nearly always why. Move to SQLite or Postgres.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 -->
+  <article class="card c-slate">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Experiments</span><span class="card-sub">the container</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">mlflow.<span class="fn">set_experiment</span>(<span class="str">"fraud-detection"</span>)</code><div class="desc">Creates it if missing. Everything after this call lands there.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">create_experiment</span>(name, artifact_location=<span class="str">"s3://bucket"</span>, tags={...})</code><div class="desc">Explicit creation when you need a custom artifact root or tags from the start.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">search_experiments</span>(filter_string=<span class="str">"tags.team = 'ds'"</span>)</code><div class="desc">Find experiments programmatically.</div></li>
+      <li><code class="cmd">MLFLOW_EXPERIMENT_NAME  &middot;  MLFLOW_EXPERIMENT_ID</code><div class="desc">Set the target from the environment so the same script works across stages unchanged.</div></li>
+      <li><code class="cmd">mlflow experiments create -n <span class="str">"my-exp"</span></code><div class="desc">Same thing from the shell.</div></li>
+      <li class="warn"><code class="cmd"><span class="cm"># deleting an experiment only marks it deleted</span></code><div class="desc">The file store moves it to <code>.trash</code>. Space is reclaimed only by <code>mlflow gc</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 -->
+  <article class="card c-indigo">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Start a run<span class="star">&#9733;</span></span><span class="card-sub">context manager</span></div>
+    <ul class="cmds">
+      <li><code class="cmd"><span class="kw">with</span> mlflow.<span class="fn">start_run</span>() <span class="kw">as</span> run:</code><div class="desc"><b>The form to use.</b> Ends the run on exit and marks it FAILED if the block raises.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">start_run</span>(run_name=<span class="str">"rf-baseline"</span>)</code><div class="desc">A readable label. Without one MLflow generates a random name.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">start_run</span>(nested=<span class="kw">True</span>)</code><div class="desc">Child run under the currently active one &mdash; the pattern for sweeps and CV folds.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">start_run</span>(run_id=rid)</code><div class="desc">Reopen an existing run to append more data to it.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">end_run</span>(status=<span class="str">"FAILED"</span>)</code><div class="desc">Manual close. Statuses: FINISHED, FAILED, KILLED.</div></li>
+      <li><code class="cmd">run.info.run_id  &middot;  run.info.status</code><div class="desc">Identity and state. Keep the id if you plan to reopen or reference the run.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">active_run</span>()  &middot;  mlflow.<span class="fn">last_active_run</span>()</code><div class="desc">The run in progress, and the one that just finished &mdash; handy after autologging.</div></li>
+      <li class="warn"><code class="cmd">run_info.run_uuid<span class="tag gone">removed in 3</span></code><div class="desc">Use <code>run_info.run_id</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 -->
+  <article class="card c-green">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Params, metrics &amp; tags<span class="star">&#9733;</span></span><span class="card-sub">the run record</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">mlflow.<span class="fn">log_param</span>(<span class="str">"lr"</span>, <span class="num">0.01</span>)  &middot;  mlflow.<span class="fn">log_params</span>({...})</code><div class="desc">Inputs. Stored as <b>strings</b>, and <b>immutable</b> &mdash; re-logging a key with a different value raises.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">log_metric</span>(<span class="str">"auc"</span>, <span class="num">0.94</span>)  &middot;  mlflow.<span class="fn">log_metrics</span>({...})</code><div class="desc">Outputs. Numeric and <b>append-only</b> &mdash; a metric is a series, not a single value.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">log_metric</span>(<span class="str">"loss"</span>, l, step=epoch)</code><div class="desc">The x-axis for charts. Any 64-bit int &mdash; may be negative, out of order, or have gaps.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">log_metric</span>(k, v, timestamp=ms)</code><div class="desc">Custom wall-clock, in <b>milliseconds</b>. Passing seconds puts your point in 1970.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">log_metric</span>(k, v, model_id=..., dataset=...)</code><span class="tag new">3.x</span><div class="desc">Attaches the metric to a specific model checkpoint and dataset, not just the run.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">set_tag</span>(<span class="str">"env"</span>, <span class="str">"prod"</span>)  &middot;  mlflow.<span class="fn">set_tags</span>({...})</code><div class="desc">Mutable labels you can search on. Unlike params, tags can be changed later.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">set_tag</span>(<span class="str">"mlflow.note.content"</span>, <span class="str">"..."</span>)</code><div class="desc">The one system tag you are meant to set. Renders as a Notes panel on the run page.</div></li>
+      <li><code class="cmd"><span class="cm"># auto tags: mlflow.source.name / .user / .source.git.commit</span></code><div class="desc">Set for you. Git commit is captured whenever you run inside a repo.</div></li>
+      <li class="warn"><code class="cmd"><span class="cm"># params are strings &mdash; log_param("n", 300) reads back "300"</span></code><div class="desc">Cast on the way out, or filter with the numeric form in search.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 -->
+  <article class="card c-green">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Autolog</span><span class="card-sub">one line, most of it</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">mlflow.<span class="fn">autolog</span>()</code><div class="desc">Enables every installed integration at once. Params, metrics, the model and plots, with no log calls.</div></li>
+      <li><code class="cmd">mlflow.sklearn.<span class="fn">autolog</span>()  &middot;  mlflow.pytorch.<span class="fn">autolog</span>()</code><div class="desc">Per-library, when the blanket call captures more than you want.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">autolog</span>(log_models=<span class="kw">False</span>)</code><div class="desc">Track metrics without uploading a model artifact every fit &mdash; the usual fix for a bloated store.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">autolog</span>(disable=<span class="kw">True</span>)</code><div class="desc">Turn it off again for a block.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">autolog</span>(silent=<span class="kw">True</span>)</code><div class="desc">Suppresses the integration warnings that flood notebook output.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">autolog</span>(exclusive=<span class="kw">True</span>)</code><div class="desc">Blocks your manual calls from mixing into an autologged run.</div></li>
+      <li><code class="cmd">mlflow.openai.<span class="fn">autolog</span>()  &middot;  mlflow.langchain.<span class="fn">autolog</span>()</code><div class="desc">For LLM libraries autolog emits <b>traces</b>, not metrics. 40+ integrations. See card 19.</div></li>
+      <li class="warn"><code class="cmd"><span class="cm"># autolog starts a run if none is active</span></code><div class="desc">And ends it when <code>fit</code> returns. Wrap in <code>start_run</code> if you want to add your own metrics after.</div></li>
+      <li class="warn"><code class="cmd">every_n_iter<span class="tag gone">TF, removed in 3</span></code><div class="desc">Write a callback if you need a custom logging frequency.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 -->
+  <article class="card c-green">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Artifacts &amp; datasets</span><span class="card-sub">files and inputs</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">mlflow.<span class="fn">log_artifact</span>(<span class="str">"confusion.png"</span>)</code><div class="desc">One file. Optional <code>artifact_path=</code> puts it in a subfolder.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">log_artifacts</span>(<span class="str">"./plots/"</span>)</code><div class="desc">A whole directory in one call.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">log_figure</span>(fig, <span class="str">"roc.png"</span>)</code><div class="desc">A matplotlib or plotly figure straight from memory &mdash; no temp file.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">log_table</span>(data, <span class="str">"preds.json"</span>)  &middot;  mlflow.<span class="fn">log_text</span>(s, <span class="str">"notes.txt"</span>)</code><div class="desc">Also <code>log_dict</code> and <code>log_image</code> for the common cases.</div></li>
+      <li><code class="cmd">ds = mlflow.data.<span class="fn">from_pandas</span>(df, name=<span class="str">"train"</span>)</code><div class="desc">Also <code>from_numpy</code>, <code>from_spark</code>, <code>from_huggingface</code>. Captures schema and a digest.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">log_input</span>(ds, context=<span class="str">"training"</span>)</code><div class="desc">Records which data produced the run &mdash; the missing half of reproducibility.</div></li>
+      <li><code class="cmd">mlflow.artifacts.<span class="fn">download_artifacts</span>(run_id=..., artifact_path=...)</code><div class="desc">Fetch them back to local disk.</div></li>
+      <li class="warn"><code class="cmd">mlflow.<span class="fn">get_artifact_uri</span>(<span class="str">"model"</span>)</code><span class="tag gone">wrong in 3</span><div class="desc">Models no longer live under the run's artifacts, so this path will not load. Use the URI returned by <code>log_model</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 -->
+  <article class="card c-indigo">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Nested runs &amp; parallelism</span><span class="card-sub">many runs at once</span></div>
+    <ul class="cmds">
+      <li><code class="cmd"><span class="kw">with</span> mlflow.<span class="fn">start_run</span>(run_name=<span class="str">"sweep"</span>) <span class="kw">as</span> parent:</code><div class="desc">Outer run holds the summary; each trial becomes a child.</div></li>
+      <li><code class="cmd">    <span class="kw">with</span> mlflow.<span class="fn">start_run</span>(nested=<span class="kw">True</span>):</code><div class="desc">The child. Collapses under the parent in the UI instead of flooding the list.</div></li>
+      <li><code class="cmd">filter_string=f<span class="str">"tags.mlflow.parentRunId = '{rid}'"</span></code><div class="desc">How you fetch the children back out.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">set_tracking_uri</span>(...) <span class="cm"># inside each worker</span></code><div class="desc"><b>Required with multiprocessing</b> &mdash; a spawned process does not inherit the URI.</div></li>
+      <li><code class="cmd"><span class="kw">with</span> ThreadPoolExecutor() <span class="kw">as</span> ex: ...</code><div class="desc">Threads share the active run, so give each worker a <code>nested=True</code> run of its own.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">set_tag</span>(<span class="str">"fold"</span>, k)</code><div class="desc">Tag each child so the comparison table sorts sensibly.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ PART II ============ -->
+<div class="partbar">
+  <span class="pt">Part II</span>
+  <h2>Models, flavors &amp; the registry</h2>
+  <span class="ps">where MLflow 3 changed most &mdash; and where old tutorials break</span>
+</div>
+<div class="partrule"><div></div></div>
+
+<main>
+
+  <!-- 10 -->
+  <article class="card c-amber">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Log a model<span class="star">&#9733;</span></span><span class="card-sub">name=, not artifact_path=</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">info = mlflow.sklearn.<span class="fn">log_model</span>(model, name=<span class="str">"model"</span>)</code><div class="desc"><b>The single biggest MLflow 3 change.</b> <code>artifact_path=</code> became <code>name=</code>, and <code>name</code> is what makes the model searchable.</div></li>
+      <li><code class="cmd">info.model_uri  &middot;  info.model_id</code><div class="desc">What <code>log_model</code> hands back. Keep the URI &mdash; it is the only reliable way to load the model again.</div></li>
+      <li><code class="cmd">mlflow.pyfunc.<span class="fn">log_model</span>(name=<span class="str">"m"</span>, python_model=obj)</code><div class="desc"><b>No open run required in MLflow 3.</b> Models are first-class entities now.</div></li>
+      <li><code class="cmd">log_model(..., registered_model_name=<span class="str">"fraud-rf"</span>)</code><div class="desc">Logs and registers in one step, creating the next version automatically.</div></li>
+      <li><code class="cmd">log_model(..., step=epoch)</code><span class="tag new">3.x</span><div class="desc">Several checkpoints in one run, each a separate LoggedModel with its own metrics.</div></li>
+      <li><code class="cmd">mlflow.sklearn.<span class="fn">save_model</span>(model, path=<span class="str">"./out"</span>)</code><div class="desc">Write to disk without a tracking server at all.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">create_external_model</span>(name=<span class="str">"agent"</span>)</code><span class="tag new">3.x</span><div class="desc">Track a model whose weights live elsewhere &mdash; a hosted LLM or a deployed agent.</div></li>
+      <li class="warn"><code class="cmd">log_model(model, <span class="str">"model"</span>)<span class="tag gone">MLflow 2 form</span></code><div class="desc">The positional <code>artifact_path</code> that nearly every tutorial online still shows.</div></li>
+      <li class="warn"><code class="cmd">code_path=  &middot;  example_no_conversion=<span class="tag gone">removed in 3</span></code><div class="desc">Also <code>requirements_file</code> (PyTorch) and <code>inference_config</code> (Transformers).</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 -->
+  <article class="card c-amber">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Model URIs<span class="star">&#9733;</span></span><span class="card-sub">four shapes</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">models:/&lt;model_id&gt;</code><span class="tag new">3.x</span><div class="desc">One specific logged model. The new default, and what <code>info.model_uri</code> gives you.</div></li>
+      <li><code class="cmd">models:/&lt;name&gt;/&lt;version&gt;</code><div class="desc">A registered version, e.g. <code>models:/fraud-rf/3</code>. Immutable &mdash; use it for reproducibility.</div></li>
+      <li><code class="cmd">models:/&lt;name&gt;@champion</code><div class="desc">Whatever the alias currently points at. Use it in serving so you can promote without a redeploy.</div></li>
+      <li><code class="cmd">/local/path  &middot;  s3://bucket/path</code><div class="desc">A saved model directory, straight off disk or object storage.</div></li>
+      <li class="warn"><code class="cmd">runs:/&lt;run_id&gt;/&lt;path&gt;<span class="tag gone">deprecated</span></code><div class="desc">Still resolves, but slated for removal. The MLflow 2 form every old snippet uses.</div></li>
+      <li class="warn"><code class="cmd">models:/&lt;name&gt;/Production<span class="tag gone">stage URI</span></code><div class="desc">Stage-based URIs went with stages. Community cheat sheets are full of these.</div></li>
+      <li class="warn"><code class="cmd">ResourceNotFound <span class="kw">on</span> load_model</code><div class="desc">Almost always a stale URI shape. Artifacts moved to <code>experiments/&lt;id&gt;/models/&lt;model_id&gt;/</code> in MLflow 3.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 -->
+  <article class="card c-amber">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Signatures &amp; examples</span><span class="card-sub">the contract</span></div>
+    <ul class="cmds">
+      <li><code class="cmd"><span class="kw">from</span> <span class="mod">mlflow.models</span> <span class="kw">import</span> infer_signature</code><div class="desc">The helper you want in essentially every training script.</div></li>
+      <li><code class="cmd">sig = <span class="fn">infer_signature</span>(X_train, model.<span class="fn">predict</span>(X_train))</code><div class="desc">Derives input and output schema from real data. Pass it to <code>log_model(signature=sig)</code>.</div></li>
+      <li><code class="cmd">log_model(..., input_example=X[:<span class="num">5</span>])</code><div class="desc">Infers the signature for you <b>and</b> validates that the model can actually predict before logging.</div></li>
+      <li><code class="cmd">mlflow.models.<span class="fn">set_signature</span>(model_uri, sig)</code><div class="desc">Attach a signature after the fact &mdash; needed for Unity Catalog, which requires one.</div></li>
+      <li><code class="cmd">mlflow.models.<span class="fn">validate_serving_input</span>(model_uri, payload)</code><div class="desc">Checks a JSON payload against the signature before you deploy anything.</div></li>
+      <li><code class="cmd">mlflow.models.<span class="fn">update_model_requirements</span>(uri, <span class="str">"add"</span>, [<span class="str">"scikit-learn"</span>])</code><div class="desc">Fix a missing dependency without retraining and re-logging.</div></li>
+      <li class="warn"><code class="cmd">info.signature_dict<span class="tag gone">removed in 3</span></code><div class="desc">Use <code>info.signature</code>.</div></li>
+      <li class="warn"><code class="cmd"><span class="cm"># no signature = no validation at serving time</span></code><div class="desc">The model will happily accept malformed input and fail deep inside the framework instead.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 -->
+  <article class="card c-amber">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Flavors</span><span class="card-sub">mlflow.&lt;flavor&gt;</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">mlflow.sklearn  &middot;  mlflow.xgboost  &middot;  mlflow.lightgbm</code><div class="desc">The classical ML trio. All expose <code>log_model</code>, <code>save_model</code>, <code>load_model</code>, <code>autolog</code>.</div></li>
+      <li><code class="cmd">mlflow.pytorch  &middot;  mlflow.tensorflow  &middot;  mlflow.keras</code><div class="desc">Deep learning. Each stores the native format plus a pyfunc wrapper.</div></li>
+      <li><code class="cmd">mlflow.transformers  &middot;  mlflow.sentence_transformers</code><div class="desc">HuggingFace pipelines and embedding models, logged whole.</div></li>
+      <li><code class="cmd">mlflow.langchain  &middot;  mlflow.openai  &middot;  mlflow.llama_index</code><div class="desc">LLM app flavors. These are also the tracing integrations.</div></li>
+      <li><code class="cmd">mlflow.spark  &middot;  mlflow.onnx  &middot;  mlflow.catboost  &middot;  mlflow.prophet</code><div class="desc">The rest of the common set &mdash; 20+ flavors ship in the box.</div></li>
+      <li><code class="cmd">mlflow.pyfunc</code><div class="desc">The universal one. <b>Every</b> flavor also saves a pyfunc wrapper, which is what serving uses.</div></li>
+      <li class="warn"><code class="cmd">mlflow.fastai  &middot;  mlflow.mleap  &middot;  mlflow.diviner  &middot;  mlflow.gluon<span class="tag gone">removed in 3</span></code><div class="desc">Wrap in <code>pyfunc</code> instead; for <code>gluon</code> use <code>pytorch</code> or <code>onnx</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 -->
+  <article class="card c-amber">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">pyfunc &amp; custom models</span><span class="card-sub">anything at all</span></div>
+    <ul class="cmds">
+      <li><code class="cmd"><span class="kw">class</span> M(mlflow.pyfunc.PythonModel):</code><div class="desc">Subclass this and any Python object becomes a loggable, servable MLflow model.</div></li>
+      <li><code class="cmd">    <span class="kw">def</span> <span class="fn">predict</span>(self, context, model_input, params=<span class="kw">None</span>):</code><div class="desc">The one method you must implement. <code>context</code> exposes your artifacts at load time.</div></li>
+      <li><code class="cmd">    <span class="kw">def</span> <span class="fn">load_context</span>(self, context):</code><div class="desc">Runs once when the model loads &mdash; the right place to open weights or a tokenizer.</div></li>
+      <li><code class="cmd">log_model(name=<span class="str">"m"</span>, python_model=M(), artifacts={<span class="str">"w"</span>: path})</code><div class="desc">Ships extra files alongside the code; reachable via <code>context.artifacts["w"]</code>.</div></li>
+      <li><code class="cmd">log_model(..., pip_requirements=[<span class="str">"scikit-learn==1.5.0"</span>])</code><div class="desc">Pin the environment explicitly instead of trusting inference.</div></li>
+      <li><code class="cmd">log_model(..., extra_pip_requirements=[...])</code><div class="desc">Add to the inferred set rather than replacing it.</div></li>
+      <li><code class="cmd">mlflow.models.<span class="fn">ModelConfig</span>()</code><div class="desc">Parameterise a model from a YAML config instead of hard-coding it.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 -->
+  <article class="card c-amber">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Load &amp; predict</span><span class="card-sub">getting it back</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">m = mlflow.pyfunc.<span class="fn">load_model</span>(uri)</code><div class="desc">Works for <b>every</b> flavor and gives a uniform <code>predict</code>. The safe default.</div></li>
+      <li><code class="cmd">m = mlflow.sklearn.<span class="fn">load_model</span>(uri)</code><div class="desc">Returns the native object, so you keep <code>predict_proba</code> and the rest of its API.</div></li>
+      <li><code class="cmd">m.<span class="fn">predict</span>(df)</code><div class="desc">pyfunc takes a DataFrame, numpy array, list or dict, and validates against the signature.</div></li>
+      <li><code class="cmd">mlflow.models.<span class="fn">predict</span>(model_uri=..., input_data=...)</code><div class="desc">Runs prediction in the model's <b>own</b> environment &mdash; catches dependency drift before deployment.</div></li>
+      <li><code class="cmd">mlflow.pyfunc.<span class="fn">load_model</span>(f<span class="str">"models:/{info.model_id}"</span>)</code><div class="desc">Load by model id when you have searched for a checkpoint rather than logged it.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">get_logged_model</span>(model_id)  &middot;  mlflow.<span class="fn">last_logged_model</span>()</code><div class="desc">Fetch LoggedModel metadata without materialising the weights.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 -->
+  <article class="card c-violet">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">The Model Registry<span class="star">&#9733;</span></span><span class="card-sub">needs a database</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">mlflow.<span class="fn">register_model</span>(model_uri, name=<span class="str">"fraud-rf"</span>)</code><div class="desc">Promotes a logged model into the registry, creating version 1, then 2, then 3&hellip;</div></li>
+      <li><code class="cmd">log_model(..., registered_model_name=<span class="str">"fraud-rf"</span>)</code><div class="desc">Same result in one step, at training time.</div></li>
+      <li><code class="cmd">client = mlflow.<span class="fn">MlflowClient</span>()</code><div class="desc">Everything below hangs off this. Importable straight from <code>mlflow</code>.</div></li>
+      <li><code class="cmd">client.<span class="fn">create_registered_model</span>(<span class="str">"fraud-rf"</span>)</code><div class="desc">Create the empty collection up front.</div></li>
+      <li><code class="cmd">client.<span class="fn">search_model_versions</span>(<span class="str">"name='fraud-rf'"</span>)</code><div class="desc">List versions with their metadata.</div></li>
+      <li><code class="cmd">client.<span class="fn">set_model_version_tag</span>(name, <span class="str">"3"</span>, <span class="str">"validation"</span>, <span class="str">"passed"</span>)</code><div class="desc">Record gate results on the version itself, where an auditor can find them.</div></li>
+      <li><code class="cmd">client.<span class="fn">update_model_version</span>(name, <span class="str">"3"</span>, description=<span class="str">"..."</span>)</code><div class="desc">Markdown description per version.</div></li>
+      <li><code class="cmd">client.<span class="fn">delete_model_version</span>(name, <span class="str">"3"</span>)</code><div class="desc">Permanent. There is no undo.</div></li>
+      <li class="warn"><code class="cmd"><span class="cm"># registry requires a database-backed store</span></code><div class="desc">With the default file store the registry simply is not available.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 -->
+  <article class="card c-violet">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Aliases, not stages</span><span class="card-sub">the 2.9 migration</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">client.<span class="fn">set_registered_model_alias</span>(name, <span class="str">"champion"</span>, <span class="str">"3"</span>)</code><div class="desc">The replacement for stages. Any name you like, pointed at any version.</div></li>
+      <li><code class="cmd">models:/fraud-rf@champion</code><div class="desc">Target the alias in serving. Promotion becomes a one-line alias move, with no redeploy.</div></li>
+      <li><code class="cmd">client.<span class="fn">get_model_version_by_alias</span>(name, <span class="str">"champion"</span>)</code><div class="desc">Resolve an alias to the concrete version behind it.</div></li>
+      <li><code class="cmd">client.<span class="fn">delete_registered_model_alias</span>(name, <span class="str">"champion"</span>)</code><div class="desc">Remove it. Re-setting an existing alias just moves it &mdash; no need to delete first.</div></li>
+      <li class="good"><code class="cmd"><span class="cm"># one registered model per environment</span></code><div class="desc">The documented pattern: <code>dev.fraud-rf</code>, <code>staging.fraud-rf</code>, <code>prod.fraud-rf</code>, each with its own aliases.</div></li>
+      <li><code class="cmd">client.<span class="fn">set_registered_model_tag</span>(name, <span class="str">"task"</span>, <span class="str">"classification"</span>)</code><div class="desc">Tags carry the status labelling that stages used to imply.</div></li>
+      <li class="warn"><code class="cmd">client.<span class="fn">transition_model_version_stage</span>(...)<span class="tag gone">deprecated 2.9</span></code><div class="desc">Still present for backward compatibility, but the four fixed stages are on the way out.</div></li>
+      <li class="warn"><code class="cmd">client.<span class="fn">get_latest_versions</span>(name, stages=[<span class="str">"Production"</span>])<span class="tag gone">deprecated</span></code><div class="desc">Deprecated with the rest of the stage API.</div></li>
+      <li class="warn"><code class="cmd"><span class="cm"># the registry overview page still says "transition between stages"</span></code><span class="tag doc">doc bug</span><div class="desc">Its own concepts table below lists only aliases and tags. Follow the table, not the prose.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 -->
+  <article class="card c-violet">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Serving &amp; deployment</span><span class="card-sub">mlflow models</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">mlflow models serve -m <span class="str">"models:/fraud-rf@champion"</span> -p 1234</code><div class="desc">Local REST server. POST to <code>/invocations</code>.</div></li>
+      <li><code class="cmd">-d <span class="str">'{"dataframe_split": {"columns": [...], "data": [[...]]}}'</span></code><div class="desc">One of four payload keys: <code>dataframe_split</code>, <code>dataframe_records</code>, <code>instances</code>, <code>inputs</code>.</div></li>
+      <li><code class="cmd">--env-manager local|virtualenv|uv|conda</code><div class="desc">Defaults to <code>virtualenv</code>, which rebuilds the model's environment. <code>local</code> is far faster when you already match.</div></li>
+      <li><code class="cmd">mlflow models build-docker -m URI -n my-image</code><div class="desc">Container serving the model on port 8080.</div></li>
+      <li><code class="cmd">mlflow models generate-dockerfile -m URI -d ./out</code><div class="desc">Emits the Dockerfile instead of building, so you can edit it into your own pipeline.</div></li>
+      <li><code class="cmd">mlflow models predict -m URI -i data.csv -t csv</code><div class="desc">Batch scoring from the shell, no server involved.</div></li>
+      <li><code class="cmd">mlflow deployments create -t sagemaker -m URI --name app</code><div class="desc">Targets include sagemaker, databricks, openai and http, plus community plugins.</div></li>
+      <li class="warn"><code class="cmd">mlflow deployments start-server<span class="tag gone">removed in 3</span></code><div class="desc">The deployment server is gone. Use <code>mlflow models serve</code>, containers, or <code>mlflow gateway start</code>.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ PART III ============ -->
+<div class="partbar">
+  <span class="pt">Part III</span>
+  <h2>Tracing, evaluation &amp; operations</h2>
+  <span class="ps">the GenAI half of MLflow 3, plus querying, projects and the sharp edges</span>
+</div>
+<div class="partrule"><div></div></div>
+
+<main>
+
+  <!-- 19 -->
+  <article class="card c-teal">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Tracing<span class="star">&#9733;</span></span><span class="card-sub">since 2.14, flagship in 3</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">mlflow.openai.<span class="fn">autolog</span>()</code><div class="desc">One line and every call is traced. 40+ integrations &mdash; langchain, llama_index, anthropic, dspy, crewai, bedrock.</div></li>
+      <li><code class="cmd">@mlflow.trace</code><div class="desc">Decorate any function to capture inputs, outputs, latency and exceptions as a span.</div></li>
+      <li><code class="cmd">@mlflow.<span class="fn">trace</span>(name=<span class="str">"retrieve"</span>, span_type=<span class="str">"RETRIEVER"</span>)</code><div class="desc">Named, typed spans render specially in the UI &mdash; retriever spans show documents.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">trace</span>(some_external_fn)(args)</code><div class="desc">Wrap a third-party function you cannot decorate.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">search_traces</span>(filter_string=..., model_id=...)</code><div class="desc">Query traces back as a DataFrame &mdash; the basis of an evaluation dataset built from production.</div></li>
+      <li><code class="cmd">mlflow.tracing.<span class="fn">disable</span>()  &middot;  mlflow.tracing.<span class="fn">enable</span>()</code><div class="desc">Global off switch, for benchmarking or tests.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">set_active_model</span>(name=<span class="str">"agent-v2"</span>)</code><span class="tag new">3.x</span><div class="desc">Links every subsequent trace to that model, so you can compare versions in production.</div></li>
+      <li><code class="cmd">trace_destination=  &middot;  mlflow.tracing.<span class="fn">set_destination</span>()</code><span class="tag new">3.3</span><div class="desc">Route traces to a specific experiment without a global <code>set_experiment</code>.</div></li>
+      <li class="warn"><code class="cmd"><span class="cm"># @mlflow.trace goes OUTERMOST &mdash; except under @app.route</span></code><div class="desc">Top of the stack for ordinary decorators; <b>below</b> web-framework route decorators. Wrong order truncates the trace.</div></li>
+      <li class="warn"><code class="cmd"><span class="cm"># same-named spans get _1, _2 suffixes</span></code><div class="desc">Name spans distinctly if you plan to filter on them.</div></li>
+    </ul>
+  </article>
+
+  <!-- 20 -->
+  <article class="card c-teal">
+    <div class="card-head"><span class="card-num">20</span><span class="card-title">Spans by hand</span><span class="card-sub">finer control</span></div>
+    <ul class="cmds">
+      <li><code class="cmd"><span class="kw">with</span> mlflow.<span class="fn">start_span</span>(name=<span class="str">"rerank"</span>) <span class="kw">as</span> span:</code><div class="desc">Trace a block rather than a whole function. Nests inside whatever is already active.</div></li>
+      <li><code class="cmd">span.<span class="fn">set_inputs</span>({...})  &middot;  span.<span class="fn">set_outputs</span>({...})</code><div class="desc">Populate the span yourself when the values are not just the arguments.</div></li>
+      <li><code class="cmd">span.<span class="fn">set_attributes</span>({<span class="str">"k"</span>: <span class="num">5</span>})</code><div class="desc">Arbitrary metadata &mdash; token counts, model name, retrieval depth.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">get_current_active_span</span>()</code><div class="desc">Reach the active span from deep inside a call stack without threading it through.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">update_current_trace</span>(tags={...})</code><div class="desc">Tag the whole trace, e.g. with a session or user id, for later filtering.</div></li>
+      <li><code class="cmd">span_type=<span class="str">"LLM"</span>|<span class="str">"RETRIEVER"</span>|<span class="str">"TOOL"</span>|<span class="str">"AGENT"</span>|<span class="str">"CHAIN"</span></code><div class="desc">The recognised types. Getting them right is what makes the trace view readable.</div></li>
+      <li><code class="cmd">mlflow.tracing.<span class="fn">set_span_chat_messages</span>(...)</code><div class="desc">Render a span as a chat transcript in the UI.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">log_feedback</span>()  &middot;  mlflow.<span class="fn">log_expectation</span>()</code><div class="desc">Attach human judgements to a trace &mdash; the raw material for judge alignment.</div></li>
+    </ul>
+  </article>
+
+  <!-- 21 -->
+  <article class="card c-teal">
+    <div class="card-head"><span class="card-num">21</span><span class="card-title">GenAI evaluation<span class="star">&#9733;</span></span><span class="card-sub">mlflow.genai</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">mlflow.genai.<span class="fn">evaluate</span>(data=ds, predict_fn=f, scorers=[...])</code><div class="desc">The MLflow 3 evaluation entry point for LLM apps. Distinct from <code>mlflow.models.evaluate</code>.</div></li>
+      <li><code class="cmd">[{<span class="str">"inputs"</span>: {...}, <span class="str">"expectations"</span>: {...}}]</code><div class="desc">The dataset shape &mdash; a plain list of dicts. <code>inputs</code> is passed straight to <code>predict_fn</code>.</div></li>
+      <li><code class="cmd"><span class="str">"expectations"</span>: {<span class="str">"expected_facts"</span>: [...]}</code><div class="desc">What <code>Correctness</code> grades against. Some judges want <code>expected_response</code> instead.</div></li>
+      <li><code class="cmd">mlflow.genai.<span class="fn">evaluate</span>(data=mlflow.<span class="fn">search_traces</span>(...))</code><div class="desc">Evaluate real production traffic by feeding traces in as the dataset.</div></li>
+      <li><code class="cmd">mlflow.genai.datasets.<span class="fn">create_dataset</span>(...)</code><div class="desc">Persist an evaluation set so runs stay comparable over time.</div></li>
+      <li><code class="cmd">mlflow datasets list --experiment-id 1</code><div class="desc">Inspect stored evaluation datasets from the shell.</div></li>
+      <li><code class="cmd">@mlflow.test</code><span class="tag new">3.14</span><div class="desc">Write GenAI regression tests as plain pytest functions and gate them in CI.</div></li>
+      <li class="warn"><code class="cmd">mlflow.<span class="fn">evaluate</span>(model_type=<span class="str">"question-answering"</span>)<span class="tag gone">legacy</span></code><div class="desc">The 2.x LLM evaluation path. Superseded by <code>mlflow.genai.evaluate</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 22 -->
+  <article class="card c-teal">
+    <div class="card-head"><span class="card-num">22</span><span class="card-title">Scorers &amp; LLM judges</span><span class="card-sub">how quality is graded</span></div>
+    <ul class="cmds">
+      <li><code class="cmd"><span class="kw">from</span> <span class="mod">mlflow.genai.scorers</span> <span class="kw">import</span> Correctness, Guidelines</code><div class="desc">Built-in judges. Also <code>RelevanceToQuery</code>, <code>Safety</code>, <code>Groundedness</code>, <code>RetrievalSufficiency</code>.</div></li>
+      <li><code class="cmd"><span class="fn">Guidelines</span>(name=<span class="str">"tone"</span>, guidelines=<span class="str">"Must stay formal."</span>)</code><div class="desc">A judge written in plain English &mdash; the cheapest way to encode a house rule.</div></li>
+      <li><code class="cmd">@scorer<span class="kw"> def</span> <span class="fn">is_concise</span>(outputs) -&gt; bool:</code><div class="desc">Deterministic code-based scorer. No LLM, no cost, no variance &mdash; prefer it where the rule is mechanical.</div></li>
+      <li><code class="cmd"><span class="kw">from</span> <span class="mod">mlflow.genai.judges</span> <span class="kw">import</span> make_judge</code><div class="desc">Custom judge with your own instructions and grading scale.</div></li>
+      <li><code class="cmd"><span class="fn">make_judge</span>(name=..., instructions=<span class="str">"... {{ inputs }} ... {{ outputs }}"</span>)</code><div class="desc">Instructions <b>must</b> contain at least one of <code>{{ inputs }}</code>, <code>{{ outputs }}</code>, <code>{{ expectations }}</code>, <code>{{ trace }}</code>.</div></li>
+      <li><code class="cmd"><span class="fn">Correctness</span>(model=<span class="str">"anthropic:/claude-sonnet-4-20250514"</span>)</code><div class="desc">Any provider in <code>&lt;provider&gt;:/&lt;model&gt;</code> form; others reachable through LiteLLM.</div></li>
+      <li><code class="cmd">MLFLOW_GENAI_JUDGE_DEFAULT_MODEL</code><div class="desc">Set the judge model once instead of on every scorer.</div></li>
+      <li><code class="cmd">mlflow scorers list --builtin</code><div class="desc">Enumerate what ships in your installed version rather than guessing.</div></li>
+      <li class="warn"><code class="cmd"><span class="cm"># the default judge model is OpenAI gpt-4o-mini</span></code><div class="desc">So a bare <code>Correctness()</code> needs an OpenAI key, and quietly costs money per row.</div></li>
+    </ul>
+  </article>
+
+  <!-- 23 -->
+  <article class="card c-teal">
+    <div class="card-head"><span class="card-num">23</span><span class="card-title">Classical evaluation</span><span class="card-sub">mlflow.models.evaluate</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">mlflow.models.<span class="fn">evaluate</span>(model, data, targets=<span class="str">"label"</span>, model_type=<span class="str">"classifier"</span>)</code><div class="desc">Computes the standard metric set and logs plots automatically.</div></li>
+      <li><code class="cmd">model_type=<span class="str">"classifier"</span>|<span class="str">"regressor"</span></code><div class="desc">Decides which metrics and charts you get.</div></li>
+      <li><code class="cmd">evaluators=<span class="str">"default"</span>  &middot;  extra_metrics=[...]</code><div class="desc">Add your own metrics on top of the built-in set.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">validate_evaluation_results</span>(r1, r2)</code><div class="desc">The MLflow 3 way to compare a candidate against a baseline.</div></li>
+      <li><code class="cmd"><span class="fn">MetricThreshold</span>(greater_is_better=<span class="kw">True</span>)</code><div class="desc">Note the rename &mdash; it was <code>higher_is_better</code> in 2.x.</div></li>
+      <li><code class="cmd">evaluator_config={<span class="str">"log_model_explainability"</span>: <span class="kw">True</span>}</code><div class="desc">SHAP explanations are <b>off</b> by default in MLflow 3; add <code>"log_explainer": True</code> to keep the explainer too.</div></li>
+      <li class="warn"><code class="cmd">baseline_model=  &middot;  custom_metrics=<span class="tag gone">removed in 3</span></code><div class="desc">Use <code>validate_evaluation_results</code> and <code>extra_metrics</code> respectively.</div></li>
+    </ul>
+  </article>
+
+  <!-- 24 -->
+  <article class="card c-indigo">
+    <div class="card-head"><span class="card-num">24</span><span class="card-title">Search &amp; query</span><span class="card-sub">getting results back</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">df = mlflow.<span class="fn">search_runs</span>(experiment_ids=[<span class="str">"1"</span>])</code><div class="desc">Returns a pandas DataFrame &mdash; one row per run, columns for every param and metric.</div></li>
+      <li><code class="cmd">filter_string=<span class="str">"metrics.auc &gt; 0.9 AND params.model = 'rf'"</span></code><div class="desc">SQL-like. Prefixes: <code>metrics.</code>, <code>params.</code>, <code>tags.</code>, <code>attributes.</code>.</div></li>
+      <li><code class="cmd">order_by=[<span class="str">"metrics.auc DESC"</span>], max_results=<span class="num">5</span></code><div class="desc">Leaderboard in one call.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">search_logged_models</span>(filter_string=<span class="str">"metrics.acc &gt; 0.95"</span>)</code><span class="tag new">3.x</span><div class="desc">Search <b>models</b> rather than runs &mdash; the natural way to pick a checkpoint to deploy.</div></li>
+      <li><code class="cmd">order_by=[{<span class="str">"field_name"</span>: <span class="str">"metrics.f1"</span>, <span class="str">"ascending"</span>: <span class="kw">False</span>}]</code><div class="desc">Note the shape: <code>search_logged_models</code> takes dicts, while <code>search_runs</code> takes strings.</div></li>
+      <li><code class="cmd">datasets=[{<span class="str">"dataset_name"</span>: <span class="str">"test_set"</span>}]</code><div class="desc">Compare models only on metrics from the same dataset &mdash; otherwise the ranking is meaningless.</div></li>
+      <li><code class="cmd">client.<span class="fn">search_runs</span>(exp_id, order_by=[<span class="str">"metrics.loss ASC"</span>])[<span class="num">0</span>]</code><div class="desc">The client form returns Run objects instead of a DataFrame.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">search_traces</span>()  &middot;  mlflow.<span class="fn">search_experiments</span>()</code><div class="desc">Same grammar across the other record types.</div></li>
+      <li><code class="cmd">output_format=<span class="str">"list"</span>|<span class="str">"pandas"</span></code><div class="desc">Objects when you need attributes, DataFrame when you want to plot.</div></li>
+    </ul>
+  </article>
+
+  <!-- 25 -->
+  <article class="card c-slate">
+    <div class="card-head"><span class="card-num">25</span><span class="card-title">Projects</span><span class="card-sub">MLproject</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">MLproject  <span class="cm"># a YAML file at the repo root</span></code><div class="desc">Declares the environment, entry points and parameters so a run is reproducible by anyone.</div></li>
+      <li><code class="cmd">python_env: python_env.yaml</code><div class="desc">Preferred over <code>conda_env</code>. Also accepts <code>docker_env</code> for full isolation.</div></li>
+      <li><code class="cmd">entry_points: main: {parameters: {lr: {type: float, default: <span class="num">0.01</span>}}}</code><div class="desc">Typed parameters with defaults, validated before the run starts.</div></li>
+      <li><code class="cmd">mlflow run . -P lr=<span class="num">0.02</span> -e train</code><div class="desc">Run a specific entry point locally with overrides.</div></li>
+      <li><code class="cmd">mlflow run git@github.com:org/repo.git -v &lt;commit&gt;</code><div class="desc">Run straight from a Git ref &mdash; nothing to clone, and the commit is recorded.</div></li>
+      <li><code class="cmd">--env-manager local|virtualenv|uv|conda</code><div class="desc"><code>uv</code> is by far the fastest; <code>local</code> skips environment building entirely.</div></li>
+      <li><code class="cmd">mlflow.<span class="fn">run</span>(uri, parameters={...})</code><div class="desc">Launch a project from Python, e.g. to orchestrate a multi-step pipeline.</div></li>
+      <li class="warn"><code class="cmd">MLflow Recipes / Pipelines<span class="tag gone">removed in 3</span></code><div class="desc">Deleted entirely. Projects plus tracking is the supported replacement.</div></li>
+    </ul>
+  </article>
+
+  <!-- 26 -->
+  <article class="card c-red">
+    <div class="card-head"><span class="card-num">26</span><span class="card-title">What the tutorials still teach<span class="star">&#9733;</span></span><span class="card-sub">MLflow 2 habits</span></div>
+    <ul class="cmds">
+      <li class="warn"><code class="cmd">log_model(model, <span class="str">"model"</span>)<span class="tag gone">artifact_path</span></code><div class="desc"><b>The big one.</b> Now <code>log_model(model, name="model")</code>. Every cheat sheet online still shows the old form.</div></li>
+      <li class="warn"><code class="cmd">load_model(f<span class="str">"runs:/{run_id}/model"</span>)<span class="tag gone">deprecated</span></code><div class="desc">Use <code>info.model_uri</code> or <code>models:/&lt;model_id&gt;</code>. Model artifacts no longer sit under the run.</div></li>
+      <li class="warn"><code class="cmd">mlflow.<span class="fn">get_artifact_uri</span>(<span class="str">"model"</span>)<span class="tag gone">wrong path</span></code><div class="desc">Silently returns a path with no model at it, then fails with <code>ResourceNotFound</code>.</div></li>
+      <li class="warn"><code class="cmd">models:/name/Production<span class="tag gone">stages</span></code><div class="desc">Stages deprecated in 2.9. Use <code>models:/name@champion</code>.</div></li>
+      <li class="warn"><code class="cmd">MLflow Recipes<span class="tag gone">removed</span></code><div class="desc">Gone in MLflow 3 along with its whole module.</div></li>
+      <li class="warn"><code class="cmd">mlflow.fastai  &middot;  mlflow.mleap  &middot;  mlflow.gluon  &middot;  mlflow.diviner<span class="tag gone">removed</span></code><div class="desc">Four flavors dropped. Wrap in <code>pyfunc</code>.</div></li>
+      <li class="warn"><code class="cmd">baseline_model=  &middot;  higher_is_better=<span class="tag gone">renamed/removed</span></code><div class="desc">In evaluation: use <code>validate_evaluation_results</code> and <code>greater_is_better</code>.</div></li>
+      <li class="warn"><code class="cmd">run_info.run_uuid  &middot;  mlflow.gitBranchName<span class="tag gone">removed</span></code><div class="desc"><code>run_id</code>, and the git branch/repo tags no longer exist.</div></li>
+      <li class="warn"><code class="cmd">mlflow deployments start-server<span class="tag gone">removed</span></code><div class="desc">Along with the gateway <code>routes</code> and <code>route_type</code> config keys.</div></li>
+      <li class="warn"><code class="cmd">MLFLOW_GCS_DEFAULT_TIMEOUT<span class="tag gone">removed</span></code><div class="desc">Configure timeouts through the GCS client library instead.</div></li>
+    </ul>
+  </article>
+
+  <!-- 27 -->
+  <article class="card c-red">
+    <div class="card-head"><span class="card-num">27</span><span class="card-title">When something goes wrong</span><span class="card-sub">the usual suspects</span></div>
+    <ul class="cmds">
+      <li><code class="cmd"><span class="cm"># everything logged to ./mlruns, nothing in the UI</span></code><div class="desc">No <code>set_tracking_uri</code>. The client defaults to a local folder and never warns you.</div></li>
+      <li><code class="cmd"><span class="cm"># CLI sees no runs but Python does</span></code><div class="desc">The CLI does not read your Python config. Export <code>MLFLOW_TRACKING_URI</code>.</div></li>
+      <li><code class="cmd"><span class="cm"># registry API errors out entirely</span></code><div class="desc">You are on the file store. The registry needs a database backend.</div></li>
+      <li><code class="cmd"><span class="cm"># ResourceNotFound loading a model you just logged</span></code><div class="desc">Stale URI shape. Use the <code>model_uri</code> that <code>log_model</code> returned.</div></li>
+      <li><code class="cmd"><span class="cm"># "Changing param values is not allowed"</span></code><div class="desc">Params are immutable. Log it once, or use a tag if it really needs to change.</div></li>
+      <li><code class="cmd"><span class="cm"># metrics look like a flat line</span></code><div class="desc">You logged without <code>step=</code>, so every point landed on step 0.</div></li>
+      <li><code class="cmd"><span class="cm"># serving fails on dependencies</span></code><div class="desc">Test with <code>mlflow.models.predict()</code>, which runs in the model's own environment, then patch with <code>update_model_requirements</code>.</div></li>
+      <li><code class="cmd"><span class="cm"># traces are empty or truncated</span></code><div class="desc">Decorator order. <code>@mlflow.trace</code> outermost &mdash; except under a web framework route decorator.</div></li>
+      <li><code class="cmd"><span class="cm"># the store keeps growing</span></code><div class="desc">Deletes are soft. Run <code>mlflow gc --older-than 30d</code>, and consider <code>autolog(log_models=False)</code>.</div></li>
+      <li><code class="cmd"><span class="cm"># upgraded MLflow, server will not start</span></code><div class="desc">Run <code>mlflow db upgrade &lt;uri&gt;</code>. Back up the database first.</div></li>
+      <li><code class="cmd">mlflow doctor --mask-envs</code><div class="desc">Dumps versions, URIs and environment for a bug report, with secrets hidden.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four things worth seeing</h2>
+  <p class="sub">Almost every MLflow 3 error traces back to one of these four pictures being out of date in your head.</p>
+  <div class="merge-grid">
+
+    <!-- D1 -->
+    <div class="merge-card">
+      <h3>Where model artifacts moved</h3>
+      <p>Models left the run's artifact folder and got a directory of their own. This one relocation is why old load paths return <code>ResourceNotFound</code>.</p>
+      <svg class="bsvg" viewBox="0 0 520 302" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison of the MLflow 2 and MLflow 3 on-disk layouts for model artifacts.">
+        <rect x="14" y="16" width="492" height="126" rx="8" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.6"/>
+        <text x="26" y="36" font-size="9.5" font-weight="700" fill="#dc2626">MLflow 2 &mdash; the model lived under the run</text>
+        <text x="26" y="56" font-size="9" font-family="monospace" fill="#1a1d24">experiments/</text>
+        <text x="44" y="70" font-size="9" font-family="monospace" fill="#1a1d24">&#8735; &lt;experiment_id&gt;/</text>
+        <text x="62" y="84" font-size="9" font-family="monospace" fill="#1a1d24">&#8735; &lt;run_id&gt;/</text>
+        <text x="80" y="98" font-size="9" font-family="monospace" fill="#1a1d24">&#8735; artifacts/</text>
+        <text x="98" y="112" font-size="9" font-family="monospace" font-weight="700" fill="#dc2626">&#8735; model/</text>
+        <text x="26" y="132" font-size="8.5" font-style="italic" fill="#dc2626">get_artifact_uri("model") resolved here &mdash; which is why the old snippets worked</text>
+
+        <rect x="14" y="156" width="492" height="134" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+        <text x="26" y="176" font-size="9.5" font-weight="700" fill="#047857">MLflow 3 &mdash; the model has its own home</text>
+        <text x="26" y="196" font-size="9" font-family="monospace" fill="#1a1d24">experiments/</text>
+        <text x="44" y="210" font-size="9" font-family="monospace" fill="#1a1d24">&#8735; &lt;experiment_id&gt;/</text>
+        <text x="62" y="224" font-size="9" font-family="monospace" fill="#1a1d24">&#8735; models/</text>
+        <text x="80" y="238" font-size="9" font-family="monospace" fill="#1a1d24">&#8735; &lt;model_id&gt;/</text>
+        <text x="98" y="252" font-size="9" font-family="monospace" font-weight="700" fill="#047857">&#8735; artifacts/</text>
+        <text x="26" y="272" font-size="8.5" font-weight="700" fill="#047857">use the model_uri that log_model returned</text>
+        <text x="26" y="284" font-size="8.5" font-style="italic" fill="#6b7280">list_artifacts() on the run no longer shows models either</text>
+      </svg>
+    </div>
+
+    <!-- D2 -->
+    <div class="merge-card">
+      <h3>The model URI decoder ring</h3>
+      <p>Six shapes, four of them current. Picking the wrong one is the most common MLflow error, because the deprecated forms still appear in nearly every tutorial.</p>
+      <svg class="bsvg" viewBox="0 0 520 288" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Reference table of the six MLflow model URI formats and which are current.">
+        <text x="14" y="20" font-size="9.5" letter-spacing="1.5" fill="#94a3b8">CURRENT</text>
+
+        <rect x="14" y="28" width="492" height="34" rx="6" fill="#eaf6f4" stroke="#0d9488" stroke-width="1.5"/>
+        <text x="26" y="43" font-size="9.5" font-family="monospace" font-weight="700" fill="#1a1d24">models:/&lt;model_id&gt;</text>
+        <text x="26" y="56" font-size="8.5" fill="#0d9488">one logged model &mdash; what log_model hands back as info.model_uri</text>
+
+        <rect x="14" y="68" width="492" height="34" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+        <text x="26" y="83" font-size="9.5" font-family="monospace" font-weight="700" fill="#1a1d24">models:/fraud-rf/3</text>
+        <text x="26" y="96" font-size="8.5" fill="#047857">a pinned registered version &mdash; immutable, so reproducible</text>
+
+        <rect x="14" y="108" width="492" height="34" rx="6" fill="#f4effe" stroke="#7c3aed" stroke-width="1.5"/>
+        <text x="26" y="123" font-size="9.5" font-family="monospace" font-weight="700" fill="#1a1d24">models:/fraud-rf@champion</text>
+        <text x="26" y="136" font-size="8.5" fill="#7c3aed">whatever the alias points at &mdash; promote without redeploying</text>
+
+        <rect x="14" y="148" width="492" height="34" rx="6" fill="#f1f3f6" stroke="#64748b" stroke-width="1.5"/>
+        <text x="26" y="163" font-size="9.5" font-family="monospace" font-weight="700" fill="#1a1d24">./out  &middot;  s3://bucket/model</text>
+        <text x="26" y="176" font-size="8.5" fill="#64748b">a saved model directory, no tracking server involved</text>
+
+        <text x="14" y="204" font-size="9.5" letter-spacing="1.5" fill="#dc2626">STALE &mdash; BUT EVERYWHERE ONLINE</text>
+
+        <rect x="14" y="212" width="492" height="34" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.5"/>
+        <text x="26" y="227" font-size="9.5" font-family="monospace" font-weight="700" fill="#dc2626">runs:/&lt;run_id&gt;/model</text>
+        <text x="26" y="240" font-size="8.5" fill="#dc2626">deprecated &mdash; still resolves today, slated for removal</text>
+
+        <rect x="14" y="252" width="492" height="34" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.5"/>
+        <text x="26" y="267" font-size="9.5" font-family="monospace" font-weight="700" fill="#dc2626">models:/fraud-rf/Production</text>
+        <text x="26" y="280" font-size="8.5" fill="#dc2626">went with stages &mdash; replaced by the @alias form above</text>
+      </svg>
+    </div>
+
+    <!-- D3 -->
+    <div class="merge-card">
+      <h3>Stages became aliases</h3>
+      <p>Four fixed stages were too rigid, so MLflow split the idea in two: a <b>registered model per environment</b>, and <b>aliases</b> naming the version that serves traffic inside each.</p>
+      <svg class="bsvg" viewBox="0 0 520 296" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram showing the migration from four fixed model registry stages to one registered model per environment with aliases.">
+        <defs>
+          <marker id="stA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+          </marker>
+          <marker id="stB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+          </marker>
+        </defs>
+
+        <text x="14" y="22" font-size="9.5" font-weight="700" fill="#dc2626">BEFORE &mdash; one model, four fixed stages</text>
+        <rect x="20" y="34" width="106" height="40" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.5"/>
+        <text x="73" y="59" text-anchor="middle" font-size="9.5" fill="#1a1d24">None</text>
+        <rect x="146" y="34" width="106" height="40" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.5"/>
+        <text x="199" y="59" text-anchor="middle" font-size="9.5" fill="#1a1d24">Staging</text>
+        <rect x="272" y="34" width="106" height="40" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.5"/>
+        <text x="325" y="59" text-anchor="middle" font-size="9.5" fill="#1a1d24">Production</text>
+        <rect x="398" y="34" width="106" height="40" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.5"/>
+        <text x="451" y="59" text-anchor="middle" font-size="9.5" fill="#1a1d24">Archived</text>
+        <line x1="128" y1="54" x2="142" y2="54" stroke="#dc2626" stroke-width="1.4" marker-end="url(#stA)"/>
+        <line x1="254" y1="54" x2="268" y2="54" stroke="#dc2626" stroke-width="1.4" marker-end="url(#stA)"/>
+        <line x1="380" y1="54" x2="394" y2="54" stroke="#dc2626" stroke-width="1.4" marker-end="url(#stA)"/>
+        <text x="14" y="92" font-size="8.5" font-style="italic" fill="#dc2626">deprecated in 2.9 &mdash; the stage also had to stand in for the environment</text>
+
+        <line x1="14" y1="108" x2="506" y2="108" stroke="#e7e3db" stroke-width="1.4"/>
+
+        <text x="14" y="130" font-size="9.5" font-weight="700" fill="#6d28d9">AFTER &mdash; a registered model per environment, aliases inside</text>
+        <rect x="20" y="146" width="150" height="44" rx="7" fill="#f4effe" stroke="#7c3aed" stroke-width="1.6"/>
+        <text x="95" y="164" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1a1d24">dev.fraud-rf</text>
+        <text x="95" y="180" text-anchor="middle" font-size="8" fill="#7c3aed">experiments land here</text>
+        <rect x="185" y="146" width="150" height="44" rx="7" fill="#f4effe" stroke="#7c3aed" stroke-width="1.6"/>
+        <text x="260" y="164" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1a1d24">staging.fraud-rf</text>
+        <text x="260" y="180" text-anchor="middle" font-size="8" fill="#7c3aed">CI promotes into it</text>
+        <rect x="350" y="146" width="150" height="44" rx="7" fill="#f4effe" stroke="#7c3aed" stroke-width="1.6"/>
+        <text x="425" y="164" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1a1d24">prod.fraud-rf</text>
+        <text x="425" y="180" text-anchor="middle" font-size="8" fill="#7c3aed">serves real traffic</text>
+        <line x1="172" y1="168" x2="181" y2="168" stroke="#7c3aed" stroke-width="1.4" marker-end="url(#stB)"/>
+        <line x1="337" y1="168" x2="346" y2="168" stroke="#7c3aed" stroke-width="1.4" marker-end="url(#stB)"/>
+
+        <rect x="350" y="206" width="150" height="26" rx="13" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5"/>
+        <text x="425" y="223" text-anchor="middle" font-size="9" font-family="monospace" font-weight="700" fill="#6d28d9">@champion &rarr; v7</text>
+        <rect x="350" y="238" width="150" height="26" rx="13" fill="#ffffff" stroke="#94a3b8" stroke-width="1.3"/>
+        <text x="425" y="255" text-anchor="middle" font-size="9" font-family="monospace" fill="#64748b">@challenger &rarr; v9</text>
+        <line x1="425" y1="192" x2="425" y2="202" stroke="#7c3aed" stroke-width="1.4" marker-end="url(#stB)"/>
+
+        <text x="14" y="218" font-size="8.5" fill="#1a1d24">Serving targets the alias:</text>
+        <text x="14" y="234" font-size="9" font-family="monospace" font-weight="700" fill="#6d28d9">models:/prod.fraud-rf@champion</text>
+        <text x="14" y="252" font-size="8.5" fill="#64748b">Promotion = move the alias.</text>
+        <text x="14" y="266" font-size="8.5" fill="#64748b">No redeploy, and rollback is</text>
+        <text x="14" y="280" font-size="8.5" fill="#64748b">the same one-line operation.</text>
+      </svg>
+    </div>
+
+    <!-- D4 -->
+    <div class="merge-card">
+      <h3>What a trace looks like</h3>
+      <p>A trace is one request; spans are the nested steps inside it. Autolog produces them for known libraries, <code>@mlflow.trace</code> for everything you wrote yourself.</p>
+      <svg class="bsvg" viewBox="0 0 520 268" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gantt-style diagram of a trace made of nested spans with their span types.">
+        <text x="14" y="20" font-size="9.5" letter-spacing="1.5" fill="#94a3b8">ONE TRACE &middot; ONE REQUEST</text>
+
+        <text x="14" y="49" font-size="9" font-family="monospace" font-weight="700" fill="#1a1d24">chat_app</text>
+        <rect x="124" y="38" width="380" height="20" rx="4" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.5"/>
+        <text x="132" y="52" font-size="8" fill="#4f46e5">AGENT &middot; root span &middot; @mlflow.trace</text>
+
+        <text x="26" y="81" font-size="9" font-family="monospace" fill="#1a1d24">&#8735; retrieve</text>
+        <rect x="140" y="70" width="118" height="20" rx="4" fill="#eaf6f4" stroke="#0d9488" stroke-width="1.5"/>
+        <text x="148" y="84" font-size="8" fill="#0d9488">RETRIEVER</text>
+
+        <text x="26" y="113" font-size="9" font-family="monospace" fill="#1a1d24">&#8735; generate</text>
+        <rect x="270" y="102" width="222" height="20" rx="4" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/>
+        <text x="278" y="116" font-size="8" fill="#b45309">LLM &middot; from mlflow.openai.autolog()</text>
+
+        <text x="40" y="145" font-size="9" font-family="monospace" fill="#1a1d24">&#8735; lookup</text>
+        <rect x="292" y="134" width="96" height="20" rx="4" fill="#f1f3f6" stroke="#64748b" stroke-width="1.5"/>
+        <text x="300" y="148" font-size="8" fill="#64748b">TOOL</text>
+
+        <line x1="124" y1="168" x2="504" y2="168" stroke="#94a3b8" stroke-width="1.2"/>
+        <text x="124" y="182" font-size="8" fill="#94a3b8">0 ms</text>
+        <text x="504" y="182" text-anchor="end" font-size="8" fill="#94a3b8">latency &rarr;</text>
+
+        <rect x="14" y="196" width="492" height="30" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.4"/>
+        <text x="26" y="208" font-size="8.5" font-weight="700" fill="#dc2626">decorator order matters</text>
+        <text x="26" y="220" font-size="8.5" fill="#dc2626">@mlflow.trace goes outermost &mdash; but BELOW @app.route / @app.post</text>
+
+        <rect x="14" y="232" width="492" height="30" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/>
+        <text x="26" y="244" font-size="8.5" font-weight="700" fill="#047857">traces are queryable</text>
+        <text x="26" y="256" font-size="8.5" fill="#047857">mlflow.search_traces() feeds straight into mlflow.genai.evaluate()</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">name=</span><span class="v">not <code>artifact_path=</code> &mdash; the defining MLflow 3 change</span></div>
+    <div><span class="k">info.model_uri</span><span class="v">the only reliable way to load back what you logged</span></div>
+    <div><span class="k">models:/&lt;model_id&gt;</span><span class="v">the new URI shape; <code>runs:/</code> is deprecated</span></div>
+    <div><span class="k">@champion</span><span class="v">aliases replaced the four fixed stages in 2.9</span></div>
+    <div><span class="k">registry</span><span class="v">needs a database backend &mdash; the file store cannot serve it</span></div>
+    <div><span class="k">set_tracking_uri</span><span class="v">first call, or everything silently lands in ./mlruns</span></div>
+    <div><span class="k">the CLI</span><span class="v">reads <code>MLFLOW_TRACKING_URI</code>, never your Python config</span></div>
+    <div><span class="k">params</span><span class="v">immutable and stored as strings</span></div>
+    <div><span class="k">metrics</span><span class="v">append-only &mdash; a metric is a series, not a value</span></div>
+    <div><span class="k">step=</span><span class="v">omit it and every point lands on step 0</span></div>
+    <div><span class="k">timestamp=</span><span class="v">milliseconds; seconds put your point in 1970</span></div>
+    <div><span class="k">autolog()</span><span class="v">opens and closes its own run if none is active</span></div>
+    <div><span class="k">log_models=False</span><span class="v">stops autolog uploading a model every fit</span></div>
+    <div><span class="k">@mlflow.trace</span><span class="v">outermost &mdash; except below a route decorator</span></div>
+    <div><span class="k">models are first-class</span><span class="v"><code>log_model</code> no longer needs an open run</span></div>
+    <div><span class="k">deletes are soft</span><span class="v">space comes back only with <code>mlflow gc</code></span></div>
+    <div><span class="k">Recipes</span><span class="v">removed outright in MLflow 3</span></div>
+    <div><span class="k">fastai / mleap</span><span class="v">flavors dropped, with <code>gluon</code> and <code>diviner</code></span></div>
+    <div><span class="k">greater_is_better</span><span class="v">renamed from <code>higher_is_better</code></span></div>
+    <div><span class="k">default judge</span><span class="v">gpt-4o-mini &mdash; needs a key, and costs per row</span></div>
+  </div>
+</section>
+
+<footer>
+  <b>MLflow cheat sheet</b> &middot; built against the official documentation at mlflow.org/docs/latest &mdash; the <b>Machine Learning</b> track (tracking, tracking APIs, autolog, model, datasets, evaluation, model registry, projects, serving) and the <b>LLMs &amp; Agents</b> track (tracing, manual instrumentation, scorers, LLM judges, evaluation quickstart) &mdash; together with the <b>MLflow 3 Migration Guide</b>, the <b>Breaking Changes</b> page, the complete <b>CLI reference</b> and the 3.x release notes.<br>
+  API shown for <b>MLflow 3.14.0</b> (released 17 June 2026) &middot; Python 3.10+ &middot; the docs are now split into two separate tracks, and the ML track is the one that covers classical training.<br>
+  Note the split verdict on stages: the registry <b>overview</b> page still describes transitioning models "between stages such as Staging and Production", while its own concepts table on the same page lists only versions, aliases and tags &mdash; stages were deprecated in 2.9 and the alias API is what the workflow guide teaches. Items marked <span style="color:#7c3aed">NEW</span> name the version that introduced them; <span style="color:#dc2626">GONE</span> marks APIs that most tutorials and community cheat sheets still teach.
+</footer>
+
+</body>
+</html>

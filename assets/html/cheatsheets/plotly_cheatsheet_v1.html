@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plotly Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b;  --setup-bg:#f1f3f6;
+    --plot:#d97706;   --plot-bg:#fdf6ec;
+    --axes:#059669;   --axes-bg:#ecf7f2;
+    --style:#4f46e5;  --style-bg:#eef0fd;
+    --layout:#7c3aed; --layout-bg:#f5f0fe;
+    --output:#0d9488; --output-bg:#e7f6f4;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .ply{font-family:var(--mono); color:#636efa}
+  .lede{max-width:68ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)}  .dot.plot{background:var(--plot)}
+  .dot.axes{background:var(--axes)}    .dot.style{background:var(--style)}
+  .dot.layout{background:var(--layout)}.dot.output{background:var(--output)}
+  .dot.danger{background:var(--danger)}
+  .legend .st{color:var(--star); font-weight:700}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.plot{border-left-color:var(--plot)}
+  ul.cmds li.axes{border-left-color:var(--axes)}
+  ul.cmds li.style{border-left-color:var(--style)}
+  ul.cmds li.layout{border-left-color:var(--layout)}
+  ul.cmds li.output{border-left-color:var(--output)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.81rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .obj{color:var(--layout); font-weight:600}
+  code.cmd .arg{color:var(--style); font-weight:400}
+  code.cmd .kw{color:var(--star)}
+  code.cmd .cm{color:var(--muted); font-weight:400}
+  code.cmd .str{color:var(--axes)}
+  li.danger code.cmd{color:var(--danger)}
+  li.danger code.cmd .obj,li.danger code.cmd .arg,li.danger code.cmd .kw,li.danger code.cmd .str{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f1ea; padding:.03em .28em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-px{
+    color:var(--plot); font-size:.63rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.04em; margin-left:.35rem;
+  }
+  .badge-go{
+    color:var(--axes); font-size:.63rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.04em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem; max-width:70ch}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#f5f0e8; background:#2c313c; padding:.02em .3em; border-radius:3px}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:var(--ink)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · interactive graphing in Python</div>
+  <h1><span class="ply">plotly</span> cheat sheet</h1>
+  <p class="lede">Plotly builds <b>interactive, web-native</b> charts. The mental model: a <b>Figure</b> is just <code>data</code> (a list of <b>traces</b>) + a <code>layout</code>, serialized to JSON and drawn by Plotly.js. You build that figure two ways &mdash; <b>Plotly Express</b> (<code>px</code>, one high-level call) or <b>Graph Objects</b> (<code>go</code>, assembled by hand) &mdash; and <i>both return the same</i> <code>go.Figure</code>, which you then refine with <code>fig.update_*()</code> and export to HTML, PNG, or JSON.</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>setup / import / data</span>
+    <span><i class="dot plot"></i>Plotly Express</span>
+    <span><i class="dot axes"></i>Graph Objects</span>
+    <span><i class="dot style"></i>encode channels</span>
+    <span><i class="dot layout"></i>update · subplots · layout</span>
+    <span><i class="dot output"></i>interact · render · export</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="st">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked across: <b>plotly.com/python</b> &middot; <b>figure structure</b> &middot; <b>plotly express</b> &middot; <b>graph objects</b> &middot; <b>creating &amp; updating figures</b> &middot; <b>API reference 7.0</b> &middot; <b>v6/v7 migration</b> &middot; <b>Dash docs</b> &nbsp;— Verified 2026-08-26 against Plotly 7.0.0</p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM : TWO APIS -> ONE FIGURE ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">How a plot is built &mdash; two APIs converge on one figure, then you refine &amp; render</div>
+  <svg class="flow-svg" viewBox="0 0 1120 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two APIs build a plotly figure. Plotly Express (px.scatter, one high-level call) and Graph Objects (go.Figure assembled from traces) both produce the same go.Figure. That figure is data — a list of traces like Scatter, Bar, Heatmap — plus a layout dict of title, axes and legend, plus optional animation frames. You refine it with fig.update_layout, update_traces and add_trace, then render or export via fig.show, write_html, write_image or to_json. Every figure serializes to JSON and is drawn by Plotly.js, interactive by default with zoom, pan, hover and legend toggling.">
+    <defs>
+      <marker id="lead" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/>
+      </marker>
+    </defs>
+
+    <!-- ===== ENTRY 1 : PLOTLY EXPRESS (amber) ===== -->
+    <text x="24" y="58" font-size="10.5" font-weight="700" fill="#d97706" letter-spacing="0.05em">PLOTLY EXPRESS · high-level</text>
+    <rect x="24" y="66" width="270" height="60" rx="8" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+    <text x="159" y="90" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">px.scatter(df, x, y,</text>
+    <text x="159" y="108" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">color="grp")</text>
+    <text x="159" y="122" text-anchor="middle" font-size="8.5" fill="#d97706">one call &middot; returns a figure</text>
+
+    <!-- ===== ENTRY 2 : GRAPH OBJECTS (green) ===== -->
+    <text x="24" y="196" font-size="10.5" font-weight="700" fill="#059669" letter-spacing="0.05em">GRAPH OBJECTS · low-level</text>
+    <rect x="24" y="204" width="270" height="84" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <text x="159" y="228" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">go.Figure(</text>
+    <text x="159" y="246" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">data=[go.Scatter(…)],</text>
+    <text x="159" y="264" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">layout={…})</text>
+    <text x="159" y="281" text-anchor="middle" font-size="8.5" fill="#059669">assemble &middot; full control</text>
+
+    <!-- converge arrows -->
+    <line x1="294" y1="96"  x2="424" y2="150" stroke="#6b7280" stroke-width="1.4" marker-end="url(#lead)"/>
+    <line x1="294" y1="246" x2="424" y2="230" stroke="#6b7280" stroke-width="1.4" marker-end="url(#lead)"/>
+    <text x="360" y="120" text-anchor="middle" font-size="8.5" fill="#6b7280" font-style="italic">px builds go</text>
+    <text x="360" y="132" text-anchor="middle" font-size="8" fill="#94a3b8">5–100× less code</text>
+
+    <!-- ===== CENTER : go.Figure object (violet) ===== -->
+    <text x="580" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#7c3aed" letter-spacing="0.04em">the same go.Figure  —  a JSON tree</text>
+    <rect x="430" y="92" width="300" height="248" rx="10" fill="#fdfcff" stroke="#7c3aed" stroke-width="2.2"/>
+    <!-- data -->
+    <rect x="448" y="108" width="264" height="78" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.4"/>
+    <text x="460" y="126" font-size="11" font-weight="700" fill="#1a1d24">data = [</text>
+    <text x="472" y="145" font-size="10.5" fill="#b45309">trace, trace, … ]</text>
+    <text x="460" y="167" font-size="9" fill="#6b7280">each trace = one series:</text>
+    <text x="460" y="179" font-size="9" fill="#6b7280">Scatter · Bar · Heatmap · Box …</text>
+    <!-- layout -->
+    <rect x="448" y="192" width="264" height="58" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/>
+    <text x="460" y="210" font-size="11" font-weight="700" fill="#1a1d24">layout = {</text>
+    <text x="472" y="228" font-size="10.5" fill="#047857">title, xaxis, yaxis, legend … }</text>
+    <text x="460" y="243" font-size="9" fill="#6b7280">everything that isn't data</text>
+    <!-- frames -->
+    <rect x="448" y="256" width="264" height="26" rx="6" fill="#fff" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <text x="580" y="273" text-anchor="middle" font-size="9.5" fill="#6b7280">frames = [ … ]  ·  animation (optional)</text>
+    <text x="580" y="302" text-anchor="middle" font-size="9" fill="#7c3aed">print(fig) · fig.to_dict() · fig.to_json()</text>
+    <text x="580" y="326" text-anchor="middle" font-size="9" fill="#94a3b8">px and go produce identical objects</text>
+
+    <!-- ===== REFINE (teal) ===== -->
+    <text x="762" y="112" font-size="10" font-weight="700" fill="#0d9488" letter-spacing="0.04em">REFINE</text>
+    <rect x="762" y="120" width="330" height="86" rx="8" fill="#e7f6f4" stroke="#0d9488" stroke-width="1.8"/>
+    <text x="778" y="142" font-size="10.5" fill="#1a1d24">fig.update_layout(title=…)</text>
+    <text x="778" y="162" font-size="10.5" fill="#1a1d24">fig.update_traces(marker_size=…)</text>
+    <text x="778" y="182" font-size="10.5" fill="#1a1d24">fig.add_trace(…) · add_hline(…)</text>
+    <text x="778" y="199" font-size="8.5" fill="#0d9488">chainable · merges recursively</text>
+    <line x1="730" y1="150" x2="758" y2="150" stroke="#6b7280" stroke-width="1.4" marker-end="url(#lead)"/>
+    <!-- loopback -->
+    <path d="M812,206 C812,236 700,236 690,208" fill="none" stroke="#7c3aed" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#lead)"/>
+    <text x="742" y="244" text-anchor="middle" font-size="8.5" fill="#7c3aed">returns the same figure</text>
+
+    <!-- ===== RENDER / EXPORT (slate) ===== -->
+    <text x="762" y="272" font-size="10" font-weight="700" fill="#64748b" letter-spacing="0.04em">RENDER / EXPORT</text>
+    <rect x="762" y="280" width="330" height="92" rx="8" fill="#f1f3f6" stroke="#64748b" stroke-width="1.8"/>
+    <text x="778" y="301" font-size="10.5" fill="#1a1d24">fig.show()  →  browser · notebook</text>
+    <text x="778" y="320" font-size="10.5" fill="#1a1d24">fig.write_html("f.html")  standalone</text>
+    <text x="778" y="339" font-size="10.5" fill="#1a1d24">fig.write_image("f.png")  kaleido</text>
+    <text x="778" y="358" font-size="10.5" fill="#1a1d24">fig.to_json()  →  embed anywhere</text>
+    <line x1="730" y1="300" x2="758" y2="300" stroke="#6b7280" stroke-width="1.4" marker-end="url(#lead)"/>
+
+    <!-- ===== BOTTOM BAND : Plotly.js ===== -->
+    <rect x="24" y="392" width="1068" height="60" rx="10" fill="#1a1d24"/>
+    <text x="558" y="416" text-anchor="middle" font-size="11.5" font-weight="700" fill="#f5f0e8">Every figure serializes to JSON &rarr; Plotly.js draws it in the browser</text>
+    <text x="558" y="436" text-anchor="middle" font-size="10" fill="#9ca3af">interactive by default:  zoom · pan · box-select · hover tooltips · click the legend to toggle traces</text>
+  </svg>
+</section>
+
+<!-- ============ CARD GRID ============ -->
+<main>
+
+  <!-- 01 SETUP & IMPORT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Import</span><span class="card-sub">the two entry points</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="cm">import</span> plotly.express <span class="cm">as</span> px</code><span class="star">&#9733;</span><div class="desc">High-level API &mdash; the recommended starting point.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm">import</span> plotly.graph_objects <span class="cm">as</span> go</code><span class="star">&#9733;</span><div class="desc">Low-level building blocks: figures, traces, layout.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm">from</span> plotly.subplots <span class="cm">import</span> make_subplots</code><div class="desc">Multi-panel / mixed-type / dual-axis figures.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm">import</span> plotly.io <span class="cm">as</span> pio</code><div class="desc">Renderers, templates, JSON &amp; image I/O.</div></li>
+      <li class="setup"><code class="cmd">df = px.data.<span class="obj">tips</span>()</code><span class="star">&#9733;</span><div class="desc">Built-in demo data: <code>iris</code>, <code>gapminder</code>, <code>stocks</code>…</div></li>
+      <li class="setup"><code class="cmd">pio.renderers.default = <span class="str">"browser"</span></code><div class="desc">Where <code>fig.show()</code> draws (<code>notebook</code>·<code>vscode</code>·<code>browser</code>).</div></li>
+      <li class="setup"><code class="cmd">plotly.__version__  <span class="cm"># 7.0</span></code><div class="desc">v7 renders with Plotly.js 4.x.</div></li>
+      <li class="setup"><code class="cmd">px.scatter(<span class="arg">df</span>, …)  <span class="cm"># pandas · polars · pyarrow</span></code><span class="badge-px">express</span><div class="desc"><b>Narwhals-native (6.0+):</b> Express accepts any Narwhals-compatible frame directly — no in-memory copy.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 EXPRESS BASICS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Express &middot; basics</span><span class="card-sub">px · one call → figure</span></div>
+    <ul class="cmds">
+      <li class="plot"><code class="cmd">fig = px.<span class="obj">scatter</span>(<span class="arg">df</span>, <span class="kw">x</span>=<span class="str">"a"</span>, <span class="kw">y</span>=<span class="str">"b"</span>)</code><span class="star">&#9733;</span><span class="badge-px">express</span><div class="desc">Points; add <code>color</code>/<code>size</code> to encode more.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">line</span>(<span class="arg">df</span>, <span class="kw">x</span>=<span class="str">"t"</span>, <span class="kw">y</span>=<span class="str">"v"</span>, <span class="kw">color</span>=<span class="str">"grp"</span>)</code><span class="star">&#9733;</span><div class="desc">One connected line per group.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">bar</span>(<span class="arg">df</span>, <span class="kw">x</span>=<span class="str">"cat"</span>, <span class="kw">y</span>=<span class="str">"n"</span>, <span class="kw">barmode</span>=<span class="str">"group"</span>)</code><span class="star">&#9733;</span><div class="desc"><code>group</code>·<code>stack</code>·<code>relative</code>.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">area</span>(<span class="arg">df</span>, <span class="kw">x</span>=<span class="str">"t"</span>, <span class="kw">y</span>=<span class="str">"v"</span>, <span class="kw">color</span>=<span class="str">"grp"</span>)</code><div class="desc">Stacked area over a shared x.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">funnel</span>(<span class="arg">df</span>, <span class="kw">x</span>=<span class="str">"n"</span>, <span class="kw">y</span>=<span class="str">"stage"</span>)</code><div class="desc">Stage-to-stage drop-off.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">timeline</span>(<span class="arg">df</span>, <span class="kw">x_start</span>=, <span class="kw">x_end</span>=, <span class="kw">y</span>=<span class="str">"task"</span>)</code><div class="desc">Gantt-style timeline.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 EXPRESS DISTRIBUTIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Express &middot; distributions</span><span class="card-sub">1-D &amp; 2-D shape</span></div>
+    <ul class="cmds">
+      <li class="plot"><code class="cmd">px.<span class="obj">histogram</span>(<span class="arg">df</span>, <span class="kw">x</span>=<span class="str">"a"</span>, <span class="kw">nbins</span>=<span class="arg">30</span>)</code><span class="star">&#9733;</span><div class="desc"><code>histnorm=</code> to normalize; <code>histfunc=</code> to aggregate.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">box</span>(<span class="arg">df</span>, <span class="kw">x</span>=<span class="str">"grp"</span>, <span class="kw">y</span>=<span class="str">"v"</span>)</code><span class="star">&#9733;</span><div class="desc">Quartiles + whiskers; <code>points="all"</code> to overlay.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">violin</span>(<span class="arg">df</span>, <span class="kw">y</span>=<span class="str">"v"</span>, <span class="kw">box</span>=<span class="arg">True</span>)</code><div class="desc">KDE shape + optional inner box.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">strip</span>(<span class="arg">df</span>, <span class="kw">x</span>=<span class="str">"grp"</span>, <span class="kw">y</span>=<span class="str">"v"</span>)</code><div class="desc">Jittered raw points.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">ecdf</span>(<span class="arg">df</span>, <span class="kw">x</span>=<span class="str">"a"</span>)</code><div class="desc">Empirical cumulative distribution.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">density_heatmap</span>(<span class="arg">df</span>, <span class="kw">x</span>=, <span class="kw">y</span>=)</code><div class="desc">2-D histogram as a heatmap.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">density_contour</span>(<span class="arg">df</span>, <span class="kw">x</span>=, <span class="kw">y</span>=)</code><div class="desc">2-D KDE contour lines.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 EXPRESS PART-OF-WHOLE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Express &middot; hierarchy</span><span class="card-sub">part-of-whole</span></div>
+    <ul class="cmds">
+      <li class="plot"><code class="cmd">px.<span class="obj">pie</span>(<span class="arg">df</span>, <span class="kw">names</span>=<span class="str">"cat"</span>, <span class="kw">values</span>=<span class="str">"n"</span>)</code><span class="star">&#9733;</span><div class="desc">Proportions of a whole; <code>hole=0.4</code> for a donut.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">sunburst</span>(<span class="arg">df</span>, <span class="kw">path</span>=<span class="arg">["a","b","c"]</span>, <span class="kw">values</span>=<span class="str">"n"</span>)</code><span class="star">&#9733;</span><div class="desc">Nested rings from a column hierarchy.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">treemap</span>(<span class="arg">df</span>, <span class="kw">path</span>=<span class="arg">[…]</span>, <span class="kw">values</span>=<span class="str">"n"</span>)</code><span class="star">&#9733;</span><div class="desc">Nested rectangles sized by value.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">icicle</span>(<span class="arg">df</span>, <span class="kw">path</span>=<span class="arg">[…]</span>, <span class="kw">values</span>=<span class="str">"n"</span>)</code><div class="desc">Hierarchy as stacked bars.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">funnel_area</span>(<span class="kw">names</span>=, <span class="kw">values</span>=)</code><div class="desc">Funnel drawn as proportional areas.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 EXPRESS MAPS / 3D / nD -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Express &middot; maps · 3D · nD</span><span class="card-sub">beyond the plane</span></div>
+    <ul class="cmds">
+      <li class="plot"><code class="cmd">px.<span class="obj">scatter_3d</span>(<span class="arg">df</span>, <span class="kw">x</span>=, <span class="kw">y</span>=, <span class="kw">z</span>=, <span class="kw">color</span>=)</code><div class="desc">Rotatable 3-D points.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">scatter_map</span>(<span class="arg">df</span>, <span class="kw">lat</span>=, <span class="kw">lon</span>=, <span class="kw">zoom</span>=<span class="arg">3</span>)</code><span class="star">&#9733;</span><div class="desc">Tile map (MapLibre); was <code>scatter_mapbox</code>.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">choropleth</span>(<span class="arg">df</span>, <span class="kw">locations</span>=, <span class="kw">color</span>=)</code><div class="desc">Filled geographic regions.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">imshow</span>(<span class="arg">img_or_matrix</span>)</code><span class="star">&#9733;</span><div class="desc">Show an image, matrix, or labelled heatmap.</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">scatter_matrix</span>(<span class="arg">df</span>, <span class="kw">dimensions</span>=<span class="arg">[…]</span>)</code><div class="desc">Pairwise scatter-plot matrix (SPLOM).</div></li>
+      <li class="plot"><code class="cmd">px.<span class="obj">parallel_coordinates</span>(<span class="arg">df</span>, <span class="kw">dimensions</span>=)</code><div class="desc">Multi-axis lines for high-dim data.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 ENCODING CHANNELS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Encode channels</span><span class="card-sub">columns → visuals (px)</span></div>
+    <ul class="cmds">
+      <li class="style"><code class="cmd"><span class="kw">color</span>=<span class="str">"col"</span></code><span class="star">&#9733;</span><div class="desc">Discrete &rarr; legend; continuous &rarr; colorbar.</div></li>
+      <li class="style"><code class="cmd"><span class="kw">size</span>=<span class="str">"col"</span></code><div class="desc">Bubble size by value; <code>size_max=</code> to cap.</div></li>
+      <li class="style"><code class="cmd"><span class="kw">symbol</span>=<span class="str">"col"</span>, <span class="kw">line_dash</span>=<span class="str">"col"</span></code><div class="desc">Marker shape / line dash by variable.</div></li>
+      <li class="style"><code class="cmd"><span class="kw">facet_col</span>=<span class="str">"col"</span>, <span class="kw">facet_row</span>=<span class="str">"col"</span></code><span class="star">&#9733;</span><div class="desc">Small-multiple panel grid.</div></li>
+      <li class="style"><code class="cmd"><span class="kw">animation_frame</span>=<span class="str">"year"</span></code><span class="star">&#9733;</span><div class="desc">Adds a play button that steps across frames.</div></li>
+      <li class="style"><code class="cmd"><span class="kw">hover_name</span>=<span class="str">"id"</span>, <span class="kw">hover_data</span>=<span class="arg">["x","y"]</span></code><div class="desc">Control the tooltip contents.</div></li>
+      <li class="style"><code class="cmd"><span class="kw">text</span>=<span class="str">"col"</span></code><div class="desc">Print data labels on the marks.</div></li>
+      <li class="style"><code class="cmd"><span class="kw">trendline</span>=<span class="str">"ols"</span></code><div class="desc">Fit a line (needs <code>statsmodels</code>): <code>ols</code>·<code>lowess</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 GRAPH OBJECTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Graph Objects</span><span class="card-sub">figure = data + layout</span></div>
+    <ul class="cmds">
+      <li class="axes"><code class="cmd">fig = go.<span class="obj">Figure</span>(<span class="kw">data</span>=<span class="arg">[go.Scatter(x=x, y=y)]</span>)</code><span class="star">&#9733;</span><span class="badge-go">graph_objects</span><div class="desc">Assemble a figure from a list of traces.</div></li>
+      <li class="axes"><code class="cmd">go.<span class="obj">Figure</span>(<span class="kw">data</span>=<span class="arg">[…]</span>, <span class="kw">layout</span>=go.<span class="obj">Layout</span>(<span class="kw">title</span>=<span class="str">"…"</span>))</code><div class="desc"><code>data</code> = the traces, <code>layout</code> = everything else.</div></li>
+      <li class="axes"><code class="cmd">go.<span class="obj">Scatter</span>(<span class="kw">x</span>=, <span class="kw">y</span>=, <span class="kw">mode</span>=<span class="str">"markers+lines"</span>)</code><span class="star">&#9733;</span><div class="desc"><code>mode</code> = <code>markers</code>·<code>lines</code>·<code>text</code> (mix with +).</div></li>
+      <li class="axes"><code class="cmd">fig.<span class="obj">add_trace</span>(go.<span class="obj">Bar</span>(<span class="kw">x</span>=, <span class="kw">y</span>=))</code><span class="star">&#9733;</span><div class="desc">Layer another trace onto the figure.</div></li>
+      <li class="axes"><code class="cmd">fig.data  <span class="cm">·</span>  fig.layout</code><div class="desc">Inspect the trace tuple and the layout tree.</div></li>
+      <li class="axes"><code class="cmd">go.<span class="obj">Figure</span>(<span class="arg">fig_dict</span>)</code><div class="desc">A figure is really just a nested dict.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 GO TRACE ZOO -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Trace zoo</span><span class="card-sub">go.* building blocks</span></div>
+    <ul class="cmds">
+      <li class="axes"><code class="cmd">go.<span class="obj">Scatter</span> · go.<span class="obj">Scattergl</span></code><span class="star">&#9733;</span><div class="desc">Lines/markers; <code>gl</code> = WebGL for big data.</div></li>
+      <li class="axes"><code class="cmd">go.<span class="obj">Bar</span> · go.<span class="obj">Histogram</span></code><span class="star">&#9733;</span><div class="desc">Bars and binned counts.</div></li>
+      <li class="axes"><code class="cmd">go.<span class="obj">Heatmap</span> · go.<span class="obj">Contour</span></code><div class="desc">Matrix as color grid / iso-contours.</div></li>
+      <li class="axes"><code class="cmd">go.<span class="obj">Box</span> · go.<span class="obj">Violin</span></code><div class="desc">Distribution summaries.</div></li>
+      <li class="axes"><code class="cmd">go.<span class="obj">Scatter3d</span> · go.<span class="obj">Surface</span> · go.<span class="obj">Mesh3d</span></code><div class="desc">3-D points, surfaces, meshes.</div></li>
+      <li class="axes"><code class="cmd">go.<span class="obj">Choropleth</span> · go.<span class="obj">Scattergeo</span></code><div class="desc">Geographic maps.</div></li>
+      <li class="axes"><code class="cmd">go.<span class="obj">Candlestick</span> · go.<span class="obj">Ohlc</span> · go.<span class="obj">Waterfall</span></code><div class="desc">Financial charts.</div></li>
+      <li class="axes"><code class="cmd">go.<span class="obj">Sankey</span> · go.<span class="obj">Indicator</span> · go.<span class="obj">Table</span></code><div class="desc">Flows, KPI gauges, tables.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 UPDATE & MANIPULATE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Update the figure</span><span class="card-sub">post-creation edits</span></div>
+    <ul class="cmds">
+      <li class="layout"><code class="cmd">fig.<span class="obj">update_layout</span>(<span class="kw">title</span>=<span class="str">"…"</span>, <span class="kw">legend_title</span>=<span class="str">"…"</span>)</code><span class="star">&#9733;</span><div class="desc">Set any layout property.</div></li>
+      <li class="layout"><code class="cmd">fig.<span class="obj">update_traces</span>(<span class="kw">marker_size</span>=<span class="arg">10</span>, <span class="kw">selector</span>=<span class="arg">dict(type="scatter")</span>)</code><span class="star">&#9733;</span><div class="desc"><code>selector=</code> targets which traces to edit.</div></li>
+      <li class="layout"><code class="cmd">fig.<span class="obj">update_xaxes</span>(<span class="kw">type</span>=<span class="str">"log"</span>, <span class="kw">range</span>=<span class="arg">[0,5]</span>)</code><div class="desc">Per-axis tweaks (<code>update_yaxes</code> too).</div></li>
+      <li class="layout"><code class="cmd">fig.<span class="obj">add_hline</span>(<span class="kw">y</span>=<span class="arg">0</span>) · fig.<span class="obj">add_vrect</span>(<span class="kw">x0</span>=, <span class="kw">x1</span>=)</code><div class="desc">Reference lines &amp; shaded bands.</div></li>
+      <li class="layout"><code class="cmd">fig.<span class="obj">add_annotation</span>(<span class="kw">x</span>=, <span class="kw">y</span>=, <span class="kw">text</span>=<span class="str">"peak"</span>)</code><div class="desc">Point callouts with optional arrows.</div></li>
+      <li class="layout"><code class="cmd"><span class="kw">marker_color</span>=<span class="str">"red"</span> <span class="cm">≡</span> <span class="kw">marker</span>=<span class="arg">dict(color="red")</span></code><span class="star">&#9733;</span><div class="desc">Magic underscore flattens nested props.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 SUBPLOTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Subplots</span><span class="card-sub">make_subplots</span></div>
+    <ul class="cmds">
+      <li class="layout"><code class="cmd"><span class="cm">from</span> plotly.subplots <span class="cm">import</span> make_subplots</code><span class="star">&#9733;</span><div class="desc">The helper for multi-panel figures.</div></li>
+      <li class="layout"><code class="cmd">fig = <span class="obj">make_subplots</span>(<span class="kw">rows</span>=<span class="arg">2</span>, <span class="kw">cols</span>=<span class="arg">2</span>, <span class="kw">subplot_titles</span>=<span class="arg">(…)</span>)</code><span class="star">&#9733;</span><div class="desc">A grid of empty panels.</div></li>
+      <li class="layout"><code class="cmd">fig.<span class="obj">add_trace</span>(go.<span class="obj">Scatter</span>(<span class="cm">…</span>), <span class="kw">row</span>=<span class="arg">1</span>, <span class="kw">col</span>=<span class="arg">2</span>)</code><span class="star">&#9733;</span><div class="desc">Place a trace in a specific panel.</div></li>
+      <li class="layout"><code class="cmd"><span class="obj">make_subplots</span>(<span class="cm">…</span>, <span class="kw">shared_xaxes</span>=<span class="arg">True</span>)</code><div class="desc">Link axes across panels.</div></li>
+      <li class="layout"><code class="cmd"><span class="kw">specs</span>=<span class="arg">[[{"type":"domain"}, {"type":"scene"}]]</span></code><div class="desc">Mix types: pie (<code>domain</code>), 3-D (<code>scene</code>), maps.</div></li>
+      <li class="layout"><code class="cmd"><span class="kw">specs</span>=<span class="arg">[[{"secondary_y":True}]]</span></code><div class="desc">Dual y-axis in one panel.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 LAYOUT & STYLING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Layout &amp; styling</span><span class="card-sub">shape the frame</span></div>
+    <ul class="cmds">
+      <li class="layout"><code class="cmd">fig.<span class="obj">update_layout</span>(<span class="kw">xaxis_title</span>=<span class="str">"…"</span>, <span class="kw">yaxis_title</span>=<span class="str">"…"</span>)</code><span class="star">&#9733;</span><div class="desc">Axis titles the quick way.</div></li>
+      <li class="layout"><code class="cmd">fig.<span class="obj">update_layout</span>(<span class="kw">width</span>=<span class="arg">800</span>, <span class="kw">height</span>=<span class="arg">500</span>, <span class="kw">margin</span>=<span class="arg">dict(l=40)</span>)</code><div class="desc">Explicit size &amp; margins.</div></li>
+      <li class="layout"><code class="cmd">fig.<span class="obj">update_layout</span>(<span class="kw">legend</span>=<span class="arg">dict(orientation="h", y=1.1)</span>)</code><div class="desc">Reposition / reorient the legend.</div></li>
+      <li class="layout"><code class="cmd">fig.<span class="obj">update_layout</span>(<span class="kw">hovermode</span>=<span class="str">"x unified"</span>)</code><span class="star">&#9733;</span><div class="desc">One combined tooltip across traces.</div></li>
+      <li class="layout"><code class="cmd">fig.<span class="obj">update_layout</span>(<span class="kw">showlegend</span>=<span class="arg">False</span>)</code><div class="desc">Hide the legend entirely.</div></li>
+      <li class="layout"><code class="cmd">fig.<span class="obj">update_layout</span>(<span class="kw">barmode</span>=<span class="str">"stack"</span>, <span class="kw">bargap</span>=<span class="arg">0.2</span>)</code><div class="desc">Bar stacking &amp; spacing.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 COLOR & TEMPLATES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Color &amp; templates</span><span class="card-sub">instant restyle</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="kw">template</span>=<span class="str">"plotly_white"</span></code><span class="star">&#9733;</span><div class="desc"><code>plotly</code>·<code>plotly_white</code>·<code>plotly_dark</code>·<code>ggplot2</code>·<code>seaborn</code>·<code>simple_white</code>.</div></li>
+      <li class="setup"><code class="cmd">pio.templates.default = <span class="str">"plotly_white"</span></code><div class="desc">Set the theme once, globally.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">color_discrete_sequence</span>=px.colors.qualitative.<span class="obj">Set2</span></code><div class="desc">Categorical palette.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">color_continuous_scale</span>=<span class="str">"Viridis"</span></code><span class="star">&#9733;</span><div class="desc">Sequential scale for numeric color.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">color_discrete_map</span>=<span class="arg">{"A":"red", "B":"blue"}</span></code><div class="desc">Pin exact colors to categories.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">range_color</span>=<span class="arg">[0, 100]</span></code><div class="desc">Clamp the continuous colorbar.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 INTERACTIVITY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Interactivity</span><span class="card-sub">it's live by default</span></div>
+    <ul class="cmds">
+      <li class="output"><code class="cmd"><span class="cm">zoom · pan · box-select · hover · legend-toggle</span></code><span class="star">&#9733;</span><div class="desc">Free on every figure &mdash; no config needed.</div></li>
+      <li class="output"><code class="cmd"><span class="kw">hovertemplate</span>=<span class="str">"%{x}: %{y:.2f}&lt;extra&gt;&lt;/extra&gt;"</span></code><div class="desc">Custom tooltip; <code>&lt;extra&gt;</code> hides the trace box.</div></li>
+      <li class="output"><code class="cmd">fig.<span class="obj">update_layout</span>(<span class="kw">hovermode</span>=<span class="str">"x unified"</span>)</code><div class="desc">Shared crosshair tooltip.</div></li>
+      <li class="output"><code class="cmd">fig.<span class="obj">update_xaxes</span>(<span class="kw">rangeslider_visible</span>=<span class="arg">True</span>)</code><div class="desc">Add a range slider under the x-axis.</div></li>
+      <li class="output"><code class="cmd">fig.<span class="obj">update_layout</span>(<span class="kw">updatemenus</span>=<span class="arg">[…]</span>)</code><div class="desc">Dropdowns &amp; buttons.</div></li>
+      <li class="output"><code class="cmd">fig.<span class="obj">show</span>(<span class="kw">config</span>=<span class="arg">dict(scrollZoom=True)</span>)</code><div class="desc">Toolbar / behavior config.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 OUTPUT & EXPORT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Output &amp; export</span><span class="card-sub">get it out</span></div>
+    <ul class="cmds">
+      <li class="output"><code class="cmd">fig.<span class="obj">show</span>()</code><span class="star">&#9733;</span><div class="desc">Render in the active renderer (notebook/browser).</div></li>
+      <li class="output"><code class="cmd">fig.<span class="obj">write_html</span>(<span class="str">"f.html"</span>)</code><span class="star">&#9733;</span><div class="desc">Standalone <b>interactive</b> file &mdash; opens anywhere.</div></li>
+      <li class="output"><code class="cmd">fig.<span class="obj">write_html</span>(<span class="str">"f.html"</span>, <span class="kw">include_plotlyjs</span>=<span class="str">"cdn"</span>)</code><div class="desc">Smaller file; loads Plotly.js from a CDN.</div></li>
+      <li class="output"><code class="cmd">fig.<span class="obj">write_image</span>(<span class="str">"f.png"</span>, <span class="kw">scale</span>=<span class="arg">2</span>)</code><span class="star">&#9733;</span><div class="desc">Static raster/vector &mdash; needs <code>kaleido</code>.</div></li>
+      <li class="output"><code class="cmd">fig.<span class="obj">to_json</span>() · fig.<span class="obj">to_dict</span>()</code><div class="desc">Serialize the figure to embed or store.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 EXPRESS VS GRAPH OBJECTS (KEY) -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Express vs Graph Objects</span><span class="card-sub">the one big choice &#9733;</span></div>
+    <ul class="cmds">
+      <li class="plot"><code class="cmd">px.<span class="obj">scatter</span>(df, <span class="cm">…</span>)</code><span class="star">&#9733;</span><span class="badge-px">express</span><div class="desc">One call, tidy DataFrame in &rarr; whole figure out.</div></li>
+      <li class="axes"><code class="cmd">go.<span class="obj">Figure</span>(<span class="kw">data</span>=<span class="arg">[…]</span>, <span class="kw">layout</span>=<span class="arg">…</span>)</code><span class="star">&#9733;</span><span class="badge-go">graph_objects</span><div class="desc">Assemble traces by hand &mdash; total control.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm">every px.* returns a </span>go.Figure</code><span class="star">&#9733;</span><div class="desc">So you can freely mix both styles.</div></li>
+      <li class="plot"><code class="cmd"><span class="cm">px when: explore · facet · animate · color-map</span></code><div class="desc">Fast, expressive, DataFrame-native.</div></li>
+      <li class="axes"><code class="cmd"><span class="cm">go when: mixed subplots · dual-axis · fine control</span></code><div class="desc">The things a single px call can't express.</div></li>
+      <li class="layout"><code class="cmd"><span class="cm">…then always </span>fig.update_layout()</code><span class="star">&#9733;</span><div class="desc">Refinement works the same on both.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm">rule: start in px, drop to go only when needed</span></code><div class="desc">The practical workflow.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 GOTCHAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Gotchas</span><span class="card-sub">the usual traps</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">px <span class="cm">wants long / tidy data</span></code><span class="badge-danger">reshape</span><div class="desc">Melt wide&rarr;long, or use px's wide-form mode.</div></li>
+      <li class="danger"><code class="cmd">fig.<span class="obj">write_image</span>(<span class="cm">…</span>)</code><span class="badge-danger">kaleido&nbsp;v1</span><div class="desc">Static export needs <code>kaleido&nbsp;≥1.0</code> (orca &amp; the <code>engine=</code> arg are gone; Kaleido finds an existing Chrome).</div></li>
+      <li class="danger"><code class="cmd">scatter_mapbox <span class="cm">→</span> scatter_map</code><span class="badge-danger">removed in v7</span><div class="desc">v7 <b>removes</b> the old <code>*mapbox</code> trace types &amp; <code>mapboxAccessToken</code> — use the MapLibre <code>*map</code> functions.</div></li>
+      <li class="danger"><code class="cmd">fig.<span class="obj">show</span>() <span class="cm">in a .py script</span></code><div class="desc">Needs a renderer (browser) &mdash; else nothing appears.</div></li>
+      <li class="danger"><code class="cmd">update_traces <span class="cm">hits ALL traces</span></code><div class="desc">Pass <code>selector=</code> to target a subset.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm">big scatter (&gt;10k pts)</span></code><div class="desc">Use <code>go.Scattergl</code> (WebGL) to stay smooth.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm">category order looks random</span></code><div class="desc">Set <code>category_orders=</code> or axis <code>categoryorder</code>.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four ideas worth a picture</h2>
+  <p class="sub">The flow up top shows the whole build. These four zoom in on the ideas that make plotly click: what a figure actually <i>is</i>, how the two APIs relate, how updates merge, and how a figure becomes pixels.</p>
+
+  <div class="merge-grid">
+
+    <!-- D1 : ANATOMY OF THE FIGURE -->
+    <div class="merge-card">
+      <h3>a figure is data + layout</h3>
+      <p>Under any chart is one nested dict: a <b>list of traces</b> (the data) and a <b>layout</b>. That's the whole object model.</p>
+      <svg viewBox="0 0 420 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A go.Figure contains data, which is a list of trace dicts each with a type, x, y and marker; a layout dict with title, xaxis, yaxis and legend; and an optional frames list for animation.">
+        <rect x="12" y="12" width="396" height="186" rx="8" fill="#fdfcff" stroke="#7c3aed" stroke-width="1.8"/>
+        <text x="24" y="30" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700" fill="#7c3aed">go.Figure</text>
+
+        <!-- data -->
+        <rect x="24" y="38" width="372" height="74" rx="5" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/>
+        <text x="34" y="54" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700" fill="#b45309">data = [</text>
+        <rect x="44" y="60" width="164" height="44" rx="4" fill="#fff" stroke="#d97706" stroke-width="1"/>
+        <text x="52" y="74" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b7280">{ type:"scatter",</text>
+        <text x="52" y="86" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b7280">  x:[…], y:[…],</text>
+        <text x="52" y="98" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b7280">  marker:{…} }</text>
+        <rect x="216" y="60" width="150" height="44" rx="4" fill="#fff" stroke="#d97706" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="291" y="80" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b7280">{ type:"bar", … }</text>
+        <text x="291" y="94" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#94a3b8">trace 2 …</text>
+        <text x="380" y="54" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700" fill="#b45309">]</text>
+
+        <!-- layout -->
+        <rect x="24" y="120" width="230" height="60" rx="5" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/>
+        <text x="34" y="136" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700" fill="#047857">layout = {</text>
+        <text x="44" y="151" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b7280">title, legend,</text>
+        <text x="44" y="163" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b7280">xaxis:{…}, yaxis:{…},</text>
+        <text x="44" y="175" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b7280">template, margin }</text>
+
+        <!-- frames -->
+        <rect x="262" y="120" width="134" height="60" rx="5" fill="#fff" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <text x="329" y="146" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#6b7280">frames = [ … ]</text>
+        <text x="329" y="162" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#94a3b8">animation (optional)</text>
+      </svg>
+    </div>
+
+    <!-- D2 : ONE CHART, TWO WAYS -->
+    <div class="merge-card">
+      <h3>one chart, two ways</h3>
+      <p>Express writes the graph-objects for you. The same figure, either as a one-liner or assembled by hand.</p>
+      <svg viewBox="0 0 420 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Plotly Express px.bar in one line produces the same figure as go.Figure assembled from a go.Bar trace and a layout in several lines. Express builds graph objects under the hood with 5 to 100 times less code.">
+        <!-- express -->
+        <text x="16" y="20" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#d97706">Plotly Express</text>
+        <rect x="16" y="28" width="180" height="52" rx="5" fill="#fdf6ec" stroke="#d97706" stroke-width="1.4"/>
+        <text x="26" y="48" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">fig = px.bar(</text>
+        <text x="26" y="61" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">  df, x="d", y="n")</text>
+        <text x="106" y="75" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#d97706">1 line</text>
+
+        <!-- graph objects -->
+        <text x="228" y="20" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#059669">Graph Objects</text>
+        <rect x="228" y="28" width="180" height="112" rx="5" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/>
+        <text x="238" y="45" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">fig = go.Figure(</text>
+        <text x="238" y="59" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">  data=[go.Bar(</text>
+        <text x="238" y="73" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">    x=df.d, y=df.n)],</text>
+        <text x="238" y="87" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">  layout=go.Layout(</text>
+        <text x="238" y="101" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">    barmode="group"))</text>
+        <text x="318" y="128" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#059669">5–100× more lines</text>
+
+        <!-- converge -->
+        <line x1="106" y1="80" x2="196" y2="170" stroke="#6b7280" stroke-width="1.3" marker-end="url(#lead)"/>
+        <line x1="318" y1="140" x2="240" y2="170" stroke="#6b7280" stroke-width="1.3" marker-end="url(#lead)"/>
+        <rect x="150" y="172" width="120" height="30" rx="6" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.5"/>
+        <text x="210" y="191" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700" fill="#7c3aed">same go.Figure</text>
+      </svg>
+    </div>
+
+    <!-- D3 : MAGIC UNDERSCORE + MERGE -->
+    <div class="merge-card">
+      <h3>magic underscore &amp; recursive update</h3>
+      <p>Underscores flatten nested keys; <code>update_*</code> merges into the tree instead of clobbering its siblings.</p>
+      <svg viewBox="0 0 420 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="fig.update_layout with title_font_size equals 20 expands to the nested layout title font size equals 20, and merges into the existing layout without overwriting other title properties like the text.">
+        <rect x="20" y="20" width="380" height="34" rx="6" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.4"/>
+        <text x="210" y="41" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#1a1d24">fig.update_layout(title_font_size=20)</text>
+        <line x1="210" y1="54" x2="210" y2="72" stroke="#6b7280" stroke-width="1.3" marker-end="url(#lead)"/>
+        <text x="210" y="68" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#6b7280">underscores → nesting</text>
+
+        <!-- nested tree -->
+        <rect x="120" y="76" width="180" height="20" rx="4" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.1"/>
+        <text x="210" y="90" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">layout</text>
+        <line x1="210" y1="96" x2="210" y2="108" stroke="#94a3b8" stroke-width="1"/>
+        <rect x="140" y="108" width="140" height="20" rx="4" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.1"/>
+        <text x="210" y="122" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">title</text>
+        <line x1="210" y1="128" x2="210" y2="140" stroke="#94a3b8" stroke-width="1"/>
+        <rect x="160" y="140" width="100" height="20" rx="4" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.1"/>
+        <text x="210" y="154" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">font</text>
+        <line x1="210" y1="160" x2="210" y2="172" stroke="#94a3b8" stroke-width="1"/>
+        <rect x="175" y="172" width="70" height="20" rx="4" fill="#059669"/>
+        <text x="210" y="186" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="700" fill="#fff">size=20</text>
+
+        <!-- merge note -->
+        <text x="366" y="120" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b7280">title.text</text>
+        <text x="366" y="132" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="8" fill="#6b7280">stays intact</text>
+        <path d="M300,124 C330,124 340,150 300,168" fill="none" stroke="#0d9488" stroke-width="1.2" stroke-dasharray="3 2" marker-end="url(#lead)"/>
+        <text x="300" y="205" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#94a3b8">merge, don't overwrite (overwrite=True to replace)</text>
+      </svg>
+    </div>
+
+    <!-- D4 : RENDER / EXPORT FAN-OUT -->
+    <div class="merge-card">
+      <h3>from figure to pixels</h3>
+      <p>One figure, many destinations. All go through JSON &rarr; Plotly.js, which is why the HTML export stays fully interactive.</p>
+      <svg viewBox="0 0 420 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A go.Figure serializes to JSON and fans out to four outputs: fig.show for the notebook or browser, write_html for a standalone interactive file, write_image for a static PNG via kaleido, and to_json to embed elsewhere. The interactive paths run through Plotly.js.">
+        <rect x="150" y="14" width="120" height="34" rx="6" fill="#fdfcff" stroke="#7c3aed" stroke-width="1.8"/>
+        <text x="210" y="35" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700" fill="#1a1d24">go.Figure</text>
+        <line x1="210" y1="48" x2="210" y2="64" stroke="#6b7280" stroke-width="1.3" marker-end="url(#lead)"/>
+        <rect x="168" y="64" width="84" height="22" rx="4" fill="#1a1d24"/>
+        <text x="210" y="79" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#f5f0e8">to JSON</text>
+
+        <!-- fan to 4 -->
+        <g stroke="#6b7280" stroke-width="1.2" fill="none">
+          <line x1="180" y1="86" x2="70"  y2="120" marker-end="url(#lead)"/>
+          <line x1="200" y1="86" x2="165" y2="120" marker-end="url(#lead)"/>
+          <line x1="220" y1="86" x2="258" y2="120" marker-end="url(#lead)"/>
+          <line x1="240" y1="86" x2="352" y2="120" marker-end="url(#lead)"/>
+        </g>
+
+        <rect x="16" y="120" width="104" height="40" rx="5" fill="#e7f6f4" stroke="#0d9488" stroke-width="1.3"/>
+        <text x="68" y="137" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="700" fill="#0d9488">.show()</text>
+        <text x="68" y="150" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#6b7280">notebook/browser</text>
+
+        <rect x="126" y="120" width="104" height="40" rx="5" fill="#e7f6f4" stroke="#0d9488" stroke-width="1.3"/>
+        <text x="178" y="137" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="700" fill="#0d9488">.write_html()</text>
+        <text x="178" y="150" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#6b7280">interactive file</text>
+
+        <rect x="236" y="120" width="82" height="40" rx="5" fill="#f1f3f6" stroke="#64748b" stroke-width="1.3"/>
+        <text x="277" y="137" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" font-weight="700" fill="#64748b">.write_image()</text>
+        <text x="277" y="150" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#6b7280">PNG · kaleido</text>
+
+        <rect x="324" y="120" width="80" height="40" rx="5" fill="#f1f3f6" stroke="#64748b" stroke-width="1.3"/>
+        <text x="364" y="137" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="700" fill="#64748b">.to_json()</text>
+        <text x="364" y="150" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#6b7280">embed</text>
+
+        <rect x="60" y="176" width="216" height="24" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.3"/>
+        <text x="168" y="192" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="700" fill="#4f46e5">Plotly.js draws the interactive ones</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">figure = data + layout</span><span class="v">a JSON tree Plotly.js renders</span></div>
+    <div><span class="k">px vs go</span><span class="v">high-level 1 call vs assembled &mdash; same <code>go.Figure</code></span></div>
+    <div><span class="k">px.* → go.Figure</span><span class="v">so refine any px chart with <code>fig.update_*</code></span></div>
+    <div><span class="k">px builds go</span><span class="v">under the hood, 5–100× less code</span></div>
+    <div><span class="k">color/facet/animation</span><span class="v">px encodes columns → visuals &amp; panels</span></div>
+    <div><span class="k">update_traces(selector=)</span><span class="v">or it edits every trace</span></div>
+    <div><span class="k">magic underscore</span><span class="v"><code>marker_color="red"</code> ≡ <code>marker=dict(color=…)</code></span></div>
+    <div><span class="k">write_html()</span><span class="v">standalone &amp; interactive · <code>write_image</code> needs kaleido</span></div>
+    <div><span class="k">template=</span><span class="v"><code>"plotly_white"</code> restyles instantly</span></div>
+    <div><span class="k">make_subplots()</span><span class="v">mixed-type / dual-axis panels (px can't)</span></div>
+  </div>
+</section>
+
+<footer>
+  Plotly cheat sheet &middot; synthesized from the official documentation at plotly.com/python (figure structure, Plotly Express, Graph Objects, creating &amp; updating figures, API reference 7.0, v6/v7 migration) with cross-checks against the Dash docs.<br>
+  Verified 2026-08-26 against Plotly 7.0.0, which renders via Plotly.js 4.x &middot; <code>plotly.express</code> is the recommended entry point (Narwhals-native: pandas/polars/pyarrow) and drops to <code>plotly.graph_objects</code> for full control &middot; both return the same <code>go.Figure</code> &middot; static export needs <code>kaleido ≥1.0</code> (orca removed) &middot; the old <code>*mapbox</code> trace types were removed in v7 &mdash; use the MapLibre <code>*map</code> functions.
+</footer>
+
+</body>
+</html>

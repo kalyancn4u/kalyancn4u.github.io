@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nselib Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b;   --setup-bg:#f1f3f6;
+    --price:#d97706;   --price-bg:#fdf6ec;
+    --action:#0d9488;  --action-bg:#e9faf6;
+    --info:#059669;    --info-bg:#ecf7f2;
+    --analysis:#4f46e5;--analysis-bg:#eef0fd;
+    --adv:#7c3aed;     --adv-bg:#f3eefe;
+    --danger:#dc2626;  --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --nse:#1e40af;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .nse{font-family:var(--mono); color:var(--nse)}
+  h1 .rest{font-family:var(--mono); color:var(--ink)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)} .dot.price{background:var(--price)}
+  .dot.action{background:var(--action)} .dot.info{background:var(--info)}
+  .dot.analysis{background:var(--analysis)} .dot.adv{background:var(--adv)}
+  .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- quickstart ---------- */
+  .quick{
+    max-width:1120px; margin:1.4rem auto 0; background:var(--ink);
+    border-radius:10px; overflow:hidden;
+  }
+  .quick-bar{
+    display:flex; align-items:center; gap:.5rem; padding:.5rem .9rem;
+    border-bottom:1px solid #2c3038; font-family:var(--mono); font-size:.7rem;
+    color:#94a3b8; letter-spacing:.05em;
+  }
+  .quick-bar i{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .quick pre{
+    margin:0; padding:.9rem 1.1rem; overflow-x:auto;
+    font-family:var(--mono); font-size:.8rem; line-height:1.65; white-space:pre;
+    color:#e8e6e1; tab-size:2;
+  }
+  .quick .c{color:#8b93a1}    /* comment */
+  .quick .m{color:#93b4ff}    /* module */
+  .quick .f{color:#8ec9ff}    /* function */
+  .quick .s{color:#9fe0a6}    /* string */
+  .quick .n{color:#f0b95a}    /* number */
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  @media(min-width:1640px){ main{column-count:4} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.price{border-left-color:var(--price)}
+  ul.cmds li.action{border-left-color:var(--action)}
+  ul.cmds li.info{border-left-color:var(--info)}
+  ul.cmds li.analysis{border-left-color:var(--analysis)}
+  ul.cmds li.adv{border-left-color:var(--adv)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .mod{color:var(--nse)}
+  code.cmd .fn{color:var(--analysis)}
+  code.cmd .arg{color:var(--action); font-weight:400}
+  code.cmd .str{color:var(--info)}
+  code.cmd .kw{color:var(--star)}
+  code.cmd .num{color:var(--price)}
+  code.cmd .op{color:var(--muted)}
+  li.danger code.cmd{color:var(--danger)}
+  li.danger code.cmd .mod,li.danger code.cmd .fn,li.danger code.cmd .arg{color:var(--danger)}
+  .desc{font-size:.77rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.72rem; background:#f4f1ea; padding:.03rem .28rem; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.63rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-new{
+    color:var(--adv); font-size:.63rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:var(--mono)}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.8rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{background:#2a2e37; padding:.02rem .3rem; border-radius:3px; color:#e8e6e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{background:#f4f1ea; padding:.02rem .3rem; border-radius:3px}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · NSE India market data in Python</div>
+  <h1><span class="nse">nse</span><span class="rest">lib</span> cheat sheet</h1>
+  <p class="lede">One idea unlocks the whole library: <b>nselib is a thin, read-only façade over NSE India's public web reports</b> — no client to build, no API key. You pick the <b>module for your market segment</b> (<code style="font-family:var(--mono)">capital_market</code>, <code style="font-family:var(--mono)">derivatives</code>, <code style="font-family:var(--mono)">indices</code> …), call the <b>function for the report you want</b>, and get a tidy pandas <b>DataFrame</b> back. Bound time with a date range <b>or</b> a <code style="font-family:var(--mono)">period</code> shorthand.</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>setup &amp; shape</span>
+    <span><i class="dot price"></i>capital market ★core</span>
+    <span><i class="dot action"></i>derivatives · F&amp;O</span>
+    <span><i class="dot info"></i>indices &amp; lists</span>
+    <span><i class="dot analysis"></i>filings &amp; activity</span>
+    <span><i class="dot adv"></i>FPI · debt · funds</span>
+    <span><i class="dot danger"></i>gotcha / caveat</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>github.com/RuchiTanmay/nselib</b> (official README + API reference) · <b>PyPI</b> · <b>nseindia.com</b> report pages · community guides (Medium/AlgoTrading) — verified live against installed <b>nselib 2.5.1</b>. <b>Re-verified 2026-08-30: 2.5.1 (1 May 2026) still current on PyPI; NSE-endpoint dependent.</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The mental model — module = segment, function = report, DataFrame back</div>
+  <svg class="flow-svg" viewBox="0 0 1120 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram: an nselib module function call fetches a public NSE India web report and returns a pandas DataFrame; the six segment modules all funnel into DataFrames.">
+    <defs>
+      <marker id="nsearrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="nsearrowb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1e40af"/>
+      </marker>
+    </defs>
+
+    <!-- lane labels -->
+    <text x="150" y="30" text-anchor="middle" font-size="10" letter-spacing="2.5" fill="#64748b">YOUR CODE</text>
+    <text x="560" y="30" text-anchor="middle" font-size="10" letter-spacing="2.5" fill="#1e40af">NSE INDIA · PUBLIC WEB</text>
+    <text x="980" y="30" text-anchor="middle" font-size="10" letter-spacing="2.5" fill="#d97706">PANDAS</text>
+
+    <!-- fn call chip -->
+    <g>
+      <rect x="24" y="58" width="250" height="118" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="149" y="84" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1d24">a module function</text>
+      <line x1="44" y1="96" x2="254" y2="96" stroke="#c5e6d8" stroke-width="1"/>
+      <text x="149" y="116" text-anchor="middle" font-size="10.5" fill="#0d7a5f">capital_market.</text>
+      <text x="149" y="132" text-anchor="middle" font-size="10.5" fill="#0d7a5f">price_volume_data(</text>
+      <text x="149" y="148" text-anchor="middle" font-size="10.5" fill="#3f6b58">symbol="SBIN",</text>
+      <text x="149" y="164" text-anchor="middle" font-size="10.5" fill="#3f6b58">period="1M")</text>
+    </g>
+
+    <!-- arrow to cloud -->
+    <line x1="274" y1="112" x2="452" y2="112" stroke="#1a1d24" stroke-width="2" marker-end="url(#nsearrow)"/>
+    <text x="363" y="103" text-anchor="middle" font-size="10.5" font-weight="700" fill="#059669">one call</text>
+    <text x="363" y="128" text-anchor="middle" font-size="9.5" fill="#6b7280">no key · no client</text>
+
+    <!-- cloud -->
+    <g>
+      <rect x="455" y="54" width="215" height="126" rx="14" fill="#eef2fd" stroke="#1e40af" stroke-width="2" stroke-dasharray="6 4"/>
+      <text x="562" y="82" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">NSE India</text>
+      <text x="562" y="100" text-anchor="middle" font-size="9.5" fill="#1e40af">nseindia.com report /</text>
+      <text x="562" y="114" text-anchor="middle" font-size="9.5" fill="#1e40af">archive endpoint</text>
+      <text x="562" y="132" text-anchor="middle" font-size="9.5" fill="#3651a8">scraped &amp; parsed for you</text>
+      <rect x="480" y="146" width="164" height="24" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="1"/>
+      <text x="562" y="162" text-anchor="middle" font-size="8.5" fill="#dc2626">IP-gated · rate-limited →</text>
+    </g>
+
+    <!-- arrow to pandas -->
+    <line x1="670" y1="112" x2="856" y2="112" stroke="#1a1d24" stroke-width="2" marker-end="url(#nsearrow)"/>
+    <text x="763" y="103" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1e40af">CSV / JSON</text>
+
+    <!-- pandas box -->
+    <g>
+      <rect x="859" y="56" width="235" height="122" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="976" y="83" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">pandas DataFrame</text>
+      <text x="976" y="101" text-anchor="middle" font-size="9.5" fill="#b45309">tidy, ready to analyze</text>
+      <line x1="879" y1="112" x2="1074" y2="112" stroke="#f0dcc0" stroke-width="1"/>
+      <text x="976" y="131" text-anchor="middle" font-size="9" fill="#8a5a12">Symbol Series Date Open High</text>
+      <text x="976" y="146" text-anchor="middle" font-size="9" fill="#8a5a12">Low Close Volume Delivery%…</text>
+      <text x="976" y="164" text-anchor="middle" font-size="9" fill="#8a5a12">→ straight into pandas/plots</text>
+    </g>
+
+    <!-- ===== lower band: segment lanes ===== -->
+    <line x1="24" y1="210" x2="1094" y2="210" stroke="#e7e3db" stroke-width="1"/>
+    <text x="24" y="238" font-size="10.5" letter-spacing="2" fill="#64748b">PICK THE MODULE FOR YOUR SEGMENT — ALL ROADS LEAD TO A DATAFRAME</text>
+
+    <!-- six module chips -->
+    <g font-size="10.5" font-weight="700">
+      <rect x="24"  y="256" width="164" height="48" rx="9" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="106" y="277" text-anchor="middle" fill="#1a1d24">capital_market</text>
+      <text x="106" y="293" text-anchor="middle" font-size="8.5" font-weight="400" fill="#b45309">prices · bhav · deals</text>
+
+      <rect x="204" y="256" width="164" height="48" rx="9" fill="#e9faf6" stroke="#0d9488" stroke-width="2"/>
+      <text x="286" y="277" text-anchor="middle" fill="#1a1d24">derivatives</text>
+      <text x="286" y="293" text-anchor="middle" font-size="8.5" font-weight="400" fill="#0b7268">futures · options · OI</text>
+
+      <rect x="384" y="256" width="150" height="48" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="459" y="277" text-anchor="middle" fill="#1a1d24">indices</text>
+      <text x="459" y="293" text-anchor="middle" font-size="8.5" font-weight="400" fill="#0d7a5f">lists · constituents</text>
+
+      <rect x="550" y="256" width="120" height="48" rx="9" fill="#f3eefe" stroke="#7c3aed" stroke-width="2"/>
+      <text x="610" y="277" text-anchor="middle" fill="#1a1d24">debt</text>
+      <text x="610" y="293" text-anchor="middle" font-size="8.5" font-weight="400" fill="#6d28d9">tradable secs</text>
+
+      <rect x="686" y="256" width="170" height="48" rx="9" fill="#f3eefe" stroke="#7c3aed" stroke-width="2"/>
+      <text x="771" y="277" text-anchor="middle" fill="#1a1d24">nsdl_fpi / cash</text>
+      <text x="771" y="293" text-anchor="middle" font-size="8.5" font-weight="400" fill="#6d28d9">FPI flows · AMFI</text>
+
+      <rect x="872" y="256" width="170" height="48" rx="9" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="957" y="277" text-anchor="middle" fill="#1a1d24">nselib (utils)</text>
+      <text x="957" y="293" text-anchor="middle" font-size="8.5" font-weight="400" fill="#475569">holidays · logging</text>
+    </g>
+
+    <!-- funnels -->
+    <line x1="106" y1="304" x2="520" y2="360" stroke="#c7ccd6" stroke-width="1.4" marker-end="url(#nsearrowb)"/>
+    <line x1="286" y1="304" x2="528" y2="360" stroke="#c7ccd6" stroke-width="1.4" marker-end="url(#nsearrowb)"/>
+    <line x1="459" y1="304" x2="540" y2="360" stroke="#c7ccd6" stroke-width="1.4" marker-end="url(#nsearrowb)"/>
+    <line x1="610" y1="304" x2="560" y2="360" stroke="#c7ccd6" stroke-width="1.4" marker-end="url(#nsearrowb)"/>
+    <line x1="771" y1="304" x2="576" y2="360" stroke="#c7ccd6" stroke-width="1.4" marker-end="url(#nsearrowb)"/>
+    <line x1="957" y1="304" x2="588" y2="360" stroke="#c7ccd6" stroke-width="1.4" marker-end="url(#nsearrowb)"/>
+
+    <g>
+      <rect x="448" y="364" width="224" height="44" rx="10" fill="#1a1d24"/>
+      <text x="560" y="384" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">one pandas DataFrame</text>
+      <text x="560" y="399" text-anchor="middle" font-size="9" fill="#93b4ff">(a few return a list or dict)</text>
+    </g>
+  </svg>
+
+  <!-- quickstart -->
+  <div class="quick">
+    <div class="quick-bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span style="margin-left:.4rem">quickstart.py</span></div>
+    <pre><span class="c"># pip install nselib   —   no key, no client, just import the segment</span>
+<span class="m">from</span> nselib <span class="m">import</span> capital_market <span class="m">as</span> cm, derivatives <span class="m">as</span> fno, indices
+
+<span class="c"># 1 · price + delivery history — pass EITHER a date range OR a period</span>
+df = cm.<span class="f">price_volume_and_deliverable_position_data</span>(<span class="s">"SBIN"</span>, period=<span class="s">"1M"</span>)
+df = cm.<span class="f">index_data</span>(index=<span class="s">"NIFTY 50"</span>, from_date=<span class="s">"01-01-2024"</span>, to_date=<span class="s">"31-03-2024"</span>)
+
+<span class="c"># 2 · one trading day's EOD bhav copy (single trade_date)</span>
+bhav = cm.<span class="f">bhav_copy_with_delivery</span>(trade_date=<span class="s">"20-06-2024"</span>)
+
+<span class="c"># 3 · derivatives — futures history + a live option chain</span>
+fut  = fno.<span class="f">future_price_volume_data</span>(<span class="s">"BANKNIFTY"</span>, <span class="s">"FUTIDX"</span>, period=<span class="s">"1M"</span>)
+oc   = fno.<span class="f">nse_live_option_chain</span>(<span class="s">"NIFTY"</span>, oi_mode=<span class="s">"compact"</span>)
+
+<span class="c"># 4 · index constituents — everything comes back as a DataFrame</span>
+n50  = indices.<span class="f">constituent_stock_list</span>(<span class="s">"BroadMarketIndices"</span>, <span class="s">"Nifty 50"</span>)
+<span class="c"># dates are dd-mm-YYYY strings · run from an Indian IP · unofficial &amp; read-only</span></pre>
+  </div>
+</section>
+
+<!-- ============ MAIN CARDS ============ -->
+<main>
+
+  <!-- 01 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; import</span><span class="card-sub">get going</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="op">$</span> pip install nselib</code><span class="star">★ START</span><div class="desc">From PyPI, Apache-2.0. Pulls pandas + requests. Tested on Python 3.8+.</div></li>
+      <li class="setup"><code class="cmd"><span class="op">$</span> pip install nselib <span class="op">--</span>upgrade</code><div class="desc">Get the latest fixes — the library tracks NSE's changing endpoints closely. Installed here: <code>2.5.1</code>.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">from</span> nselib <span class="mod">import</span> capital_market</code><span class="star">★</span><div class="desc">Import the <b>segment module</b> you need — there's no client object to construct and no API key anywhere.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">from</span> nselib <span class="mod">import</span> derivatives, indices, debt</code><div class="desc">Other segment modules. Also <code>cash_market</code> and <code>nsdl_fpi</code> (FPI/AMFI).</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">import</span> nselib</code><div class="desc">Top level exposes the utilities: <code>nselib.trading_holiday_calendar()</code> and <code>nselib.enable_logging()</code>.</div></li>
+      <li class="setup"><code class="cmd">dates <span class="op">=</span> <span class="str">'dd-mm-YYYY'</span> strings</code><span class="star">★ RULE</span><div class="desc">e.g. <code>'01-06-2024'</code> — day-month-year, <b>not</b> ISO. Pass <b>either</b> <code>from_date</code>+<code>to_date</code> <b>or</b> <code>period</code>, never both.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">The shape of nselib</span><span class="card-sub">how it thinks</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">module<span class="op">.</span><span class="fn">function</span>(<span class="op">…</span>) <span class="op">→</span> DataFrame</code><span class="star">★ MODEL</span><div class="desc"><b>Module</b> = market segment, <b>function</b> = one NSE report, <b>return</b> = a pandas DataFrame (a few give a list/dict).</div></li>
+      <li class="setup"><code class="cmd">period<span class="op">=</span><span class="str">'1D' '1W' '1M' '3M' '6M' '1Y'</span></code><span class="star">★</span><div class="desc">A rolling window ending today. Equities allow all six; futures allow <code>1D</code>–<code>6M</code> (no <code>1Y</code>).</div></li>
+      <li class="setup"><code class="cmd"><span class="arg">from_date</span><span class="op">=</span><span class="str">'…'</span>, <span class="arg">to_date</span><span class="op">=</span><span class="str">'…'</span></code><div class="desc">The alternative to <code>period</code>: an explicit custom range. Use one <b>or</b> the other.</div></li>
+      <li class="setup"><code class="cmd"><span class="arg">trade_date</span><span class="op">=</span><span class="str">'20-06-2024'</span></code><div class="desc">Reports keyed to <b>one trading session</b> (bhav copies, VaR, volatility, PE). Weekends/holidays → empty.</div></li>
+      <li class="setup"><code class="cmd"><span class="fn">market_watch_all_indices</span>()</code><div class="desc">Live/snapshot reports take <b>no</b> dates — they reflect the current session.</div></li>
+      <li class="setup"><code class="cmd">nselib.<span class="fn">enable_logging</span>(logging.<span class="kw">DEBUG</span>)</code><div class="desc">Silent by default; flip this on to watch the underlying HTTP requests and responses.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Price · volume · delivery</span><span class="card-sub">capital_market · the workhorse</span></div>
+    <ul class="cmds">
+      <li class="price"><code class="cmd"><span class="mod">cm</span>.<span class="fn">price_volume_and_deliverable_position_data</span>(<span class="str">"SBIN"</span>, from_date=<span class="str">"01-01-2024"</span>, to_date=<span class="str">"31-01-2024"</span>)</code><span class="star">★ MOST USED</span><div class="desc">OHLCV <b>plus</b> delivery qty &amp; % — the single richest per-stock history call.</div></li>
+      <li class="price"><code class="cmd"><span class="mod">cm</span>.<span class="fn">price_volume_data</span>(<span class="arg">symbol</span>=<span class="str">"INFY"</span>, <span class="arg">period</span>=<span class="str">"1M"</span>)</code><span class="star">★</span><div class="desc">Just OHLCV price &amp; volume history — lighter when you don't need delivery figures.</div></li>
+      <li class="price"><code class="cmd"><span class="mod">cm</span>.<span class="fn">deliverable_position_data</span>(<span class="str">"TCS"</span>, period=<span class="str">"1W"</span>)</code><div class="desc">Delivery position only: TradedQty, DeliverableQty, %DlyQt-to-Traded.</div></li>
+      <li class="price"><code class="cmd">symbol <span class="op">=</span> NSE ticker, no suffix</code><div class="desc"><code>"SBIN"</code>, <code>"RELIANCE"</code> — plain NSE symbol, no <code>.NS</code>. List valid ones with <code>equity_list()</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Historical index &amp; VIX</span><span class="card-sub">capital_market</span></div>
+    <ul class="cmds">
+      <li class="price"><code class="cmd"><span class="mod">cm</span>.<span class="fn">index_data</span>(<span class="arg">index</span>=<span class="str">"NIFTY 50"</span>, from_date=<span class="str">"01-01-2024"</span>, to_date=<span class="str">"31-03-2024"</span>)</code><span class="star">★</span><div class="desc">Historical index OHLC. Use the <b>display name</b> — <code>"NIFTY 50"</code>, <code>"NIFTY BANK"</code> — not a symbol or <code>^NSEI</code>.</div></li>
+      <li class="price"><code class="cmd"><span class="mod">cm</span>.<span class="fn">india_vix_data</span>(period=<span class="str">"1M"</span>)</code><span class="star">★</span><div class="desc">India VIX (volatility index) history — same date/period rules as everything else.</div></li>
+      <li class="price"><code class="cmd"><span class="mod">cm</span>.<span class="fn">market_watch_all_indices</span>()</code><div class="desc">Live one-row-per-index snapshot (last, %chg, advances/declines) — no dates.</div></li>
+      <li class="danger"><code class="cmd">big ranges can fail</code><span class="badge-danger">chunk it</span><div class="desc">Ranges over ~3–4 years may error mid-fetch. Pull in slices and <code>pd.concat</code> the frames.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Bhav copies (EOD dumps)</span><span class="card-sub">one trade_date each</span></div>
+    <ul class="cmds">
+      <li class="price"><code class="cmd"><span class="mod">cm</span>.<span class="fn">bhav_copy_with_delivery</span>(<span class="arg">trade_date</span>=<span class="str">"20-06-2024"</span>)</code><span class="star">★</span><div class="desc">Full end-of-day equities bhav copy <b>+</b> delivery for a single session — every symbol at once.</div></li>
+      <li class="price"><code class="cmd"><span class="mod">cm</span>.<span class="fn">bhav_copy_equities</span>(<span class="str">"20-06-2024"</span>)</code><div class="desc">The CM-UDiFF equities bhav copy (NSE's newer unified format).</div></li>
+      <li class="price"><code class="cmd"><span class="mod">cm</span>.<span class="fn">bhav_copy_sme</span>(<span class="str">"…"</span>) · <span class="mod">cm</span>.<span class="fn">sme_band_complete</span>(<span class="str">"…"</span>)</code><div class="desc">SME segment bhav copy and price-band data.</div></li>
+      <li class="action"><code class="cmd"><span class="mod">fno</span>.<span class="fn">fno_bhav_copy</span>(<span class="arg">trade_date</span>=<span class="str">"20-06-2024"</span>)</code><div class="desc">The F&amp;O daily bhav copy — lives in the <code>derivatives</code> module (see card 11).</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Symbol &amp; universe lists</span><span class="card-sub">who's tradable</span></div>
+    <ul class="cmds">
+      <li class="info"><code class="cmd"><span class="mod">cm</span>.<span class="fn">equity_list</span>()</code><span class="star">★</span><div class="desc">Every listed equity — symbol, name, series, ISIN, listing date. Your master symbol lookup.</div></li>
+      <li class="info"><code class="cmd"><span class="mod">cm</span>.<span class="fn">fno_equity_list</span>() · <span class="mod">cm</span>.<span class="fn">fno_index_list</span>()</code><div class="desc">F&amp;O-eligible stocks and indices, with lot sizes.</div></li>
+      <li class="info"><code class="cmd"><span class="mod">cm</span>.<span class="fn">nifty50_equity_list</span>()</code><span class="star">★</span><div class="desc">Nifty 50 constituents. Companions: <code>niftynext50_</code>, <code>niftymidcap150_</code>, <code>niftysmallcap250_equity_list()</code>.</div></li>
+      <li class="info"><code class="cmd"><span class="mod">cm</span>.<span class="fn">total_traded_stocks</span>()</code><div class="desc">Summary of all stocks traded — a quick breadth check.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Deals &amp; short selling</span><span class="card-sub">capital_market · range or period</span></div>
+    <ul class="cmds">
+      <li class="analysis"><code class="cmd"><span class="mod">cm</span>.<span class="fn">bulk_deal_data</span>(from_date=<span class="str">"01-06-2024"</span>, to_date=<span class="str">"30-06-2024"</span>)</code><div class="desc">Bulk deals: Date, Symbol, ClientName, Buy/Sell, Qty, weighted-avg price.</div></li>
+      <li class="analysis"><code class="cmd"><span class="mod">cm</span>.<span class="fn">block_deals_data</span>(period=<span class="str">"1M"</span>)</code><div class="desc">Block deals — same columns, block-window trades.</div></li>
+      <li class="analysis"><code class="cmd"><span class="mod">cm</span>.<span class="fn">short_selling_data</span>(period=<span class="str">"1W"</span>)</code><div class="desc">Daily short-selling report: Date, Symbol, SecurityName, Quantity.</div></li>
+      <li class="analysis"><code class="cmd">range <span class="op">or</span> period</code><div class="desc">All three accept <code>from_date</code>+<code>to_date</code> or a <code>period</code> — the standard time-window pair.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Live market activity</span><span class="card-sub">current session</span></div>
+    <ul class="cmds">
+      <li class="analysis"><code class="cmd"><span class="mod">cm</span>.<span class="fn">top_gainers_or_losers</span>(<span class="arg">to_get</span>=<span class="str">"gainers"</span>)</code><span class="star">★</span><div class="desc">Top gainers in the live market.</div></li>
+      <li class="danger"><code class="cmd"><span class="mod">cm</span>.<span class="fn">top_gainers_or_losers</span>(<span class="arg">to_get</span>=<span class="str">"loosers"</span>)</code><span class="badge-danger">double-o</span><div class="desc">Losers — spelled <code>"loosers"</code> in the library. Any other value raises. A genuine typo-trap. ★</div></li>
+      <li class="analysis"><code class="cmd"><span class="mod">cm</span>.<span class="fn">most_active_equities</span>(<span class="arg">fetch_by</span>=<span class="str">"value"</span>)</code><div class="desc">Most active stocks by <code>"value"</code> or <code>"volume"</code>.</div></li>
+      <li class="analysis"><code class="cmd"><span class="mod">cm</span>.<span class="fn">fii_dii_trading_activity</span>()</code><div class="desc">Daily FII vs DII buy/sell figures — the headline flows number.</div></li>
+      <li class="danger"><code class="cmd">empty outside market hours</code><div class="desc">Live calls reflect the current session and go empty/stale outside 09:15–15:30 IST.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Corporate filings</span><span class="card-sub">capital_market</span></div>
+    <ul class="cmds">
+      <li class="analysis"><code class="cmd"><span class="mod">cm</span>.<span class="fn">corporate_actions_for_equity</span>(period=<span class="str">"3M"</span>, <span class="arg">fno_only</span>=<span class="kw">False</span>)</code><div class="desc">Dividends, splits, bonuses, record dates. Set <code>fno_only=True</code> to limit to F&amp;O names.</div></li>
+      <li class="analysis"><code class="cmd"><span class="mod">cm</span>.<span class="fn">financial_results_for_equity</span>(period=<span class="str">"6M"</span>, <span class="arg">fo_sec</span>=<span class="kw">True</span>, <span class="arg">fin_period</span>=<span class="str">"Quarterly"</span>)</code><span class="star">★</span><div class="desc">Filed results. <code>fin_period</code> = <code>"Quarterly"</code> / <code>"Annual"</code>; <code>fo_sec=True</code> for F&amp;O securities only.</div></li>
+      <li class="analysis"><code class="cmd"><span class="mod">cm</span>.<span class="fn">event_calendar_for_equity</span>(period=<span class="str">"1M"</span>)</code><div class="desc">Upcoming board meetings &amp; corporate events.</div></li>
+      <li class="analysis"><code class="cmd"><span class="mod">cm</span>.<span class="fn">pe_ratio</span>(<span class="arg">trade_date</span>=<span class="str">"20-06-2024"</span>)</code><div class="desc">Index-level PE/PB snapshot for a given day.</div></li>
+      <li class="analysis"><code class="cmd"><span class="mod">cm</span>.<span class="fn">corporate_bond_trade_report</span>(<span class="str">"…"</span>)</code><div class="desc">Corporate bond trades for a session.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">VaR, volatility &amp; 52-wk</span><span class="card-sub">risk reports · one trade_date</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd"><span class="mod">cm</span>.<span class="fn">daily_volatility</span>(<span class="arg">trade_date</span>=<span class="str">"17-04-2026"</span>)</code><div class="desc">CM daily volatility report. (There's a twin <code>derivatives.daily_volatility</code> for F&amp;O.)</div></li>
+      <li class="adv"><code class="cmd"><span class="mod">cm</span>.<span class="fn">var_begin_day</span>(<span class="str">"…"</span>) · <span class="mod">cm</span>.<span class="fn">var_end_of_day</span>(<span class="str">"…"</span>)</code><div class="desc">Value-at-Risk margin snapshots at start and close of the session.</div></li>
+      <li class="adv"><code class="cmd"><span class="mod">cm</span>.<span class="fn">var_1st_intra_day</span>(<span class="str">"…"</span>) <span class="op">…</span> <span class="fn">var_4th_intra_day</span>(<span class="str">"…"</span>)</code><div class="desc">Four intraday VaR update snapshots through the trading day.</div></li>
+      <li class="adv"><code class="cmd"><span class="mod">cm</span>.<span class="fn">week_52_high_low_report</span>(<span class="str">"…"</span>)</code><div class="desc">Stocks hitting 52-week highs / lows on that date.</div></li>
+      <li class="adv"><code class="cmd"><span class="mod">cm</span>.<span class="fn">category_turnover_cash</span>(<span class="str">"…"</span>)</code><div class="desc">Category-wise cash-market turnover for the day.</div></li>
+    </ul>
+  </article>
+<!--PART2-->
+
+  <!-- 11 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Derivatives: futures &amp; options</span><span class="card-sub">derivatives</span></div>
+    <ul class="cmds">
+      <li class="action"><code class="cmd"><span class="mod">fno</span>.<span class="fn">future_price_volume_data</span>(<span class="str">"SBIN"</span>, <span class="str">"FUTSTK"</span>, period=<span class="str">"1M"</span>)</code><span class="star">★</span><div class="desc">Contract-wise futures history. <code>instrument</code> = <code>"FUTIDX"</code> (index) or <code>"FUTSTK"</code> (stock).</div></li>
+      <li class="action"><code class="cmd"><span class="mod">fno</span>.<span class="fn">option_price_volume_data</span>(<span class="str">"NIFTY"</span>, <span class="str">"OPTIDX"</span>, <span class="arg">option_type</span>=<span class="str">"CE"</span>, period=<span class="str">"1M"</span>)</code><span class="star">★</span><div class="desc">Options history. <code>instrument</code> = <code>"OPTIDX"</code>/<code>"OPTSTK"</code>; <code>option_type</code> = <code>"CE"</code>/<code>"PE"</code>.</div></li>
+      <li class="danger"><code class="cmd">&gt;90 days of options = slow</code><div class="desc">Option history is fetched contract-by-contract; large windows take noticeably longer.</div></li>
+      <li class="action"><code class="cmd"><span class="mod">fno</span>.<span class="fn">fno_bhav_copy</span>(<span class="arg">trade_date</span>=<span class="str">"20-06-2024"</span>)</code><div class="desc">Full F&amp;O end-of-day bhav copy — every contract for one session.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Live option chain &amp; expiries</span><span class="card-sub">derivatives · live</span></div>
+    <ul class="cmds">
+      <li class="action"><code class="cmd"><span class="mod">fno</span>.<span class="fn">nse_live_option_chain</span>(<span class="str">"BANKNIFTY"</span>, <span class="arg">expiry_date</span>=<span class="str">"27-03-2025"</span>)</code><span class="star">★</span><div class="desc">Live option chain for a symbol. Omit <code>expiry_date</code> to get the nearest expiry.</div></li>
+      <li class="action"><code class="cmd"><span class="mod">fno</span>.<span class="fn">nse_live_option_chain</span>(<span class="str">"NIFTY"</span>, <span class="arg">oi_mode</span>=<span class="str">"compact"</span>)</code><div class="desc"><code>oi_mode</code> = <code>"full"</code> (default, all greeks/OI cols) or <code>"compact"</code> (fewer columns).</div></li>
+      <li class="action"><code class="cmd"><span class="mod">fno</span>.<span class="fn">expiry_dates_future</span>()</code><div class="desc">List of upcoming futures expiry dates.</div></li>
+      <li class="action"><code class="cmd"><span class="mod">fno</span>.<span class="fn">expiry_dates_option_index</span>()</code><div class="desc">Dict of index &#8594; upcoming option expiry dates.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">F&amp;O flows &amp; participants</span><span class="card-sub">derivatives · one trade_date</span></div>
+    <ul class="cmds">
+      <li class="action"><code class="cmd"><span class="mod">fno</span>.<span class="fn">fii_derivatives_statistics</span>(<span class="arg">trade_date</span>=<span class="str">"20-12-2025"</span>)</code><span class="star">★</span><div class="desc">FII index/stock futures &amp; options — long/short contracts &amp; value.</div></li>
+      <li class="action"><code class="cmd"><span class="mod">fno</span>.<span class="fn">participant_wise_open_interest</span>(<span class="str">"…"</span>)</code><div class="desc">OI split by Client / DII / FII / Pro participant category.</div></li>
+      <li class="action"><code class="cmd"><span class="mod">fno</span>.<span class="fn">participant_wise_trading_volume</span>(<span class="str">"…"</span>)</code><div class="desc">Traded volume by the same participant categories.</div></li>
+      <li class="action"><code class="cmd"><span class="mod">fno</span>.<span class="fn">fno_security_in_ban_period</span>(<span class="str">"…"</span>)</code><div class="desc">List of stocks in the F&amp;O ban for that day (crossed 95% market-wide limit).</div></li>
+      <li class="action"><code class="cmd"><span class="mod">fno</span>.<span class="fn">live_most_active_underlying</span>() · <span class="fn">category_turnover_fo</span>(<span class="str">"…"</span>)</code><div class="desc">Live most-active underlyings; category-wise F&amp;O turnover for a date.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Indices module</span><span class="card-sub">indices</span></div>
+    <ul class="cmds">
+      <li class="info"><code class="cmd"><span class="mod">indices</span>.<span class="fn">constituent_stock_list</span>(<span class="str">"BroadMarketIndices"</span>, <span class="str">"Nifty 50"</span>)</code><span class="star">★</span><div class="desc">The stocks inside a given index, with weightings. Arguments are <code>index_category</code>, <code>index_name</code>.</div></li>
+      <li class="info"><code class="cmd"><span class="mod">indices</span>.<span class="fn">index_list</span>(<span class="arg">index_category</span>=<span class="str">"SectoralIndices"</span>)</code><div class="desc">The index names available within one category.</div></li>
+      <li class="info"><code class="cmd"><span class="mod">indices</span>.<span class="fn">live_index_performances</span>()</code><div class="desc">Live performance of every index in one frame.</div></li>
+      <li class="info"><code class="cmd">categories</code><div class="desc"><code>"BroadMarketIndices"</code> · <code>"SectoralIndices"</code> · <code>"ThematicIndices"</code> · <code>"StrategyIndices"</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">FPI / FII activity</span><span class="card-sub">nsdl_fpi</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd"><span class="mod">from</span> nselib <span class="mod">import</span> nsdl_fpi</code><div class="desc">NSDL foreign-portfolio-investor flows. This module imports cleanly in 2.5.1 (unlike <code>cash_market</code> — see card 19).</div></li>
+      <li class="adv"><code class="cmd"><span class="mod">nsdl_fpi</span>.<span class="fn">fetch_nsdl_fpi_investment_activity</span>(<span class="arg">trade_date</span>=<span class="str">"30-10-2025"</span>)</code><span class="star">★</span><div class="desc">FPI cash-segment investment activity for a reporting date.</div></li>
+      <li class="adv"><code class="cmd"><span class="mod">nsdl_fpi</span>.<span class="fn">fetch_nsdl_fpi_latest_investment_activity</span>()</code><div class="desc">Latest available FPI investment figures — no date needed.</div></li>
+      <li class="adv"><code class="cmd"><span class="mod">nsdl_fpi</span>.<span class="fn">fetch_nsdl_fpi_derivative_activity</span>(<span class="str">"…"</span>)</code><div class="desc">FPI derivative activity; twin <code>fetch_nsdl_fpi_latest_derivative_activity()</code> for the newest.</div></li>
+      <li class="adv"><code class="cmd"><span class="mod">nsdl_fpi</span>.<span class="fn">fetch_nsdl_fpi_month_bundle</span>(<span class="str">"…"</span>)</code><div class="desc">A whole month's report bundle in one object.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Debt &amp; AMFI funds</span><span class="card-sub">debt · cash_market</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd"><span class="mod">debt</span>.<span class="fn">securities_available_for_trading</span>(<span class="arg">trade_date</span>=<span class="str">"20-12-2025"</span>)</code><div class="desc">Debt securities available for trading on a session — the whole <code>debt</code> module in one call.</div></li>
+      <li class="adv"><code class="cmd"><span class="mod">cash_market</span>.<span class="fn">amfi_monthly_data</span>(<span class="arg">report_month</span>=<span class="str">"01-03-2026"</span>)</code><div class="desc">Parse one AMFI monthly mutual-fund archive report into a DataFrame.</div></li>
+      <li class="adv"><code class="cmd"><span class="mod">cash_market</span>.<span class="fn">amfi_monthly_report_links</span>()</code><div class="desc">List the available AMFI monthly archive links; <code>amfi_monthly_historical_data(from_month, to_month)</code> spans a range.</div></li>
+      <li class="danger"><code class="cmd">cash_market import caveat</code><span class="badge-danger">2.5.1</span><div class="desc">In 2.5.1 the <code>cash_market</code> module may raise <code>ImportError</code> on import — see card 19 for the fix.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Business growth &amp; turnover</span><span class="card-sub">segment aggregates</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd"><span class="mod">cm</span>.<span class="fn">business_growth_cm_segment</span>(<span class="arg">data_type</span>=<span class="str">"yearly"</span>, from_year=<span class="str">"2020"</span>, to_year=<span class="str">"2024"</span>)</code><div class="desc">Capital-market segment growth (turnover, trades, market cap) over years.</div></li>
+      <li class="adv"><code class="cmd"><span class="mod">fno</span>.<span class="fn">business_growth_fo_segment</span>(<span class="arg">data_type</span>=<span class="str">"monthly"</span>, year=<span class="str">"2024"</span>, month=<span class="str">"06"</span>)</code><div class="desc">F&amp;O segment growth. <code>data_type</code> = <code>"yearly"</code> or <code>"monthly"</code>.</div></li>
+      <li class="adv"><code class="cmd"><span class="mod">cm</span>.<span class="fn">category_turnover_cash</span>(<span class="str">"…"</span>) · <span class="mod">fno</span>.<span class="fn">category_turnover_fo</span>(<span class="str">"…"</span>)</code><div class="desc">Turnover split by trader category (retail / prop / FII / DII …) for a day.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Utilities · constants · logging</span><span class="card-sub">nselib top level</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">nselib.<span class="fn">trading_holiday_calendar</span>()</code><span class="star">★</span><div class="desc">NSE trading holidays across all segments — check before you request a <code>trade_date</code>.</div></li>
+      <li class="setup"><code class="cmd">nselib.<span class="fn">enable_logging</span>(logging.<span class="kw">DEBUG</span>)</code><div class="desc">Turn on request/response tracing; silent by default so it won't pollute your logs.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">from</span> nselib <span class="mod">import</span> constants</code><div class="desc"><code>constants.dd_mm_yyyy</code> = <code>'%d-%m-%Y'</code>; <code>constants.equity_periods</code>; <code>constants.indices_list</code>.</div></li>
+      <li class="setup"><code class="cmd">constants.<span class="op">*</span>_columns</code><div class="desc">Expected column lists for many reports (e.g. <code>price_volume_data_columns</code>) — handy for validation.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Gotchas &amp; production notes</span><span class="card-sub">read before you ship</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">dates are <span class="str">dd-mm-YYYY</span> strings</code><span class="star">★</span><div class="desc">Passing ISO <code>"2024-06-01"</code> fails. It's day-month-year, e.g. <code>"01-06-2024"</code>.</div></li>
+      <li class="danger"><code class="cmd">dates <span class="op">XOR</span> period</code><span class="star">★</span><div class="desc">Give <b>either</b> <code>from_date</code>+<code>to_date</code> <b>or</b> <code>period</code> — supplying both (or an unknown period) raises <code>ValueError</code>.</div></li>
+      <li class="danger"><code class="cmd">losers <span class="op">=</span> <span class="str">"loosers"</span></code><span class="star">★</span><div class="desc"><code>top_gainers_or_losers(to_get="loosers")</code> — the library's double-o spelling. Anything else is rejected.</div></li>
+      <li class="danger"><code class="cmd">NSE blocks &amp; rate-limits</code><span class="star">★</span><div class="desc">NSE gates many non-Indian IPs and throttles bursts. Run from an <b>Indian IP</b>, add sleeps/retries, avoid tight loops.</div></li>
+      <li class="danger"><code class="cmd">cash_market / mutual_funds ImportError</code><span class="badge-danger">2.5.1</span><div class="desc">In 2.5.1 these can fail with <code>ImportError: NSEdataNotFound</code>. Use <code>nsdl_fpi</code> directly, and <code>pip install -U nselib</code> once patched.</div></li>
+      <li class="danger"><code class="cmd">index name, not symbol</code><div class="desc"><code>index_data</code> wants the display name <code>"NIFTY 50"</code> — not <code>"NIFTY"</code>, <code>"^NSEI"</code>, or a ticker.</div></li>
+      <li class="danger"><code class="cmd">live = market hours only</code><div class="desc">Option chain, gainers/losers and <code>market_watch</code> are empty or stale outside 09:15–15:30 IST.</div></li>
+      <li class="danger"><code class="cmd">unofficial &amp; read-only</code><div class="desc">No affiliation with NSE; scrapes public pages. For personal research — not production trading.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four ideas worth a picture</h2>
+  <p class="sub">The call anatomy, the two ways to bound time, the segment map, and the derivatives decoder.</p>
+  <div class="merge-grid">
+
+    <!-- D1 -->
+    <div class="merge-card">
+      <h3>1 · Anatomy of a call</h3>
+      <p>Every request reads the same way: which segment, which report, for what window.</p>
+      <svg class="bsvg" viewBox="0 0 520 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="capital_market dot price_volume_data with symbol and period arguments returns a DataFrame; module is the segment, function is the report, arguments are the subject and time window.">
+        <text x="18" y="52" font-size="15" font-weight="700" fill="#d97706">capital_market</text>
+        <text x="150" y="52" font-size="15" font-weight="700" fill="#4f46e5">.price_volume_data</text>
+        <text x="330" y="52" font-size="15" fill="#6b7280">(</text>
+        <text x="340" y="52" font-size="13" fill="#0d9488">"SBIN", period="1M"</text>
+        <text x="500" y="52" font-size="15" fill="#6b7280">)</text>
+        <!-- brackets -->
+        <path d="M18 62 L18 70 L128 70 L128 62" fill="none" stroke="#d97706" stroke-width="1.3"/>
+        <text x="73" y="86" text-anchor="middle" font-size="10.5" fill="#d97706">module = segment</text>
+        <path d="M150 62 L150 70 L318 70 L318 62" fill="none" stroke="#4f46e5" stroke-width="1.3"/>
+        <text x="234" y="86" text-anchor="middle" font-size="10.5" fill="#4f46e5">function = the report</text>
+        <path d="M336 62 L336 70 L500 70 L500 62" fill="none" stroke="#0d9488" stroke-width="1.3"/>
+        <text x="418" y="86" text-anchor="middle" font-size="10.5" fill="#0d9488">subject + time window</text>
+        <!-- arrow down -->
+        <line x1="260" y1="104" x2="260" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#nsearrow)"/>
+        <text x="278" y="132" font-size="10.5" fill="#6b7280">returns</text>
+        <!-- df -->
+        <rect x="150" y="156" width="220" height="72" rx="10" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+        <text x="260" y="180" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">pandas DataFrame</text>
+        <line x1="168" y1="190" x2="352" y2="190" stroke="#f0dcc0" stroke-width="1"/>
+        <text x="260" y="207" text-anchor="middle" font-size="9" fill="#8a5a12">Symbol Series Date OHLC Volume</text>
+        <text x="260" y="221" text-anchor="middle" font-size="9" fill="#8a5a12">%DlyQttoTradedQty …</text>
+      </svg>
+    </div>
+
+    <!-- D2 -->
+    <div class="merge-card">
+      <h3>2 · Two ways to bound time</h3>
+      <p>Pick <b>one</b> — an explicit range, or a rolling period ending today.</p>
+      <svg class="bsvg" viewBox="0 0 520 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="from_date plus to_date gives an exact custom range; period gives a rolling window ending today; choose one, not both.">
+        <rect x="14" y="24" width="228" height="86" rx="10" fill="#eef2fd" stroke="#4f46e5" stroke-width="2"/>
+        <text x="128" y="48" text-anchor="middle" font-size="12" font-weight="700" fill="#4f46e5">from_date + to_date</text>
+        <text x="128" y="67" text-anchor="middle" font-size="10" fill="#3730a3">"01-01-2024" &#8594; "31-03-2024"</text>
+        <text x="128" y="90" text-anchor="middle" font-size="10" fill="#1a1d24">exact custom range</text>
+
+        <rect x="278" y="24" width="228" height="86" rx="10" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+        <text x="392" y="48" text-anchor="middle" font-size="12" font-weight="700" fill="#d97706">period="1M"</text>
+        <text x="392" y="67" text-anchor="middle" font-size="10" fill="#b45309">1D 1W 1M 3M 6M 1Y</text>
+        <text x="392" y="90" text-anchor="middle" font-size="10" fill="#1a1d24">rolling window, ends today</text>
+
+        <text x="260" y="72" text-anchor="middle" font-size="13" font-weight="700" fill="#dc2626">or</text>
+        <text x="260" y="88" text-anchor="middle" font-size="8.5" fill="#dc2626">never both</text>
+
+        <!-- timeline -->
+        <line x1="40" y1="176" x2="480" y2="176" stroke="#1a1d24" stroke-width="1.5" marker-end="url(#nsearrow)"/>
+        <text x="484" y="180" font-size="9" fill="#6b7280">t</text>
+        <line x1="120" y1="170" x2="120" y2="182" stroke="#4f46e5" stroke-width="2"/>
+        <line x1="300" y1="170" x2="300" y2="182" stroke="#4f46e5" stroke-width="2"/>
+        <rect x="120" y="164" width="180" height="6" fill="#c7d0f7"/>
+        <text x="210" y="158" text-anchor="middle" font-size="9" fill="#4f46e5">from &#8594; to</text>
+        <line x1="360" y1="170" x2="360" y2="182" stroke="#d97706" stroke-width="2"/>
+        <line x1="450" y1="170" x2="450" y2="182" stroke="#d97706" stroke-width="2"/>
+        <rect x="360" y="164" width="90" height="6" fill="#f3d19b"/>
+        <text x="405" y="158" text-anchor="middle" font-size="9" fill="#d97706">period</text>
+        <text x="450" y="200" text-anchor="middle" font-size="9" fill="#6b7280">today</text>
+        <text x="260" y="228" text-anchor="middle" font-size="9.5" fill="#6b7280">trade_date reports want a single point on this line, not a span.</text>
+      </svg>
+    </div>
+
+    <!-- D3 -->
+    <div class="merge-card">
+      <h3>3 · The segment map</h3>
+      <p>Six modules, each owning a slice of NSE — all returning DataFrames.</p>
+      <svg class="bsvg" viewBox="0 0 520 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Six nselib modules and their headline reports all funnel into a pandas DataFrame.">
+        <g font-size="10">
+          <rect x="12" y="20" width="150" height="46" rx="8" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+          <text x="87" y="38" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">capital_market</text>
+          <text x="87" y="55" text-anchor="middle" fill="#b45309">price · bhav · deals · VaR</text>
+
+          <rect x="12" y="76" width="150" height="46" rx="8" fill="#e9faf6" stroke="#0d9488" stroke-width="2"/>
+          <text x="87" y="94" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">derivatives</text>
+          <text x="87" y="111" text-anchor="middle" fill="#0b7268">futures · options · OI</text>
+
+          <rect x="12" y="132" width="150" height="46" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+          <text x="87" y="150" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">indices</text>
+          <text x="87" y="167" text-anchor="middle" fill="#0d7a5f">lists · constituents</text>
+
+          <rect x="358" y="20" width="150" height="46" rx="8" fill="#f3eefe" stroke="#7c3aed" stroke-width="2"/>
+          <text x="433" y="38" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">debt</text>
+          <text x="433" y="55" text-anchor="middle" fill="#6d28d9">tradable securities</text>
+
+          <rect x="358" y="76" width="150" height="46" rx="8" fill="#f3eefe" stroke="#7c3aed" stroke-width="2"/>
+          <text x="433" y="91" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">nsdl_fpi / cash</text>
+          <text x="433" y="107" text-anchor="middle" fill="#6d28d9">FPI flows · AMFI</text>
+          <text x="433" y="118" text-anchor="middle" font-size="8" fill="#6d28d9">market</text>
+
+          <rect x="358" y="132" width="150" height="46" rx="8" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+          <text x="433" y="150" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">nselib (utils)</text>
+          <text x="433" y="167" text-anchor="middle" fill="#475569">holidays · logging</text>
+        </g>
+        <!-- funnel to DF -->
+        <line x1="162" y1="43"  x2="228" y2="205" stroke="#c7ccd6" stroke-width="1.3" marker-end="url(#nsearrowb)"/>
+        <line x1="162" y1="99"  x2="238" y2="205" stroke="#c7ccd6" stroke-width="1.3" marker-end="url(#nsearrowb)"/>
+        <line x1="162" y1="155" x2="248" y2="205" stroke="#c7ccd6" stroke-width="1.3" marker-end="url(#nsearrowb)"/>
+        <line x1="358" y1="43"  x2="292" y2="205" stroke="#c7ccd6" stroke-width="1.3" marker-end="url(#nsearrowb)"/>
+        <line x1="358" y1="99"  x2="282" y2="205" stroke="#c7ccd6" stroke-width="1.3" marker-end="url(#nsearrowb)"/>
+        <line x1="358" y1="155" x2="272" y2="205" stroke="#c7ccd6" stroke-width="1.3" marker-end="url(#nsearrowb)"/>
+        <rect x="196" y="210" width="128" height="32" rx="8" fill="#1a1d24"/>
+        <text x="260" y="230" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">DataFrame</text>
+      </svg>
+    </div>
+
+    <!-- D4 -->
+    <div class="merge-card">
+      <h3>4 · Derivatives decoder</h3>
+      <p>The instrument code is just <i>index-vs-stock</i> &#215; <i>future-vs-option</i>.</p>
+      <svg class="bsvg" viewBox="0 0 520 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Instrument grid: FUTIDX, FUTSTK, OPTIDX, OPTSTK across future/option and index/stock; option_type CE or PE; oi_mode full or compact.">
+        <!-- grid -->
+        <text x="150" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="#0d9488">FUTURE</text>
+        <text x="300" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="#0d9488">OPTION</text>
+        <text x="55" y="72" text-anchor="middle" font-size="11" font-weight="700" fill="#4f46e5">INDEX</text>
+        <text x="55" y="132" text-anchor="middle" font-size="11" font-weight="700" fill="#4f46e5">STOCK</text>
+
+        <rect x="96" y="44" width="108" height="44" rx="8" fill="#e9faf6" stroke="#0d9488" stroke-width="2"/>
+        <text x="150" y="71" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">FUTIDX</text>
+        <rect x="246" y="44" width="108" height="44" rx="8" fill="#e9faf6" stroke="#0d9488" stroke-width="2"/>
+        <text x="300" y="71" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">OPTIDX</text>
+        <rect x="96" y="104" width="108" height="44" rx="8" fill="#e9faf6" stroke="#0d9488" stroke-width="2"/>
+        <text x="150" y="131" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">FUTSTK</text>
+        <rect x="246" y="104" width="108" height="44" rx="8" fill="#e9faf6" stroke="#0d9488" stroke-width="2"/>
+        <text x="300" y="131" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">OPTSTK</text>
+
+        <!-- option_type + oi_mode -->
+        <rect x="374" y="44" width="132" height="104" rx="9" fill="#fbfaf8" stroke="#e7e3db" stroke-width="1.5"/>
+        <text x="440" y="64" text-anchor="middle" font-size="10" font-weight="700" fill="#6b7280">for OPTIONS add</text>
+        <text x="440" y="84" text-anchor="middle" font-size="12" font-weight="700" fill="#059669">option_type</text>
+        <text x="440" y="101" text-anchor="middle" font-size="11" fill="#1a1d24">"CE"  ·  "PE"</text>
+        <line x1="386" y1="112" x2="494" y2="112" stroke="#e7e3db" stroke-width="1"/>
+        <text x="440" y="128" text-anchor="middle" font-size="12" font-weight="700" fill="#7c3aed">oi_mode</text>
+        <text x="440" y="143" text-anchor="middle" font-size="10" fill="#1a1d24">"full" · "compact"</text>
+
+        <text x="260" y="184" text-anchor="middle" font-size="10" fill="#6b7280">future_price_volume_data(symbol, instrument, …)</text>
+        <text x="260" y="202" text-anchor="middle" font-size="10" fill="#6b7280">option_price_volume_data(symbol, instrument, option_type, …)</text>
+        <text x="260" y="228" text-anchor="middle" font-size="9.5" fill="#0d9488">live chain instead? &#8594; nse_live_option_chain(symbol, expiry_date, oi_mode)</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WORTH MEMORIZING ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">date format</span><span class="v"><code>'dd-mm-YYYY'</code> strings — <code>'01-06-2024'</code>, never ISO</span></div>
+    <div><span class="k">time window</span><span class="v">pass <code>from_date</code>+<code>to_date</code> <b>OR</b> <code>period</code> — not both</span></div>
+    <div><span class="k">period codes</span><span class="v"><code>1D 1W 1M 3M 6M 1Y</code> (futures: no <code>1Y</code>)</span></div>
+    <div><span class="k">trade_date</span><span class="v">bhav/VaR/vol reports = one session; holidays &#8594; empty</span></div>
+    <div><span class="k">no client</span><span class="v">no key, no object — <code>import</code> the segment, call a function</span></div>
+    <div><span class="k">returns</span><span class="v">a pandas <code>DataFrame</code> (a few give a <code>list</code>/<code>dict</code>)</span></div>
+    <div><span class="k">losers</span><span class="v"><code>to_get="loosers"</code> — the library's double-o spelling</span></div>
+    <div><span class="k">index_data</span><span class="v">wants the name <code>"NIFTY 50"</code>, not <code>"NIFTY"</code>/<code>"^NSEI"</code></span></div>
+    <div><span class="k">IP + rate</span><span class="v">NSE gates non-Indian IPs; add sleeps/retries, avoid loops</span></div>
+    <div><span class="k">live hours</span><span class="v">option chain / gainers / market_watch: 09:15–15:30 IST</span></div>
+    <div><span class="k">2.5.1 bug</span><span class="v"><code>cash_market</code>/<code>mutual_funds</code> may <code>ImportError</code> &#8594; use <code>nsdl_fpi</code></span></div>
+    <div><span class="k">debug</span><span class="v"><code>nselib.enable_logging(logging.DEBUG)</code> to see the requests</span></div>
+  </div>
+</section>
+
+<footer>
+  <b>nselib cheat sheet</b> — quick reference for the RuchiTanmay/nselib Python library (NSE India public market data). Verified against installed <code>nselib&nbsp;2.5.1</code> (re-verified 2026-08-30 as still current; NSE-endpoint dependent).<br>
+  Sources: <b>github.com/RuchiTanmay/nselib</b> (README + API reference) · <b>pypi.org/project/nselib</b> · <b>nseindia.com</b> report pages · community tutorials. Signatures &amp; the <code>'loosers'</code>/import quirks were confirmed by live introspection.<br>
+  nselib is an unofficial, community-maintained library that scrapes publicly available NSE pages; it is <b>not affiliated with or endorsed by NSE India</b>. Endpoints, columns &amp; behaviour change often — pin your version and re-check after upgrades. For personal research and analysis, <b>not</b> investment advice or production trading infrastructure.
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Psycopg 3 Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">The modern PostgreSQL driver for Python &middot; psycopg 3 &middot; verified against Psycopg 3.3 (2026)</div>
+  <h1><span class="mono">Psycopg 3</span> cheat sheet</h1>
+  <p class="lede"><b>Psycopg 3</b> is the canonical PostgreSQL adapter for Python &mdash; the successor to psycopg2. It keeps the familiar <b>DB-API 2.0</b> shape (connect &rarr; cursor &rarr; execute &rarr; fetch) but adds first-class <b>asyncio</b>, a built-in <b>connection pool</b>, the binary protocol, server-side <b>COPY</b>, and <b>pipeline mode</b>. Rich automatic type adaptation maps Python &harr; PostgreSQL for you. Import name is <code>psycopg</code> (v3), not <code>psycopg2</code>. This sheet targets <b>Psycopg 3.3</b>.</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>connect</span>
+    <span><i class="dot c2"></i>query &amp; rows</span>
+    <span><i class="dot c3"></i>transactions &amp; pool</span>
+    <span><i class="dot c4"></i>dynamic SQL &amp; COPY</span>
+    <span><i class="dot c5"></i>async</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-08-24 against the official docs at <b>psycopg.org/psycopg3</b> (Psycopg 3.3.4, 2026-05). Python 3.12+ fine. Install with a libpq: <code>pip install "psycopg[binary]"</code> (prebuilt) or add <code>,pool</code> for the pool. psycopg2 is a separate legacy package with a different API.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub"><code>connect</code> &rarr; <code>execute</code> with <code>%s</code> placeholders &rarr; <code>fetch</code>. The connection <code>with</code> block commits &amp; closes. Then pooling, dynamic SQL, COPY, pipeline, and async.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Connect &amp; query</h3>
+      <ol class="toc-list">
+        <li><a href="#connect">1 &middot; Install &amp; connect</a></li>
+        <li><a href="#params">2 &middot; Execute &amp; parameters</a></li>
+        <li><a href="#rows">3 &middot; Fetch &amp; row factories</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Transact &amp; scale</h3>
+      <ol class="toc-list">
+        <li><a href="#txn">4 &middot; Transactions &amp; autocommit</a></li>
+        <li><a href="#pool">5 &middot; Connection pool</a></li>
+        <li><a href="#sql">6 &middot; Dynamic SQL (psycopg.sql)</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Power &amp; ship</h3>
+      <ol class="toc-list">
+        <li><a href="#copy">7 &middot; COPY &amp; pipeline</a></li>
+        <li><a href="#async">8 &middot; Async</a></li>
+        <li><a href="#gotchas">9 &middot; Gotchas</a></li>
+        <li><a href="#worth">Worth memorizing</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-query"><h2 style="color:var(--c1)">Connect &amp; query</h2><p class="sub">Open a connection, run parameterized SQL, shape the rows.</p></div>
+<main>
+  <article class="card" id="connect">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Install &amp; connect</span><span class="card-sub">3.3</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">pip install <span class="str">"psycopg[binary]"</span>       <span class="cm"># prebuilt libpq</span>
+pip install <span class="str">"psycopg[binary,pool]"</span>  <span class="cm"># + connection pool</span></code><span class="star">&#9733;</span><div class="desc">The <code>binary</code> extra ships a compiled libpq &mdash; no system Postgres headers needed. Plain <code>psycopg</code> links a system libpq.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">import</span> psycopg
+<span class="kw">with</span> psycopg.connect(<span class="str">"dbname=app user=me host=localhost"</span>) <span class="kw">as</span> conn:
+    <span class="kw">with</span> conn.cursor() <span class="kw">as</span> cur:
+        cur.execute(<span class="str">"SELECT 1"</span>); cur.fetchone()</code><span class="star">&#9733;</span><div class="desc"><b>The canonical shape.</b> Conninfo is a keyword string or a URL <code>"postgresql://me@localhost/app"</code>. <b>Exiting the <code>with</code> commits AND closes</b> the connection (card 4).</div></li>
+      <li class="c1"><code class="cmd">row = conn.execute(<span class="str">"SELECT * FROM t WHERE id=%s"</span>, (1,)).fetchone()</code><span class="star">&#9733;</span><div class="desc"><b><code>conn.execute()</code> shortcut</b> (new in v3) creates a temporary cursor &mdash; skip the explicit <code>cursor()</code> for one-off queries.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="params">
+    <div class="card-head"><span class="card-num n2">2</span><span class="card-title">Execute &amp; parameters</span><span class="card-sub">%s, always</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">cur.execute(<span class="str">"SELECT * FROM t WHERE id=%s AND name=%s"</span>, (id, name))</code><span class="star">&#9733;</span><div class="desc"><b>Placeholders are <code>%s</code> for every type</b> (never <code>%d</code>, never <code>?</code>). Pass a tuple of values &mdash; psycopg adapts and quotes them safely.</div></li>
+      <li class="c2"><code class="cmd">cur.execute(<span class="str">"... WHERE name=%(name)s"</span>, {<span class="str">"name"</span>: n})</code><span class="star">&#9733;</span><div class="desc"><b>Named placeholders</b> <code>%(name)s</code> take a dict &mdash; clearer with many params.</div></li>
+      <li class="c2"><code class="cmd">cur.executemany(<span class="str">"INSERT INTO t(a) VALUES(%s)"</span>, [(1,), (2,), (3,)])</code><span class="star">&#9733;</span><div class="desc">Batch the same statement over many param sets. For very large loads, prefer <b>COPY</b> (card 7).</div></li>
+      <li class="c2"><code class="cmd">cur.execute(t<span class="str">"SELECT * FROM t WHERE id={id}"</span>)</code><span class="badge-new">3.3 + Py3.14 t-strings</span><div class="desc">Psycopg 3.3 accepts <b>template strings</b>: interpolated values become <b>parameters</b>, not raw text &mdash; safe by construction. Needs Python 3.14 t-strings.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="rows">
+    <div class="card-head"><span class="card-num n2">3</span><span class="card-title">Fetch &amp; row factories</span><span class="card-sub">shape results</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">cur.fetchone()  &middot;  cur.fetchall()  &middot;  cur.fetchmany(100)
+<span class="kw">for</span> record <span class="kw">in</span> cur:  <span class="cm"># cursors are iterable</span>
+    ...</code><span class="star">&#9733;</span><div class="desc">Default rows are tuples. Iterate the cursor to stream results lazily.</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">from</span> psycopg.rows <span class="kw">import</span> dict_row
+<span class="kw">with</span> psycopg.connect(conninfo, row_factory=dict_row) <span class="kw">as</span> conn:
+    conn.execute(<span class="str">"SELECT ..."</span>).fetchone()[<span class="str">"name"</span>]</code><span class="star">&#9733;</span><div class="desc"><b>Row factories</b> change row shape: <code>dict_row</code>, <code>namedtuple_row</code>, <code>class_row(MyModel)</code>. Set per-connection or per-cursor.</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">with</span> conn.cursor(name=<span class="str">"big"</span>) <span class="kw">as</span> cur:  <span class="cm"># server-side cursor</span>
+    cur.execute(<span class="str">"SELECT * FROM huge"</span>)
+    <span class="kw">for</span> row <span class="kw">in</span> cur: ...</code><div class="desc"><b>Named = server-side cursor:</b> Postgres streams rows in batches instead of buffering the whole result client-side. Essential for large tables.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-scale"><h2 style="color:var(--c3)">Transact &amp; scale</h2><p class="sub">Control transactions, pool connections, and build SQL safely.</p></div>
+<main>
+  <article class="card" id="txn">
+    <div class="card-head"><span class="card-num n3">4</span><span class="card-title">Transactions &amp; autocommit</span><span class="card-sub">commit / block / auto</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="kw">with</span> psycopg.connect(conninfo) <span class="kw">as</span> conn:
+    conn.execute(<span class="str">"INSERT ..."</span>)
+<span class="cm"># block exit: COMMIT (or ROLLBACK on error), then CLOSE</span></code><span class="star">&#9733;</span><div class="desc"><b>Different from psycopg2:</b> leaving the connection <code>with</code> block commits <b>and closes</b>. One connection = one <code>with</code>.</div></li>
+      <li class="c3"><code class="cmd"><span class="kw">with</span> conn.transaction():
+    conn.execute(<span class="str">"..."</span>)
+    <span class="kw">with</span> conn.transaction():  <span class="cm"># nested = SAVEPOINT</span>
+        conn.execute(<span class="str">"..."</span>)</code><span class="star">&#9733;</span><div class="desc"><b>Explicit transaction blocks</b> &mdash; the way to run several transactions on one connection. Nesting creates savepoints (partial rollback).</div></li>
+      <li class="c3"><code class="cmd">conn.commit()  &middot;  conn.rollback()</code><div class="desc">Manual control when you're not using a <code>with</code>/<code>transaction()</code> block.</div></li>
+      <li class="c3"><code class="cmd">conn.autocommit = <span class="kw">True</span>   <span class="cm"># or connect(autocommit=True)</span></code><span class="star">&#9733;</span><div class="desc">Each statement commits immediately &mdash; required for <code>CREATE DATABASE</code>, <code>VACUUM</code>, and other statements that can't run inside a transaction.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="pool">
+    <div class="card-head"><span class="card-num n3">5</span><span class="card-title">Connection pool</span><span class="card-sub">psycopg_pool</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="kw">from</span> psycopg_pool <span class="kw">import</span> ConnectionPool
+<span class="kw">with</span> ConnectionPool(conninfo, min_size=4, max_size=10) <span class="kw">as</span> pool:
+    ...  <span class="cm"># pool opens here, closes at block end</span></code><span class="star">&#9733;</span><div class="desc"><b>Reuse connections</b> instead of reconnecting per request &mdash; the standard for web apps. The pool warms <code>min_size</code> connections up front.</div></li>
+      <li class="c3"><code class="cmd">pool = ConnectionPool(conninfo, open=<span class="kw">False</span>)
+pool.open()   <span class="cm"># at app startup</span>
+pool.close()  <span class="cm"># at app shutdown</span></code><span class="star">&#9733;</span><div class="desc"><b>Explicit lifecycle</b> for frameworks (FastAPI/Django startup hooks). Prefer this or the context manager &mdash; opening implicitly in the constructor is discouraged.</div></li>
+      <li class="c3"><code class="cmd"><span class="kw">with</span> pool.connection() <span class="kw">as</span> conn:
+    conn.execute(<span class="str">"SELECT ..."</span>)
+<span class="cm"># returned to the pool; transaction committed/rolled back</span></code><span class="star">&#9733;</span><div class="desc">Borrow a connection for the block, then it's recycled &mdash; not closed. Commit/rollback happens on exit as usual.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="sql">
+    <div class="card-head"><span class="card-num n4">6</span><span class="card-title">Dynamic SQL</span><span class="card-sub">psycopg.sql</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="kw">from</span> psycopg <span class="kw">import</span> sql
+q = sql.SQL(<span class="str">"SELECT {} FROM {}"</span>).format(
+    sql.Identifier(<span class="str">"name"</span>), sql.Identifier(<span class="str">"user"</span>))
+cur.execute(q)</code><span class="star">&#9733;</span><div class="desc"><b>Safely inject identifiers</b> (table/column names) &mdash; which <code>%s</code> placeholders <em>cannot</em> do. <code>sql.Identifier</code> quotes them correctly.</div></li>
+      <li class="c4"><code class="cmd">cols = sql.SQL(<span class="str">", "</span>).join(map(sql.Identifier, [<span class="str">"a"</span>, <span class="str">"b"</span>]))
+sql.SQL(<span class="str">"INSERT INTO t ({}) VALUES ({})"</span>).format(
+    cols, sql.SQL(<span class="str">", "</span>).join(sql.Placeholder() * 2))</code><div class="desc">Compose column lists and placeholder lists programmatically. <code>sql.Literal</code> embeds a value literally when a placeholder won't do.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># NEVER build identifiers with f-strings/%/.format on raw SQL</span></code><div class="desc">String-built table/column names are an injection hole just like values. Always route them through <code>sql.Identifier</code>.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-power"><h2 style="color:var(--c5)">Power &amp; ship</h2><p class="sub">Bulk-load with COPY, batch with pipeline, and go async.</p></div>
+<main>
+  <article class="card" id="copy">
+    <div class="card-head"><span class="card-num n4">7</span><span class="card-title">COPY &amp; pipeline</span><span class="card-sub">bulk + fewer round-trips</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="kw">with</span> cur.copy(<span class="str">"COPY t (a, b) FROM STDIN"</span>) <span class="kw">as</span> copy:
+    <span class="kw">for</span> rec <span class="kw">in</span> records:
+        copy.write_row(rec)</code><span class="star">&#9733;</span><div class="desc"><b>COPY is the fastest bulk insert</b> &mdash; far quicker than <code>executemany</code>. <code>write_row</code> takes a tuple; psycopg handles adaptation and encoding.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">with</span> cur.copy(<span class="str">"COPY (SELECT * FROM t) TO STDOUT"</span>) <span class="kw">as</span> copy:
+    <span class="kw">for</span> row <span class="kw">in</span> copy.rows():
+        ...</code><div class="desc"><b>COPY out</b> for fast export. <code>copy.rows()</code> yields parsed tuples; <code>copy.read()</code> gives raw bytes.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">with</span> conn.pipeline():
+    conn.execute(<span class="str">"INSERT ..."</span>)
+    conn.execute(<span class="str">"INSERT ..."</span>)  <span class="cm"># sent together</span></code><span class="badge-new">pipeline</span><div class="desc"><b>Pipeline mode</b> batches statements to the server, cutting network round-trips on high-latency links. Results sync at block end.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="async">
+    <div class="card-head"><span class="card-num n5">8</span><span class="card-title">Async</span><span class="card-sub">asyncio, same shapes</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="kw">import</span> psycopg
+<span class="kw">async with</span> <span class="kw">await</span> psycopg.AsyncConnection.connect(conninfo) <span class="kw">as</span> aconn:
+    <span class="kw">async with</span> aconn.cursor() <span class="kw">as</span> cur:
+        <span class="kw">await</span> cur.execute(<span class="str">"SELECT %s"</span>, (1,))
+        <span class="kw">await</span> cur.fetchone()</code><span class="star">&#9733;</span><div class="desc"><b>Same API, awaited.</b> Note <code>await psycopg.AsyncConnection.connect(...)</code> (the connect itself is a coroutine), then <code>async with</code> the result.</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">from</span> psycopg_pool <span class="kw">import</span> AsyncConnectionPool
+<span class="kw">async with</span> AsyncConnectionPool(conninfo) <span class="kw">as</span> pool:
+    <span class="kw">async with</span> pool.connection() <span class="kw">as</span> aconn:
+        <span class="kw">await</span> aconn.execute(<span class="str">"SELECT ..."</span>)</code><span class="star">&#9733;</span><div class="desc">The async pool mirrors the sync one &mdash; the go-to for async web frameworks.</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">await</span> aconn.set_autocommit(<span class="kw">True</span>)  <span class="cm"># awaitable setter</span></code><div class="desc">Some property sets become awaitable methods in async (autocommit, isolation). COPY/pipeline have async forms too.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="gotchas">
+    <div class="card-head"><span class="card-num">!</span><span class="card-title">Common gotchas</span><span class="card-sub">read before shipping</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">%s for every param &mdash; not ? or %d</code><div class="desc">psycopg uses <code>%s</code> (and <code>%(name)s</code>) for all types. <code>?</code> is sqlite/qmark. Never <code>%</code>/f-string the query text &mdash; injection.</div></li>
+      <li class="danger"><code class="cmd">placeholders can't name tables/columns</code><div class="desc"><code>%s</code> is for <b>values only</b>. Inject identifiers via <code>psycopg.sql.Identifier</code> (card 6), never string-building.</div></li>
+      <li class="danger"><code class="cmd">with connect() COMMITS and CLOSES</code><div class="desc">Unlike psycopg2 (reusable) and unlike sqlite3 (no close). For multiple transactions on one connection, use <code>conn.transaction()</code> blocks.</div></li>
+      <li class="danger"><code class="cmd">it's `import psycopg`, not psycopg2</code><div class="desc">Psycopg 3 is the package <code>psycopg</code>. psycopg2 is a separate legacy library with a different API (no <code>conn.execute</code>, different COPY/pool). Don't mix docs.</div></li>
+      <li class="danger"><code class="cmd">open the pool explicitly</code><div class="desc">Use <code>with ConnectionPool(...)</code> or <code>open=False</code> + <code>pool.open()</code>. Relying on the constructor to open is discouraged and warns.</div></li>
+      <li class="danger"><code class="cmd">stream big results server-side</code><div class="desc">A default cursor buffers the whole result client-side. Use a named cursor (<code>conn.cursor(name=...)</code>) or COPY for large data.</div></li>
+      <li class="danger"><code class="cmd">install a libpq</code><div class="desc">Use the <code>[binary]</code> extra for a bundled libpq, or install system libpq for the pure/C build. Missing libpq is the classic install error.</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs" id="worth">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">pip install "psycopg[binary,pool]"</span><span class="v">v3 package = psycopg (not psycopg2)</span></div>
+    <div><span class="k">with psycopg.connect(conninfo) as conn</span><span class="v">exit = COMMIT + CLOSE</span></div>
+    <div><span class="k">execute(sql, (a, b)) with %s</span><span class="v">%(name)s for named; %s for all types</span></div>
+    <div><span class="k">conn.execute(...) shortcut</span><span class="v">temp cursor, new in v3</span></div>
+    <div><span class="k">row_factory=dict_row</span><span class="v">from psycopg.rows; also class_row</span></div>
+    <div><span class="k">cursor(name=...) = server-side</span><span class="v">stream large results</span></div>
+    <div><span class="k">conn.transaction()</span><span class="v">explicit / nested (savepoint)</span></div>
+    <div><span class="k">autocommit=True</span><span class="v">for CREATE DATABASE / VACUUM</span></div>
+    <div><span class="k">ConnectionPool + open()</span><span class="v">with-block or explicit open/close</span></div>
+    <div><span class="k">sql.Identifier for names</span><span class="v">%s can't parametrize identifiers</span></div>
+    <div><span class="k">cur.copy("COPY ... FROM STDIN")</span><span class="v">fastest bulk load; write_row</span></div>
+    <div><span class="k">AsyncConnection / AsyncConnectionPool</span><span class="v">same API, awaited</span></div>
+  </div>
+</section>
+
+<footer>
+  Psycopg 3 cheat sheet (psycopg_cheatsheet v0).<br>
+  Verified 2026-08-24 against <b>psycopg.org/psycopg3</b> (Psycopg 3.3.4, 2026-05). The modern PostgreSQL driver: <code>import psycopg</code> &rarr; <code>with connect()</code> (exit commits &amp; closes) &rarr; <code>cursor.execute</code> with <code>%s</code>/<code>%(name)s</code> params &rarr; fetch; row factories (<code>dict_row</code>, <code>class_row</code>); server-side named cursors; <code>conn.transaction()</code> blocks + <code>autocommit</code>; <code>psycopg_pool</code> ConnectionPool; <code>psycopg.sql</code> for safe dynamic identifiers; <code>cur.copy()</code> for bulk; pipeline mode; and full asyncio (<code>AsyncConnection</code>, <code>AsyncConnectionPool</code>). Psycopg 3.3 also accepts Python 3.14 t-strings as parameterized queries. Import name is <code>psycopg</code> &mdash; psycopg2 is a separate legacy package. For an ORM see SQLAlchemy/SQLModel; migrations via Alembic. APIs evolve &mdash; check the docs.<br>
+  Design system = shared cheat-sheet tokens (Inter + JetBrains Mono, light theme). Content only.
+</footer>
+</body>
+</html>

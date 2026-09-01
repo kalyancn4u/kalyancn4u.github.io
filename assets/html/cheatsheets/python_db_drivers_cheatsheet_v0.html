@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python DB Drivers Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Direct database drivers &middot; asyncpg (async Postgres) + PyMySQL (sync MySQL) &middot; verified against asyncpg 0.31 / PyMySQL 1.2 (2026)</div>
+  <h1><span class="mono">Python DB Drivers</span> cheat sheet</h1>
+  <p class="lede">Two popular low-level database drivers, side by side. <b>asyncpg</b> is a fast, <b>async-only</b> PostgreSQL driver built on <code>asyncio</code> that speaks the PG binary protocol directly (no DB-API) &mdash; it uses <b>numbered</b> <code>$1, $2</code> placeholders. <b>PyMySQL</b> is a pure-Python, <b>synchronous</b> MySQL/MariaDB client that follows the standard <b>DB-API 2.0</b> <code>connect</code>&rarr;<code>cursor</code>&rarr;<code>execute</code> flow with <code>%s</code> placeholders. This sheet covers both, highlights their differences, and points to the wider driver landscape. Targets <b>asyncpg 0.31.x</b> &amp; <b>PyMySQL 1.2.x</b>, Python 3.9+.</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>asyncpg — connect &amp; query</span>
+    <span><i class="dot c2"></i>asyncpg — pools &amp; power</span>
+    <span><i class="dot c3"></i>PyMySQL — connect &amp; query</span>
+    <span><i class="dot c4"></i>PyMySQL — cursors &amp; txns</span>
+    <span><i class="dot c5"></i>compare &amp; ecosystem</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-08-31 against magicstack.github.io/asyncpg &amp; pymysql.readthedocs.io / PyPI (asyncpg 0.31.0, 2025-11-24, PostgreSQL 9.5&ndash;18; PyMySQL 1.2.0, 2026-05-19). <b>Key difference:</b> asyncpg placeholders are <code>$1</code>, <code>$2</code>&hellip;; PyMySQL (DB-API) uses <code>%s</code>. Both: <b>always parameterize</b> &mdash; never format values into SQL.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub">asyncpg for async PostgreSQL (<code>$1</code> params, connection pools); PyMySQL for sync MySQL (DB-API, <code>%s</code> params, remember to commit). The last section compares them and maps the landscape.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>asyncpg (PostgreSQL, async)</h3>
+      <ol class="toc-list">
+        <li><span class="rk">1</span><a href="#pg-connect">Install &amp; connect</a></li>
+        <li><span class="rk">2</span><a href="#pg-query">Query &amp; params</a></li>
+        <li><span class="rk">3</span><a href="#pg-pool">Connection pools</a></li>
+        <li><span class="rk">4</span><a href="#pg-power">Transactions, COPY &amp; types</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>PyMySQL (MySQL, sync)</h3>
+      <ol class="toc-list">
+        <li><span class="rk">5</span><a href="#my-connect">Install &amp; connect</a></li>
+        <li><span class="rk">6</span><a href="#my-query">Cursor &amp; execute</a></li>
+        <li><span class="rk">7</span><a href="#my-fetch">Fetch &amp; cursors</a></li>
+        <li><span class="rk">8</span><a href="#my-txn">Transactions &amp; bulk</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Compare &amp; ecosystem</h3>
+      <ol class="toc-list">
+        <li><span class="rk">9</span><a href="#compare">asyncpg vs PyMySQL</a></li>
+        <li><span class="rk">10</span><a href="#ecosystem">Driver landscape</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-pg"><h2 style="color:var(--c1)">asyncpg &mdash; PostgreSQL, async</h2><p class="sub">Fast async Postgres: connect, query with <code>$1</code> params, and pool connections.</p></div>
+<main>
+  <article class="card" id="pg-connect">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Install &amp; connect</span><span class="card-sub">asyncio</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">pip install <span class="arg">asyncpg</span></code><span class="star">&#9733;</span><div class="desc">Async-only PostgreSQL driver (no sync API). Python 3.9+, PostgreSQL 9.5&ndash;18. Everything is awaited inside an event loop.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">import</span> asyncpg, asyncio
+conn = <span class="kw">await</span> asyncpg.connect(<span class="str">"postgresql://user:pw@host/db"</span>)</code><span class="star">&#9733;</span><div class="desc">Connect with a DSN (or <code>host=</code>/<code>user=</code>/<code>database=</code> kwargs). Must run inside <code>async def</code> / <code>asyncio.run(...)</code>.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">await</span> conn.close()</code><span class="star">&#9733;</span><div class="desc">Close when done. In practice you'll use a <b>pool</b> (card 3) rather than raw connections.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># asyncpg has NO sync API — you must use asyncio</span></code><span class="badge-warn">note</span><div class="desc">Every call is a coroutine. To call from sync code, wrap in <code>asyncio.run()</code>. For a sync Postgres driver, use <code>psycopg</code> instead.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="pg-query">
+    <div class="card-head"><span class="card-num n1">2</span><span class="card-title">Query &amp; params</span><span class="card-sub">$1, $2 …</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">rows = <span class="kw">await</span> conn.fetch(
+    <span class="str">"SELECT id, name FROM t WHERE age &gt; $1"</span>, 21)</code><span class="star">&#9733;</span><div class="desc"><code>fetch</code> returns a list of <b>Record</b> objects. ⚠️ Placeholders are <b><code>$1, $2, …</code></b> (positional), passed as extra args &mdash; NOT <code>%s</code>.</div></li>
+      <li class="c1"><code class="cmd">r = <span class="kw">await</span> conn.fetchrow(<span class="str">"SELECT * FROM t WHERE id=$1"</span>, 5)
+r[<span class="str">"name"</span>]  &middot;  r[0]  &middot;  dict(r)</code><span class="star">&#9733;</span><div class="desc"><code>fetchrow</code> = one row (or <code>None</code>). <b>Record</b> supports index <b>and</b> key access; <code>dict(r)</code> to convert.</div></li>
+      <li class="c1"><code class="cmd">val = <span class="kw">await</span> conn.fetchval(<span class="str">"SELECT count(*) FROM t"</span>)</code><span class="star">&#9733;</span><div class="desc"><code>fetchval</code> = a single scalar from the first row/column.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">await</span> conn.execute(<span class="str">"INSERT INTO t(name) VALUES($1)"</span>, <span class="str">"amy"</span>)</code><span class="star">&#9733;</span><div class="desc"><code>execute</code> runs a statement with no result set (returns the status string). asyncpg auto-uses prepared statements &amp; binary encoding under the hood.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="pg-pool">
+    <div class="card-head"><span class="card-num n1">3</span><span class="card-title">Connection pools</span><span class="card-sub">the prod pattern</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">pool = <span class="kw">await</span> asyncpg.create_pool(dsn, min_size=5, max_size=20)</code><span class="star">&#9733;</span><div class="desc">Create a pool once at app startup &mdash; reusing connections is far cheaper than connecting per request (essential in web apps).</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">async with</span> pool.acquire() <span class="kw">as</span> conn:
+    <span class="kw">await</span> conn.fetch(<span class="str">"SELECT ..."</span>)</code><span class="star">&#9733;</span><div class="desc">Borrow a connection for the block; it returns to the pool automatically. This is the everyday pattern in FastAPI/Starlette handlers.</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">await</span> pool.execute(<span class="str">"INSERT ... VALUES($1)"</span>, x)
+<span class="kw">await</span> pool.fetch(<span class="str">"SELECT ..."</span>)</code><div class="desc">The pool proxies <code>execute</code>/<code>fetch</code> &mdash; acquire+run+release in one call for simple queries.</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">await</span> pool.close()   <span class="cm"># graceful shutdown</span></code><div class="desc">Close the pool on app shutdown to drain connections cleanly.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="pg-power">
+    <div class="card-head"><span class="card-num n1">4</span><span class="card-title">Transactions, COPY &amp; types</span><span class="card-sub">power features</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd"><span class="kw">async with</span> conn.transaction():
+    <span class="kw">await</span> conn.execute(<span class="str">"UPDATE ... "</span>)
+    <span class="kw">await</span> conn.execute(<span class="str">"INSERT ..."</span>)</code><span class="star">&#9733;</span><div class="desc">The <code>transaction()</code> context commits on success, rolls back on exception. Nest for savepoints.</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">await</span> conn.executemany(
+    <span class="str">"INSERT INTO t(a,b) VALUES($1,$2)"</span>, [(1,2),(3,4)])</code><span class="star">&#9733;</span><div class="desc"><code>executemany</code> for batched writes.</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">await</span> conn.copy_records_to_table(<span class="str">"t"</span>, records=rows,
+    columns=[<span class="str">"a"</span>,<span class="str">"b"</span>])</code><span class="star">&#9733;</span><div class="desc"><b>COPY</b> is the fastest bulk-load path (orders of magnitude over inserts). Also <code>copy_to_table</code> (from a file) and <code>copy_from_query</code>.</div></li>
+      <li class="c2"><code class="cmd"><span class="cm"># JSON/arrays/composites auto-decode to Python; register custom codecs</span></code><div class="desc">asyncpg decodes PG types to native Python (arrays&rarr;list, json&rarr;dict via <code>set_type_codec</code>). <code>conn.cursor()</code> for server-side streaming of huge results.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-my"><h2 style="color:var(--c3)">PyMySQL &mdash; MySQL, sync</h2><p class="sub">Standard DB-API: connect &rarr; cursor &rarr; execute (<code>%s</code> params) &rarr; commit.</p></div>
+<main>
+  <article class="card" id="my-connect">
+    <div class="card-head"><span class="card-num n3">5</span><span class="card-title">Install &amp; connect</span><span class="card-sub">DB-API 2.0</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">pip install <span class="arg">PyMySQL</span></code><span class="star">&#9733;</span><div class="desc">Pure-Python MySQL/MariaDB client &mdash; no C build needed. Import is <code>import pymysql</code>. (Latest fixes CVE-2024-36039; upgrade.)</div></li>
+      <li class="c3"><code class="cmd"><span class="kw">import</span> pymysql
+conn = pymysql.connect(host=<span class="str">"localhost"</span>, user=<span class="str">"u"</span>,
+    password=<span class="str">"pw"</span>, database=<span class="str">"db"</span>, charset=<span class="str">"utf8mb4"</span>)</code><span class="star">&#9733;</span><div class="desc">Synchronous connect. Use <code>charset="utf8mb4"</code> for full Unicode/emoji. <code>autocommit=True</code> to skip manual commits.</div></li>
+      <li class="c3"><code class="cmd"><span class="kw">with</span> pymysql.connect(...) <span class="kw">as</span> conn:
+    <span class="kw">with</span> conn.cursor() <span class="kw">as</span> cur:
+        cur.execute(<span class="str">"SELECT 1"</span>)</code><span class="star">&#9733;</span><div class="desc">Both connection and cursor are context managers. Closing the connection context commits (or rolls back on error) &amp; closes.</div></li>
+      <li class="c3"><code class="cmd">conn.ping(reconnect=<span class="kw">True</span>)</code><div class="desc">MySQL drops idle connections; <code>ping(reconnect=True)</code> revives one (or use a pool / SQLAlchemy for real apps).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="my-query">
+    <div class="card-head"><span class="card-num n3">6</span><span class="card-title">Cursor &amp; execute</span><span class="card-sub">%s params</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">cur = conn.cursor()
+cur.execute(<span class="str">"SELECT * FROM t WHERE age &gt; %s"</span>, (21,))</code><span class="star">&#9733;</span><div class="desc">⚠️ Placeholders are <b><code>%s</code></b> for <b>every</b> type (not <code>%d</code>), and values go in a <b>tuple/list</b> as the second arg &mdash; the driver quotes them safely.</div></li>
+      <li class="danger"><code class="cmd">cur.execute(<span class="str">"... WHERE name = %s"</span> % name)   <span class="cm"># NEVER</span></code><span class="badge-danger">injection</span><div class="desc">Never build SQL with <code>%</code>/f-strings/<code>+</code>. Always pass values as the second argument so PyMySQL escapes them. (Dict params in <code>execute</code> are now rejected as unsafe.)</div></li>
+      <li class="c3"><code class="cmd">cur.execute(<span class="str">"... WHERE id=%(id)s"</span>, {<span class="str">"id"</span>: 5})</code><div class="desc">Named placeholders <code>%(name)s</code> with a dict of values &mdash; readable for many params.</div></li>
+      <li class="c3"><code class="cmd">cur.executemany(
+    <span class="str">"INSERT INTO t(a,b) VALUES(%s,%s)"</span>, [(1,2),(3,4)])</code><span class="star">&#9733;</span><div class="desc"><code>executemany</code> batches inserts (it optimizes multi-row <code>INSERT</code>).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="my-fetch">
+    <div class="card-head"><span class="card-num n3">7</span><span class="card-title">Fetch &amp; cursors</span><span class="card-sub">reading rows</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">cur.execute(<span class="str">"SELECT id, name FROM t"</span>)
+cur.fetchone()   <span class="cm"># (1, 'amy')  or None</span>
+cur.fetchall()   <span class="cm"># [(1,'amy'), (2,'bob')]</span></code><span class="star">&#9733;</span><div class="desc">Default cursor returns <b>tuples</b>. <code>fetchmany(n)</code> for a chunk; iterate the cursor directly for row-by-row.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">import</span> pymysql.cursors
+cur = conn.cursor(pymysql.cursors.DictCursor)
+cur.fetchall()   <span class="cm"># [{'id':1,'name':'amy'}, ...]</span></code><span class="star">&#9733;</span><div class="desc"><b>DictCursor</b> returns each row as a dict &mdash; far more readable. Set per-cursor or via <code>connect(cursorclass=...)</code>.</div></li>
+      <li class="c4"><code class="cmd">cur = conn.cursor(pymysql.cursors.SSCursor)   <span class="cm"># server-side, streaming</span></code><div class="desc"><b>SSCursor</b>/<code>SSDictCursor</code> stream rows from the server &mdash; use for huge result sets so you don't buffer everything in memory.</div></li>
+      <li class="c4"><code class="cmd">cur.lastrowid  &middot;  cur.rowcount</code><div class="desc"><code>lastrowid</code> = last AUTO_INCREMENT id; <code>rowcount</code> = rows affected/returned.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="my-txn">
+    <div class="card-head"><span class="card-num n3">8</span><span class="card-title">Transactions &amp; bulk</span><span class="card-sub">commit!</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">cur.execute(<span class="str">"INSERT ..."</span>)
+conn.commit()   <span class="cm"># REQUIRED — autocommit is OFF by default</span></code><span class="star">&#9733;</span><span class="badge-warn">gotcha</span><div class="desc">The #1 PyMySQL surprise: writes are <b>not saved</b> until <code>conn.commit()</code> (InnoDB default). Forgetting it silently loses data on close/rollback.</div></li>
+      <li class="c3"><code class="cmd">conn.rollback()</code><div class="desc">Undo the current transaction on error. A <code>try/except</code> around commit with a rollback is the safe pattern.</div></li>
+      <li class="c3"><code class="cmd">conn = pymysql.connect(..., autocommit=<span class="kw">True</span>)</code><div class="desc">Turn on autocommit if you don't need multi-statement transactions &mdash; each statement commits immediately.</div></li>
+      <li class="c3"><code class="cmd">conn.begin()   <span class="cm"># explicit transaction start</span></code><div class="desc">Explicitly begin a transaction when autocommit is on and you need to group a few statements.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-cmp"><h2 style="color:var(--c5)">Compare &amp; Ecosystem</h2><p class="sub">The differences that trip people up, and how these fit the wider driver world.</p></div>
+<main>
+  <article class="card" id="compare">
+    <div class="card-head"><span class="card-num n5">9</span><span class="card-title">asyncpg vs PyMySQL</span><span class="card-sub">side by side</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="cm"># placeholders:  asyncpg -> $1, $2   |   PyMySQL -> %s</span></code><span class="star">&#9733;</span><div class="desc">The most common porting mistake. asyncpg uses PG's native numbered params; PyMySQL uses DB-API <code>%s</code> (pyformat).</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># model:  asyncpg -> async/await   |   PyMySQL -> sync (blocking)</span></code><span class="star">&#9733;</span><div class="desc">asyncpg needs an event loop; PyMySQL blocks. For async MySQL use <b>aiomysql</b> (wraps PyMySQL) or <b>asyncmy</b>.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># API:  asyncpg -> custom (fetch/fetchrow)  |  PyMySQL -> DB-API 2.0 (cursor)</span></code><div class="desc">asyncpg is <b>not</b> DB-API compliant (its own faster API + Records). PyMySQL follows PEP 249 (cursor/execute/fetch).</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># commit:  asyncpg -> transaction() ctx  |  PyMySQL -> conn.commit()</span></code><div class="desc">asyncpg auto-commits single statements &amp; uses a transaction context; PyMySQL requires an explicit <code>commit()</code> (autocommit off by default).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="ecosystem">
+    <div class="card-head"><span class="card-num n5">10</span><span class="card-title">Driver landscape</span><span class="card-sub">what to pick</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="cm"># PostgreSQL: psycopg (v3, sync+async, DB-API) · asyncpg (async, fastest)</span></code><span class="star">&#9733;</span><div class="desc"><b>psycopg 3</b> is the general-purpose PG driver (sync <b>and</b> async, DB-API). Choose <b>asyncpg</b> for max async throughput; psycopg for DB-API compatibility/simplicity.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># MySQL: PyMySQL (pure-python) · mysqlclient (C, fastest) · aiomysql/asyncmy (async)</span></code><div class="desc"><b>mysqlclient</b> (C extension) is faster but needs build tools; <b>PyMySQL</b> is pure-Python &amp; portable; <b>aiomysql</b>/<b>asyncmy</b> for asyncio.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># most apps: use SQLAlchemy on top of a driver</span></code><div class="desc"><b>SQLAlchemy 2.x</b> gives connection pooling, an ORM, and portable SQL &mdash; it drives asyncpg (<code>postgresql+asyncpg://</code>) and PyMySQL (<code>mysql+pymysql://</code>) as engines. Reach for a raw driver only when you need the speed/control.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># pandas: pd.read_sql(query, conn)  works with a DB-API conn (PyMySQL)</span></code><div class="desc"><code>pandas.read_sql</code> accepts a PyMySQL connection (or a SQLAlchemy engine, which is preferred). For asyncpg, fetch then build the DataFrame yourself.</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">asyncpg = async PG</span><span class="v">$1,$2 params · not DB-API</span></div>
+    <div><span class="k">PyMySQL = sync MySQL</span><span class="v">%s params · DB-API 2.0</span></div>
+    <div><span class="k">await conn.fetch/fetchrow/fetchval</span><span class="v">asyncpg reads (Record objs)</span></div>
+    <div><span class="k">await conn.execute($1)</span><span class="v">asyncpg write/statement</span></div>
+    <div><span class="k">create_pool + pool.acquire()</span><span class="v">asyncpg prod pattern</span></div>
+    <div><span class="k">copy_records_to_table</span><span class="v">asyncpg fastest bulk load</span></div>
+    <div><span class="k">cursor.execute("%s", (v,))</span><span class="v">PyMySQL — values in a tuple</span></div>
+    <div><span class="k">DictCursor</span><span class="v">PyMySQL rows as dicts</span></div>
+    <div><span class="k">conn.commit()</span><span class="v">PyMySQL — REQUIRED, autocommit off</span></div>
+    <div><span class="k">SSCursor</span><span class="v">PyMySQL server-side streaming</span></div>
+    <div><span class="k">never format SQL</span><span class="v">always parameterize — injection risk</span></div>
+    <div><span class="k">most apps -> SQLAlchemy</span><span class="v">pooling + ORM over the driver</span></div>
+  </div>
+</section>
+
+<footer>
+  <b>Python DB Drivers cheat sheet</b> (asyncpg + PyMySQL) &middot; v0 &middot; content verified 2026-08-31 against magicstack.github.io/asyncpg &amp; pymysql.readthedocs.io (asyncpg 0.31.0, PostgreSQL 9.5&ndash;18; PyMySQL 1.2.0), Python 3.9+.<br>
+  <b>asyncpg</b>: async-only PostgreSQL, custom fast API (<code>fetch</code>/<code>fetchrow</code>/<code>execute</code>), <code>$1</code> placeholders, connection pools, and <code>COPY</code> bulk loading. <b>PyMySQL</b>: pure-Python synchronous MySQL, DB-API 2.0 (<code>cursor</code>/<code>execute</code>/<code>fetch</code>), <code>%s</code> placeholders, <code>DictCursor</code>, and a required <code>commit()</code>. Both: parameterize everything. For most apps, run them under <b>SQLAlchemy</b>.<br>
+  Star (&#9733;) marks the most common operations. Confirm exact signatures against each driver's current docs before shipping.
+</footer>
+</body>
+</html>

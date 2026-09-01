@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pydantic Cheat Sheet · v2 (expanded)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b;  --setup-bg:#f1f3f6;
+    --field:#d97706;  --field-bg:#fdf6ec;
+    --valid:#059669;  --valid-bg:#ecf7f2;
+    --serial:#4f46e5; --serial-bg:#eef0fd;
+    --logic:#0d9488;  --logic-bg:#e9f6f4;
+    --adv:#7c3aed;    --adv-bg:#f3eefc;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;   --brand:#e11d74;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem; font-family:var(--mono);}
+  h1 .py{color:var(--ink)} h1 .dantic{color:var(--brand)} h1 .paren{color:var(--muted); font-weight:400}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede code{font-family:var(--mono); font-size:.86em; background:#efece6; padding:.05rem .3rem; border-radius:4px}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)} .dot.field{background:var(--field)}
+  .dot.valid{background:var(--valid)} .dot.serial{background:var(--serial)}
+  .dot.logic{background:var(--logic)} .dot.adv{background:var(--adv)}
+  .dot.danger{background:var(--danger)} .dot.star{background:var(--star)}
+
+  .flow-wrap{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;}
+  .flow-title{font-family:var(--mono); font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem;}
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  .quick{max-width:1120px; margin:1.2rem auto 0; background:var(--ink); border-radius:10px; overflow:hidden;}
+  .quick-bar{font-family:var(--mono); font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:#94a3b8; padding:.6rem 1rem; border-bottom:1px solid #2b2f38;}
+  pre.quick-inner{white-space:pre; margin:0; padding:1rem 1.2rem; font-family:var(--mono); font-size:.8rem; color:#e8e6e1; line-height:1.7; overflow-x:auto;}
+  pre.quick-inner .c{color:#7b8494}
+  pre.quick-inner .kw{color:#c792ea}
+  pre.quick-inner .fn{color:#82aaff}
+  pre.quick-inner .st{color:#c3e88d}
+  pre.quick-inner .o{color:#f78c6c}
+  pre.quick-inner .ty{color:#ffcb6b}
+
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  @media(min-width:1640px){ main{column-count:4} }
+
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.6rem; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.field{border-left-color:var(--field)}
+  ul.cmds li.valid{border-left-color:var(--valid)}
+  ul.cmds li.serial{border-left-color:var(--serial)}
+  ul.cmds li.logic{border-left-color:var(--logic)}
+  ul.cmds li.adv{border-left-color:var(--adv)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word;}
+  code.cmd .arg{color:var(--serial); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .out{color:var(--valid); font-weight:400}
+  code.cmd .kw{color:#7c3aed}
+  code.cmd .dec{color:#0d9488; font-weight:700}
+  code.cmd .old{color:var(--danger); text-decoration:line-through; opacity:.85}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.775rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f3f0ea; padding:.02rem .25rem; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+
+  .diagrams{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;}
+  .diagrams h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.8rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#c3e88d; font-size:.95em}
+
+  .part-bar{max-width:1500px; margin:1.6rem auto .2rem; padding:0 clamp(1rem,4vw,3rem);}
+  .part-bar .inner{display:flex; align-items:center; gap:.8rem; border-top:2px solid var(--ink); padding-top:.9rem;}
+  .part-tag{font-family:var(--mono); font-size:.72rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#fff; background:var(--ink); padding:.2rem .55rem; border-radius:5px;}
+  .part-name{font-family:var(--mono); font-size:.94rem; font-weight:700; letter-spacing:-.01em;}
+  .part-desc{font-size:.78rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+  main.part{padding-top:.8rem}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  footer code{color:var(--ink)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · data validation &amp; serialization · v2 · expanded</div>
+  <h1><span class="py">py</span><span class="dantic">dantic</span> <span class="paren">·</span> cheat sheet</h1>
+  <p class="lede">One idea underneath everything: your type annotations compile to a <b>core schema</b> (in Rust) that does two jobs — <b>validate</b> untrusted input into a typed instance, and <b>serialize</b> that instance back to a dict or JSON. Validators hook the way in; serializers hook the way out. <b>This is v2</b> — every method is <code>model_*</code>. <b>Expanded edition:</b> nested &amp; generic models, discriminated unions, JSON Schema, custom types, and FastAPI patterns.</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>define</span>
+    <span><i class="dot field"></i>fields &amp; types</span>
+    <span><i class="dot valid"></i>validate</span>
+    <span><i class="dot serial"></i>serialize</span>
+    <span><i class="dot logic"></i>custom logic</span>
+    <span><i class="dot adv"></i>config &amp; advanced</span>
+    <span><i class="dot danger"></i>gotcha / v1</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Introspected from <b>Pydantic 2.13.4</b> / pydantic-core 2.46 (installed &amp; run) &amp; cross-checked with: <b>docs.pydantic.dev</b> (official) · <b>github.com/pydantic/pydantic</b> · <b>the v1→v2 Migration Guide</b> · <b>PyPI</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">One schema, two directions — validate in, serialize out</div>
+  <svg class="flow-svg" viewBox="0 0 1120 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pydantic compiles type annotations into a core schema. Raw dict, JSON, or ORM objects are validated into a typed model instance; the instance is serialized back to a dict or JSON. Below, the v1 to v2 method renames.">
+    <defs>
+      <marker id="pd-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="pd-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#059669"/>
+      </marker>
+      <marker id="pd-indigo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#4f46e5"/>
+      </marker>
+    </defs>
+
+    <!-- BAND A : validate / serialize round trip -->
+    <!-- raw inputs -->
+    <text x="120" y="26" text-anchor="middle" font-size="11" font-weight="700" fill="#6b7280">RAW INPUT</text>
+    <g font-family="JetBrains Mono, monospace" font-size="10.5" text-anchor="middle">
+      <rect x="24" y="40" width="192" height="24" rx="6" fill="#f1f3f6" stroke="#64748b" stroke-width="1.3"/><text x="120" y="56" fill="#475569">{"id": "1", "name": …}  dict</text>
+      <rect x="24" y="70" width="192" height="24" rx="6" fill="#f1f3f6" stroke="#64748b" stroke-width="1.3"/><text x="120" y="86" fill="#475569">'{"id": 1, …}'  JSON</text>
+      <rect x="24" y="100" width="192" height="24" rx="6" fill="#f1f3f6" stroke="#64748b" stroke-width="1.3"/><text x="120" y="116" fill="#475569">orm_obj  (attributes)</text>
+    </g>
+
+    <!-- validate arrow -->
+    <line x1="218" y1="82" x2="300" y2="140" stroke="#059669" stroke-width="2.5" marker-end="url(#pd-green)"/>
+    <text x="238" y="108" font-size="10.5" font-weight="700" fill="#059669">validate</text>
+
+    <!-- the model / core schema -->
+    <rect x="306" y="96" width="234" height="118" rx="12" fill="#fff" stroke="#e11d74" stroke-width="2.5"/>
+    <text x="423" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">class User(BaseModel)</text>
+    <line x1="322" y1="130" x2="524" y2="130" stroke="#f0d0e0" stroke-width="1"/>
+    <text x="423" y="149" text-anchor="middle" font-size="10.5" fill="#525761">id: int · name: str</text>
+    <text x="423" y="166" text-anchor="middle" font-size="10.5" fill="#525761">age: int = 0</text>
+    <rect x="330" y="178" width="186" height="24" rx="6" fill="#fdeef4"/>
+    <text x="423" y="194" text-anchor="middle" font-size="9.5" fill="#b3195c">↳ compiled core schema · Rust</text>
+
+    <!-- validators hook (in) -->
+    <rect x="256" y="228" width="150" height="26" rx="6" fill="#e9f6f4" stroke="#0d9488" stroke-width="1.3"/>
+    <text x="331" y="245" text-anchor="middle" font-size="10" fill="#0d7d72">@field_validator</text>
+    <line x1="331" y1="228" x2="360" y2="200" stroke="#0d9488" stroke-width="1.3" stroke-dasharray="3 3" marker-end="url(#pd-arrow)"/>
+
+    <!-- typed instance -->
+    <line x1="540" y1="155" x2="610" y2="155" stroke="#1a1d24" stroke-width="2" marker-end="url(#pd-arrow)"/>
+    <rect x="614" y="122" width="180" height="66" rx="12" fill="#1a1d24"/>
+    <text x="704" y="150" text-anchor="middle" font-size="12" font-weight="700" fill="#c3e88d">User(id=1, …)</text>
+    <text x="704" y="170" text-anchor="middle" font-size="9.5" fill="#94a3b8">typed &amp; guaranteed</text>
+
+    <!-- serialize arrow -->
+    <line x1="796" y1="130" x2="878" y2="80" stroke="#4f46e5" stroke-width="2.5" marker-end="url(#pd-indigo)"/>
+    <text x="812" y="96" font-size="10.5" font-weight="700" fill="#4f46e5">serialize</text>
+
+    <!-- outputs -->
+    <text x="1000" y="26" text-anchor="middle" font-size="11" font-weight="700" fill="#6b7280">OUTPUT</text>
+    <g font-family="JetBrains Mono, monospace" font-size="10.5" text-anchor="middle">
+      <rect x="900" y="40" width="196" height="24" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.3"/><text x="998" y="56" fill="#3730a3">.model_dump() → dict</text>
+      <rect x="900" y="70" width="196" height="24" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.3"/><text x="998" y="86" fill="#3730a3">.model_dump_json() → str</text>
+    </g>
+    <rect x="900" y="150" width="196" height="26" rx="6" fill="#e9f6f4" stroke="#0d9488" stroke-width="1.3"/>
+    <text x="998" y="167" text-anchor="middle" font-size="10" fill="#0d7d72">@field_serializer</text>
+    <line x1="960" y1="150" x2="900" y2="100" stroke="#0d9488" stroke-width="1.3" stroke-dasharray="3 3" marker-end="url(#pd-arrow)"/>
+
+    <!-- BAND B : v1 -> v2 -->
+    <line x1="24" y1="278" x2="1096" y2="278" stroke="#e7e3db" stroke-width="1.5"/>
+    <text x="24" y="304" font-size="12" font-weight="700" fill="#dc2626">MOVING FROM v1? — the method renames that trip everyone up</text>
+    <g font-family="JetBrains Mono, monospace" font-size="10.5">
+      <rect x="24"  y="318" width="256" height="26" rx="6" fill="#fdf0ef"/><text x="36" y="335"><tspan fill="#dc2626" text-decoration="line-through">.dict()</tspan><tspan fill="#475569"> → </tspan><tspan fill="#059669" font-weight="700">.model_dump()</tspan></text>
+      <rect x="292" y="318" width="256" height="26" rx="6" fill="#fdf0ef"/><text x="304" y="335"><tspan fill="#dc2626" text-decoration="line-through">.json()</tspan><tspan fill="#475569"> → </tspan><tspan fill="#059669" font-weight="700">.model_dump_json()</tspan></text>
+      <rect x="560" y="318" width="256" height="26" rx="6" fill="#fdf0ef"/><text x="572" y="335"><tspan fill="#dc2626" text-decoration="line-through">.parse_obj()</tspan><tspan fill="#475569"> → </tspan><tspan fill="#059669" font-weight="700">.model_validate()</tspan></text>
+      <rect x="828" y="318" width="268" height="26" rx="6" fill="#fdf0ef"/><text x="840" y="335"><tspan fill="#dc2626" text-decoration="line-through">.schema()</tspan><tspan fill="#475569"> → </tspan><tspan fill="#059669" font-weight="700">.model_json_schema()</tspan></text>
+      <rect x="24"  y="350" width="256" height="26" rx="6" fill="#fdf0ef"/><text x="36" y="367"><tspan fill="#dc2626" text-decoration="line-through">class Config</tspan><tspan fill="#475569"> → </tspan><tspan fill="#059669" font-weight="700">model_config=ConfigDict</tspan></text>
+      <rect x="292" y="350" width="256" height="26" rx="6" fill="#fdf0ef"/><text x="304" y="367"><tspan fill="#dc2626" text-decoration="line-through">@validator</tspan><tspan fill="#475569"> → </tspan><tspan fill="#059669" font-weight="700">@field_validator</tspan></text>
+      <rect x="560" y="350" width="256" height="26" rx="6" fill="#fdf0ef"/><text x="572" y="367"><tspan fill="#dc2626" text-decoration="line-through">@root_validator</tspan><tspan fill="#475569"> → </tspan><tspan fill="#059669" font-weight="700">@model_validator</tspan></text>
+      <rect x="828" y="350" width="268" height="26" rx="6" fill="#fdf0ef"/><text x="840" y="367"><tspan fill="#dc2626" text-decoration="line-through">.copy()</tspan><tspan fill="#475569"> → </tspan><tspan fill="#059669" font-weight="700">.model_copy()</tspan></text>
+    </g>
+    <text x="559" y="404" text-anchor="middle" font-size="10.5" fill="#94a3b8" font-style="italic">annotate the types · validate in · serialize out — the whole library is that round trip, plus hooks on each side</text>
+  </svg>
+</section>
+
+<!-- ============ QUICKSTART ============ -->
+<section class="flow-wrap" style="padding-top:.5rem">
+  <div class="quick">
+    <div class="quick-bar">quickstart · define · validate · serialize</div>
+<pre class="quick-inner"><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field, field_validator
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+
+<span class="kw">class</span> <span class="ty">User</span>(BaseModel):
+    id: <span class="ty">int</span>
+    name: <span class="ty">str</span> <span class="o">=</span> <span class="st">"anon"</span>
+    age: <span class="ty">int</span> <span class="o">=</span> Field(gt<span class="o">=</span><span class="o">0</span>, le<span class="o">=</span><span class="o">120</span>)          <span class="c"># constraint</span>
+    joined: datetime <span class="o">|</span> <span class="ty">None</span> <span class="o">=</span> <span class="ty">None</span>
+
+    <span class="dec">@field_validator</span>(<span class="st">"name"</span>)
+    <span class="dec">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">titlecase</span>(cls, v): <span class="kw">return</span> v.title()
+
+u <span class="o">=</span> User.<span class="fn">model_validate</span>({<span class="st">"id"</span>: <span class="st">"1"</span>, <span class="st">"name"</span>: <span class="st">"ada"</span>, <span class="st">"age"</span>: <span class="o">36</span>})
+<span class="c"># "1" coerced → 1 ; name → "Ada"</span>
+u.<span class="fn">model_dump</span>()          <span class="c"># {'id': 1, 'name': 'Ada', 'age': 36, 'joined': None}</span>
+u.<span class="fn">model_dump_json</span>()     <span class="c"># '{"id":1,"name":"Ada",...}'</span></pre>
+  </div>
+</section>
+
+<!-- ==================== PART I ==================== -->
+<div class="part-bar"><div class="inner"><span class="part-tag">Part I</span><span class="part-name">Model</span><span class="part-desc">define · nest · parametrize · manipulate</span></div></div>
+<main class="part">
+
+  <!-- 01 DEFINE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Define a model</span><span class="card-sub">BaseModel</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel</code><span class="star">★</span><div class="desc">v2. Extras: <code>pydantic[email]</code>, <code>pydantic-settings</code>.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">class</span> User(BaseModel):<br>&nbsp;&nbsp;id: <span class="arg">int</span></code><span class="star">★</span><div class="desc">Annotate fields; schema is built at class creation.</div></li>
+      <li class="setup"><code class="cmd">name: <span class="arg">str</span> = <span class="arg">"anon"</span></code><span class="star">★</span><div class="desc">A default value makes the field optional.</div></li>
+      <li class="setup"><code class="cmd">User(id=1)</code><span class="star">★</span><div class="desc">Instantiate = validate; bad data raises <code>ValidationError</code>.</div></li>
+      <li class="setup"><code class="cmd">_v: <span class="arg">int</span> = PrivateAttr(default=0)</code><div class="desc">Private state, not a field; excluded from validation &amp; dump.</div></li>
+      <li class="setup"><code class="cmd">User.model_fields</code><div class="desc">Introspect the field map at the class level.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 NESTED & RECURSIVE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Nested &amp; recursive</span><span class="card-sub">models within models</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="kw">class</span> Order(BaseModel):<br>&nbsp;&nbsp;items: list[Item]</code><span class="star">★</span><div class="desc">Nest freely — validation recurses into each <code>Item</code>.</div></li>
+      <li class="setup"><code class="cmd">user: User | <span class="arg">None</span> = <span class="arg">None</span></code><div class="desc">Optional nested model.</div></li>
+      <li class="setup"><code class="cmd">children: list[<span class="arg">'Node'</span>] = []</code><span class="star">★</span><div class="desc">Recursive/self-referencing — quote the forward reference.</div></li>
+      <li class="setup"><code class="cmd">Node.model_rebuild()</code><div class="desc">Resolve forward refs if a type wasn't defined yet.</div></li>
+      <li class="setup"><code class="cmd">order.model_dump()</code><div class="desc">Dump recurses too → fully nested dict.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 GENERIC MODELS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Generic models</span><span class="card-sub">TypeVar · Generic</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd">T = TypeVar(<span class="arg">'T'</span>)</code><div class="desc">Declare the type parameter.</div></li>
+      <li class="adv"><code class="cmd"><span class="kw">class</span> Box(BaseModel, Generic[T]):<br>&nbsp;&nbsp;item: T</code><span class="star">★</span><div class="desc">A reusable container parametrized by <code>T</code>.</div></li>
+      <li class="adv"><code class="cmd">Box[<span class="arg">int</span>](item=<span class="arg">1</span>)</code><span class="star">★</span><div class="desc">Subscript with a concrete type to validate against it.</div></li>
+      <li class="adv"><code class="cmd"><span class="kw">class</span> Page(BaseModel, Generic[T]):<br>&nbsp;&nbsp;results: list[T]</code><div class="desc">Classic paginated-response pattern.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 MODEL UTILITIES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Model utilities</span><span class="card-sub">copy · compare · inspect</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">u.model_copy(update=<span class="arg">{'name':'x'}</span>)</code><span class="star">★</span><div class="desc">Shallow copy with overrides — <b>no</b> re-validation.</div></li>
+      <li class="setup"><code class="cmd">u.model_copy(deep=<span class="kw">True</span>)</code><div class="desc">Deep-copy nested models.</div></li>
+      <li class="setup"><code class="cmd">u1 == u2</code><div class="desc">Field-wise equality out of the box.</div></li>
+      <li class="setup"><code class="cmd">u.model_fields_set</code><span class="star">★</span><div class="desc">Which fields the caller actually provided.</div></li>
+      <li class="setup"><code class="cmd">u.model_extra</code><div class="desc">Extra keys captured when <code>extra='allow'</code>.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">def</span> model_post_init(self, ctx): ...</code><div class="desc">Hook that runs right after a model is built.</div></li>
+    </ul>
+  </article>
+
+</main>
+<!-- ==================== PART II ==================== -->
+<div class="part-bar"><div class="inner"><span class="part-tag">Part II</span><span class="part-name">Fields &amp; Types</span><span class="part-desc">constrain · annotate · specialize · alias</span></div></div>
+<main class="part">
+
+  <!-- 05 FIELD -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Field()</span><span class="card-sub">defaults &amp; constraints</span></div>
+    <ul class="cmds">
+      <li class="field"><code class="cmd">x: <span class="arg">int</span> = Field(default=<span class="arg">0</span>)</code><span class="star">★</span><div class="desc">Default + metadata in one place.</div></li>
+      <li class="field"><code class="cmd">Field(default_factory=<span class="arg">list</span>)</code><span class="star">★</span><div class="desc">For mutable defaults — <b>never</b> <code>= []</code>. Also <code>default_factory=</code> that takes validated <code>data</code>.</div></li>
+      <li class="field"><code class="cmd">Field(gt=<span class="arg">0</span>, le=<span class="arg">120</span>, multiple_of=<span class="arg">2</span>)</code><span class="star">★</span><div class="desc">Numbers: <code>gt ge lt le multiple_of</code>.</div></li>
+      <li class="field"><code class="cmd">Field(min_length=<span class="arg">1</span>, pattern=<span class="arg">r'^\w+$'</span>)</code><div class="desc">Strings/collections; <code>max_length</code>, <code>max_digits</code>, <code>decimal_places</code>.</div></li>
+      <li class="field"><code class="cmd">Field(union_mode=<span class="arg">'left_to_right'</span>)</code><div class="desc">Control how a union field resolves (default <code>'smart'</code>).</div></li>
+      <li class="field"><code class="cmd">Field(deprecated=<span class="kw">True</span>)</code><div class="desc">Marks a field deprecated (warns + shows in schema).</div></li>
+      <li class="field"><code class="cmd">Field(description=…, examples=…, json_schema_extra=…)</code><div class="desc">Feeds JSON Schema · <code>frozen</code>, <code>exclude</code>, <code>repr</code>, <code>kw_only</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 ANNOTATED -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">The Annotated pattern</span><span class="card-sub">reusable metadata</span></div>
+    <ul class="cmds">
+      <li class="field"><code class="cmd">x: Annotated[<span class="arg">int</span>, Field(gt=0)]</code><span class="star">★</span><div class="desc">Preferred over <code>x: int = Field(...)</code> — composable.</div></li>
+      <li class="field"><code class="cmd">Pos = Annotated[<span class="arg">int</span>, Field(gt=0)]</code><span class="star">★</span><div class="desc">Name it once, reuse across models.</div></li>
+      <li class="field"><code class="cmd">Annotated[<span class="arg">str</span>, StringConstraints(strip_whitespace=<span class="kw">True</span>, pattern=…)]</code><div class="desc">Bundled string rules.</div></li>
+      <li class="field"><code class="cmd">Annotated[<span class="arg">int</span>, AfterValidator(f), PlainSerializer(g)]</code><div class="desc">Stack validators &amp; serializers on the type itself.</div></li>
+      <li class="field"><code class="cmd">Annotated[<span class="arg">list</span>, Len(1, 10)]</code><div class="desc"><code>annotated_types</code> constraints (<code>Gt</code>, <code>Len</code>, <code>MultipleOf</code>) work directly.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 COMMON TYPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Common field types</span><span class="card-sub">stdlib annotations</span></div>
+    <ul class="cmds">
+      <li class="field"><code class="cmd">str · int · float · bool · bytes</code><span class="star">★</span><div class="desc">Scalars, coerced by default (lax mode).</div></li>
+      <li class="field"><code class="cmd">list[<span class="arg">int</span>] · dict[<span class="arg">str,int</span>] · set · tuple · frozenset</code><span class="star">★</span><div class="desc">Parametrized containers validate items; <code>Sequence</code>/<code>Mapping</code> for abstract.</div></li>
+      <li class="field"><code class="cmd">x: <span class="arg">int</span> | <span class="arg">None</span> = <span class="arg">None</span></code><span class="star">★</span><div class="desc">Optional value; <code>a | b</code> / <code>Union[a,b]</code> for either.</div></li>
+      <li class="field"><code class="cmd">datetime · date · time · timedelta</code><div class="desc">Parsed from ISO strings &amp; timestamps.</div></li>
+      <li class="field"><code class="cmd">Decimal · UUID · Path · Enum · Literal[…]</code><div class="desc">Rich stdlib types work out of the box; <code>Any</code> skips validation.</div></li>
+      <li class="field"><code class="cmd">PastDate · FutureDatetime · AwareDatetime</code><div class="desc">Temporal constraints as ready-made types.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 PYDANTIC TYPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Pydantic types</span><span class="card-sub">batteries included</span></div>
+    <ul class="cmds">
+      <li class="field"><code class="cmd">EmailStr · HttpUrl · AnyUrl · NameEmail</code><span class="star">★</span><div class="desc">Validated email/URL (<code>pip install pydantic[email]</code>).</div></li>
+      <li class="field"><code class="cmd">SecretStr · SecretBytes</code><div class="desc">Masked in <code>repr</code>/logs; read via <code>.get_secret_value()</code>.</div></li>
+      <li class="field"><code class="cmd">PositiveInt · NonNegativeInt · FiniteFloat</code><div class="desc">Named constraints, no <code>Field</code> needed.</div></li>
+      <li class="field"><code class="cmd">conint(gt=0) · constr(…) · conlist(…)</code><div class="desc">Constrained-type factories (Annotated is preferred).</div></li>
+      <li class="field"><code class="cmd">Json[<span class="arg">list[int]</span>] · Base64Str · ByteSize</code><div class="desc"><code>Json[T]</code> parses a JSON-string field; sizes like <code>"1.5GB"</code>.</div></li>
+      <li class="field"><code class="cmd">PostgresDsn · IPvAnyAddress · ImportString</code><div class="desc">DSNs, IPs, and dotted-path imports.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 CUSTOM TYPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Custom &amp; arbitrary types</span><span class="card-sub">extend the type system</span></div>
+    <ul class="cmds">
+      <li class="field"><code class="cmd">Annotated[<span class="arg">T</span>, AfterValidator(f)]</code><span class="star">★</span><div class="desc">The easy path — attach logic without a new class.</div></li>
+      <li class="field"><code class="cmd">InstanceOf[<span class="arg">MyClass</span>]</code><div class="desc">Accept an existing instance without deep validation.</div></li>
+      <li class="field"><code class="cmd">SkipValidation[<span class="arg">int</span>]</code><div class="desc">Bypass validation for this field entirely.</div></li>
+      <li class="field"><code class="cmd">ConfigDict(arbitrary_types_allowed=<span class="kw">True</span>)</code><div class="desc">Allow non-pydantic classes as field types.</div></li>
+      <li class="field"><code class="cmd"><span class="kw">def</span> __get_pydantic_core_schema__(cls, src, handler): ...</code><div class="desc">Full control: teach Pydantic to validate your own type.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 ALIASES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Aliases</span><span class="card-sub">external ↔ field names</span></div>
+    <ul class="cmds">
+      <li class="field"><code class="cmd">Field(alias=<span class="arg">'userId'</span>)</code><span class="star">★</span><div class="desc">Applies to both input &amp; output by default.</div></li>
+      <li class="field"><code class="cmd">Field(validation_alias=<span class="arg">'in'</span>, serialization_alias=<span class="arg">'out'</span>)</code><div class="desc">Different names each direction.</div></li>
+      <li class="field"><code class="cmd">AliasChoices(<span class="arg">'a', 'b'</span>)</code><div class="desc">Accept any of several input keys.</div></li>
+      <li class="field"><code class="cmd">AliasPath(<span class="arg">'x', 0, 'y'</span>)</code><div class="desc">Pull from a nested path in the input.</div></li>
+      <li class="adv"><code class="cmd">ConfigDict(alias_generator=to_camel)</code><span class="star">★</span><div class="desc">Auto-alias every field · pair with <code>populate_by_name=True</code> to accept both.</div></li>
+    </ul>
+  </article>
+
+</main>
+<!-- ==================== PART III ==================== -->
+<div class="part-bar"><div class="inner"><span class="part-tag">Part III</span><span class="part-name">Validate</span><span class="part-desc">raw input → guaranteed instance</span></div></div>
+<main class="part">
+
+  <!-- 11 VALIDATE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Validate input</span><span class="card-sub">raw → typed instance</span></div>
+    <ul class="cmds">
+      <li class="valid"><code class="cmd">User(<span class="arg">**data</span>)</code><span class="star">★</span><div class="desc">Keyword args — the everyday path.</div></li>
+      <li class="valid"><code class="cmd">User.model_validate(<span class="arg">data_dict</span>)</code><span class="star">★</span><div class="desc">From a dict (or any mapping).</div></li>
+      <li class="valid"><code class="cmd">User.model_validate_json(<span class="arg">json_str</span>)</code><span class="star">★</span><div class="desc">Parse + validate JSON in one Rust-fast step.</div></li>
+      <li class="valid"><code class="cmd">User.model_validate_strings(<span class="arg">{'age':'5'}</span>)</code><div class="desc">All-string input (env/CSV) → coerced by field type.</div></li>
+      <li class="valid"><code class="cmd">.model_validate(<span class="arg">orm</span>, from_attributes=<span class="kw">True</span>)</code><div class="desc">Read attributes off an ORM/arbitrary object.</div></li>
+      <li class="valid"><code class="cmd">.model_validate(<span class="arg">d</span>, strict=<span class="kw">True</span>, context=<span class="arg">{…}</span>)</code><div class="desc">Per-call strictness &amp; runtime context for validators.</div></li>
+      <li class="valid"><code class="cmd">User.model_construct(<span class="arg">**d</span>)</code><span class="badge-danger">unsafe</span><div class="desc">Build <b>without</b> validation — trusted data only.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 FIELD VALIDATOR -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">field_validator</span><span class="card-sub">per-field logic</span></div>
+    <ul class="cmds">
+      <li class="logic"><code class="cmd"><span class="dec">@field_validator</span>(<span class="arg">'email'</span>)<br><span class="dec">@classmethod</span><br><span class="kw">def</span> f(cls, v): ...</code><span class="star">★</span><div class="desc">Must be a <code>@classmethod</code>; return the (fixed) value.</div></li>
+      <li class="logic"><code class="cmd"><span class="dec">@field_validator</span>(<span class="arg">'x'</span>, mode=<span class="arg">'before'</span>)</code><span class="star">★</span><div class="desc"><code>before</code> = raw input; <code>after</code> (default) = post-coercion.</div></li>
+      <li class="logic"><code class="cmd"><span class="kw">def</span> f(cls, v, info): info.data</code><div class="desc"><code>ValidationInfo</code> exposes already-validated fields &amp; <code>info.context</code>.</div></li>
+      <li class="logic"><code class="cmd"><span class="dec">@field_validator</span>(<span class="arg">'a', 'b'</span>)</code><div class="desc">One validator for many fields · <code>'*'</code> = all fields.</div></li>
+      <li class="logic"><code class="cmd"><span class="kw">raise</span> ValueError(<span class="arg">'bad'</span>)</code><span class="star">★</span><div class="desc">Raise <code>ValueError</code>/<code>AssertionError</code> to fail validation.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 MODEL VALIDATOR -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">model_validator</span><span class="card-sub">whole-model / cross-field</span></div>
+    <ul class="cmds">
+      <li class="logic"><code class="cmd"><span class="dec">@model_validator</span>(mode=<span class="arg">'after'</span>)<br><span class="kw">def</span> f(self): <span class="kw">return</span> self</code><span class="star">★</span><div class="desc">Instance method (uses <code>self</code>); <b>must return self</b>.</div></li>
+      <li class="logic"><code class="cmd"><span class="dec">@model_validator</span>(mode=<span class="arg">'before'</span>)<br><span class="dec">@classmethod</span></code><div class="desc">Sees the raw input dict before field parsing.</div></li>
+      <li class="logic"><code class="cmd"><span class="kw">if</span> self.a &gt; self.b: <span class="kw">raise</span> ...</code><span class="star">★</span><div class="desc">Cross-field checks live here, not in <code>field_validator</code>.</div></li>
+      <li class="logic"><code class="cmd">mode=<span class="arg">'wrap'</span></code><div class="desc">Full control: call (or skip) the inner handler.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 ANNOTATED VALIDATORS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Annotated validators</span><span class="card-sub">reusable, on the type</span></div>
+    <ul class="cmds">
+      <li class="logic"><code class="cmd">Annotated[<span class="arg">int</span>, BeforeValidator(f)]</code><div class="desc">Runs before core validation (raw value).</div></li>
+      <li class="logic"><code class="cmd">Annotated[<span class="arg">str</span>, AfterValidator(f)]</code><span class="star">★</span><div class="desc">Runs after — the common case.</div></li>
+      <li class="logic"><code class="cmd">WrapValidator(f)</code><div class="desc">Wraps core validation with a handler you call.</div></li>
+      <li class="logic"><code class="cmd">PlainValidator(f)</code><div class="desc">Replaces core validation entirely.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 ERRORS & STRICT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Errors &amp; strictness</span><span class="card-sub">coercion control</span></div>
+    <ul class="cmds">
+      <li class="valid"><code class="cmd"><span class="kw">except</span> ValidationError <span class="kw">as</span> e:</code><span class="star">★</span><div class="desc">Raised on bad input; catch it around validation.</div></li>
+      <li class="valid"><code class="cmd">e.errors(include_url=<span class="kw">False</span>)</code><span class="star">★</span><div class="desc">List of <code>{type, loc, msg, input, ctx}</code> · <code>e.error_count()</code>, <code>e.json()</code>.</div></li>
+      <li class="logic"><code class="cmd"><span class="kw">raise</span> PydanticCustomError(<span class="arg">'code'</span>, <span class="arg">'msg {x}'</span>, <span class="arg">{'x':v}</span>)</code><div class="desc">Structured, templated custom errors from validators.</div></li>
+      <li class="valid"><code class="cmd"><span class="kw"># lax default:</span> "5" → 5</code><div class="desc">Coercion is on unless you opt out.</div></li>
+      <li class="valid"><code class="cmd">ConfigDict(strict=<span class="kw">True</span>)</code><span class="star">★</span><div class="desc">Forbid coercion model-wide · <code>Field(strict=True)</code> per field.</div></li>
+      <li class="valid"><code class="cmd">x: StrictInt · StrictStr</code><div class="desc">Strict types inline · <code>Strict()</code> in <code>Annotated</code>.</div></li>
+    </ul>
+  </article>
+
+</main>
+<!-- ==================== PART IV ==================== -->
+<div class="part-bar"><div class="inner"><span class="part-tag">Part IV</span><span class="part-name">Serialize</span><span class="part-desc">instance → dict · JSON · schema</span></div></div>
+<main class="part">
+
+  <!-- 16 SERIALIZE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Serialize / dump</span><span class="card-sub">instance → dict / JSON</span></div>
+    <ul class="cmds">
+      <li class="serial"><code class="cmd">u.model_dump()</code><span class="star">★</span><div class="desc">→ dict (keeps <code>datetime</code>/<code>UUID</code> as objects).</div></li>
+      <li class="serial"><code class="cmd">u.model_dump(mode=<span class="arg">'json'</span>)</code><span class="star">★</span><div class="desc">→ dict of JSON-safe primitives.</div></li>
+      <li class="serial"><code class="cmd">u.model_dump_json(indent=<span class="arg">2</span>)</code><span class="star">★</span><div class="desc">→ JSON string directly.</div></li>
+      <li class="serial"><code class="cmd">.model_dump(exclude_unset=<span class="kw">True</span>)</code><span class="star">★</span><div class="desc">Only fields that were set — perfect for PATCH.</div></li>
+      <li class="serial"><code class="cmd">.model_dump(exclude=<span class="arg">{'items': {'__all__': {'id'}}}</span>)</code><div class="desc">Nested include/exclude · <code>by_alias</code>, <code>exclude_none</code>, <code>exclude_defaults</code>.</div></li>
+      <li class="serial"><code class="cmd">.model_dump(context=<span class="arg">{…}</span>, round_trip=<span class="kw">True</span>)</code><div class="desc">Context for serializers; <code>round_trip</code> = re-parseable output.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 SERIALIZERS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Custom serializers</span><span class="card-sub">shape the output</span></div>
+    <ul class="cmds">
+      <li class="logic"><code class="cmd"><span class="dec">@field_serializer</span>(<span class="arg">'amount'</span>)<br><span class="kw">def</span> f(self, v): ...</code><span class="star">★</span><div class="desc">Customize one field's dumped form.</div></li>
+      <li class="logic"><code class="cmd"><span class="dec">@model_serializer</span></code><div class="desc">Take over the whole model's output shape.</div></li>
+      <li class="logic"><code class="cmd">Annotated[T, PlainSerializer(f)]</code><div class="desc">Serializer on the type · <code>WrapSerializer</code> to wrap default.</div></li>
+      <li class="logic"><code class="cmd">field_serializer(<span class="arg">'x'</span>, when_used=<span class="arg">'json'</span>)</code><div class="desc">Only when dumping to JSON (vs <code>'always'</code>).</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 COMPUTED FIELD -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">computed_field</span><span class="card-sub">derived output</span></div>
+    <ul class="cmds">
+      <li class="serial"><code class="cmd"><span class="dec">@computed_field</span><br><span class="dec">@property</span><br><span class="kw">def</span> area(self) -&gt; <span class="arg">float</span>: ...</code><span class="star">★</span><div class="desc">Appears in <code>model_dump()</code> &amp; JSON Schema.</div></li>
+      <li class="serial"><code class="cmd"><span class="dec">@computed_field</span>(repr=<span class="kw">False</span>)</code><div class="desc">Derived from other fields; not an input.</div></li>
+      <li class="serial"><code class="cmd"><span class="dec">@computed_field</span><br><span class="dec">@cached_property</span></code><div class="desc">Cache the computation across reads.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 JSON SCHEMA -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">JSON Schema</span><span class="card-sub">OpenAPI / docs</span></div>
+    <ul class="cmds">
+      <li class="serial"><code class="cmd">User.model_json_schema()</code><span class="star">★</span><div class="desc">JSON-Schema dict for the model (drives FastAPI/OpenAPI).</div></li>
+      <li class="serial"><code class="cmd">.model_json_schema(mode=<span class="arg">'serialization'</span>)</code><div class="desc"><code>'validation'</code> (default) vs <code>'serialization'</code> differ (computed fields, etc.).</div></li>
+      <li class="serial"><code class="cmd">Field(json_schema_extra=<span class="arg">{'format':'…'}</span>)</code><div class="desc">Inject extra schema keys per field.</div></li>
+      <li class="serial"><code class="cmd">Annotated[T, WithJsonSchema(<span class="arg">{…}</span>)]</code><div class="desc">Override the schema for a type outright.</div></li>
+      <li class="serial"><code class="cmd">TypeAdapter(<span class="arg">list[User]</span>).json_schema()</code><div class="desc">Schema for any type, model or not.</div></li>
+    </ul>
+  </article>
+
+</main>
+<!-- ==================== PART V ==================== -->
+<div class="part-bar"><div class="inner"><span class="part-tag">Part V</span><span class="part-name">Unions, Config &amp; Integrate</span><span class="part-desc">dispatch · configure · adapt · ship</span></div></div>
+<main class="part">
+
+  <!-- 20 UNIONS & DISCRIMINATED -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">20</span><span class="card-title">Unions &amp; discriminated</span><span class="card-sub">one field, many shapes</span></div>
+    <ul class="cmds">
+      <li class="field"><code class="cmd">x: <span class="arg">int</span> | <span class="arg">str</span></code><span class="star">★</span><div class="desc"><b>Smart</b> mode (default) picks the best-matching member.</div></li>
+      <li class="field"><code class="cmd">Field(union_mode=<span class="arg">'left_to_right'</span>)</code><div class="desc">Try members in order, first that validates wins.</div></li>
+      <li class="field"><code class="cmd">pet: Cat | Dog = Field(discriminator=<span class="arg">'pet_type'</span>)</code><span class="star">★</span><div class="desc">Tagged union — <b>much</b> faster &amp; clearer errors.</div></li>
+      <li class="field"><code class="cmd">pet_type: Literal[<span class="arg">'cat'</span>]</code><div class="desc">Each member needs a literal tag field.</div></li>
+      <li class="adv"><code class="cmd">Annotated[Cat | Dog, Discriminator(callable)]</code><div class="desc"><code>Discriminator</code> + <code>Tag</code> for computed / non-field tags.</div></li>
+    </ul>
+  </article>
+
+  <!-- 21 CONFIGDICT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">21</span><span class="card-title">ConfigDict</span><span class="card-sub">model_config = …</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd">model_config = ConfigDict(<span class="arg">…</span>)</code><span class="star">★</span><div class="desc">v2 replaces the v1 inner <code>class Config</code>.</div></li>
+      <li class="adv"><code class="cmd">extra=<span class="arg">'forbid'</span></code><span class="star">★</span><div class="desc"><code>'ignore'</code> (default), <code>'allow'</code>, or <code>'forbid'</code> unknown keys.</div></li>
+      <li class="adv"><code class="cmd">frozen=<span class="kw">True</span></code><div class="desc">Immutable + hashable instances.</div></li>
+      <li class="adv"><code class="cmd">validate_assignment=<span class="kw">True</span></code><span class="star">★</span><div class="desc">Re-validate on attribute set (off by default).</div></li>
+      <li class="adv"><code class="cmd">str_strip_whitespace=<span class="kw">True</span></code><div class="desc"><code>str_to_lower</code>, <code>str_min_length</code> · <code>use_enum_values</code>, <code>from_attributes</code>.</div></li>
+      <li class="adv"><code class="cmd">validate_by_name=<span class="kw">True</span>, validate_by_alias=<span class="kw">True</span></code><div class="desc">Accept field name and/or alias on input (v2.11+).</div></li>
+      <li class="adv"><code class="cmd">revalidate_instances=<span class="arg">'always'</span></code><div class="desc"><code>alias_generator</code>, <code>defer_build</code>, <code>title</code>, <code>strict</code> also live here.</div></li>
+    </ul>
+  </article>
+
+  <!-- 22 TYPEADAPTER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">22</span><span class="card-title">TypeAdapter</span><span class="card-sub">validate without a model</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd">ta = TypeAdapter(list[<span class="arg">int</span>])</code><span class="star">★</span><div class="desc">Wrap any type — no <code>BaseModel</code> needed. Build <b>once</b> &amp; reuse.</div></li>
+      <li class="adv"><code class="cmd">ta.validate_python(<span class="arg">["1","2"]</span>)</code><span class="star">★</span><div class="desc">→ <code>[1, 2]</code> · also <code>validate_json()</code>.</div></li>
+      <li class="adv"><code class="cmd">ta.dump_python(<span class="arg">obj</span>) / ta.dump_json(<span class="arg">obj</span>)</code><div class="desc">Serialize arbitrary types the same way.</div></li>
+      <li class="adv"><code class="cmd">ta.json_schema()</code><div class="desc">Schema for any type.</div></li>
+      <li class="adv"><code class="cmd">RootModel[list[<span class="arg">str</span>]]</code><div class="desc">Model whose root is a list/scalar; access via <code>.root</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 23 SETTINGS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">23</span><span class="card-title">Settings management</span><span class="card-sub">pydantic-settings</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd"><span class="kw">from</span> pydantic_settings <span class="kw">import</span> BaseSettings</code><span class="star">★</span><div class="desc"><b>Separate</b> package: <code>pip install pydantic-settings</code>.</div></li>
+      <li class="adv"><code class="cmd"><span class="kw">class</span> Cfg(BaseSettings): port: <span class="arg">int</span> = <span class="arg">8000</span></code><span class="star">★</span><div class="desc">Auto-reads env vars into validated fields.</div></li>
+      <li class="adv"><code class="cmd">SettingsConfigDict(env_prefix=<span class="arg">'APP_'</span>, env_file=<span class="arg">'.env'</span>)</code><div class="desc">Prefix + <code>.env</code>; nested via <code>env_nested_delimiter</code>.</div></li>
+      <li class="adv"><code class="cmd">settings_customise_sources(...)</code><div class="desc">Reorder/add sources (secrets dir, JSON, TOML, CLI).</div></li>
+    </ul>
+  </article>
+
+  <!-- 24 DATACLASSES & FUNCTIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">24</span><span class="card-title">Dataclasses &amp; functions</span><span class="card-sub">validate beyond models</span></div>
+    <ul class="cmds">
+      <li class="logic"><code class="cmd"><span class="dec">@validate_call</span><br><span class="kw">def</span> f(x: <span class="arg">int</span>, y: <span class="arg">str</span>): ...</code><span class="star">★</span><div class="desc">Validate a <b>function's</b> args from its type hints.</div></li>
+      <li class="adv"><code class="cmd"><span class="kw">from</span> pydantic.dataclasses <span class="kw">import</span> dataclass</code><span class="star">★</span><div class="desc">A validating drop-in for stdlib <code>@dataclass</code>.</div></li>
+      <li class="adv"><code class="cmd"><span class="dec">@dataclass</span>(config=ConfigDict(<span class="arg">…</span>))</code><div class="desc">Attach Pydantic config to a dataclass.</div></li>
+      <li class="adv"><code class="cmd">TypeAdapter(MyDataclass).validate_python(<span class="arg">d</span>)</code><div class="desc">Validate/serialize stdlib dataclasses &amp; <code>TypedDict</code> too.</div></li>
+    </ul>
+  </article>
+
+  <!-- 25 FASTAPI -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">25</span><span class="card-title">FastAPI &amp; real-world</span><span class="card-sub">its #1 use case</span></div>
+    <ul class="cmds">
+      <li class="valid"><code class="cmd"><span class="kw">def</span> create(item: Item):</code><span class="star">★</span><div class="desc">A model param = the request body, auto-validated.</div></li>
+      <li class="serial"><code class="cmd">@app.post(<span class="arg">'/'</span>, response_model=Item)</code><span class="star">★</span><div class="desc">Output is validated, filtered &amp; documented.</div></li>
+      <li class="serial"><code class="cmd"><span class="kw">return</span> obj.model_dump(mode=<span class="arg">'json'</span>)</code><div class="desc">When returning manually, dump to JSON-safe types.</div></li>
+      <li class="serial"><code class="cmd">patch.model_dump(exclude_unset=<span class="kw">True</span>)</code><div class="desc">The canonical PATCH pattern — only touch sent fields.</div></li>
+      <li class="adv"><code class="cmd">Settings config + Field(examples=…)</code><div class="desc">Settings for app config; examples surface in <code>/docs</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 26 MIGRATION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">26</span><span class="card-title">v1 → v2 migration</span><span class="card-sub">what changed</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="old">.dict() .json()</span> → model_dump[_json]()</code><span class="badge-danger">renamed</span><div class="desc">All I/O methods are now <code>model_*</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="old">@validator</span> → @field_validator</code><span class="badge-danger">renamed</span><div class="desc"><code>@root_validator</code> → <code>@model_validator</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="old">class Config</span> → model_config</code><span class="badge-danger">renamed</span><div class="desc">Now a <code>ConfigDict</code> assignment.</div></li>
+      <li class="danger"><code class="cmd"><span class="old">Optional[x]</span> ≠ optional</code><span class="badge-danger">trap</span><div class="desc">It only allows <code>None</code>; add a default to make it optional.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">from</span> pydantic <span class="kw">import</span> v1</code><div class="desc">The v1 API stays importable during migration.</div></li>
+      <li class="setup"><code class="cmd">pip install bump-pydantic</code><div class="desc">Automated codemod for most v1→v2 changes.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Six ideas that make the rest obvious</h2>
+  <p class="sub">Everything above is one of these patterns in disguise. Learn the shapes, not the method list.</p>
+  <div class="merge-grid">
+
+    <!-- D1 : one schema, two jobs -->
+    <div class="merge-card">
+      <h3>one schema, two jobs</h3>
+      <p>Annotations compile to a core schema that both <b>validates</b> input and <b>serializes</b> output. Same schema, opposite directions.</p>
+      <svg viewBox="0 0 390 168" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="type annotations become a core schema that validates raw data into an instance and serializes the instance back out">
+        <g font-family="JetBrains Mono, monospace">
+          <rect x="135" y="10" width="120" height="26" rx="6" fill="#fdeef4" stroke="#e11d74" stroke-width="1.5"/>
+          <text x="195" y="27" text-anchor="middle" font-size="10" fill="#b3195c">annotations</text>
+          <line x1="195" y1="36" x2="195" y2="56" stroke="#e11d74" stroke-width="1.4" marker-end="url(#pd-arrow)"/>
+          <rect x="120" y="58" width="150" height="30" rx="7" fill="#1a1d24"/>
+          <text x="195" y="77" text-anchor="middle" font-size="10.5" font-weight="700" fill="#f9a8d4">core schema · Rust</text>
+
+          <rect x="8" y="118" width="150" height="28" rx="7" fill="#f1f3f6" stroke="#64748b" stroke-width="1.3"/>
+          <text x="83" y="136" text-anchor="middle" font-size="9.5" fill="#475569">raw dict / json</text>
+          <rect x="232" y="118" width="150" height="28" rx="7" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.3"/>
+          <text x="307" y="136" text-anchor="middle" font-size="9.5" fill="#3730a3">dict / json out</text>
+
+          <line x1="120" y1="80" x2="90" y2="116" stroke="#059669" stroke-width="2" marker-end="url(#pd-green)"/>
+          <text x="56" y="106" font-size="9" font-weight="700" fill="#059669">validate</text>
+          <line x1="270" y1="80" x2="300" y2="116" stroke="#4f46e5" stroke-width="2" marker-start="url(#pd-indigo)"/>
+          <text x="300" y="106" font-size="9" font-weight="700" fill="#4f46e5" text-anchor="middle">serialize</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D2 : validator modes -->
+    <div class="merge-card">
+      <h3>validator modes: before · after · wrap</h3>
+      <p>Where your function sits relative to core coercion. <code>before</code> sees raw input; <code>after</code> sees the coerced value; <code>wrap</code> straddles it.</p>
+      <svg viewBox="0 0 390 168" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a validation timeline: before validator, then core coercion, then after validator, with wrap surrounding the core">
+        <g font-family="JetBrains Mono, monospace" font-size="9.5" text-anchor="middle">
+          <text x="30" y="34" fill="#6b7280">raw</text>
+          <line x1="46" y1="30" x2="92" y2="30" stroke="#1a1d24" stroke-width="1.4" marker-end="url(#pd-arrow)"/>
+          <rect x="94" y="18" width="86" height="26" rx="6" fill="#e9f6f4" stroke="#0d9488" stroke-width="1.3"/><text x="137" y="35" fill="#0d7d72">before</text>
+          <line x1="182" y1="30" x2="210" y2="30" stroke="#1a1d24" stroke-width="1.4" marker-end="url(#pd-arrow)"/>
+          <rect x="212" y="18" width="96" height="26" rx="6" fill="#1a1d24"/><text x="260" y="35" fill="#f9a8d4">core coerce</text>
+          <line x1="310" y1="30" x2="338" y2="30" stroke="#1a1d24" stroke-width="1.4" marker-end="url(#pd-arrow)"/>
+          <rect x="94" y="70" width="214" height="26" rx="6" fill="#e9f6f4" stroke="#0d9488" stroke-width="1.3"/><text x="201" y="87" fill="#0d7d72">after  (default) — post-coercion value</text>
+          <text x="30" y="132" fill="#6b7280">wrap</text>
+          <rect x="94" y="118" width="214" height="30" rx="8" fill="none" stroke="#0d9488" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <text x="201" y="137" fill="#0d7d72">calls core itself — full control</text>
+          <line x1="60" y1="126" x2="90" y2="130" stroke="#0d9488" stroke-width="1.3" marker-end="url(#pd-arrow)"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D3 : field vs model validator -->
+    <div class="merge-card">
+      <h3>field_validator vs model_validator</h3>
+      <p>Scope decides which to use: one field's value, or the whole model where you can compare fields.</p>
+      <svg viewBox="0 0 390 168" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="field_validator targets a single field as a classmethod; model_validator sees the whole instance and returns self">
+        <g font-family="JetBrains Mono, monospace" font-size="9.5">
+          <rect x="14" y="14" width="170" height="140" rx="10" fill="#e9f6f4" stroke="#0d9488" stroke-width="1.4"/>
+          <text x="99" y="34" text-anchor="middle" font-size="10" font-weight="700" fill="#0d7d72">@field_validator</text>
+          <rect x="30" y="46" width="138" height="20" rx="5" fill="#fff" stroke="#0d9488" stroke-width="1"/><text x="99" y="60" text-anchor="middle" fill="#0d7d72">email  ← this one</text>
+          <rect x="30" y="70" width="138" height="18" rx="5" fill="#fff" stroke="#e7e3db" stroke-width="1"/><text x="99" y="83" text-anchor="middle" fill="#94a3b8">age</text>
+          <rect x="30" y="92" width="138" height="18" rx="5" fill="#fff" stroke="#e7e3db" stroke-width="1"/><text x="99" y="105" text-anchor="middle" fill="#94a3b8">name</text>
+          <text x="99" y="132" text-anchor="middle" font-size="8.5" fill="#6b7280">classmethod · one value</text>
+          <text x="99" y="146" text-anchor="middle" font-size="8.5" fill="#6b7280">return v</text>
+
+          <rect x="206" y="14" width="170" height="140" rx="10" fill="#e9f6f4" stroke="#0d9488" stroke-width="1.4"/>
+          <text x="291" y="34" text-anchor="middle" font-size="10" font-weight="700" fill="#0d7d72">@model_validator</text>
+          <rect x="222" y="46" width="138" height="64" rx="6" fill="#fff" stroke="#0d9488" stroke-width="1.2"/>
+          <text x="291" y="64" text-anchor="middle" fill="#0d7d72">email · age · name</text>
+          <text x="291" y="82" text-anchor="middle" font-size="8.5" fill="#6b7280">all fields at once</text>
+          <text x="291" y="98" text-anchor="middle" font-size="8.5" fill="#0d7d72">if a &gt; b: raise</text>
+          <text x="291" y="132" text-anchor="middle" font-size="8.5" fill="#6b7280">self · cross-field</text>
+          <text x="291" y="146" text-anchor="middle" font-size="8.5" fill="#6b7280">return self</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D4 : model_dump flags -->
+    <div class="merge-card">
+      <h3>model_dump flags → different output</h3>
+      <p>One instance, many shapes. The flags decide type, which keys, and which names appear.</p>
+      <svg viewBox="0 0 390 168" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="model_dump variants: plain dict keeps datetime, mode json makes it a string, exclude_unset drops defaults, by_alias renames keys">
+        <g font-family="JetBrains Mono, monospace" font-size="9">
+          <rect x="150" y="12" width="90" height="26" rx="7" fill="#1a1d24"/>
+          <text x="195" y="29" text-anchor="middle" font-size="10" font-weight="700" fill="#c3e88d">instance</text>
+
+          <line x1="180" y1="38" x2="70" y2="60" stroke="#4f46e5" stroke-width="1.2" marker-end="url(#pd-indigo)"/>
+          <line x1="195" y1="38" x2="195" y2="60" stroke="#4f46e5" stroke-width="1.2" marker-end="url(#pd-indigo)"/>
+          <line x1="210" y1="38" x2="320" y2="60" stroke="#4f46e5" stroke-width="1.2" marker-end="url(#pd-indigo)"/>
+
+          <rect x="8" y="62" width="118" height="44" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.1"/>
+          <text x="67" y="76" text-anchor="middle" font-weight="700" fill="#3730a3">model_dump()</text>
+          <text x="67" y="90" text-anchor="middle" fill="#525761">joined: datetime(…)</text>
+          <text x="67" y="101" text-anchor="middle" fill="#94a3b8">python objects</text>
+
+          <rect x="136" y="62" width="118" height="44" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.1"/>
+          <text x="195" y="76" text-anchor="middle" font-weight="700" fill="#3730a3">mode='json'</text>
+          <text x="195" y="90" text-anchor="middle" fill="#525761">joined: "2026-…"</text>
+          <text x="195" y="101" text-anchor="middle" fill="#94a3b8">json-safe</text>
+
+          <rect x="264" y="62" width="118" height="44" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.1"/>
+          <text x="323" y="76" text-anchor="middle" font-weight="700" fill="#3730a3">by_alias=True</text>
+          <text x="323" y="90" text-anchor="middle" fill="#525761">userId: 1</text>
+          <text x="323" y="101" text-anchor="middle" fill="#94a3b8">alias keys</text>
+
+          <rect x="72" y="124" width="246" height="34" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.2"/>
+          <text x="195" y="139" text-anchor="middle" fill="#0a7a52" font-weight="700">exclude_unset=True</text>
+          <text x="195" y="151" text-anchor="middle" fill="#525761">only fields the caller actually set → PATCH</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D5 : discriminated union dispatch -->
+    <div class="merge-card">
+      <h3>discriminated unions dispatch by tag</h3>
+      <p>A literal tag field routes the input straight to one member — no trial-and-error, and errors point at the right model.</p>
+      <svg viewBox="0 0 390 168" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a pet_type tag of cat or dog routes input to the Cat or Dog model">
+        <g font-family="JetBrains Mono, monospace" font-size="9.5">
+          <rect x="8" y="60" width="150" height="46" rx="8" fill="#f1f3f6" stroke="#64748b" stroke-width="1.3"/>
+          <text x="83" y="78" text-anchor="middle" fill="#475569">{"pet_type": "dog",</text>
+          <text x="83" y="94" text-anchor="middle" fill="#475569">&nbsp;"barks": 3}</text>
+
+          <rect x="176" y="62" width="70" height="42" rx="8" fill="#fdeef4" stroke="#e11d74" stroke-width="1.5"/>
+          <text x="211" y="80" text-anchor="middle" font-size="9" fill="#b3195c">discriminator</text>
+          <text x="211" y="94" text-anchor="middle" font-size="9" font-weight="700" fill="#b3195c">pet_type</text>
+
+          <line x1="158" y1="83" x2="174" y2="83" stroke="#1a1d24" stroke-width="1.4" marker-end="url(#pd-arrow)"/>
+
+          <rect x="286" y="20" width="96" height="40" rx="8" fill="#fff" stroke="#e7e3db" stroke-width="1.2"/>
+          <text x="334" y="38" text-anchor="middle" fill="#94a3b8">Cat</text>
+          <text x="334" y="52" text-anchor="middle" font-size="8.5" fill="#c7c2bb">'cat' →</text>
+
+          <rect x="286" y="106" width="96" height="40" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+          <text x="334" y="124" text-anchor="middle" font-weight="700" fill="#0a7a52">Dog ✓</text>
+          <text x="334" y="138" text-anchor="middle" font-size="8.5" fill="#0a7a52">'dog' → picked</text>
+
+          <line x1="246" y1="78" x2="284" y2="46" stroke="#c7c2bb" stroke-width="1.2" stroke-dasharray="3 3"/>
+          <line x1="246" y1="88" x2="284" y2="122" stroke="#059669" stroke-width="1.8" marker-end="url(#pd-green)"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D6 : lax vs strict coercion -->
+    <div class="merge-card">
+      <h3>lax vs strict coercion</h3>
+      <p>By default Pydantic coerces compatible types. Strict mode refuses — the same input either converts or raises.</p>
+      <svg viewBox="0 0 390 168" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="the string 5 becomes int 5 in lax mode but raises an error in strict mode">
+        <g font-family="JetBrains Mono, monospace" font-size="10">
+          <rect x="150" y="14" width="90" height="26" rx="7" fill="#f1f3f6" stroke="#64748b" stroke-width="1.3"/>
+          <text x="195" y="31" text-anchor="middle" fill="#475569">n: int = "5"</text>
+
+          <line x1="170" y1="40" x2="120" y2="66" stroke="#059669" stroke-width="1.6" marker-end="url(#pd-green)"/>
+          <text x="96" y="60" font-size="9" font-weight="700" fill="#059669">lax</text>
+          <line x1="220" y1="40" x2="270" y2="66" stroke="#dc2626" stroke-width="1.6" marker-end="url(#pd-arrow)"/>
+          <text x="286" y="60" font-size="9" font-weight="700" fill="#dc2626">strict</text>
+
+          <rect x="24" y="70" width="150" height="44" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/>
+          <text x="99" y="88" text-anchor="middle" font-weight="700" fill="#0a7a52">5</text>
+          <text x="99" y="104" text-anchor="middle" font-size="8.5" fill="#0a7a52">coerced → int</text>
+
+          <rect x="216" y="70" width="150" height="44" rx="8" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.4"/>
+          <text x="291" y="88" text-anchor="middle" font-weight="700" fill="#dc2626">ValidationError</text>
+          <text x="291" y="104" text-anchor="middle" font-size="8.5" fill="#dc2626">int_type</text>
+
+          <text x="195" y="140" text-anchor="middle" font-size="8.5" fill="#6b7280">turn on with ConfigDict(strict=True), StrictInt, or strict=True per call</text>
+          <text x="195" y="156" text-anchor="middle" font-size="8" fill="#94a3b8" font-style="italic">JSON parsing stays lenient even in strict mode for some types</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WORTH MEMORIZING ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">everything is model_*</span><span class="v"><code>.dict/.json/.parse_obj</code> are v1-deprecated → <code>model_dump/_json/validate</code></span></div>
+    <div><span class="k">class Config is gone</span><span class="v">use <code>model_config = ConfigDict(...)</code></span></div>
+    <div><span class="k">field_validator = classmethod</span><span class="v">but <code>model_validator(mode='after')</code> is an instance method — return self</span></div>
+    <div><span class="k">lax by default</span><span class="v"><code>"5"→5</code>; use <code>strict=True</code> or <code>StrictInt</code> to forbid coercion</span></div>
+    <div><span class="k">mutable defaults</span><span class="v"><code>Field(default_factory=list)</code>, never <code>= []</code></span></div>
+    <div><span class="k">Optional isn't optional</span><span class="v"><code>x: int | None</code> still requires the key — add <code>= None</code></span></div>
+    <div><span class="k">mode='json' for JSON dict</span><span class="v">plain <code>model_dump()</code> keeps datetime/UUID as objects</span></div>
+    <div><span class="k">exclude_unset</span><span class="v">dumps only what was set — the PATCH-request pattern</span></div>
+    <div><span class="k">prefer Annotated</span><span class="v"><code>Annotated[int, Field(gt=0)]</code> beats <code>x: int = Field(...)</code></span></div>
+    <div><span class="k">TypeAdapter</span><span class="v">validate <code>list[int]</code> &amp; friends with no model; build once, reuse</span></div>
+    <div><span class="k">settings moved out</span><span class="v"><code>pip install pydantic-settings</code> — separate package in v2</span></div>
+    <div><span class="k">before vs after</span><span class="v"><code>before</code> sees raw input; <code>after</code> sees the coerced value</span></div>
+    <div><span class="k">smart union picks best</span><span class="v">not first-match — use a <code>discriminator</code> or <code>left_to_right</code> for predictable dispatch</span></div>
+    <div><span class="k">discriminated = tag field</span><span class="v">every member needs a <code>Literal</code> tag; far faster than a plain union</span></div>
+    <div><span class="k">recursive models</span><span class="v">quote the forward ref <code>'Node'</code>; call <code>model_rebuild()</code> if unresolved</span></div>
+    <div><span class="k">generics need subscript</span><span class="v"><code>Box[int](...)</code> validates; bare <code>Box</code> leaves <code>T</code> as <code>Any</code></span></div>
+    <div><span class="k">model_copy skips validation</span><span class="v">like <code>model_construct</code> — <code>update=</code> sets fields unchecked</span></div>
+    <div><span class="k">schema has two modes</span><span class="v"><code>model_json_schema(mode='serialization')</code> ≠ <code>'validation'</code></span></div>
+  </div>
+</section>
+
+<footer>
+  Pydantic cheat sheet · <b>expanded edition</b> · introspected from a live install of <code>Pydantic 2.13.4</code> / <code>pydantic-core 2.46</code> and cross-checked against the official docs (docs.pydantic.dev), the pydantic/pydantic source, the v1→v2 Migration Guide, and PyPI.<br>
+  This is <b>Pydantic v2</b> — the Rust-cored rewrite (5–50× faster than v1). Most cheat sheets online still show the v1 API; when in doubt, remember every model method starts with <code>model_</code>.
+</footer>
+
+</body>
+</html>

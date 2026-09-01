@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PostgreSQL + PostGIS + pgRouting Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --psql:#64748b;  --psql-bg:#f1f3f6;
+    --ddl:#d97706;   --ddl-bg:#fdf6ec;
+    --dml:#059669;   --dml-bg:#ecf7f2;
+    --query:#2563eb; --query-bg:#eaf0fe;
+    --admin:#7c3aed; --admin-bg:#f4f0fd;
+    --spatial:#c1553a; --spatial-bg:#fbece7;
+    --route:#0d9488; --route-bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .pg{font-family:var(--mono); color:var(--query)}
+  h1 .gis{font-family:var(--mono); color:var(--spatial)}
+  .lede{max-width:62ch; color:#3f444f; font-size:1.02rem}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.psql{background:var(--psql)} .dot.ddl{background:var(--ddl)}
+  .dot.dml{background:var(--dml)} .dot.query{background:var(--query)}
+  .dot.admin{background:var(--admin)} .dot.spatial{background:var(--spatial)}
+  .dot.route{background:var(--route)}
+  .dot.danger{background:var(--danger)}
+
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.2rem;
+  }
+  .flow-sub{font-size:.82rem; color:#5b6170; margin-bottom:1rem}
+  .flow-svg{width:100%; height:auto; max-width:1100px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .section-break{
+    max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);
+  }
+  .section-break h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-num.gis{background:var(--spatial)}
+  .card-num.route{background:var(--route)}
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.psql{border-left-color:var(--psql)}
+  ul.cmds li.ddl{border-left-color:var(--ddl)}
+  ul.cmds li.dml{border-left-color:var(--dml)}
+  ul.cmds li.query{border-left-color:var(--query)}
+  ul.cmds li.admin{border-left-color:var(--admin)}
+  ul.cmds li.spatial{border-left-color:var(--spatial)}
+  ul.cmds li.route{border-left-color:var(--route)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .arg{color:var(--query); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--ddl); font-weight:600}
+  code.cmd .fn{color:var(--spatial); font-weight:600}
+  code.cmd .pfn{color:var(--route); font-weight:600}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-warn{
+    color:var(--spatial); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1080px){ .merge-grid{grid-template-columns:1fr 1fr 1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem; min-height:2.4em}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference &middot; relational + spatial + network database &middot; v3</div>
+  <h1><span class="pg">postgreSQL</span> <span style="color:var(--muted);font-weight:400">+</span> <span class="gis">postGIS</span> <span style="color:var(--muted);font-weight:400">+</span> <span style="font-family:var(--mono);color:var(--route)">pgRouting</span> cheat sheet</h1>
+  <p class="lede">SQL is written top-down (<code>SELECT&hellip;FROM&hellip;WHERE</code>) but the engine runs it in a fixed, different order &mdash; learn that order and half of SQL's "gotchas" stop being mysterious. PostGIS layers spatial types, <code>ST_</code> functions, and GiST indexing on top, turning every table into a map. pgRouting goes one step further: it treats a table of line geometries as a weighted graph and answers shortest-path, driving-distance, and multi-stop routing queries directly in SQL.</p>
+  <div class="legend">
+    <span><i class="dot psql"></i>psql client</span>
+    <span><i class="dot ddl"></i>schema (DDL)</span>
+    <span><i class="dot dml"></i>data (DML)</span>
+    <span><i class="dot query"></i>query / read</span>
+    <span><i class="dot admin"></i>admin &amp; perf</span>
+    <span><i class="dot spatial"></i>PostGIS</span>
+    <span><i class="dot route"></i>pgRouting</span>
+    <span><i class="dot danger"></i>destructive</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked across: <b>postgresql.org</b> &middot; <b>postgis.net</b> &middot; <b>pgrouting.org</b> &middot; <b>linuxize.com</b> &middot; <b>quickref.me</b> &middot; <b>tigerdata.com</b> &middot; <b>geeksforgeeks.org</b> &middot; <b>codecademy.com</b> &middot; <b>gist.github.com/yokawasa</b> &middot; <b>gist.github.com/Kartones</b> &middot; <b>DataCamp</b> &middot; <b>LearnSQL.com / Vertabelo</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">Logical query processing order</div>
+  <p class="flow-sub">You <i>write</i> a query <code>SELECT&hellip;FROM&hellip;WHERE&hellip;ORDER BY</code> &mdash; but the planner <i>executes</i> it in this sequence. This is why a <code>WHERE</code> clause can't see a <code>SELECT</code> alias, and why <code>ORDER BY</code> can.</p>
+  <svg class="flow-svg" viewBox="0 0 1080 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of PostgreSQL's logical query execution order: FROM and JOIN, then WHERE, then GROUP BY, then HAVING, then SELECT and DISTINCT, then ORDER BY, then LIMIT and OFFSET.">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <g font-family="JetBrains Mono, monospace">
+      <rect x="66" y="80" width="120" height="110" rx="10" fill="var(--query-bg)" stroke="#2563eb" stroke-width="2"/>
+      <text x="126" y="103" text-anchor="middle" font-size="10.5" fill="#2563eb" font-weight="700">1</text>
+      <text x="126" y="128" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">FROM</text>
+      <text x="126" y="144" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">/ JOIN</text>
+      <text x="126" y="168" text-anchor="middle" font-size="9.5" fill="#5b6170">build the</text>
+      <text x="126" y="180" text-anchor="middle" font-size="9.5" fill="#5b6170">row set</text>
+
+      <rect x="204" y="80" width="120" height="110" rx="10" fill="var(--ddl-bg)" stroke="#d97706" stroke-width="2"/>
+      <text x="264" y="103" text-anchor="middle" font-size="10.5" fill="#d97706" font-weight="700">2</text>
+      <text x="264" y="135" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">WHERE</text>
+      <text x="264" y="168" text-anchor="middle" font-size="9.5" fill="#5b6170">filter rows</text>
+      <text x="264" y="180" text-anchor="middle" font-size="9.5" fill="#5b6170">(no aliases)</text>
+
+      <rect x="342" y="80" width="120" height="110" rx="10" fill="var(--dml-bg)" stroke="#059669" stroke-width="2"/>
+      <text x="402" y="103" text-anchor="middle" font-size="10.5" fill="#059669" font-weight="700">3</text>
+      <text x="402" y="128" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1d24">GROUP</text>
+      <text x="402" y="144" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1d24">BY</text>
+      <text x="402" y="168" text-anchor="middle" font-size="9.5" fill="#5b6170">collapse into</text>
+      <text x="402" y="180" text-anchor="middle" font-size="9.5" fill="#5b6170">groups</text>
+
+      <rect x="480" y="80" width="120" height="110" rx="10" fill="var(--admin-bg)" stroke="#7c3aed" stroke-width="2"/>
+      <text x="540" y="103" text-anchor="middle" font-size="10.5" fill="#7c3aed" font-weight="700">4</text>
+      <text x="540" y="135" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">HAVING</text>
+      <text x="540" y="168" text-anchor="middle" font-size="9.5" fill="#5b6170">filter the</text>
+      <text x="540" y="180" text-anchor="middle" font-size="9.5" fill="#5b6170">groups</text>
+
+      <rect x="618" y="80" width="130" height="110" rx="10" fill="#eef0fd" stroke="#1a1d24" stroke-width="2"/>
+      <text x="683" y="103" text-anchor="middle" font-size="10.5" fill="#1a1d24" font-weight="700">5</text>
+      <text x="683" y="128" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">SELECT</text>
+      <text x="683" y="144" text-anchor="middle" font-size="10.5" fill="#1a1d24">DISTINCT</text>
+      <text x="683" y="168" text-anchor="middle" font-size="9.5" fill="#5b6170">compute &amp;</text>
+      <text x="683" y="180" text-anchor="middle" font-size="9.5" fill="#5b6170">dedupe columns</text>
+
+      <rect x="766" y="80" width="120" height="110" rx="10" fill="var(--query-bg)" stroke="#2563eb" stroke-width="2"/>
+      <text x="826" y="103" text-anchor="middle" font-size="10.5" fill="#2563eb" font-weight="700">6</text>
+      <text x="826" y="128" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1d24">ORDER</text>
+      <text x="826" y="144" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1d24">BY</text>
+      <text x="826" y="168" text-anchor="middle" font-size="9.5" fill="#5b6170">sort &mdash; aliases</text>
+      <text x="826" y="180" text-anchor="middle" font-size="9.5" fill="#5b6170">work here</text>
+
+      <rect x="894" y="80" width="120" height="110" rx="10" fill="var(--ddl-bg)" stroke="#d97706" stroke-width="2"/>
+      <text x="954" y="103" text-anchor="middle" font-size="10.5" fill="#d97706" font-weight="700">7</text>
+      <text x="954" y="128" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">LIMIT /</text>
+      <text x="954" y="144" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">OFFSET</text>
+      <text x="954" y="168" text-anchor="middle" font-size="9.5" fill="#5b6170">trim the</text>
+      <text x="954" y="180" text-anchor="middle" font-size="9.5" fill="#5b6170">final rows</text>
+    </g>
+
+    <g stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)">
+      <line x1="186" y1="135" x2="202" y2="135"/>
+      <line x1="324" y1="135" x2="340" y2="135"/>
+      <line x1="462" y1="135" x2="478" y2="135"/>
+      <line x1="600" y1="135" x2="616" y2="135"/>
+      <line x1="748" y1="135" x2="764" y2="135"/>
+      <line x1="886" y1="135" x2="892" y2="135"/>
+    </g>
+
+    <text x="540" y="40" text-anchor="middle" font-size="11" letter-spacing="2" fill="#94a3b8">EXECUTION RUNS LEFT &#8594; RIGHT</text>
+    <text x="540" y="225" text-anchor="middle" font-size="11.5" font-weight="600" fill="#5b6170">you typed: SELECT&hellip;FROM&hellip;WHERE&hellip;GROUP BY&hellip;HAVING&hellip;ORDER BY&hellip;LIMIT</text>
+    <text x="540" y="245" text-anchor="middle" font-size="10" fill="#94a3b8">(written order is almost the reverse of run order &mdash; window functions run between step 4 and step 5)</text>
+  </svg>
+</section>
+
+<div class="section-break"><h2>Core SQL</h2><p class="sub">Connecting, schema, queries, writes, performance, and administration.</p></div>
+
+<main>
+
+  <!-- 01 CONNECT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Connect &amp; psql Flags</span><span class="card-sub">the command line</span></div>
+    <ul class="cmds">
+      <li class="psql"><code class="cmd">psql <span class="flag">-U</span> <span class="arg">user</span> <span class="flag">-d</span> <span class="arg">db</span></code><div class="desc">Connect as a specific user to a database.</div></li>
+      <li class="psql"><code class="cmd">psql <span class="flag">-h</span> <span class="arg">host</span> <span class="flag">-p</span> 5432 <span class="flag">-U</span> <span class="arg">user</span> <span class="flag">-d</span> <span class="arg">db</span></code><span class="star">&#9733;</span><div class="desc">Connect to a remote server.</div></li>
+      <li class="psql"><code class="cmd">psql <span class="flag">-c</span> <span class="arg">"SQL"</span></code><div class="desc">Run one command, then exit.</div></li>
+      <li class="psql"><code class="cmd">psql <span class="arg">db</span> <span class="flag">-f</span> <span class="arg">file.sql</span></code><div class="desc">Execute commands from a script file.</div></li>
+      <li class="psql"><code class="cmd">sudo -u postgres psql</code><span class="star">&#9733;</span><div class="desc">Local shortcut: become the postgres superuser.</div></li>
+      <li class="psql"><code class="cmd">\c <span class="arg">dbname</span></code><span class="star">&#9733;</span><div class="desc">Switch databases inside an open session.</div></li>
+      <li class="psql"><code class="cmd">\conninfo</code><div class="desc">Show the current connection's details.</div></li>
+      <li class="psql"><code class="cmd">\q</code><span class="star">&#9733;</span><div class="desc">Quit psql.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 META-COMMANDS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">psql Meta-Commands</span><span class="card-sub">the backslash family</span></div>
+    <ul class="cmds">
+      <li class="psql"><code class="cmd">\l</code><span class="star">&#9733;</span><div class="desc">List all databases.</div></li>
+      <li class="psql"><code class="cmd">\dt</code><span class="star">&#9733;</span><div class="desc">List tables in the current schema.</div></li>
+      <li class="psql"><code class="cmd">\d <span class="arg">table</span></code><span class="star">&#9733;</span><div class="desc">Describe a table: columns, indexes, FKs.</div></li>
+      <li class="psql"><code class="cmd">\d+ <span class="arg">table</span></code><div class="desc">…plus disk size and storage details.</div></li>
+      <li class="psql"><code class="cmd">\dn</code><div class="desc">List schemas.</div></li>
+      <li class="psql"><code class="cmd">\di</code><div class="desc">List indexes.</div></li>
+      <li class="psql"><code class="cmd">\dv</code><div class="desc">List views.</div></li>
+      <li class="psql"><code class="cmd">\df</code><div class="desc">List functions.</div></li>
+      <li class="psql"><code class="cmd">\du</code><span class="star">&#9733;</span><div class="desc">List roles and their attributes.</div></li>
+      <li class="psql"><code class="cmd">\x</code><span class="star">&#9733;</span><div class="desc">Toggle expanded (vertical) row output.</div></li>
+      <li class="psql"><code class="cmd">\timing</code><div class="desc">Toggle display of each query's run time.</div></li>
+      <li class="psql"><code class="cmd">\! <span class="arg">cmd</span></code><div class="desc">Run a shell command without leaving psql.</div></li>
+      <li class="psql"><code class="cmd">\i <span class="arg">file</span></code><div class="desc">Execute SQL from a file.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 DATABASES & SCHEMAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Databases &amp; Schemas</span><span class="card-sub">top-level containers</span></div>
+    <ul class="cmds">
+      <li class="ddl"><code class="cmd"><span class="kw">CREATE DATABASE</span> <span class="arg">name</span>;</code><span class="star">&#9733;</span><div class="desc">Create a new database.</div></li>
+      <li class="ddl"><code class="cmd"><span class="kw">CREATE DATABASE</span> <span class="arg">name</span> OWNER <span class="arg">user</span>;</code><div class="desc">…owned by a specific role.</div></li>
+      <li class="ddl"><code class="cmd"><span class="kw">ALTER DATABASE</span> <span class="arg">old</span> RENAME TO <span class="arg">new</span>;</code><div class="desc">Rename a database.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">DROP DATABASE</span> <span class="arg">name</span>;</code><span class="badge-danger">destroys</span><div class="desc">Delete a database <b>permanently</b>.</div></li>
+      <li class="ddl"><code class="cmd"><span class="kw">CREATE SCHEMA</span> IF NOT EXISTS <span class="arg">name</span>;</code><div class="desc">A namespace to group related tables.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">DROP SCHEMA</span> <span class="arg">name</span> CASCADE;</code><span class="badge-danger">destroys</span><div class="desc">Delete a schema and everything in it.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 CREATE & ALTER TABLES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Create &amp; Alter Tables</span><span class="card-sub">structure</span></div>
+    <ul class="cmds">
+      <li class="ddl"><code class="cmd"><span class="kw">CREATE TABLE</span> t (col type, &hellip;);</code><span class="star">&#9733;</span><div class="desc">Define a new table.</div></li>
+      <li class="ddl"><code class="cmd">id SERIAL PRIMARY KEY</code><span class="star">&#9733;</span><div class="desc">Auto-incrementing key (legacy syntax).</div></li>
+      <li class="ddl"><code class="cmd">id INT GENERATED ALWAYS AS IDENTITY</code><div class="desc">Modern, SQL-standard auto-increment.</div></li>
+      <li class="ddl"><code class="cmd">FOREIGN KEY (col) REFERENCES other(id)</code><div class="desc">Link this table to another.</div></li>
+      <li class="ddl"><code class="cmd"><span class="kw">ALTER TABLE</span> t ADD COLUMN c type;</code><span class="star">&#9733;</span><div class="desc">Add a column.</div></li>
+      <li class="ddl"><code class="cmd"><span class="kw">ALTER TABLE</span> t RENAME COLUMN a TO b;</code><div class="desc">Rename a column.</div></li>
+      <li class="ddl"><code class="cmd"><span class="kw">ALTER TABLE</span> t ALTER COLUMN c TYPE type;</code><div class="desc">Change a column's data type.</div></li>
+      <li class="ddl"><code class="cmd"><span class="kw">ALTER TABLE</span> t DROP COLUMN c;</code><div class="desc">Remove a column.</div></li>
+      <li class="ddl"><code class="cmd"><span class="kw">ALTER TABLE</span> t RENAME TO new;</code><div class="desc">Rename the table itself.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">DROP TABLE</span> IF EXISTS t CASCADE;</code><span class="badge-danger">destroys</span><div class="desc">Delete a table + dependent objects.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">TRUNCATE TABLE</span> t;</code><span class="badge-danger">destroys</span><div class="desc">Wipe all rows instantly, keep structure.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 CONSTRAINTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Constraints</span><span class="card-sub">data integrity rules</span></div>
+    <ul class="cmds">
+      <li class="ddl"><code class="cmd"><span class="kw">PRIMARY KEY</span></code><span class="star">&#9733;</span><div class="desc">Unique + NOT NULL row identifier.</div></li>
+      <li class="ddl"><code class="cmd"><span class="kw">UNIQUE</span></code><div class="desc">No duplicate values (NULLs exempt).</div></li>
+      <li class="ddl"><code class="cmd"><span class="kw">NOT NULL</span></code><div class="desc">Column can never be empty.</div></li>
+      <li class="ddl"><code class="cmd"><span class="kw">CHECK</span> (expr)</code><div class="desc">Row must satisfy a boolean condition.</div></li>
+      <li class="ddl"><code class="cmd"><span class="kw">FOREIGN KEY</span> &hellip; <span class="kw">REFERENCES</span> &hellip;</code><span class="star">&#9733;</span><div class="desc">Enforce a link to another table's key.</div></li>
+      <li class="ddl"><code class="cmd"><span class="kw">ADD CONSTRAINT</span> name &hellip;</code><div class="desc">Name and attach a constraint after creation.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 DATA TYPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Core Data Types</span><span class="card-sub">what to store columns as</span></div>
+    <ul class="cmds">
+      <li class="ddl"><code class="cmd">INTEGER / BIGINT / NUMERIC(p,s)</code><span class="star">&#9733;</span><div class="desc">Whole numbers &amp; exact decimals.</div></li>
+      <li class="ddl"><code class="cmd">VARCHAR(n) / TEXT</code><span class="star">&#9733;</span><div class="desc">Bounded vs. unbounded text.</div></li>
+      <li class="ddl"><code class="cmd">BOOLEAN</code><div class="desc">true / false.</div></li>
+      <li class="ddl"><code class="cmd">DATE / TIME / TIMESTAMPTZ</code><span class="star">&#9733;</span><div class="desc">Calendar date, time, timestamp+zone.</div></li>
+      <li class="ddl"><code class="cmd">JSON / JSONB</code><span class="star">&#9733;</span><div class="desc">Document data &mdash; JSONB is binary &amp; indexable.</div></li>
+      <li class="ddl"><code class="cmd">UUID</code><div class="desc">Universally unique identifier.</div></li>
+      <li class="ddl"><code class="cmd">integer[]</code><div class="desc">Array of any base type.</div></li>
+      <li class="ddl"><code class="cmd">inet / cidr / macaddr</code><div class="desc">Network address types.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 QUERY BASICS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Query Basics</span><span class="card-sub">SELECT, sort, page</span></div>
+    <ul class="cmds">
+      <li class="query"><code class="cmd"><span class="kw">SELECT</span> col1, col2 <span class="kw">FROM</span> t;</code><span class="star">&#9733;</span><div class="desc">Fetch specific columns.</div></li>
+      <li class="query"><code class="cmd"><span class="kw">SELECT</span> * <span class="kw">FROM</span> t;</code><div class="desc">Fetch every column.</div></li>
+      <li class="query"><code class="cmd"><span class="kw">SELECT DISTINCT</span> col <span class="kw">FROM</span> t;</code><div class="desc">Unique values only.</div></li>
+      <li class="query"><code class="cmd">&hellip; <span class="kw">ORDER BY</span> col [ASC|DESC];</code><span class="star">&#9733;</span><div class="desc">Sort the result set.</div></li>
+      <li class="query"><code class="cmd">&hellip; <span class="kw">LIMIT</span> n <span class="kw">OFFSET</span> m;</code><span class="star">&#9733;</span><div class="desc">Page through results.</div></li>
+      <li class="query"><code class="cmd">col AS alias</code><div class="desc">Rename a column in the output.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 FILTERING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Filtering</span><span class="card-sub">WHERE clauses</span></div>
+    <ul class="cmds">
+      <li class="query"><code class="cmd"><span class="kw">WHERE</span> col = value</code><span class="star">&#9733;</span><div class="desc">Exact match.</div></li>
+      <li class="query"><code class="cmd"><span class="kw">WHERE</span> col <span class="kw">BETWEEN</span> a AND b</code><div class="desc">Inclusive numeric/date range.</div></li>
+      <li class="query"><code class="cmd"><span class="kw">WHERE</span> col <span class="kw">IN</span> (a, b, c)</code><div class="desc">Matches any of several values.</div></li>
+      <li class="query"><code class="cmd"><span class="kw">WHERE</span> col <span class="kw">LIKE</span> '%abc%'</code><span class="star">&#9733;</span><div class="desc">Pattern match, case-sensitive.</div></li>
+      <li class="query"><code class="cmd"><span class="kw">WHERE</span> col <span class="kw">ILIKE</span> '%abc%'</code><div class="desc">Pattern match, case-insensitive.</div></li>
+      <li class="query"><code class="cmd"><span class="kw">WHERE</span> col <span class="kw">IS</span> [NOT] <span class="kw">NULL</span></code><span class="star">&#9733;</span><div class="desc">Missing-value checks &mdash; never use <code>= NULL</code>.</div></li>
+      <li class="query"><code class="cmd"><span class="kw">WHERE</span> condn1 [<span class="kw">AND</span>|<span class="kw">OR</span>] condn2</code><div class="desc">Combine multiple conditions.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 JOINS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Joins</span><span class="card-sub">combine tables &mdash; see diagrams &darr;</span></div>
+    <ul class="cmds">
+      <li class="query"><code class="cmd"><span class="kw">JOIN</span> b <span class="kw">ON</span> a.id = b.a_id</code><span class="star">&#9733;</span><div class="desc">INNER join (the default) &mdash; matches only.</div></li>
+      <li class="query"><code class="cmd"><span class="kw">LEFT JOIN</span> b <span class="kw">ON</span> &hellip;</code><span class="star">&#9733;</span><div class="desc">All of A, plus matches from B.</div></li>
+      <li class="query"><code class="cmd"><span class="kw">RIGHT JOIN</span> b <span class="kw">ON</span> &hellip;</code><div class="desc">All of B, plus matches from A.</div></li>
+      <li class="query"><code class="cmd"><span class="kw">FULL JOIN</span> b <span class="kw">ON</span> &hellip;</code><div class="desc">Everything from both sides.</div></li>
+      <li class="query"><code class="cmd"><span class="kw">CROSS JOIN</span> b</code><div class="desc">Every row of A &times; every row of B.</div></li>
+      <li class="query"><code class="cmd">a <span class="kw">JOIN</span> b <span class="kw">USING</span> (col)</code><div class="desc">Shorthand when join-column names match.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 AGGREGATION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Aggregation &amp; Grouping</span><span class="card-sub">summarize rows</span></div>
+    <ul class="cmds">
+      <li class="query"><code class="cmd">COUNT(*) / COUNT(col) / COUNT(DISTINCT col)</code><span class="star">&#9733;</span><div class="desc">Row counts, three flavors.</div></li>
+      <li class="query"><code class="cmd">SUM / AVG / MIN / MAX(col)</code><span class="star">&#9733;</span><div class="desc">Column summaries.</div></li>
+      <li class="query"><code class="cmd"><span class="kw">GROUP BY</span> col</code><span class="star">&#9733;</span><div class="desc">Roll rows up by shared value.</div></li>
+      <li class="query"><code class="cmd"><span class="kw">GROUP BY</span> col <span class="kw">HAVING</span> condn</code><span class="star">&#9733;</span><div class="desc">Filter <i>groups</i>, not raw rows.</div></li>
+      <li class="query"><code class="cmd">STRING_AGG(col, ', ') / ARRAY_AGG(col)</code><div class="desc">Fold a group's values into one string / array.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 WINDOW FUNCTIONS (NEW) -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Window Functions</span><span class="card-sub">per-row aggregates, keep every row</span></div>
+    <ul class="cmds">
+      <li class="query"><code class="cmd">fn(&hellip;) <span class="kw">OVER</span> (<span class="kw">PARTITION BY</span> c1 <span class="kw">ORDER BY</span> c2)</code><span class="star">&#9733;</span><div class="desc">The core shape &mdash; unlike GROUP BY, rows aren't collapsed.</div></li>
+      <li class="query"><code class="cmd"><span class="kw">PARTITION BY</span> col</code><span class="star">&#9733;</span><div class="desc">Resets the window per group (optional &mdash; omit for the whole table).</div></li>
+      <li class="query"><code class="cmd">SUM(x) <span class="kw">OVER</span> (PARTITION BY c1 ORDER BY c2)</code><span class="star">&#9733;</span><div class="desc">Running/partitioned total &mdash; a per-row aggregate.</div></li>
+      <li class="query"><code class="cmd">ROW_NUMBER() <span class="kw">OVER</span> (&hellip; ORDER BY col)</code><span class="star">&#9733;</span><div class="desc">Sequential rank, 1,2,3&hellip; &mdash; never ties.</div></li>
+      <li class="query"><code class="cmd">RANK() <span class="kw">OVER</span> (&hellip; ORDER BY col)</code><div class="desc">Rank with gaps after ties (1,2,2,4).</div></li>
+      <li class="query"><code class="cmd">DENSE_RANK() <span class="kw">OVER</span> (&hellip; ORDER BY col)</code><div class="desc">Rank with no gaps after ties (1,2,2,3).</div></li>
+      <li class="query"><code class="cmd">LAG(col, n) / LEAD(col, n) <span class="kw">OVER</span> (&hellip;)</code><span class="star">&#9733;</span><div class="desc">Previous / next row's value &mdash; great for deltas.</div></li>
+      <li class="query"><code class="cmd">FIRST_VALUE(col) / LAST_VALUE(col) <span class="kw">OVER</span> (&hellip;)</code><div class="desc">Value at the start / end of the current frame.</div></li>
+      <li class="query"><code class="cmd">NTILE(4) <span class="kw">OVER</span> (ORDER BY col)</code><div class="desc">Split rows into n roughly-equal buckets (quartiles, etc).</div></li>
+      <li class="query"><code class="cmd">&hellip; <span class="kw">ROWS BETWEEN</span> UNBOUNDED PRECEDING <span class="kw">AND</span> CURRENT ROW</code><div class="desc">Explicit frame boundary &mdash; default for a running total.</div></li>
+      <li class="query"><code class="cmd"><span class="kw">WINDOW</span> w <span class="kw">AS</span> (&hellip;) &hellip; <span class="kw">OVER</span> w</code><div class="desc">Name a window once, reuse it across several functions.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 MODIFYING DATA -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Modifying Data</span><span class="card-sub">write operations</span></div>
+    <ul class="cmds">
+      <li class="dml"><code class="cmd"><span class="kw">INSERT INTO</span> t (c1,c2) <span class="kw">VALUES</span> (v1,v2);</code><span class="star">&#9733;</span><div class="desc">Add a row.</div></li>
+      <li class="dml"><code class="cmd">&hellip; <span class="kw">ON CONFLICT</span> (id) <span class="kw">DO UPDATE SET</span> &hellip;;</code><span class="star">&#9733;</span><div class="desc">Upsert: insert, or update on key clash.</div></li>
+      <li class="dml"><code class="cmd"><span class="kw">UPDATE</span> t <span class="kw">SET</span> c=v <span class="kw">WHERE</span> condn;</code><span class="star">&#9733;</span><div class="desc">Modify matching rows.</div></li>
+      <li class="dml"><code class="cmd"><span class="kw">DELETE FROM</span> t <span class="kw">WHERE</span> condn;</code><span class="star">&#9733;</span><div class="desc">Remove matching rows.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">DELETE FROM</span> t;</code><span class="badge-danger">care</span><div class="desc">Removes <b>every</b> row (logged, row-by-row).</div></li>
+      <li class="dml"><code class="cmd"><span class="kw">COPY</span> t <span class="kw">FROM</span> 'file' CSV HEADER;</code><div class="desc">Bulk-load rows from a CSV file.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 TRANSACTIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Transactions</span><span class="card-sub">all-or-nothing changes</span></div>
+    <ul class="cmds">
+      <li class="dml"><code class="cmd"><span class="kw">BEGIN</span>;</code><span class="star">&#9733;</span><div class="desc">Start a transaction block.</div></li>
+      <li class="dml"><code class="cmd"><span class="kw">COMMIT</span>;</code><span class="star">&#9733;</span><div class="desc">Make changes permanent.</div></li>
+      <li class="dml"><code class="cmd"><span class="kw">ROLLBACK</span>;</code><span class="star">&#9733;</span><div class="desc">Undo everything since BEGIN.</div></li>
+      <li class="dml"><code class="cmd"><span class="kw">SAVEPOINT</span> name;</code><div class="desc">Set a mid-transaction checkpoint.</div></li>
+      <li class="dml"><code class="cmd"><span class="kw">ROLLBACK TO SAVEPOINT</span> name;</code><div class="desc">Undo back to that checkpoint only.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 INDEXES & PERFORMANCE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Indexes &amp; Performance</span><span class="card-sub">make reads fast</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd"><span class="kw">CREATE INDEX</span> idx <span class="kw">ON</span> t (col);</code><span class="star">&#9733;</span><div class="desc">Speed up lookups/sorts on a column.</div></li>
+      <li class="admin"><code class="cmd"><span class="kw">CREATE UNIQUE INDEX</span> idx <span class="kw">ON</span> t (LOWER(email));</code><div class="desc">Index + enforce uniqueness on an expression.</div></li>
+      <li class="admin"><code class="cmd"><span class="kw">CREATE INDEX</span> idx <span class="kw">ON</span> t (col) <span class="kw">WHERE</span> condn;</code><div class="desc">Partial index over a subset of rows.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">DROP INDEX</span> IF EXISTS idx;</code><span class="badge-danger">care</span><div class="desc">Remove an index (reads get slower).</div></li>
+      <li class="admin"><code class="cmd"><span class="kw">EXPLAIN</span> SELECT &hellip;;</code><span class="star">&#9733;</span><div class="desc">Show the planner's chosen query path.</div></li>
+      <li class="admin"><code class="cmd"><span class="kw">EXPLAIN ANALYZE</span> SELECT &hellip;;</code><span class="star">&#9733;</span><div class="desc">Plan + actually run it, with real timings.</div></li>
+      <li class="admin"><code class="cmd"><span class="kw">ANALYZE</span> t;</code><div class="desc">Refresh planner statistics for a table.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 ROLES & PRIVILEGES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Roles &amp; Privileges</span><span class="card-sub">who can do what</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd"><span class="kw">CREATE ROLE</span> r <span class="kw">WITH LOGIN PASSWORD</span> 'x';</code><div class="desc">Create a login-capable role.</div></li>
+      <li class="admin"><code class="cmd"><span class="kw">CREATE USER</span> u <span class="kw">WITH PASSWORD</span> 'x';</code><span class="star">&#9733;</span><div class="desc">Shortcut for a login role.</div></li>
+      <li class="admin"><code class="cmd"><span class="kw">ALTER ROLE</span> r <span class="kw">WITH PASSWORD</span> 'new';</code><div class="desc">Change a role's password.</div></li>
+      <li class="admin"><code class="cmd"><span class="kw">GRANT SELECT, INSERT ON</span> t <span class="kw">TO</span> r;</code><span class="star">&#9733;</span><div class="desc">Allow specific actions on a table.</div></li>
+      <li class="admin"><code class="cmd"><span class="kw">GRANT ALL PRIVILEGES ON DATABASE</span> d <span class="kw">TO</span> r;</code><div class="desc">Grant full access to a database.</div></li>
+      <li class="admin"><code class="cmd"><span class="kw">REVOKE INSERT ON</span> t <span class="kw">FROM</span> r;</code><div class="desc">Remove a previously granted privilege.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">DROP ROLE</span> IF EXISTS r;</code><span class="badge-danger">care</span><div class="desc">Delete a role permanently.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 TEXT, DATE & CASTING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Text, Date &amp; Casting</span><span class="card-sub">common functions</span></div>
+    <ul class="cmds">
+      <li class="query"><code class="cmd">a || b &nbsp;or&nbsp; CONCAT(a,b)</code><span class="star">&#9733;</span><div class="desc">Concatenate strings (<code>||</code> propagates NULL; CONCAT skips it).</div></li>
+      <li class="query"><code class="cmd">LENGTH(s) / UPPER(s) / LOWER(s)</code><div class="desc">Size and case conversion.</div></li>
+      <li class="query"><code class="cmd">SUBSTRING(s FROM i FOR n)</code><div class="desc">Extract part of a string.</div></li>
+      <li class="query"><code class="cmd">REPLACE(s, 'old', 'new')</code><div class="desc">Swap a substring.</div></li>
+      <li class="query"><code class="cmd">CURRENT_DATE / NOW() / CURRENT_TIMESTAMP</code><span class="star">&#9733;</span><div class="desc">Current date/time.</div></li>
+      <li class="query"><code class="cmd">EXTRACT(MONTH FROM date)</code><div class="desc">Pull out one component of a date.</div></li>
+      <li class="query"><code class="cmd">DATE_TRUNC('month', ts)</code><span class="star">&#9733;</span><div class="desc">Round a timestamp down to a unit.</div></li>
+      <li class="query"><code class="cmd">value::type &nbsp;or&nbsp; CAST(value AS type)</code><span class="star">&#9733;</span><div class="desc">Convert between types.</div></li>
+      <li class="query"><code class="cmd">COALESCE(a, b, default)</code><span class="star">&#9733;</span><div class="desc">First non-NULL value in the list.</div></li>
+      <li class="query"><code class="cmd">NULLIF(a, b)</code><div class="desc">Returns NULL if equal &mdash; guards against &divide;0.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 BACKUP, RESTORE & CSV -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Backup, Restore &amp; CSV</span><span class="card-sub">move data in &amp; out</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd">pg_dump -U u -d db -f db.sql</code><span class="star">&#9733;</span><div class="desc">Plain-SQL logical backup.</div></li>
+      <li class="admin"><code class="cmd">pg_dump -Fc -U u -d db -f db.dump</code><div class="desc">Custom-format backup, for use with pg_restore.</div></li>
+      <li class="admin"><code class="cmd">pg_dumpall &gt; all.sql</code><div class="desc">All databases plus roles &amp; tablespaces.</div></li>
+      <li class="admin"><code class="cmd">psql -U u -d db -f db.sql</code><span class="star">&#9733;</span><div class="desc">Restore a plain-SQL backup.</div></li>
+      <li class="admin"><code class="cmd">pg_restore -d db db.dump -c</code><div class="desc">Restore a custom-format backup.</div></li>
+      <li class="admin"><code class="cmd">\copy t TO 'file.csv' CSV HEADER</code><span class="star">&#9733;</span><div class="desc">Export a table (or query) to CSV.</div></li>
+      <li class="admin"><code class="cmd">\copy t FROM 'file.csv' CSV HEADER</code><span class="star">&#9733;</span><div class="desc">Import a CSV file into a table.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 MONITORING & MAINTENANCE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Monitoring &amp; Maintenance</span><span class="card-sub">keep it healthy</span></div>
+    <ul class="cmds">
+      <li class="admin"><code class="cmd"><span class="kw">SELECT</span> * <span class="kw">FROM</span> pg_stat_activity;</code><span class="star">&#9733;</span><div class="desc">See active sessions &amp; running queries.</div></li>
+      <li class="admin"><code class="cmd"><span class="kw">SELECT</span> pg_cancel_backend(pid);</code><div class="desc">Politely stop a running query.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">SELECT</span> pg_terminate_backend(pid);</code><span class="badge-danger">force</span><div class="desc">Force-kill a connection.</div></li>
+      <li class="admin"><code class="cmd">pg_size_pretty(pg_total_relation_size('t'))</code><span class="star">&#9733;</span><div class="desc">Human-readable table size on disk.</div></li>
+      <li class="admin"><code class="cmd">pg_size_pretty(pg_database_size('db'))</code><div class="desc">Total database size.</div></li>
+      <li class="admin"><code class="cmd"><span class="kw">VACUUM</span> [ANALYZE] t;</code><span class="star">&#9733;</span><div class="desc">Reclaim dead-row space + refresh stats.</div></li>
+      <li class="admin"><code class="cmd"><span class="kw">SELECT</span> version();</code><div class="desc">Show the server version.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<div class="section-break"><h2 style="color:var(--spatial)">PostGIS &mdash; Spatial Extension</h2><p class="sub">PostGIS turns PostgreSQL into a spatial database: new geometry/geography column types, ~300 <code>ST_</code> functions, and GiST indexing over a coordinate plane or sphere.</p></div>
+
+<main>
+
+  <!-- 19 SETUP & TYPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num gis">19</span><span class="card-title">Setup &amp; Geometry Types</span><span class="card-sub">PostGIS</span></div>
+    <ul class="cmds">
+      <li class="spatial"><code class="cmd"><span class="kw">CREATE EXTENSION</span> IF NOT EXISTS postgis;</code><span class="star">&#9733;</span><div class="desc">Enable PostGIS in the current database.</div></li>
+      <li class="spatial"><code class="cmd">POINT / LINESTRING / POLYGON</code><span class="star">&#9733;</span><div class="desc">The three basic OGC geometry types.</div></li>
+      <li class="spatial"><code class="cmd">MULTIPOINT / MULTILINESTRING / MULTIPOLYGON</code><div class="desc">Collections of the same base type.</div></li>
+      <li class="spatial"><code class="cmd">GEOMETRYCOLLECTION</code><div class="desc">A mixed bag of different geometry types.</div></li>
+      <li class="spatial"><code class="cmd">'POINT(77.6 14.4)'</code><span class="star">&#9733;</span><div class="desc">WKT &mdash; Well-Known Text, the universal input format.</div></li>
+      <li class="spatial"><code class="cmd">'SRID=4326;POINT(77.6 14.4)'</code><div class="desc">EWKT &mdash; PostGIS-extended WKT, embeds the SRID.</div></li>
+    </ul>
+  </article>
+
+  <!-- 20 SRID & GEOMETRY VS GEOGRAPHY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num gis">20</span><span class="card-title">SRID, geometry vs geography</span><span class="card-sub">the #1 source of bugs</span></div>
+    <ul class="cmds">
+      <li class="spatial"><code class="cmd">SRID 4326</code><span class="star">&#9733;</span><div class="desc">WGS-84 lat/lon in <b>degrees</b> &mdash; GPS, web maps.</div></li>
+      <li class="spatial"><code class="cmd">SRID 3857</code><div class="desc">Web Mercator in <b>metres</b> &mdash; what slippy maps render.</div></li>
+      <li class="spatial"><code class="cmd">geometry</code><span class="star">&#9733;</span><div class="desc">Planar (flat) math &mdash; fast, full ~300-function library.</div></li>
+      <li class="spatial"><code class="cmd">geography</code><span class="star">&#9733;</span><div class="desc">Spherical math &mdash; always metres, smaller function set.</div></li>
+      <li class="danger"><code class="cmd">ST_SetSRID(geom, srid)</code><span class="badge-warn">label only</span><div class="desc"><i>Labels</i> a geometry's SRID &mdash; does NOT reproject it.</div></li>
+      <li class="spatial"><code class="cmd">ST_Transform(geom, srid)</code><span class="star">&#9733;</span><div class="desc">Actually <b>reprojects</b> to a new coordinate system.</div></li>
+      <li class="danger"><code class="cmd">ST_Distance(a, b)</code><span class="badge-warn">gotcha</span><div class="desc">Mixed SRIDs error out; on <code>geometry</code> 4326 the result is in <b>degrees</b>, not metres.</div></li>
+    </ul>
+  </article>
+
+  <!-- 21 CONSTRUCTORS & ACCESSORS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num gis">21</span><span class="card-title">Constructors &amp; Accessors</span><span class="card-sub">build &amp; inspect geometries</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="fn">ST_MakePoint</span>(x, y [,z])</code><span class="badge-warn">SRID 0</span><div class="desc">Raw coordinates &mdash; returns an <b>unlabeled</b> SRID.</div></li>
+      <li class="spatial"><code class="cmd">ST_SetSRID(ST_MakePoint(lon,lat), 4326)</code><span class="star">&#9733;</span><div class="desc">The safe pattern &mdash; always wrap MakePoint like this.</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_Point</span>(x, y, srid)</code><div class="desc">Coordinates + SRID in one call.</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_GeomFromText</span>(wkt, srid)</code><span class="star">&#9733;</span><div class="desc">Parse a WKT string into a geometry.</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_GeomFromGeoJSON</span>(json)</code><div class="desc">Parse GeoJSON into a geometry.</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_X</span>(pt) / <span class="fn">ST_Y</span>(pt)</code><div class="desc">Read out a coordinate (geometry only).</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_SRID</span>(g) / <span class="fn">ST_GeometryType</span>(g)</code><div class="desc">Inspect a geometry's SRID / type.</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_IsValid</span>(g)</code><span class="star">&#9733;</span><div class="desc">OGC validity check (self-intersections, etc).</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_AsText</span>(g) / <span class="fn">ST_AsEWKT</span>(g)</code><div class="desc">Convert a geometry back to WKT / EWKT.</div></li>
+    </ul>
+  </article>
+
+  <!-- 22 SPATIAL RELATIONSHIPS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num gis">22</span><span class="card-title">Spatial Relationships</span><span class="card-sub">predicates &mdash; see diagrams &darr;</span></div>
+    <ul class="cmds">
+      <li class="spatial"><code class="cmd"><span class="fn">ST_Intersects</span>(a, b)</code><span class="star">&#9733;</span><div class="desc">They share any point &mdash; the most common test.</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_Contains</span>(a, b) / <span class="fn">ST_Within</span>(a, b)</code><span class="star">&#9733;</span><div class="desc">a fully contains b / b lies fully within a.</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_Covers</span>(a, b) / <span class="fn">ST_CoveredBy</span></code><div class="desc">Like contains, but boundary-inclusive (preferred).</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_DWithin</span>(a, b, d)</code><span class="star">&#9733;</span><div class="desc">Within distance d &mdash; index-aware "near me" query.</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_Touches</span> / <span class="fn">ST_Crosses</span> / <span class="fn">ST_Overlaps</span></code><div class="desc">Boundary-only / partial / same-dimension overlap.</div></li>
+      <li class="danger"><code class="cmd"><span class="fn">ST_Disjoint</span>(a, b)</code><span class="badge-warn">slow</span><div class="desc">Share no point &mdash; a negation, <b>not</b> index-aware.</div></li>
+    </ul>
+  </article>
+
+  <!-- 23 MEASUREMENT & PROCESSING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num gis">23</span><span class="card-title">Measurement &amp; Processing</span><span class="card-sub">compute &amp; transform</span></div>
+    <ul class="cmds">
+      <li class="spatial"><code class="cmd"><span class="fn">ST_Distance</span>(a, b)</code><span class="star">&#9733;</span><div class="desc">Min distance &mdash; SRID units, or metres on geography.</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_Length</span>(line) / <span class="fn">ST_Area</span>(poly)</code><span class="star">&#9733;</span><div class="desc">Length of a line / area of a polygon.</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_Perimeter</span>(poly)</code><div class="desc">Boundary length of a polygon.</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_Buffer</span>(g, d)</code><span class="star">&#9733;</span><div class="desc">Zone within distance d of a geometry.</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_Union</span>(g) / <span class="fn">ST_Intersection</span>(a,b)</code><div class="desc">Merge geometries / compute their overlap.</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_Centroid</span>(g) / <span class="fn">ST_Envelope</span>(g)</code><div class="desc">Geometric center / bounding box.</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_Simplify</span>(g, tol)</code><div class="desc">Reduce vertex count for display/perf.</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_MakeValid</span>(g)</code><span class="star">&#9733;</span><div class="desc">Repair an invalid geometry before overlay ops.</div></li>
+      <li class="spatial"><code class="cmd"><span class="fn">ST_AsGeoJSON</span>(g) / <span class="fn">ST_AsMVT</span>(&hellip;)</code><div class="desc">Web output: GeoJSON / vector tiles.</div></li>
+    </ul>
+  </article>
+
+  <!-- 24 SPATIAL INDEXING & LOADING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num gis">24</span><span class="card-title">Spatial Indexing &amp; Loading</span><span class="card-sub">make it fast, get data in</span></div>
+    <ul class="cmds">
+      <li class="spatial"><code class="cmd"><span class="kw">CREATE INDEX</span> idx <span class="kw">ON</span> t <span class="kw">USING</span> GIST (geom);</code><span class="star">&#9733;</span><div class="desc">GiST R-Tree spatial index &mdash; required for performance.</div></li>
+      <li class="spatial"><code class="cmd">geom &amp;&amp; box</code><div class="desc">Bounding-box overlap operator &mdash; the index's native test.</div></li>
+      <li class="spatial"><code class="cmd">geom &lt;-&gt; point</code><div class="desc">KNN distance operator, for "nearest N" queries.</div></li>
+      <li class="spatial"><code class="cmd">shp2pgsql -s 4326 -I file.shp t | psql db</code><span class="star">&#9733;</span><div class="desc">Load a Shapefile, set source SRID, build an index.</div></li>
+      <li class="spatial"><code class="cmd">ogr2ogr -f PostgreSQL PG:"dbname=db" file.geojson</code><div class="desc">Load GeoJSON / KML / many other formats via GDAL.</div></li>
+      <li class="spatial"><code class="cmd">raster2pgsql -s 4326 -I file.tif t | psql db</code><div class="desc">Load a raster (imagery/DEM) into PostGIS.</div></li>
+      <li class="spatial"><code class="cmd">pgsql2shp db -f out.shp t</code><div class="desc">Export a PostGIS table back to a Shapefile.</div></li>
+    </ul>
+  </article>
+
+
+</main>
+
+<div class="section-break"><h2 style="color:var(--route)">pgRouting &mdash; Network Routing</h2><p class="sub">pgRouting layers graph algorithms on top of PostGIS geometries &mdash; turning a table of line segments into a routable network for shortest-path, driving-distance, and multi-stop queries, all in SQL.</p></div>
+
+<main>
+
+  <!-- 25 SETUP & TOPOLOGY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num route">25</span><span class="card-title">Setup &amp; Topology</span><span class="card-sub">pgRouting</span></div>
+    <ul class="cmds">
+      <li class="route"><code class="cmd"><span class="kw">CREATE EXTENSION</span> IF NOT EXISTS pgrouting;</code><span class="star">&#9733;</span><div class="desc">Enable pgRouting (it depends on PostGIS).</div></li>
+      <li class="route"><code class="cmd">id, source, target, cost, reverse_cost, geom</code><span class="star">&#9733;</span><div class="desc">The columns every edge table needs before routing.</div></li>
+      <li class="route"><code class="cmd"><span class="pfn">pgr_createTopology</span>('edges', tol, 'geom', 'id')</code><span class="star">&#9733;</span><div class="desc">Auto-assign source/target node IDs from line endpoints.</div></li>
+      <li class="route"><code class="cmd"><span class="pfn">pgr_analyzeGraph</span>('edges', tol)</code><div class="desc">Report isolated segments, dead ends, and gaps in the topology.</div></li>
+      <li class="route"><code class="cmd"><span class="pfn">pgr_nodeNetwork</span>('edges', tol)</code><div class="desc">Split crossing lines into proper edges before building topology.</div></li>
+    </ul>
+  </article>
+
+  <!-- 26 SHORTEST PATH -->
+  <article class="card">
+    <div class="card-head"><span class="card-num route">26</span><span class="card-title">Shortest Path</span><span class="card-sub">pgRouting &mdash; see diagram &darr;</span></div>
+    <ul class="cmds">
+      <li class="route"><code class="cmd"><span class="pfn">pgr_dijkstra</span>(sql, source, target)</code><span class="star">&#9733;</span><div class="desc">Classic single shortest-path algorithm &mdash; the default choice.</div></li>
+      <li class="route"><code class="cmd"><span class="pfn">pgr_aStar</span>(sql, source, target)</code><div class="desc">Heuristic-guided Dijkstra &mdash; faster, needs x/y in the edge query.</div></li>
+      <li class="route"><code class="cmd"><span class="pfn">pgr_bdDijkstra</span>(sql, source, target)</code><div class="desc">Bidirectional search from both ends &mdash; often faster on big graphs.</div></li>
+      <li class="route"><code class="cmd"><span class="pfn">pgr_ksp</span>(sql, source, target, k)</code><div class="desc">k alternate shortest paths, not just the single best one.</div></li>
+      <li class="route"><code class="cmd"><span class="pfn">pgr_trsp</span>(sql, source, target)</code><div class="desc">Shortest path that honors turn restrictions.</div></li>
+    </ul>
+  </article>
+
+  <!-- 27 NETWORK ANALYSIS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num route">27</span><span class="card-title">Network Analysis</span><span class="card-sub">pgRouting</span></div>
+    <ul class="cmds">
+      <li class="route"><code class="cmd"><span class="pfn">pgr_drivingDistance</span>(sql, source, cost)</code><span class="star">&#9733;</span><div class="desc">All nodes reachable within a cost budget &mdash; an isochrone.</div></li>
+      <li class="route"><code class="cmd"><span class="pfn">pgr_withPoints</span>(&hellip;)</code><span class="star">&#9733;</span><div class="desc">Route to/from arbitrary points, not just existing network nodes.</div></li>
+      <li class="route"><code class="cmd"><span class="pfn">pgr_tsp</span>(matrix_sql)</code><div class="desc">Best visiting order for a set of stops (travelling salesman).</div></li>
+      <li class="route"><code class="cmd"><span class="pfn">pgr_findCloseEdges</span>(edges_sql, point)</code><div class="desc">Snap an arbitrary point onto the nearest edge in the network.</div></li>
+    </ul>
+  </article>
+
+  <!-- READING THE PLACEHOLDERS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Reading the Placeholders</span><span class="card-sub">notation used throughout</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">t, col, db, geom</code><div class="desc">a stand-in for a table / column / database / geometry-column name</div></li>
+      <li><code class="cmd">'value'</code><div class="desc">a string literal &mdash; always single-quoted in SQL</div></li>
+      <li><code class="cmd">value::type</code><div class="desc">PostgreSQL's inline cast shorthand</div></li>
+      <li><code class="cmd">ST_*</code><div class="desc">PostGIS function prefix &mdash; "Spatial Type", from the OGC standard</div></li>
+      <li><code class="cmd">pgr_*</code><div class="desc">pgRouting function prefix; <code>sql</code> is a live edge query, not a table name</div></li>
+      <li><code class="cmd">[ &hellip; ]</code><div class="desc">optional clause; <code>A|B</code> means choose one</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ JOIN VENN DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>The four core joins</h2>
+  <p class="sub">Same two tables, A and B &mdash; the shaded region is what each join keeps. Based on the standard SQL join-Venn convention.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>INNER JOIN</h3>
+      <p>Only rows where the join condition matches on both sides.</p>
+      <svg viewBox="0 0 260 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Inner join: only the overlapping region of circles A and B is shaded.">
+        <defs><clipPath id="clipBi"><circle cx="160" cy="78" r="52"/></clipPath></defs>
+        <circle cx="100" cy="78" r="52" fill="#2563eb" opacity=".55" clip-path="url(#clipBi)"/>
+        <circle cx="100" cy="78" r="52" fill="none" stroke="#1a1d24" stroke-width="2"/>
+        <circle cx="160" cy="78" r="52" fill="none" stroke="#1a1d24" stroke-width="2"/>
+        <text x="68" y="40" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" fill="#1a1d24">A</text>
+        <text x="184" y="40" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" fill="#1a1d24">B</text>
+        <text x="130" y="148" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#5b6170">A &cap; B</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>LEFT JOIN</h3>
+      <p>Every row from A, with matches from B where they exist (else NULL).</p>
+      <svg viewBox="0 0 260 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Left join: all of circle A is shaded, including its overlap with B.">
+        <circle cx="100" cy="78" r="52" fill="#2563eb" opacity=".55"/>
+        <circle cx="100" cy="78" r="52" fill="none" stroke="#1a1d24" stroke-width="2"/>
+        <circle cx="160" cy="78" r="52" fill="none" stroke="#1a1d24" stroke-width="2"/>
+        <text x="68" y="40" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" fill="#1a1d24">A</text>
+        <text x="184" y="40" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" fill="#1a1d24">B</text>
+        <text x="130" y="148" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#5b6170">all of A</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>RIGHT JOIN</h3>
+      <p>Every row from B, with matches from A where they exist (else NULL).</p>
+      <svg viewBox="0 0 260 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Right join: all of circle B is shaded, including its overlap with A.">
+        <circle cx="160" cy="78" r="52" fill="#2563eb" opacity=".55"/>
+        <circle cx="100" cy="78" r="52" fill="none" stroke="#1a1d24" stroke-width="2"/>
+        <circle cx="160" cy="78" r="52" fill="none" stroke="#1a1d24" stroke-width="2"/>
+        <text x="68" y="40" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" fill="#1a1d24">A</text>
+        <text x="184" y="40" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" fill="#1a1d24">B</text>
+        <text x="130" y="148" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#5b6170">all of B</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>FULL OUTER JOIN</h3>
+      <p>Every row from both sides; unmatched columns come back NULL.</p>
+      <svg viewBox="0 0 260 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Full outer join: both circles A and B are entirely shaded.">
+        <circle cx="100" cy="78" r="52" fill="#2563eb" opacity=".55"/>
+        <circle cx="160" cy="78" r="52" fill="#2563eb" opacity=".55"/>
+        <circle cx="100" cy="78" r="52" fill="none" stroke="#1a1d24" stroke-width="2"/>
+        <circle cx="160" cy="78" r="52" fill="none" stroke="#1a1d24" stroke-width="2"/>
+        <text x="68" y="40" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" fill="#1a1d24">A</text>
+        <text x="184" y="40" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" fill="#1a1d24">B</text>
+        <text x="130" y="148" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#5b6170">A &cup; B</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WINDOW FUNCTION FRAME DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">GROUP BY vs. window function</div>
+  <p class="flow-sub">Both compute an aggregate per group &mdash; but <code>GROUP BY</code> collapses rows down to one per group, while a window function keeps every original row and attaches the aggregate alongside it.</p>
+  <svg class="flow-svg" viewBox="0 0 1080 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram contrasting GROUP BY, which collapses rows into one summary row per group, with a window function, which keeps every row and attaches the per-partition aggregate to each one.">
+    <g font-family="JetBrains Mono, monospace">
+      <text x="270" y="30" text-anchor="middle" font-size="12" font-weight="700" fill="#5b6170">GROUP BY col</text>
+      <rect x="70" y="45" width="120" height="30" fill="var(--ddl-bg)" stroke="#d97706" stroke-width="1.5"/>
+      <text x="130" y="65" text-anchor="middle" font-size="10.5" fill="#1a1d24">row, row, row</text>
+      <rect x="200" y="45" width="120" height="30" fill="var(--ddl-bg)" stroke="#d97706" stroke-width="1.5"/>
+      <text x="260" y="65" text-anchor="middle" font-size="10.5" fill="#1a1d24">row, row</text>
+      <path d="M130,80 L130,100 L260,100 L260,80" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+      <path d="M195,100 L195,110" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <rect x="130" y="115" width="130" height="34" rx="6" fill="var(--dml-bg)" stroke="#059669" stroke-width="2"/>
+      <text x="195" y="136" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">1 summary row / group</text>
+
+      <line x1="540" y1="20" x2="540" y2="200" stroke="#e7e3db" stroke-width="1"/>
+
+      <text x="810" y="30" text-anchor="middle" font-size="12" font-weight="700" fill="#5b6170">fn() OVER (PARTITION BY col)</text>
+      <rect x="620" y="60" width="100" height="26" fill="var(--query-bg)" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="670" y="78" text-anchor="middle" font-size="10" fill="#1a1d24">row + agg</text>
+      <rect x="730" y="60" width="100" height="26" fill="var(--query-bg)" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="780" y="78" text-anchor="middle" font-size="10" fill="#1a1d24">row + agg</text>
+      <rect x="840" y="60" width="100" height="26" fill="var(--query-bg)" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="890" y="78" text-anchor="middle" font-size="10" fill="#1a1d24">row + agg</text>
+      <rect x="950" y="60" width="90" height="26" fill="var(--query-bg)" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="995" y="78" text-anchor="middle" font-size="10" fill="#1a1d24">row + agg</text>
+      <text x="810" y="115" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">every row kept, all 4 see</text>
+      <text x="810" y="130" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">the same per-partition value</text>
+    </g>
+  </svg>
+</section>
+
+<!-- ============ SPATIAL INDEX FILTER-THEN-REFINE ============ -->
+<section class="flow-wrap">
+  <div class="flow-title" style="color:var(--spatial)">PostGIS spatial index: filter, then refine</div>
+  <p class="flow-sub">Index-aware predicates (<code>ST_Intersects</code>, <code>ST_Contains</code>, <code>ST_Covers</code>, <code>ST_DWithin</code>&hellip;) run in two phases automatically &mdash; you just write the predicate.</p>
+  <svg class="flow-svg" viewBox="0 0 1080 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the PostGIS spatial index pipeline: a fast bounding-box filter using the GiST index produces candidate rows, then an exact geometric predicate refines them into the final result.">
+    <defs>
+      <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+    <g font-family="JetBrains Mono, monospace">
+      <rect x="40" y="50" width="280" height="120" rx="12" fill="var(--spatial-bg)" stroke="#c1553a" stroke-width="2"/>
+      <text x="180" y="80" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">1 &middot; FILTER</text>
+      <text x="180" y="102" text-anchor="middle" font-size="11" fill="#5b6170">GiST R-Tree compares</text>
+      <text x="180" y="118" text-anchor="middle" font-size="11" fill="#5b6170">bounding boxes only</text>
+      <text x="180" y="142" text-anchor="middle" font-size="10" fill="#94a3b8">fast &middot; approximate &middot; may over-include</text>
+      <text x="180" y="158" text-anchor="middle" font-size="10.5" fill="#c1553a" font-weight="700">&rarr; candidate rows</text>
+
+      <rect x="400" y="50" width="280" height="120" rx="12" fill="var(--query-bg)" stroke="#2563eb" stroke-width="2"/>
+      <text x="540" y="80" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">2 &middot; REFINE</text>
+      <text x="540" y="102" text-anchor="middle" font-size="11" fill="#5b6170">exact ST_ predicate runs</text>
+      <text x="540" y="118" text-anchor="middle" font-size="11" fill="#5b6170">on candidates only</text>
+      <text x="540" y="142" text-anchor="middle" font-size="10" fill="#94a3b8">slower &middot; exact &middot; confirms real matches</text>
+      <text x="540" y="158" text-anchor="middle" font-size="10.5" fill="#2563eb" font-weight="700">&rarr; final result</text>
+
+      <rect x="760" y="50" width="280" height="120" rx="12" fill="var(--dml-bg)" stroke="#059669" stroke-width="2"/>
+      <text x="900" y="80" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">ST_Disjoint &amp; ST_Relate</text>
+      <text x="900" y="102" text-anchor="middle" font-size="11" fill="#5b6170">are negations &mdash; they skip</text>
+      <text x="900" y="118" text-anchor="middle" font-size="11" fill="#5b6170">the filter phase entirely</text>
+      <text x="900" y="142" text-anchor="middle" font-size="10" fill="#94a3b8">full scan &mdash; avoid on big tables</text>
+      <text x="900" y="158" text-anchor="middle" font-size="10.5" fill="#dc2626" font-weight="700">&#9888; not index-aware</text>
+    </g>
+    <line x1="320" y1="110" x2="398" y2="110" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow2)"/>
+  </svg>
+</section>
+
+<!-- ============ ROUTABLE NETWORK PIPELINE ============ -->
+<section class="flow-wrap">
+  <div class="flow-title" style="color:var(--route)">pgRouting: from lines to a routable network</div>
+  <p class="flow-sub">A table of disconnected line geometries becomes a weighted graph in two steps &mdash; then <code>pgr_dijkstra</code> and friends can search it.</p>
+  <svg class="flow-svg" viewBox="0 0 1080 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the pgRouting pipeline: raw line geometries are given source and target node IDs by pgr_createTopology, forming a weighted graph, which pgr_dijkstra or pgr_aStar then search for a shortest path; a third panel warns that cost and reverse_cost signs control one-way travel.">
+    <defs>
+      <marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+    <g font-family="JetBrains Mono, monospace">
+      <rect x="40" y="50" width="280" height="120" rx="12" fill="var(--route-bg)" stroke="#0d9488" stroke-width="2"/>
+      <text x="180" y="80" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">1 &middot; TOPOLOGY</text>
+      <text x="180" y="102" text-anchor="middle" font-size="11" fill="#5b6170">pgr_createTopology assigns</text>
+      <text x="180" y="118" text-anchor="middle" font-size="11" fill="#5b6170">source/target IDs from endpoints</text>
+      <text x="180" y="142" text-anchor="middle" font-size="10" fill="#94a3b8">raw lines &rarr; noded graph</text>
+      <text x="180" y="158" text-anchor="middle" font-size="10.5" fill="#0d9488" font-weight="700">&rarr; edges with node IDs</text>
+
+      <rect x="400" y="50" width="280" height="120" rx="12" fill="var(--query-bg)" stroke="#2563eb" stroke-width="2"/>
+      <text x="540" y="80" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">2 &middot; ROUTE</text>
+      <text x="540" y="102" text-anchor="middle" font-size="11" fill="#5b6170">pgr_dijkstra / pgr_aStar walk</text>
+      <text x="540" y="118" text-anchor="middle" font-size="11" fill="#5b6170">the weighted graph by cost</text>
+      <text x="540" y="142" text-anchor="middle" font-size="10" fill="#94a3b8">graph &rarr; ordered edge sequence</text>
+      <text x="540" y="158" text-anchor="middle" font-size="10.5" fill="#2563eb" font-weight="700">&rarr; shortest path result</text>
+
+      <rect x="760" y="50" width="280" height="120" rx="12" fill="var(--danger-bg)" stroke="#dc2626" stroke-width="2"/>
+      <text x="900" y="80" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">cost &amp; reverse_cost</text>
+      <text x="900" y="102" text-anchor="middle" font-size="11" fill="#5b6170">a negative value on either</text>
+      <text x="900" y="118" text-anchor="middle" font-size="11" fill="#5b6170">column blocks that direction</text>
+      <text x="900" y="142" text-anchor="middle" font-size="10" fill="#94a3b8">models one-way streets</text>
+      <text x="900" y="158" text-anchor="middle" font-size="10.5" fill="#dc2626" font-weight="700">&#9888; sign = direction</text>
+    </g>
+    <line x1="320" y1="110" x2="398" y2="110" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow3)"/>
+  </svg>
+</section>
+
+<!-- ============ SPATIAL PREDICATE DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2 style="color:var(--spatial)">Reading the four common predicates</h2>
+  <p class="sub">A square (table A) and a circle (table B) &mdash; the shaded/highlighted part is what each predicate tests true for.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>ST_Intersects</h3>
+      <p>True if A and B share any point at all &mdash; the broadest, most common test.</p>
+      <svg viewBox="0 0 260 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ST_Intersects: a square and a circle overlap, and the shared overlap region is highlighted.">
+        <defs><clipPath id="clipCircI"><circle cx="160" cy="80" r="46"/></clipPath></defs>
+        <rect x="50" y="40" width="90" height="80" fill="none" stroke="#1a1d24" stroke-width="2"/>
+        <rect x="50" y="40" width="90" height="80" fill="#c1553a" opacity=".5" clip-path="url(#clipCircI)"/>
+        <circle cx="160" cy="80" r="46" fill="none" stroke="#1a1d24" stroke-width="2"/>
+        <text x="95" y="30" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="#1a1d24">A</text>
+        <text x="160" y="30" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="#1a1d24">B</text>
+        <text x="130" y="148" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#5b6170">shares any point</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>ST_Contains / ST_Within</h3>
+      <p>True if one geometry's interior fully encloses the other.</p>
+      <svg viewBox="0 0 260 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ST_Contains: a small circle is entirely inside a larger square, and the inner circle is highlighted.">
+        <rect x="55" y="25" width="150" height="110" fill="none" stroke="#1a1d24" stroke-width="2"/>
+        <circle cx="130" cy="80" r="36" fill="#c1553a" opacity=".5" stroke="#1a1d24" stroke-width="2"/>
+        <text x="70" y="42" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="#1a1d24">A</text>
+        <text x="130" y="84" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="#fff">B</text>
+        <text x="130" y="148" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#5b6170">A contains B</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>ST_Touches</h3>
+      <p>True only if boundaries meet &mdash; interiors never overlap.</p>
+      <svg viewBox="0 0 260 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ST_Touches: two squares share only one boundary edge, highlighted in a different color.">
+        <rect x="40" y="40" width="80" height="80" fill="none" stroke="#1a1d24" stroke-width="2"/>
+        <rect x="120" y="40" width="80" height="80" fill="none" stroke="#1a1d24" stroke-width="2"/>
+        <line x1="120" y1="40" x2="120" y2="120" stroke="#c1553a" stroke-width="5"/>
+        <text x="80" y="30" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="#1a1d24">A</text>
+        <text x="160" y="30" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="#1a1d24">B</text>
+        <text x="130" y="148" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#5b6170">shared edge only</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>ST_DWithin</h3>
+      <p>True if a target lies inside a buffer distance d &mdash; index-aware proximity search.</p>
+      <svg viewBox="0 0 260 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ST_DWithin: a dashed buffer circle around point A; a point inside the buffer is highlighted, a point outside is gray.">
+        <circle cx="120" cy="80" r="55" fill="none" stroke="#c1553a" stroke-width="2" stroke-dasharray="5 4"/>
+        <circle cx="120" cy="80" r="5" fill="#1a1d24"/>
+        <circle cx="150" cy="60" r="6" fill="#c1553a"/>
+        <circle cx="205" cy="115" r="6" fill="#94a3b8"/>
+        <text x="120" y="40" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#1a1d24">A</text>
+        <text x="150" y="48" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#c1553a" font-weight="700">in</text>
+        <text x="205" y="103" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#94a3b8">out</text>
+        <text x="130" y="148" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#5b6170">within distance d</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">WHERE &ne; HAVING</span><span class="v">WHERE filters rows before grouping; HAVING filters the groups</span></div>
+    <div><span class="k">DELETE &ne; TRUNCATE</span><span class="v">DELETE is row-by-row, logged, supports WHERE; TRUNCATE is instant, no WHERE</span></div>
+    <div><span class="k">= NULL is always false</span><span class="v">NULL has no equality &mdash; use IS [NOT] NULL</span></div>
+    <div><span class="k">SERIAL &ne; IDENTITY</span><span class="v">SERIAL is legacy sugar; GENERATED ALWAYS AS IDENTITY is the SQL standard</span></div>
+    <div><span class="k">VACUUM &ne; ANALYZE</span><span class="v">VACUUM reclaims dead-row space; ANALYZE refreshes planner statistics</span></div>
+    <div><span class="k">no USE statement</span><span class="v">Postgres has no <code>USE db</code> &mdash; switch with <code>\c</code> inside psql</span></div>
+    <div><span class="k">UNIQUE index &ne; PRIMARY KEY</span><span class="v">both enforce uniqueness, but UNIQUE permits one NULL</span></div>
+    <div><span class="k">autocommit is on</span><span class="v">each statement commits immediately unless wrapped in BEGIN&hellip;COMMIT</span></div>
+    <div><span class="k">RANK &ne; DENSE_RANK</span><span class="v">RANK leaves gaps after ties (1,2,2,4); DENSE_RANK doesn't (1,2,2,3)</span></div>
+    <div><span class="k">window fns run after HAVING</span><span class="v">they can't be used in WHERE/HAVING &mdash; wrap the query and filter in an outer SELECT</span></div>
+    <div><span class="k">geometry &ne; geography</span><span class="v">geometry is planar &amp; degrees on 4326; geography is spherical &amp; always metres</span></div>
+    <div><span class="k">ST_MakePoint defaults to SRID 0</span><span class="v">always wrap it: ST_SetSRID(ST_MakePoint(lon,lat), 4326)</span></div>
+    <div><span class="k">PostGIS order is (X, Y)</span><span class="v">that's (longitude, latitude) &mdash; the reverse of how people say "lat/lon"</span></div>
+    <div><span class="k">ST_SetSRID &ne; ST_Transform</span><span class="v">SetSRID only labels the data; Transform actually reprojects the coordinates</span></div>
+    <div><span class="k">source/target are auto-assigned</span><span class="v">pgr_createTopology fills them in &mdash; don't hand-pick these node IDs yourself</span></div>
+    <div><span class="k">negative cost blocks a direction</span><span class="v">reverse_cost &lt; 0 makes an edge one-way; routing functions skip it going that way</span></div>
+    <div><span class="k">pgr_dijkstra's first arg is SQL</span><span class="v">it's a live edge query, not a table name &mdash; must return id, source, target, cost</span></div>
+  </div>
+</section>
+
+<footer>
+  PostgreSQL + PostGIS + pgRouting cheat sheet &middot; synthesized from the official PostgreSQL (postgresql.org), PostGIS (postgis.net), and pgRouting (pgrouting.org) documentation, cross-checked against Linuxize, QuickRef.me, Tiger Data, GeeksforGeeks, Codecademy, two community Gists (yokawasa, Kartones), DataCamp's PostgreSQL Basics, and LearnSQL.com / Vertabelo's PostgreSQL Cheat Sheet.<br>
+  Commands shown for PostgreSQL 13+, PostGIS 3.x &amp; pgRouting 3.x &middot; modern <code>GENERATED ... AS IDENTITY</code> preferred over legacy <code>SERIAL</code> where noted &middot; v3 adds a dedicated pgRouting section (setup/topology, shortest path, network analysis) plus a network-building pipeline diagram, on top of v2's Window Functions section.
+</footer>
+
+</body>
+</html>

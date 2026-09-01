@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLflow Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --track:#2563eb;  --track-bg:#eef3ff;   /* tracking: params/metrics/artifacts */
+    --run:#d97706;    --run-bg:#fdf6ec;     /* run / experiment lifecycle */
+    --model:#059669;  --model-bg:#ecf7f2;   /* models / registry */
+    --serve:#4f46e5;  --serve-bg:#eef0fd;   /* serving / deployment */
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --deprecated:#9ca3af; --deprecated-bg:#f3f4f6;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mlf{font-family:var(--mono); color:var(--model)}
+  .lede{max-width:62ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.track{background:var(--track)} .dot.run{background:var(--run)}
+  .dot.model{background:var(--model)} .dot.serve{background:var(--serve)}
+  .dot.danger{background:var(--danger)} .dot.deprecated{background:var(--deprecated)} .dot.star{background:var(--star)}
+
+  .flow-wrap{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;}
+  .flow-title{font-family:var(--mono); font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem;}
+  .flow-svg{width:100%; height:auto; max-width:1140px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 2rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.6rem; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.track{border-left-color:var(--track)}
+  ul.cmds li.run{border-left-color:var(--run)}
+  ul.cmds li.model{border-left-color:var(--model)}
+  ul.cmds li.serve{border-left-color:var(--serve)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  ul.cmds li.deprecated{border-left-color:var(--deprecated); background:var(--deprecated-bg)}
+
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word;}
+  code.cmd .arg{color:var(--serve); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  li.danger code.cmd{color:var(--danger)}
+  li.deprecated code.cmd{color:var(--deprecated); text-decoration:line-through;}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-dep{color:var(--deprecated); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+
+  .diagrams{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;}
+  .diagrams h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .mermaid{display:flex; justify-content:center}
+  .merge-card.full{grid-column:1/-1}
+
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · ML experiment tracking &amp; model lifecycle</div>
+  <h1><span class="mlf">mlflow</span> cheat sheet</h1>
+  <p class="lede">MLflow has four building blocks: <b>Tracking</b> (log params/metrics/artifacts per run), <b>Projects</b> (package reproducible runs), <b>Models</b> (standard packaging across frameworks), and the <b>Model Registry</b> (version, alias, and govern models on their way to production).</p>
+  <div class="legend">
+    <span><i class="dot track"></i>tracking (log)</span>
+    <span><i class="dot run"></i>run / experiment</span>
+    <span><i class="dot model"></i>model / registry</span>
+    <span><i class="dot serve"></i>serving / deploy</span>
+    <span><i class="dot danger"></i>watch out</span>
+    <span><i class="dot deprecated"></i>deprecated</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked across: <b>mlflow.org/docs/latest/ml</b> · <b>grafdavid.com/cheatsheets/mlflow</b> · <b>github.com/aishwaryaprabhat/MLflow</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The four components &amp; how a model moves through them</div>
+  <svg class="flow-svg" viewBox="0 0 1080 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of MLflow Tracking, Projects, Models, and Model Registry and how commands move a model between them.">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <g>
+      <rect x="20"  y="120" width="220" height="130" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="130" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Your Training Code</text>
+      <text x="130" y="172" text-anchor="middle" font-size="11" fill="#b45309">any framework, any script</text>
+      <text x="130" y="208" text-anchor="middle" font-size="11" fill="#b45309">mlflow.start_run()</text>
+      <text x="130" y="224" text-anchor="middle" font-size="11" fill="#b45309">autolog()</text>
+    </g>
+    <g>
+      <rect x="305" y="120" width="220" height="130" rx="12" fill="#eef3ff" stroke="#2563eb" stroke-width="2"/>
+      <text x="415" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Tracking Server</text>
+      <text x="415" y="172" text-anchor="middle" font-size="11" fill="#2563eb">runs · params · metrics</text>
+      <text x="415" y="208" text-anchor="middle" font-size="11" fill="#2563eb">log_param / log_metric</text>
+      <text x="415" y="224" text-anchor="middle" font-size="11" fill="#2563eb">log_artifact</text>
+    </g>
+    <g>
+      <rect x="590" y="120" width="220" height="130" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="700" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Model Registry</text>
+      <text x="700" y="172" text-anchor="middle" font-size="11" fill="#059669">versions · aliases · tags</text>
+      <text x="700" y="208" text-anchor="middle" font-size="11" fill="#059669">register_model()</text>
+      <text x="700" y="224" text-anchor="middle" font-size="11" fill="#059669">set_registered_model_alias</text>
+    </g>
+    <g>
+      <rect x="875" y="120" width="190" height="130" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="970" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Serving</text>
+      <text x="970" y="172" text-anchor="middle" font-size="11" fill="#4f46e5">REST endpoint / batch</text>
+      <text x="970" y="208" text-anchor="middle" font-size="11" fill="#4f46e5">models serve -m</text>
+      <text x="970" y="224" text-anchor="middle" font-size="11" fill="#4f46e5">pyfunc.load_model()</text>
+    </g>
+
+    <line x1="240" y1="150" x2="303" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="271" y="142" text-anchor="middle" font-size="10.5" font-weight="700" fill="#2563eb">logs to</text>
+
+    <line x1="525" y1="150" x2="588" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="556" y="142" text-anchor="middle" font-size="10.5" font-weight="700" fill="#059669">register</text>
+
+    <line x1="810" y1="150" x2="873" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="841" y="142" text-anchor="middle" font-size="10.5" font-weight="700" fill="#4f46e5">@alias</text>
+
+    <line x1="588" y1="262" x2="242" y2="262" stroke="#64748b" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+    <text x="415" y="280" text-anchor="middle" font-size="10.5" fill="#64748b">search_runs() / compare in UI</text>
+
+    <line x1="970" y1="262" x2="700" y2="262" stroke="#4f46e5" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+    <text x="835" y="280" text-anchor="middle" font-size="10.5" font-weight="600" fill="#4f46e5">rollback: reassign alias</text>
+
+    <text x="130" y="100" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">EXPERIMENT</text>
+    <text x="970" y="100" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#4f46e5">PRODUCTION</text>
+  </svg>
+</section>
+
+<!-- ============ CARD GRID ============ -->
+<main>
+
+  <!-- 01 INSTALL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; Connect</span><span class="card-sub">pip + tracking URI</span></div>
+    <ul class="cmds">
+      <li class="track"><code class="cmd">pip install mlflow</code><span class="star">★</span><div class="desc">Core package — tracking, models, registry, UI, CLI.</div></li>
+      <li class="track"><code class="cmd">pip install mlflow[extras]</code><div class="desc">Pulls in sklearn/pytorch/tensorflow helpers.</div></li>
+      <li class="run"><code class="cmd">mlflow.set_tracking_uri(<span class="arg">"file:./mlruns"</span>)</code><div class="desc">Local store (default) vs a remote server URL.</div></li>
+      <li class="run"><code class="cmd">os.environ[<span class="arg">"MLFLOW_TRACKING_URI"</span>]</code><div class="desc">Same thing via env var — handy in CI/containers.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 RUNS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Experiments &amp; Runs</span><span class="card-sub">the unit of tracking</span></div>
+    <ul class="cmds">
+      <li class="run"><code class="cmd">mlflow.set_experiment(<span class="arg">"name"</span>)</code><span class="star">★</span><div class="desc">Creates the experiment if missing, then activates it.</div></li>
+      <li class="run"><code class="cmd">with mlflow.start_run():</code><span class="star">★</span><div class="desc">Opens a run; auto-closes at block end.</div></li>
+      <li class="run"><code class="cmd">mlflow.start_run(run_name=<span class="arg">"x"</span>)</code><div class="desc">Human-readable label shown in the UI.</div></li>
+      <li class="run"><code class="cmd">mlflow.start_run(run_id=<span class="arg">id</span>)</code><div class="desc">Reopen a past run to append more logs.</div></li>
+      <li class="run"><code class="cmd">mlflow.start_run(nested=<span class="flag">True</span>)</code><div class="desc">Child run inside a parent — great for HPO sweeps.</div></li>
+      <li class="run"><code class="cmd">mlflow.end_run()</code><div class="desc">Manual close when not using a <span class="arg">with</span> block.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 LOGGING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Log Params, Metrics, Artifacts</span><span class="card-sub">the daily loop</span></div>
+    <ul class="cmds">
+      <li class="track"><code class="cmd">mlflow.log_param(<span class="arg">"lr"</span>, 0.01)</code><span class="star">★</span><div class="desc">One hyperparameter, fixed for the run.</div></li>
+      <li class="track"><code class="cmd">mlflow.log_params(<span class="arg">dict</span>)</code><div class="desc">Bulk-log a dict of hyperparameters.</div></li>
+      <li class="track"><code class="cmd">mlflow.log_metric(<span class="arg">"acc"</span>, 0.95, step=e)</code><span class="star">★</span><div class="desc">Numeric value, optionally per training step.</div></li>
+      <li class="track"><code class="cmd">mlflow.log_metrics(<span class="arg">dict</span>)</code><div class="desc">Bulk-log several metrics at once.</div></li>
+      <li class="track"><code class="cmd">mlflow.log_artifact(<span class="arg">"plot.png"</span>)</code><span class="star">★</span><div class="desc">Attach any file — plots, configs, predictions.</div></li>
+      <li class="track"><code class="cmd">mlflow.log_artifacts(<span class="arg">"./plots"</span>)</code><div class="desc">Log a whole directory of files.</div></li>
+      <li class="track"><code class="cmd">mlflow.set_tag(<span class="arg">"k"</span>, <span class="arg">"v"</span>)</code><div class="desc">Free-form metadata, e.g. model_type, owner.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 AUTOLOG -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Autologging</span><span class="card-sub">zero-effort tracking</span></div>
+    <ul class="cmds">
+      <li class="track"><code class="cmd">mlflow.autolog()</code><span class="star">★</span><div class="desc">Detects the framework in use and logs everything.</div></li>
+      <li class="track"><code class="cmd">mlflow.sklearn.autolog()</code><span class="star">★</span><div class="desc">Params, metrics, model — captured automatically.</div></li>
+      <li class="track"><code class="cmd">mlflow.tensorflow.autolog()</code><div class="desc">Keras/TF training loop metrics per epoch.</div></li>
+      <li class="track"><code class="cmd">MLFlowLogger(...)</code> <span class="arg">PyTorch Lightning</span><div class="desc">Pass as <span class="arg">logger=</span> to <span class="arg">pl.Trainer</span>; logs self.log() calls.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 LOG MODEL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Log a Model (Flavors)</span><span class="card-sub">framework-agnostic packaging</span></div>
+    <ul class="cmds">
+      <li class="model"><code class="cmd">mlflow.sklearn.log_model(model, <span class="arg">"model"</span>)</code><span class="star">★</span><div class="desc">Saves model + signature + conda/pip env.</div></li>
+      <li class="model"><code class="cmd">mlflow.pytorch.log_model(...)</code><div class="desc">Same idea for PyTorch <span class="arg">nn.Module</span>.</div></li>
+      <li class="model"><code class="cmd">mlflow.transformers.log_model(...)</code><div class="desc">Bundles a HF model + tokenizer together.</div></li>
+      <li class="model"><code class="cmd">mlflow.pyfunc.PythonModel</code><div class="desc">Custom flavor — wrap any pre/post-processing logic.</div></li>
+      <li class="model"><code class="cmd">log_model(..., registered_model_name=<span class="arg">"x"</span>)</code><span class="star">★</span><div class="desc">Logs <i>and</i> registers in one call.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 REGISTRY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Model Registry</span><span class="card-sub">version, alias, govern</span></div>
+    <ul class="cmds">
+      <li class="model"><code class="cmd">mlflow.register_model(model_uri, <span class="arg">"name"</span>)</code><span class="star">★</span><div class="desc">Register an already-logged model from a run.</div></li>
+      <li class="model"><code class="cmd">client = MlflowClient()</code><span class="star">★</span><div class="desc">Low-level API for registry operations.</div></li>
+      <li class="model"><code class="cmd">client.set_registered_model_alias(name, <span class="arg">"champion"</span>, v)</code><span class="star">★</span><div class="desc">Mutable named pointer — multiple aliases allowed.</div></li>
+      <li class="model"><code class="cmd">client.set_model_version_tag(...)</code><div class="desc">e.g. <span class="arg">validation_status: passed</span>.</div></li>
+      <li class="deprecated"><code class="cmd">client.transition_model_version_stage(...)</code><span class="badge-dep">deprecated</span><div class="desc">Old Staging/Production/Archived workflow — use aliases.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 LOAD/SERVE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Load &amp; Serve</span><span class="card-sub">inference time</span></div>
+    <ul class="cmds">
+      <li class="serve"><code class="cmd">mlflow.pyfunc.load_model(<span class="arg">"models:/name@champion"</span>)</code><span class="star">★</span><div class="desc">Load by alias — code never hardcodes a version.</div></li>
+      <li class="serve"><code class="cmd">mlflow.pyfunc.load_model(<span class="arg">"models:/name/3"</span>)</code><div class="desc">Load an exact version number.</div></li>
+      <li class="serve"><code class="cmd">mlflow.<i>flavor</i>.load_model(<span class="arg">"runs:/id/model"</span>)</code><div class="desc">Load straight from a run, pre-registry.</div></li>
+      <li class="serve"><code class="cmd">mlflow models serve <span class="flag">-m</span> <span class="arg">models:/name@champion</span> <span class="flag">-p</span> 1234</code><span class="star">★</span><div class="desc">Spin up a local REST inference endpoint.</div></li>
+      <li class="serve"><code class="cmd">curl -d '{"instances":[[..]]}' …/invocations</code><div class="desc">Test the served endpoint with a JSON payload.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 UI/CLI -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">UI &amp; CLI</span><span class="card-sub">explore &amp; operate</span></div>
+    <ul class="cmds">
+      <li class="run"><code class="cmd">mlflow ui</code><span class="star">★</span><div class="desc">Local web UI at http://localhost:5000.</div></li>
+      <li class="run"><code class="cmd">mlflow ui <span class="flag">--port</span> 5001 <span class="flag">--host</span> 0.0.0.0</code><div class="desc">Expose on a custom port/interface.</div></li>
+      <li class="run"><code class="cmd">mlflow ui <span class="flag">--backend-store-uri</span> <span class="arg">postgresql://…</span></code><div class="desc">Point at a shared/remote tracking DB.</div></li>
+      <li class="run"><code class="cmd">mlflow experiments list</code><div class="desc">CLI list of experiments.</div></li>
+      <li class="run"><code class="cmd">mlflow runs list <span class="flag">--experiment-id</span> 1</code><div class="desc">CLI list of runs in an experiment.</div></li>
+      <li class="run"><code class="cmd">mlflow doctor</code><div class="desc">Sanity-check the local install/config.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 SEARCH/COMPARE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Query &amp; Compare Runs</span><span class="card-sub">find the best run</span></div>
+    <ul class="cmds">
+      <li class="track"><code class="cmd">mlflow.search_runs(experiment_ids=[<span class="arg">"1"</span>])</code><span class="star">★</span><div class="desc">Returns a pandas DataFrame of runs.</div></li>
+      <li class="track"><code class="cmd">filter_string=<span class="arg">"metrics.accuracy > 0.9"</span></code><span class="star">★</span><div class="desc">UI &amp; API both use this search syntax.</div></li>
+      <li class="track"><code class="cmd">mlflow.get_run(run_id)</code><div class="desc">Fetch a single run's params/metrics/tags.</div></li>
+      <li class="track"><code class="cmd">client.search_model_versions(<span class="arg">"name='x'"</span>)</code><div class="desc">List every version of a registered model.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 PROJECTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">MLflow Projects</span><span class="card-sub">package for reproducibility</span></div>
+    <ul class="cmds">
+      <li class="run"><code class="cmd">MLproject</code><span class="star">★</span><div class="desc">Entry point + parameter spec, like a Dockerfile.</div></li>
+      <li class="run"><code class="cmd">conda.yaml / python_env.yaml</code><div class="desc">Declares the environment dependencies.</div></li>
+      <li class="run"><code class="cmd">mlflow.run(<span class="arg">"uri#"</span>, parameters={…})</code><div class="desc">Run a project programmatically with given params.</div></li>
+      <li class="run"><code class="cmd">mlflow run <span class="arg">.</span> <span class="flag">-P</span> <span class="arg">lr=0.01</span></code><div class="desc">Run a project from the CLI.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 ORG TIPS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Organization &amp; Performance</span><span class="card-sub">good habits</span></div>
+    <ul class="cmds">
+      <li class="track"><code class="cmd">mlflow.start_run(nested=<span class="flag">True</span>)</code><span class="star">★</span><div class="desc">Group HPO trials under one parent run.</div></li>
+      <li class="danger"><code class="cmd">log_metric() inside a tight loop</code><span class="badge-danger">slow</span><div class="desc">Many small calls thrash the API — batch by epoch instead.</div></li>
+      <li class="track"><code class="cmd">log_artifact()</code> not <code class="cmd">log_param()</code><div class="desc">Use artifacts for files/large blobs, params for scalars.</div></li>
+      <li class="track"><code class="cmd">mlflow.set_tag(<span class="arg">"framework"</span>, …)</code><div class="desc">Tag consistently so search/filtering stays useful.</div></li>
+    </ul>
+  </article>
+
+  <!-- ★ REFER TO A MODEL URI -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">★</span><span class="card-title">Model URI Formats</span><span class="card-sub">anywhere you see a model_uri</span></div>
+    <ul class="cmds">
+      <li><code class="cmd">runs:/&lt;run_id&gt;/model</code><div class="desc">straight from a run's artifacts, pre-registry</div></li>
+      <li><code class="cmd">models:/&lt;name&gt;/3</code><div class="desc">a specific registered version number</div></li>
+      <li><code class="cmd">models:/&lt;name&gt;@champion</code><div class="desc">current alias — recommended for deployment</div></li>
+      <li class="deprecated"><code class="cmd">models:/&lt;name&gt;/Production</code><span class="badge-dep">deprecated</span><div class="desc">old stage-based URI — migrate to aliases</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ MERMAID DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Model lifecycle &amp; project anatomy</h2>
+  <p class="sub">From a logged artifact to a governed, servable model — and how an MLflow Project folder is laid out. Diagrams render via Mermaid; based on the official MLflow Model Registry guide.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>Registry lifecycle (current: aliases)</h3>
+      <p>Stages (Staging/Production/Archived) are deprecated since MLflow 2.9. Aliases are flexible, mutable, and multiple can point at one version.</p>
+      <pre class="mermaid">
+flowchart LR
+  A["mlflow.&lt;flavor&gt;.log_model()"] --> B["register_model() → v1, v2, v3 …"]
+  B --> C{"set_registered_model_alias"}
+  C -->|"@champion"| D["serves prod traffic"]
+  C -->|"@challenger"| E["A/B test candidate"]
+  D -->|"reassign on rollback"| B
+      </pre>
+    </div>
+
+    <div class="merge-card">
+      <h3>Stages vs. Aliases</h3>
+      <p>Conceptually the same goal — label which version is "live" — but aliases drop the rigid 4-state machine.</p>
+      <pre class="mermaid">
+flowchart TD
+  subgraph Deprecated["Stages (deprecated 2.9+)"]
+    direction LR
+    N["None"] --> S["Staging"] --> P["Production"] --> Ar["Archived"]
+  end
+  subgraph Current["Aliases (current)"]
+    direction LR
+    V1["v1 @staging"]
+    V2["v2 @champion"]
+    V3["v3 @challenger"]
+  end
+      </pre>
+    </div>
+
+    <div class="merge-card full">
+      <h3>MLflow Project folder structure</h3>
+      <p>Two files make any script reproducible on another machine: the entry-point spec and the environment definition.</p>
+      <pre class="mermaid">
+flowchart LR
+  Root["MLflow_project/"] --> MLP["MLproject — entry points + params"]
+  Root --> ENV["conda.yaml / python_env.yaml — dependencies"]
+  Root --> SRC["train.py — your code"]
+  MLP -. "mlflow run ." .-> RUN["Reproducible run, anywhere"]
+      </pre>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">stages → aliases</span><span class="v">deprecated since 2.9; use @champion/@challenger instead</span></div>
+    <div><span class="k">log_artifact ≠ log_param</span><span class="v">artifacts = files/blobs; params = scalar hyperparameters</span></div>
+    <div><span class="k">runs: vs models:</span><span class="v">runs:/id/model = pre-registry; models:/name@alias = governed</span></div>
+    <div><span class="k">autolog()</span><span class="v">one line captures params + metrics + model for most frameworks</span></div>
+    <div><span class="k">nested=True</span><span class="v">groups hyperparameter-sweep child runs under one parent</span></div>
+    <div><span class="k">mlruns/ missing?</span><span class="v">run `mlflow ui` from the directory that contains it</span></div>
+    <div><span class="k">batch your logging</span><span class="v">avoid log_metric() inside a tight per-step loop</span></div>
+    <div><span class="k">tracking URI</span><span class="v">file:./mlruns (local) or http(s)://server:5000 (remote)</span></div>
+  </div>
+</section>
+
+<footer>
+  MLflow cheat sheet · synthesized from the official MLflow documentation (mlflow.org/docs/latest/ml), grafdavid.com/cheatsheets/mlflow, and github.com/aishwaryaprabhat/MLflow.<br>
+  Reflects MLflow ≥ 2.9 conventions · model registry stages are deprecated in favor of aliases &amp; tags.
+</footer>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: "base", themeVariables: {
+    primaryColor: "#ecf7f2", primaryBorderColor: "#059669", primaryTextColor: "#1a1d24",
+    lineColor: "#1a1d24", fontFamily: "JetBrains Mono, monospace", fontSize: "12px"
+  }});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pip Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --spec:#64748b;   --spec-bg:#f1f3f6;
+    --index:#4f46e5;  --index-bg:#eef0fd;
+    --cache:#d97706;  --cache-bg:#fdf6ec;
+    --env:#059669;    --env-bg:#ecf7f2;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .kw{font-family:var(--mono); color:var(--env)}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede code{font-family:var(--mono); font-size:.92em}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.spec{background:var(--spec)}  .dot.index{background:var(--index)}
+  .dot.cache{background:var(--cache)} .dot.env{background:var(--env)}
+  .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:780px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.spec{border-left-color:var(--spec)}
+  ul.cmds li.index{border-left-color:var(--index)}
+  ul.cmds li.cache{border-left-color:var(--cache)}
+  ul.cmds li.env{border-left-color:var(--env)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.82rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .arg{color:var(--index); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.94em; background:#f4f2ee; padding:0 .2em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .dgrid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:820px){ .dgrid{grid-template-columns:1fr 1fr} }
+  .dcard{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .dcard.wide{grid-column:1/-1}
+  .dcard h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .dcard h3 code{font-family:var(--mono)}
+  .dcard p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .dcard p code{background:#f4f2ee; padding:0 .2em; border-radius:3px}
+  .dcard .bsvg{width:100%; height:auto; display:block}
+  .dcard .bsvg text{font-family:var(--mono)}
+
+  /* code block */
+  .blk{
+    background:var(--ink); color:#e8e6e1; border-radius:8px;
+    padding:.9rem 1rem; font-family:var(--mono); font-size:.78rem;
+    line-height:1.75; overflow-x:auto; white-space:pre;
+  }
+  .blk .k{color:#7dd3fc}
+  .blk .c{color:#94a3b8; font-style:italic}
+  .blk .hi{color:#fbbf24; font-weight:700}
+  .blk .g{color:#6ee7b7}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner .v code{color:#e8e6e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:var(--ink)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · the package installer for Python</div>
+  <h1><span class="kw">pip</span> cheat sheet</h1>
+  <p class="lede">pip does one thing: it takes a <b>specification</b>, resolves it against an <b>index</b>, pulls wheels through a <b>cache</b>, and unpacks them into one <b>environment</b>. <code>pip freeze</code> closes the loop back to the spec. Everything else is a flag on that line.</p>
+  <div class="legend">
+    <span><i class="dot spec"></i>spec / requirements</span>
+    <span><i class="dot index"></i>index / source</span>
+    <span><i class="dot cache"></i>cache &amp; build</span>
+    <span><i class="dot env"></i>environment (site-packages)</span>
+    <span><i class="dot danger"></i>destructive</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>pip.pypa.io</b> (CLI reference, topic guides, requirement specifiers) · <b>packaging.python.org</b> · <b>PEP 440</b> versions · <b>PEP 508</b> requirements · <b>PEP 668</b> externally-managed · <b>PEP 735</b> dependency groups · <b>PEP 751</b> pylock.toml</p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The four places &amp; the commands that move packages between them</div>
+  <svg class="flow-svg" viewBox="0 0 1100 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram: a specification is resolved against an index, downloaded and built into pip's cache, then installed into an environment. pip freeze and pip lock write the environment back out to a spec.">
+    <defs>
+      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="arS" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+      </marker>
+    </defs>
+
+    <!-- boxes -->
+    <g>
+      <rect x="20" y="120" width="195" height="128" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="117" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Spec</text>
+      <text x="117" y="171" text-anchor="middle" font-size="10.5" fill="#64748b">what you ask for</text>
+      <text x="117" y="193" text-anchor="middle" font-size="10.5" fill="#64748b">requirements.txt</text>
+      <text x="117" y="209" text-anchor="middle" font-size="10.5" fill="#64748b">pyproject.toml</text>
+      <text x="117" y="230" text-anchor="middle" font-size="10.5" fill="#64748b">"requests&gt;=2.8"</text>
+    </g>
+    <g>
+      <rect x="303" y="120" width="195" height="128" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="400" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Index</text>
+      <text x="400" y="171" text-anchor="middle" font-size="10.5" fill="#4f46e5">pypi.org/simple</text>
+      <text x="400" y="193" text-anchor="middle" font-size="10.5" fill="#4f46e5">…or VCS, path, .whl</text>
+      <text x="400" y="215" text-anchor="middle" font-size="10.5" fill="#4f46e5">pip index versions</text>
+      <text x="400" y="231" text-anchor="middle" font-size="10.5" fill="#4f46e5">pip download</text>
+    </g>
+    <g>
+      <rect x="586" y="120" width="195" height="128" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="683" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Cache</text>
+      <text x="683" y="171" text-anchor="middle" font-size="10.5" fill="#b45309">~/.cache/pip</text>
+      <text x="683" y="193" text-anchor="middle" font-size="10.5" fill="#b45309">HTTP + built wheels</text>
+      <text x="683" y="215" text-anchor="middle" font-size="10.5" fill="#b45309">pip cache info</text>
+      <text x="683" y="231" text-anchor="middle" font-size="10.5" fill="#b45309">pip wheel</text>
+    </g>
+    <g>
+      <rect x="869" y="120" width="205" height="128" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="971" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Environment</text>
+      <text x="971" y="171" text-anchor="middle" font-size="10.5" fill="#059669">.venv/…/site-packages</text>
+      <text x="971" y="193" text-anchor="middle" font-size="10.5" fill="#059669">exactly one per project</text>
+      <text x="971" y="215" text-anchor="middle" font-size="10.5" fill="#059669">pip list · pip show</text>
+      <text x="971" y="231" text-anchor="middle" font-size="10.5" fill="#059669">pip check</text>
+    </g>
+
+    <!-- forward arrows -->
+    <line x1="215" y1="150" x2="301" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <text x="258" y="142" text-anchor="middle" font-size="11" font-weight="700" fill="#4f46e5">resolve</text>
+
+    <line x1="498" y1="150" x2="584" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <text x="541" y="142" text-anchor="middle" font-size="11" font-weight="700" fill="#d97706">fetch / build</text>
+
+    <line x1="781" y1="150" x2="867" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <text x="824" y="142" text-anchor="middle" font-size="11" font-weight="700" fill="#059669">unpack</text>
+
+    <!-- the big install bracket -->
+    <path d="M117 264 L117 288 L971 288" fill="none" stroke="#059669" stroke-width="1.8"/>
+    <line x1="971" y1="288" x2="971" y2="266" stroke="#059669" stroke-width="1.8" marker-end="url(#ar)"/>
+    <rect x="466" y="275" width="168" height="26" rx="6" fill="#fbfaf8" stroke="#059669" stroke-width="1.5"/>
+    <text x="550" y="293" text-anchor="middle" font-size="12" font-weight="700" fill="#059669">pip install</text>
+
+    <!-- freeze loop back -->
+    <path d="M971 302 L971 340 L117 340" fill="none" stroke="#64748b" stroke-width="1.6" stroke-dasharray="5 4"/>
+    <line x1="117" y1="340" x2="117" y2="266" stroke="#64748b" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arS)"/>
+    <rect x="424" y="327" width="252" height="26" rx="6" fill="#fbfaf8" stroke="#64748b" stroke-width="1.5"/>
+    <text x="550" y="345" text-anchor="middle" font-size="12" font-weight="700" fill="#64748b">pip freeze  ·  pip lock</text>
+
+    <!-- reverse arrows -->
+    <text x="683" y="264" text-anchor="middle" font-size="10.5" fill="#b45309">pip cache purge ⟵</text>
+    <text x="400" y="264" text-anchor="middle" font-size="10.5" fill="#dc2626">pip uninstall ⟵</text>
+
+    <!-- group labels -->
+    <text x="117" y="100" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">YOUR INTENT</text>
+    <text x="400" y="100" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#4f46e5">THE INTERNET</text>
+    <text x="827" y="100" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">YOUR MACHINE</text>
+  </svg>
+</section>
+
+<!-- ============ COMMAND CARDS ============ -->
+<main>
+
+  <!-- 01 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Invoke pip Correctly</span><span class="card-sub">before anything else</span></div>
+    <ul class="cmds">
+      <li class="env"><code class="cmd">python <span class="flag">-m</span> pip install <span class="arg">requests</span></code><div class="desc"><b>Always this form.</b> A bare <code>pip</code> may belong to a different interpreter than the <code>python</code> you're about to run.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">python <span class="flag">-m</span> pip <span class="flag">--version</span></code><div class="desc">Prints pip's version <b>and the Python it will install into</b>. Read the second half.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">python <span class="flag">-m</span> pip install <span class="flag">-U</span> pip</code><div class="desc">Upgrade pip itself.</div></li>
+      <li class="spec"><code class="cmd">pip <span class="flag">--python</span> <span class="arg">/path/to/python</span> list</code><div class="desc">Drive a <i>different</i> interpreter's environment from this one.</div></li>
+      <li class="spec"><code class="cmd">pip config list</code><div class="desc">Every config file and env var currently in effect. Start debugging here.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Virtual Environments</span><span class="card-sub">pip has no isolation of its own</span></div>
+    <ul class="cmds">
+      <li class="env"><code class="cmd">python <span class="flag">-m</span> venv <span class="arg">.venv</span></code><div class="desc">pip installs into <i>whatever</i> Python it's attached to. A venv is what makes that safe.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">source <span class="arg">.venv/bin/activate</span></code><div class="desc">Windows: <code>.venv\Scripts\activate</code>. Then <code>deactivate</code> to leave.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">.venv/bin/python <span class="flag">-m</span> pip install <span class="arg">-r</span> requirements.txt</code><div class="desc">No activation needed — call the venv's interpreter directly. Best for scripts &amp; CI.</div></li>
+      <li class="index"><code class="cmd">pipx install <span class="arg">ruff</span></code><div class="desc">For <b>CLI tools</b>, not libraries. Each gets its own hidden venv.</div></li>
+      <li class="danger"><code class="cmd">pip install <span class="flag">--break-system-packages</span> <span class="arg">x</span></code><div class="desc">The PEP 668 override. Can break <code>apt</code>/Homebrew. Disposable containers only.<span class="badge-danger">last resort</span></div></li>
+    </ul>
+  </article>
+
+  <!-- 03 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Install</span><span class="card-sub">the daily loop</span></div>
+    <ul class="cmds">
+      <li class="index"><code class="cmd">pip install <span class="arg">requests</span></code><div class="desc">Newest compatible release, plus its dependencies.<span class="star">★</span></div></li>
+      <li class="index"><code class="cmd">pip install <span class="arg">"requests==2.32.3"</span></code><div class="desc">Pin exactly. See card 05 for the full operator set.<span class="star">★</span></div></li>
+      <li class="spec"><code class="cmd">pip install <span class="flag">-r</span> <span class="arg">requirements.txt</span></code><div class="desc">Install a whole file of specs.<span class="star">★</span></div></li>
+      <li class="index"><code class="cmd">pip install <span class="flag">-U</span> <span class="arg">requests</span></code><div class="desc"><code>--upgrade</code>. Note: it does <b>not</b> upgrade dependencies unless they're too old.</div></li>
+      <li class="env"><code class="cmd">pip install <span class="flag">-e</span> <span class="arg">.</span></code><div class="desc"><b>Editable.</b> Your source dir is linked in — edits take effect with no reinstall.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">pip install <span class="arg">.</span></code><div class="desc">Build the current project and copy it in. A snapshot, not a link.</div></li>
+      <li class="spec"><code class="cmd">pip install <span class="flag">--dry-run</span> <span class="flag">--report</span> <span class="arg">r.json</span> <span class="arg">x</span></code><div class="desc">Resolve, change nothing, dump the plan as JSON.</div></li>
+      <li class="index"><code class="cmd">pip install <span class="flag">--no-deps</span> <span class="arg">x</span></code><div class="desc">Just this package. Pairs with a fully-pinned lockfile.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Where It Comes From</span><span class="card-sub">index, VCS, disk</span></div>
+    <ul class="cmds">
+      <li class="index"><code class="cmd">pip install <span class="flag">-i</span> <span class="arg">https://my.co/simple</span> <span class="arg">x</span></code><div class="desc"><code>--index-url</code> <b>replaces</b> PyPI.</div></li>
+      <li class="index"><code class="cmd">pip install <span class="flag">--extra-index-url</span> <span class="arg">URL</span> <span class="arg">x</span></code><div class="desc"><b>Adds</b> an index. Careful: a public PyPI name can shadow your private one.</div></li>
+      <li class="index"><code class="cmd">pip install <span class="arg">"proj @ git+https://github.com/o/r@v1.2"</span></code><div class="desc">Straight from a tag, branch or commit.</div></li>
+      <li class="env"><code class="cmd">pip install <span class="arg">./dist/pkg-1.0-py3-none-any.whl</span></code><div class="desc">A local wheel. No index touched.</div></li>
+      <li class="cache"><code class="cmd">pip install <span class="flag">--no-index</span> <span class="flag">-f</span> <span class="arg">./wheels</span> <span class="flag">-r</span> <span class="arg">req.txt</span></code><div class="desc">Fully offline, from a wheelhouse directory.</div></li>
+      <li class="index"><code class="cmd">pip index versions <span class="arg">requests</span></code><div class="desc">Which versions exist. <code>pip search</code> is <b>dead</b> — PyPI removed that API.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Version Operators</span><span class="card-sub">PEP 440</span></div>
+    <ul class="cmds">
+      <li class="spec"><code class="cmd"><span class="arg">requests==2.32.3</span></code><div class="desc">Exactly this version. What <code>pip freeze</code> emits.<span class="star">★</span></div></li>
+      <li class="spec"><code class="cmd"><span class="arg">requests==2.32.*</span></code><div class="desc">Any release starting <code>2.32</code>.</div></li>
+      <li class="spec"><code class="cmd"><span class="arg">requests~=2.32.3</span></code><div class="desc"><b>Compatible release</b> — means <code>&gt;=2.32.3, ==2.32.*</code>. See the diagram below.<span class="star">★</span></div></li>
+      <li class="spec"><code class="cmd"><span class="arg">"requests&gt;=2.28,&lt;3"</span></code><div class="desc">A range. Comma is AND. <b>Quote it</b> — the shell eats <code>&lt;</code> and <code>&gt;</code>.<span class="star">★</span></div></li>
+      <li class="spec"><code class="cmd"><span class="arg">"requests!=2.30.0"</span></code><div class="desc">Exclude one bad release.</div></li>
+      <li class="index"><code class="cmd">pip install <span class="flag">--pre</span> <span class="arg">x</span></code><div class="desc">Pre-releases are ignored by default; this opts in.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Extras &amp; Markers</span><span class="card-sub">PEP 508</span></div>
+    <ul class="cmds">
+      <li class="spec"><code class="cmd">pip install <span class="arg">"fastapi[standard]"</span></code><div class="desc"><b>Extras</b> — optional dependency bundles the package declares.<span class="star">★</span></div></li>
+      <li class="spec"><code class="cmd">pip install <span class="arg">"pkg[dev,test]"</span></code><div class="desc">Several at once.</div></li>
+      <li class="env"><code class="cmd">pip install <span class="flag">-e</span> <span class="arg">".[dev]"</span></code><div class="desc">Your own project, editable, with its dev extra. The standard dev-setup line.<span class="star">★</span></div></li>
+      <li class="spec"><code class="cmd"><span class="arg">pkg; python_version &lt; "3.12"</span></code><div class="desc"><b>Environment marker</b> — install only where the condition holds.</div></li>
+      <li class="spec"><code class="cmd"><span class="arg">pkg; sys_platform == "win32"</span></code><div class="desc">Also: <code>platform_machine</code>, <code>implementation_name</code>, <code>os_name</code>.</div></li>
+      <li class="spec"><code class="cmd">pip install <span class="flag">--group</span> <span class="arg">dev</span></code><div class="desc">PEP 735 dependency-group from <code>pyproject.toml</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Inspect the Environment</span><span class="card-sub">what's actually in there</span></div>
+    <ul class="cmds">
+      <li class="env"><code class="cmd">pip list</code><div class="desc">Everything installed, with versions.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">pip list <span class="flag">--outdated</span></code><div class="desc">What has a newer release available.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">pip list <span class="flag">--not-required</span></code><div class="desc"><b>Top-level only</b> — nothing else depends on these. The real "what did I ask for".<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">pip show <span class="arg">requests</span></code><div class="desc">Version, location, <code>Requires:</code> and <code>Required-by:</code>.</div></li>
+      <li class="env"><code class="cmd">pip show <span class="flag">-f</span> <span class="arg">requests</span></code><div class="desc">Every file the package installed.</div></li>
+      <li class="env"><code class="cmd">pip check</code><div class="desc"><b>Are the installed deps mutually consistent?</b> Run after any manual surgery.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">pip inspect</code><div class="desc">The whole environment as machine-readable JSON.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Requirements Files</span><span class="card-sub">the -r format</span></div>
+    <ul class="cmds">
+      <li class="spec"><code class="cmd">pip freeze &gt; <span class="arg">requirements.txt</span></code><div class="desc">Dumps <b>everything</b> installed, pinned. Convenient, blunt — it can't tell your intent from a transitive dep.<span class="star">★</span></div></li>
+      <li class="spec"><code class="cmd"><span class="flag">-r</span> <span class="arg">base.txt</span></code><div class="desc">Requirements files can include each other. <code>dev.txt</code> starts with <code>-r base.txt</code>.</div></li>
+      <li class="spec"><code class="cmd"><span class="flag">-e</span> <span class="arg">.</span></code><div class="desc">Editable lines are legal inside a requirements file too.</div></li>
+      <li class="spec"><code class="cmd"><span class="flag">--hash=sha256:</span><span class="arg">abc…</span></code><div class="desc">Add one hash and pip switches the <b>whole file</b> into hash-checking mode.</div></li>
+      <li class="spec"><code class="cmd">pip install <span class="flag">-c</span> <span class="arg">constraints.txt</span> <span class="flag">-r</span> <span class="arg">req.txt</span></code><div class="desc"><b>Constraints only cap versions</b> — they never cause an install. Use them to pin transitive deps.<span class="star">★</span></div></li>
+      <li class="spec"><code class="cmd">pip hash <span class="arg">dist/pkg.whl</span></code><div class="desc">Compute the hash to paste into the file.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Lock &amp; Reproduce</span><span class="card-sub">pylock.toml · PEP 751</span></div>
+    <ul class="cmds">
+      <li class="spec"><code class="cmd">pip lock <span class="flag">-e</span> <span class="arg">.</span></code><div class="desc">Emit <code>pylock.toml</code> — a real, resolved, hashed lockfile. <b>Experimental.</b><span class="star">★</span></div></li>
+      <li class="spec"><code class="cmd">pip lock <span class="flag">-r</span> <span class="arg">req.txt</span> <span class="flag">-o</span> <span class="arg">pylock.toml</span></code><div class="desc">Lock from an existing requirements file.</div></li>
+      <li class="spec"><code class="cmd">pip install <span class="flag">-r</span> <span class="arg">pylock.toml</span></code><div class="desc">Install from the lock. Valid for <b>this</b> Python and platform only.</div></li>
+      <li class="spec"><code class="cmd">pip install <span class="flag">--require-hashes</span> <span class="flag">-r</span> <span class="arg">req.txt</span></code><div class="desc">Refuse anything unhashed. The deployment safety net.<span class="star">★</span></div></li>
+      <li class="cache"><code class="cmd">pip download <span class="flag">-r</span> <span class="arg">req.txt</span> <span class="flag">-d</span> <span class="arg">./wheels</span></code><div class="desc">Fetch without installing — build an offline bundle.</div></li>
+      <li class="cache"><code class="cmd">pip wheel <span class="flag">-r</span> <span class="arg">req.txt</span> <span class="flag">-w</span> <span class="arg">./wheels</span></code><div class="desc">Build every dependency to a wheel <b>once</b>, then install from the dir anywhere.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Uninstall &amp; Cache</span><span class="card-sub">reclaiming space</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">pip uninstall <span class="arg">requests</span></code><div class="desc">Removes the package — <b>not</b> its dependencies. They linger as orphans.<span class="badge-danger">leaves orphans</span></div></li>
+      <li class="danger"><code class="cmd">pip uninstall <span class="flag">-y</span> <span class="flag">-r</span> <span class="arg">requirements.txt</span></code><div class="desc">Bulk removal, no prompts.<span class="badge-danger">destructive</span></div></li>
+      <li class="cache"><code class="cmd">pip cache info</code><div class="desc">Size and location of both caches.</div></li>
+      <li class="cache"><code class="cmd">pip cache list <span class="arg">numpy</span></code><div class="desc">Which wheels are cached for a package.</div></li>
+      <li class="cache"><code class="cmd">pip cache remove <span class="arg">numpy</span></code><div class="desc">Surgical. The fix when a bad cached wheel keeps coming back.</div></li>
+      <li class="cache"><code class="cmd">pip cache purge</code><div class="desc">Nuke both caches. Safe — just costs you re-downloads.</div></li>
+      <li class="cache"><code class="cmd">pip install <span class="flag">--no-cache-dir</span> <span class="arg">x</span></code><div class="desc">Only in container builds that cache a layer above. Otherwise it just makes pip slow.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Wheels vs Source</span><span class="card-sub">when a build goes wrong</span></div>
+    <ul class="cmds">
+      <li class="cache"><code class="cmd">pip install <span class="flag">--only-binary</span>=<span class="arg">:all:</span> <span class="arg">x</span></code><div class="desc">Never compile. Fails loudly instead of silently spending 10 minutes on a C build.<span class="star">★</span></div></li>
+      <li class="cache"><code class="cmd">pip install <span class="flag">--no-binary</span>=<span class="arg">:all:</span> <span class="arg">x</span></code><div class="desc">Force a build from sdist — e.g. to pick up local CPU optimizations.</div></li>
+      <li class="cache"><code class="cmd">pip install <span class="flag">--prefer-binary</span> <span class="arg">x</span></code><div class="desc">Take an older wheel over a newer sdist.</div></li>
+      <li class="cache"><code class="cmd">pip install <span class="flag">--no-build-isolation</span> <span class="arg">x</span></code><div class="desc">Build against the current env instead of a clean one. Build deps must already be present.</div></li>
+      <li class="spec"><code class="cmd">pip debug</code><div class="desc">Shows the <b>compatible wheel tags</b> for this interpreter — the answer to "why is there no wheel for me".</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">When the Resolver Fights</span><span class="card-sub">backtracking &amp; conflicts</span></div>
+    <ul class="cmds">
+      <li class="index"><code class="cmd">pip install <span class="arg">tea</span> <span class="arg">"cup&gt;=3.13"</span></code><div class="desc"><b>Add a lower bound on whatever it's backtracking on.</b> Shrinks the search space dramatically.<span class="star">★</span></div></li>
+      <li class="spec"><code class="cmd">pip install <span class="flag">-c</span> <span class="arg">constraints.txt</span> <span class="arg">tea</span></code><div class="desc">Same idea, for transitive deps you can't name on the CLI.</div></li>
+      <li class="index"><code class="cmd">pip install <span class="flag">-U</span> <span class="arg">pkg-a pkg-b</span></code><div class="desc">Fixes <code>ResolutionTooDeep</code>: ignore what's installed and resolve fresh.</div></li>
+      <li class="spec"><code class="cmd"><span class="flag"># loosen the pins</span></code><div class="desc"><code>ResolutionImpossible</code> usually means <b>you</b> over-pinned. Drop <code>==</code> to <code>&gt;=</code> and let pip find the overlap.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd">pip install <span class="flag">--force-reinstall</span> <span class="arg">x</span></code><div class="desc">Reinstall even if satisfied. A blunt fix for a corrupted install.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Config &amp; Env Vars</span><span class="card-sub">set it once</span></div>
+    <ul class="cmds">
+      <li class="spec"><code class="cmd">pip config set <span class="arg">global.index-url</span> <span class="arg">URL</span></code><div class="desc">Persist a private index instead of retyping <code>-i</code>.</div></li>
+      <li class="spec"><code class="cmd">pip config set <span class="arg">global.require-virtualenv</span> true</code><div class="desc"><b>Refuse to install outside a venv.</b> The best guardrail pip offers.<span class="star">★</span></div></li>
+      <li class="spec"><code class="cmd">export <span class="arg">PIP_REQUIRE_VIRTUALENV=1</span></code><div class="desc">Every flag has a <code>PIP_*</code> env var. Underscores or dashes both work.</div></li>
+      <li class="spec"><code class="cmd">export <span class="arg">PIP_CONSTRAINT=constraints.txt</span></code><div class="desc">Applies constraints to <i>every</i> pip run — including builds. Handy in CI.</div></li>
+      <li class="spec"><code class="cmd">pip config debug</code><div class="desc">Which file won, and why.</div></li>
+    </ul>
+  </article>
+
+  <!-- STAR -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">★</span><span class="card-title">Choosing the Target</span><span class="card-sub">where does it land?</span></div>
+    <ul class="cmds">
+      <li class="env"><code class="cmd"><span class="flag">(nothing)</span></code><div class="desc">The active environment. If no venv is active, that's your <b>system Python</b> — the source of most pip disasters.<span class="star">★</span></div></li>
+      <li class="env"><code class="cmd"><span class="flag">--user</span></code><div class="desc"><code>~/.local/…</code>. Blocked on PEP 668 systems. Prefer a venv.</div></li>
+      <li class="env"><code class="cmd"><span class="flag">--target</span> <span class="arg">./libs</span></code><div class="desc">Dump packages into a plain directory — AWS Lambda bundles, vendoring.</div></li>
+      <li class="env"><code class="cmd"><span class="flag">--prefix</span> <span class="arg">/opt/app</span></code><div class="desc">Install into a custom prefix tree.</div></li>
+      <li class="spec"><code class="cmd"><span class="flag">--python</span> <span class="arg">.venv/bin/python</span></code><div class="desc">Explicitly name the interpreter to act on.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>The things that actually confuse people</h2>
+  <p class="sub">Not more flags — the models underneath them.</p>
+
+  <div class="dgrid">
+
+    <!-- D1: PIPELINE -->
+    <div class="dcard wide">
+      <h3>What <code>pip install</code> really does</h3>
+      <p>pip doesn't have a dependency graph handed to it. It has to <b>discover</b> one — by downloading candidates and reading their metadata, one guess at a time.</p>
+      <svg viewBox="0 0 1040 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Five-step install pipeline: read the spec, query the index, resolve with backtracking, fetch or build a wheel into the cache, then unpack into site-packages.">
+        <defs>
+          <marker id="p1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker>
+          <marker id="p2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+        </defs>
+        <g font-size="11" text-anchor="middle">
+          <rect x="10" y="40" width="178" height="66" rx="9" fill="#f1f3f6" stroke="#64748b" stroke-width="1.6"/>
+          <text x="99" y="58" font-size="10" font-weight="700" fill="#64748b">1 · READ</text>
+          <text x="99" y="78" fill="#1a1d24">the spec you gave</text>
+          <text x="99" y="94" fill="#1a1d24">(CLI, -r, -c, .toml)</text>
+
+          <rect x="222" y="40" width="178" height="66" rx="9" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.6"/>
+          <text x="311" y="58" font-size="10" font-weight="700" fill="#4f46e5">2 · QUERY</text>
+          <text x="311" y="78" fill="#1a1d24">index: which versions</text>
+          <text x="311" y="94" fill="#1a1d24">and files exist?</text>
+
+          <rect x="434" y="40" width="178" height="66" rx="9" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.6"/>
+          <text x="523" y="58" font-size="10" font-weight="700" fill="#dc2626">3 · RESOLVE</text>
+          <text x="523" y="78" fill="#1a1d24">guess a version,</text>
+          <text x="523" y="94" fill="#1a1d24">read its deps, repeat</text>
+
+          <rect x="646" y="40" width="178" height="66" rx="9" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+          <text x="735" y="58" font-size="10" font-weight="700" fill="#b45309">4 · FETCH</text>
+          <text x="735" y="78" fill="#1a1d24">wheel from cache,</text>
+          <text x="735" y="94" fill="#1a1d24">or build the sdist</text>
+
+          <rect x="858" y="40" width="172" height="66" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+          <text x="944" y="58" font-size="10" font-weight="700" fill="#059669">5 · UNPACK</text>
+          <text x="944" y="78" fill="#1a1d24">into site-packages</text>
+          <text x="944" y="94" fill="#1a1d24">+ write metadata</text>
+        </g>
+        <line x1="188" y1="73" x2="220" y2="73" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#p1)"/>
+        <line x1="400" y1="73" x2="432" y2="73" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#p1)"/>
+        <line x1="612" y1="73" x2="644" y2="73" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#p1)"/>
+        <line x1="824" y1="73" x2="856" y2="73" stroke="#1a1d24" stroke-width="1.6" marker-end="url(#p1)"/>
+
+        <path d="M523 108 L523 145 L311 145 L311 108" fill="none" stroke="#dc2626" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#p2)"/>
+        <text x="523" y="163" text-anchor="middle" font-size="10.5" fill="#dc2626" font-weight="700">wrong guess ⟶ backtrack ⟶ download another candidate. This loop is why pip "hangs".</text>
+
+        <text x="99" y="25" text-anchor="middle" font-size="9" letter-spacing="1.6" fill="#94a3b8">SPEC</text>
+        <text x="523" y="25" text-anchor="middle" font-size="9" letter-spacing="1.6" fill="#94a3b8">RESOLVER</text>
+        <text x="944" y="25" text-anchor="middle" font-size="9" letter-spacing="1.6" fill="#94a3b8">ENVIRONMENT</text>
+      </svg>
+    </div>
+
+    <!-- D2: BACKTRACKING -->
+    <div class="dcard wide">
+      <h3>Backtracking, illustrated</h3>
+      <p>From pip's own docs. You ask for <code>tea</code>; it picks the newest <code>spoon</code>, then discovers the newest <code>cup</code> is incompatible with it — so it walks <code>cup</code> backwards, <b>downloading each candidate just to read its metadata</b>.</p>
+      <svg viewBox="0 0 1040 215" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="pip picks tea 1.9.8 and spoon 2.27.0, then tries cup 3.22 down through 3.15, each rejected, until cup 3.14 is accepted.">
+        <defs>
+          <marker id="b1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker>
+        </defs>
+        <!-- chosen chain -->
+        <g font-size="11" text-anchor="middle">
+          <rect x="12" y="30" width="118" height="36" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+          <text x="71" y="46" font-weight="700" fill="#1a1d24">tea 1.9.8</text>
+          <text x="71" y="59" font-size="9" fill="#059669">requested</text>
+
+          <rect x="164" y="30" width="130" height="36" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+          <text x="229" y="46" font-weight="700" fill="#1a1d24">spoon 2.27.0</text>
+          <text x="229" y="59" font-size="9" fill="#059669">newest — kept</text>
+        </g>
+        <line x1="130" y1="48" x2="162" y2="48" stroke="#1a1d24" stroke-width="1.5" marker-end="url(#b1)"/>
+        <line x1="294" y1="48" x2="326" y2="48" stroke="#1a1d24" stroke-width="1.5" marker-end="url(#b1)"/>
+        <text x="380" y="52" font-size="12" font-weight="700" fill="#1a1d24">now pick cup…</text>
+
+        <!-- candidate row -->
+        <text x="12" y="100" font-size="9.5" letter-spacing="1.6" fill="#94a3b8">CANDIDATES TRIED, NEWEST FIRST →</text>
+        <g font-size="10.5" text-anchor="middle">
+          <rect x="12"   y="112" width="106" height="34" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.4"/>
+          <text x="65"  y="133" fill="#dc2626">cup 3.22 ✗</text>
+          <rect x="128"  y="112" width="106" height="34" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.4"/>
+          <text x="181" y="133" fill="#dc2626">cup 3.21 ✗</text>
+          <rect x="244"  y="112" width="106" height="34" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.4"/>
+          <text x="297" y="133" fill="#dc2626">cup 3.20 ✗</text>
+          <rect x="360"  y="112" width="106" height="34" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.4"/>
+          <text x="413" y="133" fill="#dc2626">cup 3.19 ✗</text>
+          <rect x="476"  y="112" width="106" height="34" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.4"/>
+          <text x="529" y="133" fill="#dc2626">cup 3.18 ✗</text>
+          <rect x="592"  y="112" width="106" height="34" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.4"/>
+          <text x="645" y="133" fill="#dc2626">cup 3.17 ✗</text>
+          <rect x="708"  y="112" width="106" height="34" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.4"/>
+          <text x="761" y="133" fill="#dc2626">cup 3.16 ✗</text>
+          <rect x="824"  y="112" width="106" height="34" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.4"/>
+          <text x="877" y="133" fill="#dc2626">cup 3.15 ✗</text>
+          <rect x="940"  y="112" width="92"  height="34" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="2.2"/>
+          <text x="986" y="133" fill="#059669" font-weight="700">3.14 ✓</text>
+        </g>
+
+        <line x1="12" y1="162" x2="1032" y2="162" stroke="#e7e3db" stroke-width="1"/>
+        <text x="12" y="182" font-size="11" fill="#525761">Each ✗ is a <tspan font-weight="700">real network download</tspan>. pip has no way to read a package's dependencies without fetching it.</text>
+        <text x="12" y="202" font-size="11" fill="#059669" font-weight="700">Fix: pin a floor on the culprit — pip install tea "cup&gt;=3.13" — and the search space collapses.</text>
+      </svg>
+    </div>
+
+    <!-- D3: PEP 508 ANATOMY -->
+    <div class="dcard wide">
+      <h3>Anatomy of a requirement</h3>
+      <p>Four parts hang off the name. Only the name is mandatory — every other field narrows what pip is allowed to pick.</p>
+      <svg viewBox="0 0 1040 250" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Anatomy of the requirement requests[security] greater-or-equal 2.8.1 comma less-than 3, semicolon python_version less than 3.12, labelling name, extras, version specifier and environment marker.">
+        <g font-size="22" font-weight="700">
+          <text x="88"  y="56" fill="#1a1d24">requests</text>
+          <text x="188" y="56" fill="#4f46e5">[security]</text>
+          <text x="313" y="56" fill="#059669">&gt;=2.8.1,&lt;3</text>
+          <text x="450" y="56" fill="#94a3b8">;</text>
+          <text x="475" y="56" fill="#d97706">python_version &lt; "3.12"</text>
+        </g>
+
+        <line x1="88"  y1="70" x2="186" y2="70" stroke="#1a1d24" stroke-width="2.5"/>
+        <line x1="188" y1="70" x2="311" y2="70" stroke="#4f46e5" stroke-width="2.5"/>
+        <line x1="313" y1="70" x2="447" y2="70" stroke="#059669" stroke-width="2.5"/>
+        <line x1="475" y1="70" x2="748" y2="70" stroke="#d97706" stroke-width="2.5"/>
+
+        <path d="M137 72 L137 92 L110 106 L110 124" fill="none" stroke="#1a1d24" stroke-width="1.2"/>
+        <path d="M249 72 L249 126 L330 146 L330 164" fill="none" stroke="#4f46e5" stroke-width="1.2"/>
+        <path d="M380 72 L380 92 L570 106 L570 124" fill="none" stroke="#059669" stroke-width="1.2"/>
+        <path d="M611 72 L611 126 L830 146 L830 164" fill="none" stroke="#d97706" stroke-width="1.2"/>
+
+        <g font-size="11" text-anchor="middle">
+          <text x="110" y="139" font-weight="700" fill="#1a1d24">NAME · required</text>
+          <text x="110" y="155" fill="#525761">the only mandatory part</text>
+
+          <text x="330" y="179" font-weight="700" fill="#4f46e5">EXTRAS · optional</text>
+          <text x="330" y="195" fill="#525761">opt-in dependency bundles</text>
+          <text x="330" y="211" fill="#525761">the package itself declares</text>
+
+          <text x="570" y="139" font-weight="700" fill="#059669">VERSION SPECIFIER · optional</text>
+          <text x="570" y="155" fill="#525761">comma = AND. omit it and you get "newest"</text>
+
+          <text x="830" y="179" font-weight="700" fill="#d97706">ENVIRONMENT MARKER · optional</text>
+          <text x="830" y="195" fill="#525761">a condition. false ⟹ skipped entirely.</text>
+          <text x="830" y="211" fill="#525761">sys_platform, platform_machine, os_name…</text>
+        </g>
+
+        <line x1="20" y1="228" x2="1020" y2="228" stroke="#e7e3db" stroke-width="1"/>
+        <g font-size="11.5">
+          <text x="20"  y="245" fill="#4f46e5" font-weight="700">URL form:</text>
+          <text x="98"  y="245" fill="#1a1d24" font-family="JetBrains Mono, monospace">proj @ git+https://github.com/org/repo@v1.2</text>
+          <text x="470" y="245" fill="#525761">— pins a tag/branch/commit instead of a version</text>
+          <text x="790" y="245" fill="#dc2626" font-weight="700">quote in the shell:</text>
+          <text x="920" y="245" fill="#525761">&lt; &gt; ;</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D4: ~= NUMBER LINE -->
+    <div class="dcard">
+      <h3>What <code>~=</code> actually means</h3>
+      <p>The "compatible release" operator. It pins <b>all but the last segment</b> — so where you put the last dot changes everything.</p>
+      <svg viewBox="0 0 470 250" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Number lines showing that tilde-equals 3.1.2 allows 3.1.2 up to but not including 3.2.0, while tilde-equals 3.1 allows 3.1 up to but not including 4.0.">
+        <text x="14" y="22" font-size="12" font-weight="700" fill="#1a1d24" font-family="JetBrains Mono, monospace">~=3.1.2</text>
+        <text x="110" y="22" font-size="10.5" fill="#6b7280">≡  &gt;=3.1.2, ==3.1.*</text>
+
+        <line x1="20" y1="60" x2="450" y2="60" stroke="#cbd5e1" stroke-width="2"/>
+        <rect x="118" y="52" width="222" height="16" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+        <g font-size="9.5" text-anchor="middle" fill="#6b7280">
+          <line x1="60"  y1="54" x2="60"  y2="66" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="60"  y="82">3.1.0</text>
+          <text x="60"  y="96" fill="#dc2626" font-size="11">✗</text>
+          <line x1="118" y1="50" x2="118" y2="70" stroke="#059669" stroke-width="2"/>
+          <text x="118" y="82" fill="#059669" font-weight="700">3.1.2</text>
+          <text x="118" y="96" fill="#059669" font-size="11">✓</text>
+          <line x1="240" y1="54" x2="240" y2="66" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="240" y="82">3.1.9</text>
+          <text x="240" y="96" fill="#059669" font-size="11">✓</text>
+          <line x1="340" y1="50" x2="340" y2="70" stroke="#dc2626" stroke-width="2"/>
+          <text x="340" y="82" fill="#dc2626" font-weight="700">3.2.0</text>
+          <text x="340" y="96" fill="#dc2626" font-size="11">✗</text>
+          <line x1="430" y1="54" x2="430" y2="66" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="430" y="82">4.0</text>
+          <text x="430" y="96" fill="#dc2626" font-size="11">✗</text>
+        </g>
+
+        <line x1="14" y1="118" x2="456" y2="118" stroke="#e7e3db" stroke-width="1"/>
+
+        <text x="14" y="145" font-size="12" font-weight="700" fill="#1a1d24" font-family="JetBrains Mono, monospace">~=3.1</text>
+        <text x="110" y="145" font-size="10.5" fill="#6b7280">≡  &gt;=3.1, ==3.*  (much looser!)</text>
+
+        <line x1="20" y1="183" x2="450" y2="183" stroke="#cbd5e1" stroke-width="2"/>
+        <rect x="60" y="175" width="370" height="16" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+        <g font-size="9.5" text-anchor="middle" fill="#6b7280">
+          <line x1="60"  y1="173" x2="60"  y2="193" stroke="#059669" stroke-width="2"/>
+          <text x="60"  y="205" fill="#059669" font-weight="700">3.1</text>
+          <text x="60"  y="219" fill="#059669" font-size="11">✓</text>
+          <line x1="240" y1="177" x2="240" y2="189" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="240" y="205">3.9</text>
+          <text x="240" y="219" fill="#059669" font-size="11">✓</text>
+          <line x1="430" y1="173" x2="430" y2="193" stroke="#dc2626" stroke-width="2"/>
+          <text x="430" y="205" fill="#dc2626" font-weight="700">4.0</text>
+          <text x="430" y="219" fill="#dc2626" font-size="11">✗</text>
+        </g>
+        <text x="14" y="243" font-size="10" fill="#dc2626" font-weight="700">One extra dot = a whole minor series more freedom.</text>
+      </svg>
+    </div>
+
+    <!-- D5: PEP 668 -->
+    <div class="dcard">
+      <h3><code>externally-managed-environment</code></h3>
+      <p>PEP 668. Your OS marked its Python as off-limits so a stray <code>pip install</code> can't break <code>apt</code> or Homebrew. It is <b>not</b> a bug.</p>
+      <svg viewBox="0 0 470 250" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Decision tree: for a project use a venv, for a CLI tool use pipx, and only in disposable containers use break-system-packages.">
+        <defs>
+          <marker id="d1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+        </defs>
+        <rect x="105" y="12" width="260" height="34" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.8"/>
+        <text x="235" y="34" text-anchor="middle" font-size="11" font-weight="700" fill="#dc2626">error: externally-managed-environment</text>
+
+        <line x1="235" y1="46" x2="235" y2="66" stroke="#94a3b8" stroke-width="1.5"/>
+        <line x1="60" y1="66" x2="410" y2="66" stroke="#94a3b8" stroke-width="1.5"/>
+        <line x1="60"  y1="66" x2="60"  y2="86" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#d1)"/>
+        <line x1="235" y1="66" x2="235" y2="86" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#d1)"/>
+        <line x1="410" y1="66" x2="410" y2="86" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#d1)"/>
+
+        <g text-anchor="middle" font-size="10">
+          <text x="60"  y="102" font-size="9.5" fill="#6b7280">building a project?</text>
+          <text x="235" y="102" font-size="9.5" fill="#6b7280">installing a CLI tool?</text>
+          <text x="410" y="102" font-size="9.5" fill="#6b7280">throwaway container?</text>
+        </g>
+
+        <rect x="10"  y="112" width="130" height="62" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="2.2"/>
+        <text x="75"  y="133" text-anchor="middle" font-size="11" font-weight="700" fill="#059669">venv</text>
+        <text x="75"  y="150" text-anchor="middle" font-size="8.5" fill="#525761" font-family="JetBrains Mono, monospace">python -m venv .venv</text>
+        <text x="75"  y="164" text-anchor="middle" font-size="9" fill="#059669">the right answer</text>
+
+        <rect x="170" y="112" width="130" height="62" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.8"/>
+        <text x="235" y="133" text-anchor="middle" font-size="11" font-weight="700" fill="#4f46e5">pipx</text>
+        <text x="235" y="150" text-anchor="middle" font-size="8.5" fill="#525761" font-family="JetBrains Mono, monospace">pipx install ruff</text>
+        <text x="235" y="164" text-anchor="middle" font-size="9" fill="#4f46e5">isolated per tool</text>
+
+        <rect x="330" y="112" width="130" height="62" rx="8" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.8"/>
+        <text x="395" y="133" text-anchor="middle" font-size="11" font-weight="700" fill="#dc2626">--break-…</text>
+        <text x="395" y="150" text-anchor="middle" font-size="8.5" fill="#525761" font-family="JetBrains Mono, monospace">-system-packages</text>
+        <text x="395" y="164" text-anchor="middle" font-size="9" fill="#dc2626">can break your OS</text>
+
+        <line x1="14" y1="192" x2="456" y2="192" stroke="#e7e3db" stroke-width="1"/>
+        <text x="14" y="212" font-size="10" fill="#525761">Note that <tspan font-family="JetBrains Mono, monospace" font-weight="700">--user</tspan> is blocked too — it is not an escape hatch.</text>
+        <text x="14" y="232" font-size="10" fill="#525761">Affects Debian/Ubuntu, Fedora, Homebrew Python 3.11+.</text>
+      </svg>
+    </div>
+
+    <!-- D6: THE FOUR FILES -->
+    <div class="dcard wide">
+      <h3>Four files, four jobs</h3>
+      <p>The single most common pip confusion. They are not interchangeable, and only one of them is a real lockfile.</p>
+      <svg viewBox="0 0 1040 205" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison of pyproject.toml, requirements.txt, constraints.txt and pylock.toml by role, who reads them, and whether they cause installs.">
+        <g font-size="10.5">
+          <rect x="10" y="14" width="243" height="180" rx="9" fill="#f1f3f6" stroke="#64748b" stroke-width="1.6"/>
+          <text x="26" y="38" font-size="12.5" font-weight="700" fill="#1a1d24" font-family="JetBrains Mono, monospace">pyproject.toml</text>
+          <text x="26" y="54" font-size="9.5" fill="#6b7280">what your project NEEDS</text>
+          <line x1="26" y1="64" x2="237" y2="64" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="26" y="84"  fill="#525761">abstract ranges, e.g. &gt;=2.8</text>
+          <text x="26" y="102" fill="#525761">published with your package</text>
+          <text x="26" y="120" fill="#525761">read by: pip install .</text>
+          <text x="26" y="146" font-weight="700" fill="#1a1d24">Source of truth for a</text>
+          <text x="26" y="160" font-weight="700" fill="#1a1d24">library. Commit it.</text>
+          <text x="26" y="182" font-size="9" fill="#dc2626">pip never auto-reads it for deps</text>
+
+          <rect x="267" y="14" width="243" height="180" rx="9" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.6"/>
+          <text x="283" y="38" font-size="12.5" font-weight="700" fill="#1a1d24" font-family="JetBrains Mono, monospace">requirements.txt</text>
+          <text x="283" y="54" font-size="9.5" fill="#4f46e5">what to PUT IN an env</text>
+          <line x1="283" y1="64" x2="494" y2="64" stroke="#c7cdf7" stroke-width="1"/>
+          <text x="283" y="84"  fill="#525761">concrete pins, usually ==</text>
+          <text x="283" y="102" fill="#525761">generated by: pip freeze</text>
+          <text x="283" y="120" fill="#525761">read by: pip install -r</text>
+          <text x="283" y="146" font-weight="700" fill="#1a1d24">Deployment recipe for an</text>
+          <text x="283" y="160" font-weight="700" fill="#1a1d24">application. Commit it.</text>
+          <text x="283" y="182" font-size="9" fill="#dc2626">not a lockfile: no hashes, no markers</text>
+
+          <rect x="524" y="14" width="243" height="180" rx="9" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+          <text x="540" y="38" font-size="12.5" font-weight="700" fill="#1a1d24" font-family="JetBrains Mono, monospace">constraints.txt</text>
+          <text x="540" y="54" font-size="9.5" fill="#b45309">what NOT to exceed</text>
+          <line x1="540" y1="64" x2="751" y2="64" stroke="#f0d9b5" stroke-width="1"/>
+          <text x="540" y="84"  fill="#525761">version caps only</text>
+          <text x="540" y="102" fill="#525761">read by: pip install -c</text>
+          <text x="540" y="120" fill="#525761">or env: PIP_CONSTRAINT</text>
+          <text x="540" y="146" font-weight="700" fill="#b45309">NEVER causes an install.</text>
+          <text x="540" y="160" font-weight="700" fill="#b45309">Only limits one that</text>
+          <text x="540" y="174" font-weight="700" fill="#b45309">was happening anyway.</text>
+
+          <rect x="781" y="14" width="249" height="180" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="2.2"/>
+          <text x="797" y="38" font-size="12.5" font-weight="700" fill="#1a1d24" font-family="JetBrains Mono, monospace">pylock.toml</text>
+          <text x="797" y="54" font-size="9.5" fill="#059669">the REAL lockfile · PEP 751</text>
+          <line x1="797" y1="64" x2="1014" y2="64" stroke="#a7e0c8" stroke-width="1"/>
+          <text x="797" y="84"  fill="#525761">exact versions + hashes</text>
+          <text x="797" y="102" fill="#525761">generated by: pip lock</text>
+          <text x="797" y="120" fill="#525761">read by: pip install -r</text>
+          <text x="797" y="146" font-weight="700" fill="#059669">Reproducible. Verified.</text>
+          <text x="797" y="160" font-weight="700" fill="#059669">Still experimental.</text>
+          <text x="797" y="182" font-size="9" fill="#6b7280">valid for one Python + platform</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D7: REPEATABILITY LADDER -->
+    <div class="dcard wide">
+      <h3>Three rungs of "reproducible"</h3>
+      <p>Each rung defends against something the one below it cannot. Straight from pip's <i>Repeatable Installs</i> guide — pick the height your risk actually needs.</p>
+      <svg viewBox="0 0 1040 230" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three rungs: pinning versions, hash-checking, and a local wheelhouse, each defending against progressively stronger threats.">
+        <!-- rung 1 -->
+        <rect x="20" y="140" width="310" height="72" rx="9" fill="#f1f3f6" stroke="#64748b" stroke-width="1.8"/>
+        <text x="38" y="163" font-size="11" font-weight="700" fill="#64748b">1 · PIN</text>
+        <text x="38" y="182" font-size="10.5" fill="#1a1d24" font-family="JetBrains Mono, monospace">requests==2.32.3</text>
+        <text x="38" y="200" font-size="9.5" fill="#525761">Stops a surprise new release. Trusts PyPI.</text>
+
+        <!-- rung 2 -->
+        <rect x="358" y="90" width="310" height="122" rx="9" fill="#fdf6ec" stroke="#d97706" stroke-width="1.8"/>
+        <text x="376" y="113" font-size="11" font-weight="700" fill="#b45309">2 · HASH-CHECK</text>
+        <text x="376" y="132" font-size="10.5" fill="#1a1d24" font-family="JetBrains Mono, monospace">requests==2.32.3 \</text>
+        <text x="376" y="148" font-size="10.5" fill="#1a1d24" font-family="JetBrains Mono, monospace">  --hash=sha256:9b1a…</text>
+        <text x="376" y="170" font-size="9.5" fill="#525761">Stops a compromised index or CDN.</text>
+        <text x="376" y="186" font-size="9.5" fill="#525761">One hash ⟹ the whole file must be hashed.</text>
+        <text x="376" y="202" font-size="9.5" fill="#b45309" font-weight="700">Still needs the network.</text>
+
+        <!-- rung 3 -->
+        <rect x="696" y="40" width="324" height="172" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="2.2"/>
+        <text x="714" y="63" font-size="11" font-weight="700" fill="#059669">3 · WHEELHOUSE</text>
+        <text x="714" y="82" font-size="10" fill="#1a1d24" font-family="JetBrains Mono, monospace">pip wheel -r req.txt -w wheels/</text>
+        <text x="714" y="98" font-size="10" fill="#1a1d24" font-family="JetBrains Mono, monospace">pip install --no-index \</text>
+        <text x="714" y="113" font-size="10" fill="#1a1d24" font-family="JetBrains Mono, monospace">  -f wheels/ -r req.txt</text>
+        <text x="714" y="136" font-size="9.5" fill="#525761">Stops the index being down, and skips</text>
+        <text x="714" y="151" font-size="9.5" fill="#525761">every recompile. Works fully offline.</text>
+        <text x="714" y="175" font-size="9.5" fill="#dc2626" font-weight="700">Wheels are OS + arch specific —</text>
+        <text x="714" y="190" font-size="9.5" fill="#dc2626" font-weight="700">the bundle is not portable.</text>
+
+        <!-- rising steps -->
+        <path d="M330 176 L358 176" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <path d="M668 151 L696 151" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="20" y="26" font-size="9.5" letter-spacing="1.6" fill="#94a3b8">STRONGER GUARANTEE, MORE WORK →</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WORTH MEMORIZING ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">python -m pip</span><span class="v">never bare <code>pip</code> — it may target a different interpreter</span></div>
+    <div><span class="k">~=3.1.2 ≠ ~=3.1</span><span class="v">the first allows 3.1.x; the second allows all of 3.x</span></div>
+    <div><span class="k">-r vs -c</span><span class="v"><code>-r</code> installs things; <code>-c</code> only caps them</span></div>
+    <div><span class="k">freeze ≠ lock</span><span class="v">no hashes, no markers, no platform info. use <code>pip lock</code></span></div>
+    <div><span class="k">-U doesn't cascade</span><span class="v">dependencies stay put unless they're too old to satisfy</span></div>
+    <div><span class="k">uninstall ≠ clean</span><span class="v">dependencies are left behind as orphans, forever</span></div>
+    <div><span class="k">externally-managed</span><span class="v">make a venv. <code>--break-system-packages</code> is not the fix</span></div>
+    <div><span class="k">pip search is dead</span><span class="v">PyPI removed the API — use <code>pip index versions</code></span></div>
+    <div><span class="k">quote your specs</span><span class="v">the shell eats <code>&lt;</code> <code>&gt;</code> and <code>;</code> before pip sees them</span></div>
+    <div><span class="k">many downloads</span><span class="v">that's backtracking, not a bug — add a lower bound</span></div>
+    <div><span class="k">pip check</span><span class="v">the only command that tells you the env is self-consistent</span></div>
+    <div><span class="k">not a workflow tool</span><span class="v">pip installs; it doesn't manage your project. that's uv/poetry/pdm</span></div>
+  </div>
+</section>
+
+<footer>
+  pip cheat sheet · synthesized from the official pip documentation (pip.pypa.io — CLI reference, Dependency Resolution, Caching, Repeatable Installs, Requirement Specifiers) and the packaging standards it implements: PEP 440 (versions), PEP 508 (requirements), PEP 668 (externally-managed), PEP 735 (dependency groups), PEP 751 (<code>pylock.toml</code>).<br>
+  Commands shown for pip ≈ 25.x–26.x · <code>pip lock</code> and <code>pylock.toml</code> are experimental · <code>pip search</code> is permanently disabled against PyPI.
+</footer>
+
+</body>
+</html>

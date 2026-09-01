@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLflow Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --track:#2563eb;   --track-bg:#eef3fd;
+    --proj:#d97706;    --proj-bg:#fdf6ec;
+    --model:#059669;   --model-bg:#ecf7f2;
+    --reg:#7c3aed;     --reg-bg:#f4eefd;
+    --serve:#0d9488;   --serve-bg:#e9f7f5;
+    --danger:#dc2626;  --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans);color:var(--ink);background:var(--paper);line-height:1.5;-webkit-font-smoothing:antialiased;}
+
+  /* ── HEADER ── */
+  header{border-bottom:2px solid var(--ink);padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;max-width:1500px;margin:0 auto;}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:700;letter-spacing:-.02em;line-height:1;margin-bottom:.7rem;}
+  h1 .hl{font-family:var(--mono);color:var(--model);}
+  .lede{max-width:64ch;color:#3f444f;font-size:1.02rem;}
+  .sources{font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-top:1rem;line-height:1.7;}
+  .sources b{color:var(--ink);font-weight:500;}
+  .legend{display:flex;flex-wrap:wrap;gap:.5rem .9rem;margin-top:1.2rem;font-family:var(--mono);font-size:.74rem;}
+  .legend span{display:inline-flex;align-items:center;gap:.4rem;}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block;}
+  .dot.track{background:var(--track)} .dot.proj{background:var(--proj)}
+  .dot.model{background:var(--model)} .dot.reg{background:var(--reg)}
+  .dot.serve{background:var(--serve)} .dot.danger{background:var(--danger)}
+
+  /* ── FLOW DIAGRAM WRAPPER ── */
+  .flow-wrap{max-width:1500px;margin:0 auto;padding:2rem clamp(1rem,4vw,3rem) .5rem;}
+  .flow-title{font-family:var(--mono);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;}
+  .flow-svg{width:100%;height:auto;max-width:1120px;display:block;margin:0 auto;}
+  .flow-svg text{font-family:var(--mono);}
+
+  /* ── MAIN CARD GRID ── */
+  main{max-width:1500px;margin:0 auto;padding:1.5rem clamp(1rem,4vw,3rem) 4rem;column-gap:1.4rem;}
+  @media(min-width:760px){main{column-count:2}}
+  @media(min-width:1200px){main{column-count:3}}
+
+  .card{break-inside:avoid;background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:1.4rem;overflow:hidden;box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex;align-items:baseline;gap:.6rem;padding:.85rem 1rem .7rem;border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono);font-size:.78rem;font-weight:700;color:#fff;background:var(--ink);border-radius:5px;padding:.12rem .42rem;letter-spacing:.02em;}
+  .card-title{font-size:.96rem;font-weight:700;letter-spacing:-.01em;}
+  .card-sub{font-size:.75rem;color:var(--muted);margin-left:auto;font-family:var(--mono);}
+
+  ul.cmds{list-style:none;}
+  ul.cmds li{padding:.5rem 1rem;border-bottom:1px solid #f1eee8;border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none;}
+  ul.cmds li.track{border-left-color:var(--track);}
+  ul.cmds li.proj{border-left-color:var(--proj);}
+  ul.cmds li.model{border-left-color:var(--model);}
+  ul.cmds li.reg{border-left-color:var(--reg);}
+  ul.cmds li.serve{border-left-color:var(--serve);}
+  ul.cmds li.danger{border-left-color:var(--danger);background:var(--danger-bg);}
+
+  code.cmd{font-family:var(--mono);font-size:.8rem;font-weight:500;color:var(--ink);display:block;word-break:break-word;}
+  code.cmd .arg{color:var(--reg);font-weight:400;}
+  code.cmd .flag{color:var(--star);}
+  code.cmd .str{color:var(--model);}
+  li.danger code.cmd{color:var(--danger);}
+  .desc{font-size:.78rem;color:#525761;margin-top:.18rem;}
+  .star-badge{color:var(--star);font-size:.7rem;font-weight:700;font-family:var(--mono);margin-left:.35rem;letter-spacing:.03em;}
+  .badge-new{color:var(--reg);font-size:.66rem;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;margin-left:.35rem;}
+  .badge-danger{color:var(--danger);font-size:.66rem;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;margin-left:.35rem;}
+
+  /* ── DIAGRAM SECTION ── */
+  .diagrams{max-width:1500px;margin:0 auto;padding:1rem clamp(1rem,4vw,3rem) 3rem;}
+  .diagrams h2{font-size:1.4rem;font-weight:700;letter-spacing:-.01em;margin-bottom:.3rem;padding-top:1.5rem;border-top:2px solid var(--ink);}
+  .diagrams .sub{color:var(--muted);font-size:.9rem;margin-bottom:1.5rem;}
+  .dg-grid{display:grid;gap:1.2rem;grid-template-columns:1fr;}
+  @media(min-width:640px){.dg-grid{grid-template-columns:1fr 1fr;}}
+  @media(min-width:1100px){.dg-grid.four{grid-template-columns:1fr 1fr 1fr 1fr;}}
+  .dg-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:1rem 1.1rem;}
+  .dg-card h3{font-size:.95rem;font-family:var(--mono);font-weight:700;margin-bottom:.2rem;}
+  .dg-card p{font-size:.78rem;color:var(--muted);margin-bottom:.8rem;}
+  .dg-card svg{width:100%;height:auto;display:block;}
+
+  /* ── CODE SNIPPET GRID ── */
+  .snip-grid{display:grid;gap:1.2rem;grid-template-columns:1fr;}
+  @media(min-width:880px){.snip-grid{grid-template-columns:1fr 1fr;}}
+  .snip{border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden;}
+  .snip h3{font-size:.85rem;font-family:var(--mono);font-weight:700;padding:.7rem 1rem;border-bottom:1px solid var(--line);background:#faf8f4;}
+  .snip pre{font-family:var(--mono);font-size:.73rem;line-height:1.65;padding:.9rem 1.1rem;overflow-x:auto;background:#1a1d24;color:#e8e6e1;margin:0;}
+  .snip pre .c{color:#7d8590;}
+  .snip pre .kw{color:#ff9d7a;}
+  .snip pre .fn{color:#7ee2b8;}
+  .snip pre .st{color:#a5d6ff;}
+  .snip pre .nm{color:#d2a8ff;}
+  .snip pre .cm{color:#6e99c4;}
+
+  /* ── ISSUES TABLE ── */
+  .issues{max-width:1500px;margin:0 auto;padding:0 clamp(1rem,4vw,3rem) .5rem;}
+  .issues table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:.82rem;}
+  .issues th{text-align:left;background:#faf8f4;font-family:var(--mono);font-size:.69rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:.6rem .9rem;border-bottom:2px solid var(--line);}
+  .issues td{padding:.6rem .9rem;border-bottom:1px solid #f1eee8;vertical-align:top;}
+  .issues tr:last-child td{border-bottom:none;}
+  .issues code{font-family:var(--mono);font-size:.76rem;color:var(--reg);}
+
+  /* ── REFS STRIP ── */
+  .refs{max-width:1500px;margin:0 auto;padding:1rem clamp(1rem,4vw,3rem) 4rem;}
+  .refs h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;padding-top:1.5rem;border-top:2px solid var(--ink);}
+  .refs-inner{background:var(--ink);color:#e8e6e1;border-radius:10px;padding:1.2rem 1.4rem;font-family:var(--mono);font-size:.82rem;display:grid;gap:.55rem;grid-template-columns:1fr;}
+  @media(min-width:680px){.refs-inner{grid-template-columns:1fr 1fr;}}
+  .refs-inner div{display:flex;gap:.7rem;align-items:baseline;}
+  .refs-inner .k{color:#fbbf24;white-space:nowrap;font-weight:700;}
+  .refs-inner .v{color:#cbd5e1;}
+
+  footer{max-width:1500px;margin:0 auto;padding:2rem clamp(1rem,4vw,3rem) 3rem;border-top:1px solid var(--line);font-size:.76rem;color:var(--muted);font-family:var(--mono);line-height:1.7;}
+  footer a{color:var(--track);}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ HEADER ═══════════════════ -->
+<header>
+  <div class="eyebrow">Quick Reference · ML Experiment Tracking &amp; Model Lifecycle</div>
+  <h1><span class="hl">MLflow</span> cheat sheet</h1>
+  <p class="lede">MLflow organises ML work around four components: <b>Tracking</b> (log params, metrics, artifacts every run), <b>Projects</b> (package code so any machine reproduces it), <b>Models</b> (a framework-agnostic format), and the <b>Model Registry</b> (version, alias, and promote to production). Learn the map once and the API stops being a list to memorise.</p>
+  <div class="legend">
+    <span><i class="dot track"></i>tracking</span>
+    <span><i class="dot proj"></i>projects / CLI</span>
+    <span><i class="dot model"></i>models / artifacts</span>
+    <span><i class="dot reg"></i>registry</span>
+    <span><i class="dot serve"></i>serving</span>
+    <span><i class="dot danger"></i>destructive</span>
+    <span><span style="color:var(--star);font-weight:700;font-family:var(--mono)">★</span> most common</span>
+  </div>
+  <p class="sources">Synthesised from: <b>mlflow.org/docs/latest/ml</b> · <b>grafdavid.com/cheatsheets/mlflow</b> · <b>github.com/aishwaryaprabhat/MLflow</b></p>
+</header>
+
+<!-- ═══════════════════ MAIN FLOW SVG ═══════════════════ -->
+<section class="flow-wrap">
+  <div class="flow-title">From training code to a served model — the full MLflow pipeline</div>
+  <svg class="flow-svg" viewBox="0 0 1100 290" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="MLflow pipeline: code calls tracking API, which writes to backend and artifact stores, models are registered and promoted through stages, then served.">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="arr-v" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+      </marker>
+    </defs>
+
+    <!-- Box 1: Your Code -->
+    <rect x="18" y="25" width="175" height="100" rx="12" fill="#eef3fd" stroke="#2563eb" stroke-width="2"/>
+    <text x="105" y="55" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">Your Code</text>
+    <text x="105" y="74" text-anchor="middle" font-size="10" fill="#2563eb">mlflow.set_experiment()</text>
+    <text x="105" y="91" text-anchor="middle" font-size="10" fill="#2563eb">mlflow.start_run()</text>
+    <text x="105" y="108" text-anchor="middle" font-size="10" fill="#2563eb">log_param / log_metric</text>
+    <text x="105" y="8"  text-anchor="middle" font-size="9" letter-spacing="2" fill="#94a3b8">YOUR MACHINE</text>
+
+    <!-- Arrow: Code → Tracking -->
+    <line x1="193" y1="75" x2="258" y2="75" stroke="#1a1d24" stroke-width="2" marker-end="url(#arr)"/>
+    <text x="225" y="68" text-anchor="middle" font-size="10" font-weight="600" fill="#2563eb">log calls</text>
+
+    <!-- Box 2: Tracking Server -->
+    <rect x="260" y="25" width="195" height="100" rx="12" fill="#eef3fd" stroke="#2563eb" stroke-width="2"/>
+    <text x="357" y="55" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">Tracking Server</text>
+    <text x="357" y="74" text-anchor="middle" font-size="10" fill="#2563eb">REST API (Python/REST/R/Java)</text>
+    <text x="357" y="91" text-anchor="middle" font-size="10" fill="#2563eb">local mlruns/ or remote</text>
+    <text x="357" y="108" text-anchor="middle" font-size="10" fill="#2563eb">mlflow.set_tracking_uri()</text>
+
+    <!-- Arrow: Tracking → Backend Store (upper) -->
+    <line x1="455" y1="57" x2="530" y2="40" stroke="#059669" stroke-width="1.8" marker-end="url(#arr)"/>
+    <!-- Arrow: Tracking → Artifact Store (lower) -->
+    <line x1="455" y1="93" x2="530" y2="108" stroke="#059669" stroke-width="1.8" marker-end="url(#arr)"/>
+
+    <!-- Box 3a: Backend Store -->
+    <rect x="532" y="12" width="178" height="58" rx="10" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <text x="621" y="37" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">Backend Store</text>
+    <text x="621" y="53" text-anchor="middle" font-size="9.5" fill="#059669">params · metrics · tags · file/SQL</text>
+
+    <!-- Box 3b: Artifact Store -->
+    <rect x="532" y="88" width="178" height="58" rx="10" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <text x="621" y="113" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">Artifact Store</text>
+    <text x="621" y="129" text-anchor="middle" font-size="9.5" fill="#059669">models · plots · files · S3/GCS/Azure</text>
+
+    <!-- Arrow: Artifact Store → Registry -->
+    <line x1="710" y1="75" x2="773" y2="75" stroke="#1a1d24" stroke-width="2" marker-end="url(#arr)"/>
+    <text x="741" y="67" text-anchor="middle" font-size="10" font-weight="600" fill="#7c3aed">register</text>
+
+    <!-- Box 4: Model Registry -->
+    <rect x="775" y="25" width="195" height="100" rx="12" fill="#f4eefd" stroke="#7c3aed" stroke-width="2"/>
+    <text x="872" y="55" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">Model Registry</text>
+    <text x="872" y="74" text-anchor="middle" font-size="10" fill="#7c3aed">versions + aliases (@champion)</text>
+    <text x="872" y="91" text-anchor="middle" font-size="10" fill="#7c3aed">stages: None→Staging→Prod</text>
+    <text x="872" y="108" text-anchor="middle" font-size="10" fill="#7c3aed">mlflow.register_model()</text>
+    <text x="872" y="8" text-anchor="middle" font-size="9" letter-spacing="2" fill="#7c3aed">SHARED SERVER</text>
+
+    <!-- Arrow: Registry → Serving -->
+    <line x1="970" y1="75" x2="1033" y2="75" stroke="#1a1d24" stroke-width="2" marker-end="url(#arr)"/>
+    <text x="1001" y="67" text-anchor="middle" font-size="10" font-weight="600" fill="#0d9488">deploy</text>
+
+    <!-- Box 5: Serving -->
+    <rect x="1035" y="38" width="55" height="74" rx="10" fill="#e9f7f5" stroke="#0d9488" stroke-width="2"/>
+    <text x="1062" y="72" text-anchor="middle" font-size="10" font-weight="700" fill="#1a1d24">Serve</text>
+    <text x="1062" y="86" text-anchor="middle" font-size="9" fill="#0d9488">REST</text>
+    <text x="1062" y="100" text-anchor="middle" font-size="9" fill="#0d9488">batch</text>
+
+    <!-- ─── STAGE TRANSITION ROW ─── -->
+    <text x="18" y="167" font-size="9" letter-spacing="2" fill="#94a3b8">REGISTRY STAGE LIFECYCLE</text>
+    <g font-family="JetBrains Mono, monospace" font-size="11.5" text-anchor="middle">
+      <rect x="18"  y="175" width="150" height="50" rx="9" fill="#f1f3f6" stroke="#64748b" stroke-width="1.8"/>
+      <text x="93"  y="205" fill="#1a1d24" font-weight="700">None</text>
+      <line x1="168" y1="200" x2="216" y2="200" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#arr)"/>
+
+      <rect x="218" y="175" width="160" height="50" rx="9" fill="#fdf6ec" stroke="#d97706" stroke-width="1.8"/>
+      <text x="298" y="205" fill="#1a1d24" font-weight="700">Staging</text>
+      <line x1="378" y1="200" x2="426" y2="200" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#arr)"/>
+
+      <rect x="428" y="175" width="170" height="50" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="1.8"/>
+      <text x="513" y="205" fill="#1a1d24" font-weight="700">Production</text>
+      <line x1="598" y1="200" x2="646" y2="200" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#arr)"/>
+
+      <rect x="648" y="175" width="155" height="50" rx="9" fill="#f1f3f6" stroke="#64748b" stroke-width="1.8"/>
+      <text x="725" y="205" fill="#1a1d24" font-weight="700">Archived</text>
+
+      <rect x="843" y="175" width="195" height="50" rx="9" fill="#e9f7f5" stroke="#0d9488" stroke-width="1.8"/>
+      <text x="940" y="200" fill="#0d9488" font-weight="700">@champion alias</text>
+      <text x="940" y="216" font-size="9" fill="#0d9488">(recommended over stages)</text>
+    </g>
+    <line x1="513" y1="175" x2="513" y2="148" stroke="#059669" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+    <text x="540" y="162" font-size="9.5" fill="#0d9488">mlflow models serve</text>
+
+    <text x="18" y="257" font-size="9.5" fill="#6b7280">transition_model_version_stage(name, version, stage="Production")  ·  MLflow 2.9+: aliases (@champion) preferred over stage strings</text>
+    <text x="18" y="276" font-size="9.5" fill="#6b7280">client.set_registered_model_alias("MyModel", "champion", version=3)  →  load via  models:/MyModel@champion</text>
+  </svg>
+</section>
+
+<!-- ═══════════════════ CARD GRID ═══════════════════ -->
+<main>
+
+<!-- 01 INSTALL -->
+<article class="card">
+  <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; Start</span><span class="card-sub">pip + first UI</span></div>
+  <ul class="cmds">
+    <li class="proj"><code class="cmd">pip install mlflow</code><span class="star-badge">★</span>
+      <div class="desc">Core package — tracking, projects, models, registry, serving.</div></li>
+    <li class="proj"><code class="cmd">pip install <span class="str">mlflow[extras]</span></code>
+      <div class="desc">Adds sklearn, pytorch, tensorflow flavor extras.</div></li>
+    <li class="proj"><code class="cmd">mlflow ui</code><span class="star-badge">★</span>
+      <div class="desc">Launch local web UI at <span class="arg">localhost:5000</span>; reads local <span class="arg">mlruns/</span>.</div></li>
+    <li class="proj"><code class="cmd">mlflow ui <span class="flag">--port</span> <span class="arg">5001</span> <span class="flag">--host</span> <span class="arg">0.0.0.0</span></code>
+      <div class="desc">Custom port or expose UI to LAN.</div></li>
+    <li class="proj"><code class="cmd">mlflow doctor</code>
+      <div class="desc">Diagnose a broken install — prints env &amp; version info.</div></li>
+  </ul>
+</article>
+
+<!-- 02 EXPERIMENTS & RUNS -->
+<article class="card">
+  <div class="card-head"><span class="card-num">02</span><span class="card-title">Experiments &amp; Runs</span><span class="card-sub">the lifecycle</span></div>
+  <ul class="cmds">
+    <li class="track"><code class="cmd">mlflow.set_experiment(<span class="str">"my-exp"</span>)</code><span class="star-badge">★</span>
+      <div class="desc">Create or select an experiment that groups related runs.</div></li>
+    <li class="track"><code class="cmd">with mlflow.start_run():</code><span class="star-badge">★</span>
+      <div class="desc">Open a run context manager — auto-finalises on exit.</div></li>
+    <li class="track"><code class="cmd">mlflow.start_run(run_name=<span class="arg">"exp-1"</span>)</code>
+      <div class="desc">Attach a human-readable label to the run.</div></li>
+    <li class="track"><code class="cmd">mlflow.start_run(run_id=<span class="arg">id</span>)</code>
+      <div class="desc">Re-open an existing run to append data later.</div></li>
+    <li class="track"><code class="cmd">mlflow.start_run(nested=<span class="arg">True</span>)</code><span class="star-badge">★</span>
+      <div class="desc">Create a child run under the active parent — ideal for sweeps.</div></li>
+    <li class="track"><code class="cmd">mlflow.active_run()</code>
+      <div class="desc">Get the currently open run object (returns <span class="arg">None</span> if none).</div></li>
+    <li class="track"><code class="cmd">mlflow.end_run()</code>
+      <div class="desc">Manually close a run opened without <span class="arg">with</span>.</div></li>
+  </ul>
+</article>
+
+<!-- 03 LOG PARAMS, METRICS, TAGS -->
+<article class="card">
+  <div class="card-head"><span class="card-num">03</span><span class="card-title">Log Params, Metrics &amp; Tags</span><span class="card-sub">what gets compared</span></div>
+  <ul class="cmds">
+    <li class="track"><code class="cmd">mlflow.log_param(<span class="str">"lr"</span>, 0.01)</code><span class="star-badge">★</span>
+      <div class="desc">Log one hyperparameter — immutable once set per run.</div></li>
+    <li class="track"><code class="cmd">mlflow.log_params({<span class="str">"lr"</span>: 0.01, <span class="str">"bs"</span>: 32})</code><span class="star-badge">★</span>
+      <div class="desc">Bulk-log a dict of params in a single call.</div></li>
+    <li class="track"><code class="cmd">mlflow.log_metric(<span class="str">"acc"</span>, 0.95)</code><span class="star-badge">★</span>
+      <div class="desc">Log a numeric scalar; can be called multiple times.</div></li>
+    <li class="track"><code class="cmd">mlflow.log_metric(<span class="str">"loss"</span>, v, step=epoch)</code><span class="star-badge">★</span>
+      <div class="desc">Add <span class="arg">step</span> to produce a time-series curve in the UI.</div></li>
+    <li class="track"><code class="cmd">mlflow.log_metrics({...}, step=e)</code>
+      <div class="desc">Bulk-log several metrics at once — fewer API round-trips.</div></li>
+    <li class="track"><code class="cmd">mlflow.set_tag(<span class="str">"team"</span>, <span class="str">"nlp"</span>)</code>
+      <div class="desc">Free-form string metadata; filterable in UI and <span class="arg">search_runs</span>.</div></li>
+    <li class="track"><code class="cmd">mlflow.set_tags({...})</code>
+      <div class="desc">Bulk tags in one call.</div></li>
+    <li class="track"><code class="cmd">mlflow.log_input(dataset, context=<span class="str">"train"</span>)</code>
+      <div class="desc">Record dataset provenance for a run (MLflow Dataset API).</div></li>
+  </ul>
+</article>
+
+<!-- 04 ARTIFACTS & MODELS -->
+<article class="card">
+  <div class="card-head"><span class="card-num">04</span><span class="card-title">Artifacts &amp; Models</span><span class="card-sub">files &amp; the model itself</span></div>
+  <ul class="cmds">
+    <li class="model"><code class="cmd">mlflow.log_artifact(<span class="str">"plot.png"</span>)</code><span class="star-badge">★</span>
+      <div class="desc">Upload any file — plot, CSV, config, checkpoint.</div></li>
+    <li class="model"><code class="cmd">mlflow.log_artifacts(<span class="str">"./out/"</span>)</code>
+      <div class="desc">Upload a whole directory tree to the artifact store.</div></li>
+    <li class="model"><code class="cmd">mlflow.<span class="arg">&lt;flavor&gt;</span>.log_model(model, <span class="str">"model"</span>)</code><span class="star-badge">★</span>
+      <div class="desc">Save model using a flavor — <span class="arg">sklearn</span>, <span class="arg">pytorch</span>, <span class="arg">transformers</span>, <span class="arg">tensorflow</span>, <span class="arg">xgboost</span>…</div></li>
+    <li class="model"><code class="cmd">mlflow.pyfunc.log_model(<span class="str">"model"</span>, python_model=…)</code>
+      <div class="desc">Log a custom Python model class implementing <span class="arg">predict()</span>.</div></li>
+    <li class="model"><code class="cmd">mlflow.pyfunc.load_model(uri)</code><span class="star-badge">★</span>
+      <div class="desc">Load any flavor back as a generic Python function.</div></li>
+    <li class="model"><code class="cmd">mlflow.artifacts.download_artifacts(uri)</code>
+      <div class="desc">Download artifacts from a run or model to local disk.</div></li>
+  </ul>
+</article>
+
+<!-- 05 AUTOLOGGING -->
+<article class="card">
+  <div class="card-head"><span class="card-num">05</span><span class="card-title">Autologging</span><span class="card-sub">zero-config logging</span></div>
+  <ul class="cmds">
+    <li class="track"><code class="cmd">mlflow.<span class="arg">&lt;flavor&gt;</span>.autolog()</code><span class="star-badge">★</span>
+      <div class="desc">Auto-capture params, metrics, model — call <em>before</em> <span class="arg">start_run()</span>.</div></li>
+    <li class="track"><code class="cmd">mlflow.autolog()</code><span class="star-badge">★</span>
+      <div class="desc">Global autolog — covers all supported frameworks at once.</div></li>
+    <li class="track"><code class="cmd">mlflow.sklearn.autolog()</code>
+      <div class="desc">Scikit-learn: fits, scores, feature importance, model.</div></li>
+    <li class="track"><code class="cmd">mlflow.pytorch.autolog()</code>
+      <div class="desc">PyTorch / Lightning: loss, optimizer, checkpoints per epoch.</div></li>
+    <li class="track"><code class="cmd">mlflow.tensorflow.autolog()</code>
+      <div class="desc">Keras/TF: all callback metrics, model architecture.</div></li>
+    <li class="track"><code class="cmd">mlflow.autolog(log_models=<span class="arg">False</span>)</code>
+      <div class="desc">Skip model logging to cut artifact storage costs.</div></li>
+  </ul>
+</article>
+
+<!-- 06 QUERY & COMPARE -->
+<article class="card">
+  <div class="card-head"><span class="card-num">06</span><span class="card-title">Query &amp; Compare Runs</span><span class="card-sub">search history</span></div>
+  <ul class="cmds">
+    <li class="track"><code class="cmd">mlflow.get_run(run_id)</code>
+      <div class="desc">Fetch one run object — access <span class="arg">.data.params</span>, <span class="arg">.data.metrics</span>.</div></li>
+    <li class="track"><code class="cmd">mlflow.search_runs(experiment_ids=[<span class="str">"1"</span>])</code><span class="star-badge">★</span>
+      <div class="desc">Returns a pandas DataFrame; combine with filter / order.</div></li>
+    <li class="track"><code class="cmd">filter_string=<span class="str">"metrics.acc > 0.9"</span></code><span class="star-badge">★</span>
+      <div class="desc">SQL-like syntax: prefix <span class="arg">metrics.</span>, <span class="arg">params.</span>, <span class="arg">tags.</span>, <span class="arg">attributes.</span></div></li>
+    <li class="track"><code class="cmd">order_by=[<span class="str">"metrics.acc DESC"</span>]</code>
+      <div class="desc">Sort results — combine with <span class="arg">max_results=1</span> to find best run.</div></li>
+    <li class="track"><code class="cmd">mlflow.search_logged_models(...)</code><span class="badge-new">v3</span>
+      <div class="desc">Find model checkpoints across experiments by metric/param (MLflow 3+).</div></li>
+    <li class="track"><code class="cmd">mlflow.search_experiments()</code>
+      <div class="desc">List all experiments on the tracking server.</div></li>
+    <li class="danger"><code class="cmd">mlflow.delete_run(run_id)</code><span class="badge-danger">soft</span>
+      <div class="desc">Marks deleted; run is recoverable until <span class="arg">mlflow gc</span> runs.</div></li>
+  </ul>
+</article>
+
+<!-- 07 PROJECTS -->
+<article class="card">
+  <div class="card-head"><span class="card-num">07</span><span class="card-title">MLflow Projects</span><span class="card-sub">reproducible packaging</span></div>
+  <ul class="cmds">
+    <li class="proj"><code class="cmd">MLproject</code><span class="star-badge">★</span>
+      <div class="desc">YAML entry-point file: name, env spec, params, run command.</div></li>
+    <li class="proj"><code class="cmd">conda.yaml <span class="flag">/</span> python_env.yaml</code>
+      <div class="desc">Pin the exact environment the project runs in.</div></li>
+    <li class="proj"><code class="cmd">mlflow run <span class="arg">.</span></code><span class="star-badge">★</span>
+      <div class="desc">Execute the project locally from current directory.</div></li>
+    <li class="proj"><code class="cmd">mlflow run <span class="arg">&lt;git-url&gt;</span></code>
+      <div class="desc">Run directly from a remote Git repository — full reproducibility.</div></li>
+    <li class="proj"><code class="cmd">mlflow run . <span class="flag">-P</span> <span class="arg">lr=0.01</span></code>
+      <div class="desc">Pass entry-point parameters from the CLI.</div></li>
+    <li class="proj"><code class="cmd">mlflow run <span class="arg">.</span> <span class="flag">--env-manager=local</span></code>
+      <div class="desc">Skip env creation; use the active interpreter.</div></li>
+    <li class="proj"><code class="cmd">mlflow.run(uri, parameters={...})</code>
+      <div class="desc">Programmatic equivalent of the CLI run command.</div></li>
+  </ul>
+</article>
+
+<!-- 08 MODEL REGISTRY -->
+<article class="card">
+  <div class="card-head"><span class="card-num">08</span><span class="card-title">Model Registry</span><span class="card-sub">version &amp; promote</span></div>
+  <ul class="cmds">
+    <li class="reg"><code class="cmd">mlflow.<span class="arg">&lt;flav&gt;</span>.log_model(m, <span class="str">"model"</span>,<br>&nbsp;&nbsp;registered_model_name=<span class="str">"Iris"</span>)</code><span class="star-badge">★</span>
+      <div class="desc">Log + register in one step. Version auto-increments.</div></li>
+    <li class="reg"><code class="cmd">mlflow.register_model(<span class="str">"runs:/id/model"</span>, <span class="str">"Iris"</span>)</code><span class="star-badge">★</span>
+      <div class="desc">Register a previously-logged model by its <span class="arg">runs:/</span> URI.</div></li>
+    <li class="reg"><code class="cmd">client.set_registered_model_alias(<br>&nbsp;&nbsp;<span class="str">"Iris"</span>, <span class="str">"champion"</span>, version=3)</code><span class="star-badge">★</span>
+      <div class="desc">Point a named alias at a version — preferred over stages.</div></li>
+    <li class="reg"><code class="cmd">client.transition_model_version_stage(<br>&nbsp;&nbsp;name=<span class="str">"Iris"</span>, version=2, stage=<span class="str">"Production"</span>)</code>
+      <div class="desc">Stage-based promotion (still works, but aliases are current API).</div></li>
+    <li class="reg"><code class="cmd">client.set_model_version_tag(<span class="str">"Iris"</span>, 2, <span class="str">"status"</span>, <span class="str">"ok"</span>)</code>
+      <div class="desc">Attach a key-value tag to a specific version.</div></li>
+    <li class="reg"><code class="cmd">for m in client.search_registered_models():</code>
+      <div class="desc">Iterate over all registered models and their versions.</div></li>
+    <li class="danger"><code class="cmd">client.delete_model_version(<span class="str">"Iris"</span>, 1)</code><span class="badge-danger">permanent</span>
+      <div class="desc">Permanently removes a version — cannot be undone.</div></li>
+  </ul>
+</article>
+
+<!-- 09 SERVING -->
+<article class="card">
+  <div class="card-head"><span class="card-num">09</span><span class="card-title">Serving</span><span class="card-sub">local · Docker · cloud</span></div>
+  <ul class="cmds">
+    <li class="serve"><code class="cmd">mlflow models serve <span class="flag">-m</span> <span class="arg">models:/Iris/Production</span></code><span class="star-badge">★</span>
+      <div class="desc">Spin up a local REST endpoint — default port 5000.</div></li>
+    <li class="serve"><code class="cmd">mlflow models serve <span class="flag">-m</span> <span class="arg">runs:/&lt;id&gt;/model</span> <span class="flag">-p</span> <span class="arg">1234</span></code>
+      <div class="desc">Serve directly from a run; custom port.</div></li>
+    <li class="serve"><code class="cmd">POST /invocations<br>  Body: {<span class="str">"instances"</span>: [[5.1, 3.5, 1.4, 0.2]]}</code><span class="star-badge">★</span>
+      <div class="desc">Score via the REST endpoint after serving.</div></li>
+    <li class="serve"><code class="cmd">mlflow models build-docker <span class="flag">-m</span> <span class="arg">x</span></code>
+      <div class="desc">Package the model as a self-contained Docker image.</div></li>
+    <li class="serve"><code class="cmd">mlflow deployments create <span class="flag">-t</span> <span class="arg">sagemaker</span></code>
+      <div class="desc">Deploy to SageMaker (or Azure ML, Kubernetes) via plugin.</div></li>
+    <li class="serve"><code class="cmd">mlflow.pyfunc.spark_udf(spark, uri)</code>
+      <div class="desc">Wrap a model as a Spark UDF for scalable batch scoring.</div></li>
+  </ul>
+</article>
+
+<!-- 10 CLI -->
+<article class="card">
+  <div class="card-head"><span class="card-num">10</span><span class="card-title">CLI Quick Commands</span><span class="card-sub">no Python needed</span></div>
+  <ul class="cmds">
+    <li class="proj"><code class="cmd">mlflow server <span class="flag">--backend-store-uri</span> <span class="arg">sqlite:///mlflow.db</span></code><span class="star-badge">★</span>
+      <div class="desc">Full tracking server (UI + API) backed by a database.</div></li>
+    <li class="proj"><code class="cmd">mlflow experiments list</code>
+      <div class="desc">List all experiments on the tracking server.</div></li>
+    <li class="proj"><code class="cmd">mlflow runs list <span class="flag">--experiment-id</span> <span class="arg">1</span></code>
+      <div class="desc">Show runs for one experiment from the CLI.</div></li>
+    <li class="proj"><code class="cmd">mlflow artifacts download <span class="flag">-u</span> <span class="arg">runs:/&lt;id&gt;/model</span></code>
+      <div class="desc">Pull artifacts to a local directory.</div></li>
+    <li class="proj"><code class="cmd">mlflow gc</code>
+      <div class="desc">Permanently purge soft-deleted runs from the store.</div></li>
+  </ul>
+</article>
+
+<!-- 11 CONFIG -->
+<article class="card">
+  <div class="card-head"><span class="card-num">11</span><span class="card-title">Configuration</span><span class="card-sub">where things live</span></div>
+  <ul class="cmds">
+    <li class="track"><code class="cmd">mlflow.set_tracking_uri(<span class="str">"file:./mlruns"</span>)</code><span class="star-badge">★</span>
+      <div class="desc">Default local store — zero setup needed.</div></li>
+    <li class="track"><code class="cmd">mlflow.set_tracking_uri(<span class="str">"http://host:5000"</span>)</code><span class="star-badge">★</span>
+      <div class="desc">Point at a shared remote tracking server.</div></li>
+    <li class="track"><code class="cmd">MLFLOW_TRACKING_URI=http://…</code>
+      <div class="desc">Env-var alternative to <span class="arg">set_tracking_uri()</span> — any language.</div></li>
+    <li class="track"><code class="cmd">MLFLOW_EXPERIMENT_NAME=my-exp</code>
+      <div class="desc">Pin the default experiment without code changes.</div></li>
+    <li class="track"><code class="cmd"><span class="flag">--backend-store-uri</span> <span class="arg">postgresql://…</span></code>
+      <div class="desc">Production: persist runs in a SQL database.</div></li>
+    <li class="track"><code class="cmd"><span class="flag">--default-artifact-root</span> <span class="arg">s3://bucket/path</span></code>
+      <div class="desc">Redirect artifacts to S3, GCS, Azure Blob, or HDFS.</div></li>
+  </ul>
+</article>
+
+<!-- ★ MODEL URI SCHEMES -->
+<article class="card">
+  <div class="card-head"><span class="card-num">★</span><span class="card-title">Model URI Schemes</span><span class="card-sub">anywhere you load or serve</span></div>
+  <ul class="cmds">
+    <li class="track"><code class="cmd">runs:/<span class="arg">&lt;run_id&gt;</span>/model</code>
+      <div class="desc">Artifact logged inside one specific training run.</div></li>
+    <li class="reg"><code class="cmd">models:/<span class="arg">&lt;name&gt;</span>/<span class="arg">&lt;version&gt;</span></code>
+      <div class="desc">Exact registered version number.</div></li>
+    <li class="reg"><code class="cmd">models:/<span class="arg">&lt;name&gt;</span>/Production</code>
+      <div class="desc">Latest version in a stage (legacy, still works).</div></li>
+    <li class="reg"><code class="cmd">models:/<span class="arg">&lt;name&gt;</span>@<span class="arg">&lt;alias&gt;</span></code><span class="star-badge">★</span>
+      <div class="desc">Version pointed to by alias — e.g. <span class="arg">@champion</span>. Preferred.</div></li>
+    <li class="reg"><code class="cmd">models:/<span class="arg">&lt;model_id&gt;</span></code><span class="badge-new">v3</span>
+      <div class="desc">MLflow 3 direct model ID — no run path needed.</div></li>
+  </ul>
+</article>
+
+</main>
+
+<!-- ═══════════════════ FOUR COMPONENTS DIAGRAM ═══════════════════ -->
+<section class="diagrams">
+  <h2>The four MLflow components</h2>
+  <p class="sub">Same project, four jobs. Tracking and Models are used on every run; Projects kick in for reproducibility; the Registry manages production promotion.</p>
+  <div class="dg-grid four">
+
+    <div class="dg-card">
+      <h3 style="color:var(--track)">① Tracking</h3>
+      <p>Logs every run's params, metrics, tags, and artifact files so experiments stay comparable and reproducible.</p>
+      <svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker></defs>
+        <rect x="8" y="20" width="90" height="80" rx="9" fill="#eef3fd" stroke="#2563eb" stroke-width="1.8"/>
+        <text x="53" y="50" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10.5" font-weight="700" fill="#1a1d24">Run</text>
+        <text x="53" y="67" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#2563eb">params</text>
+        <text x="53" y="81" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#2563eb">metrics</text>
+        <text x="53" y="95" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#2563eb">artifacts</text>
+        <line x1="98" y1="60" x2="138" y2="60" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#a1)"/>
+        <rect x="140" y="30" width="88" height="60" rx="8" fill="#fff" stroke="#2563eb" stroke-width="1.4" stroke-dasharray="4 3"/>
+        <text x="184" y="57" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" fill="#2563eb">UI +</text>
+        <text x="184" y="71" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" fill="#2563eb">search_runs()</text>
+      </svg>
+    </div>
+
+    <div class="dg-card">
+      <h3 style="color:var(--proj)">② Projects</h3>
+      <p>An MLproject file + env spec packages your code so anyone — or any machine — can reproduce a run exactly.</p>
+      <svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker></defs>
+        <rect x="8" y="20" width="100" height="80" rx="9" fill="#fdf6ec" stroke="#d97706" stroke-width="1.8"/>
+        <text x="58" y="48" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" font-weight="700" fill="#1a1d24">MLproject</text>
+        <text x="58" y="65" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#d97706">conda.yaml</text>
+        <text x="58" y="81" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#d97706">train.py</text>
+        <text x="58" y="97" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#d97706">entry_points</text>
+        <line x1="108" y1="60" x2="146" y2="60" stroke="#1a1d24" stroke-width="1.8" marker-end="url(#a2)"/>
+        <text x="188" y="52" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#1a1d24">mlflow run</text>
+        <text x="188" y="67" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#d97706">any machine</text>
+        <text x="188" y="82" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#d97706">any git URL</text>
+      </svg>
+    </div>
+
+    <div class="dg-card">
+      <h3 style="color:var(--model)">③ Models</h3>
+      <p>A standard packaging format: one saved model, loadable either as its native flavor or as a generic <span style="font-family:var(--mono);font-size:.8em">pyfunc</span>.</p>
+      <svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker></defs>
+        <rect x="80" y="10" width="80" height="38" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.8"/>
+        <text x="120" y="33" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" font-weight="700" fill="#1a1d24">model/</text>
+        <line x1="120" y1="48" x2="55"  y2="78" stroke="#059669" stroke-width="1.5" marker-end="url(#a3)"/>
+        <line x1="120" y1="48" x2="185" y2="78" stroke="#059669" stroke-width="1.5" marker-end="url(#a3)"/>
+        <rect x="10"  y="80" width="90" height="32" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/>
+        <text x="55" y="95" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#1a1d24">sklearn / pytorch</text>
+        <text x="55" y="107" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#059669">native flavor</text>
+        <rect x="140" y="80" width="90" height="32" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/>
+        <text x="185" y="95" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#1a1d24">pyfunc.predict()</text>
+        <text x="185" y="107" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#059669">generic loader</text>
+      </svg>
+    </div>
+
+    <div class="dg-card">
+      <h3 style="color:var(--reg)">④ Model Registry</h3>
+      <p>Centrally versions a named model and tracks which version carries each alias/stage on the road to production.</p>
+      <svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker></defs>
+        <rect x="5"   y="36" width="58" height="48" rx="7" fill="#f1f3f6" stroke="#64748b" stroke-width="1.5"/>
+        <text x="34"  y="58" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" fill="#1a1d24" font-weight="700">v1</text>
+        <text x="34"  y="73" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8" fill="#64748b">None</text>
+        <line x1="63" y1="60" x2="89"  y2="60" stroke="#1a1d24" stroke-width="1.5" marker-end="url(#a4)"/>
+        <rect x="91"  y="36" width="58" height="48" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/>
+        <text x="120" y="58" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" fill="#1a1d24" font-weight="700">v2</text>
+        <text x="120" y="73" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8" fill="#d97706">Staging</text>
+        <line x1="149" y1="60" x2="175" y2="60" stroke="#1a1d24" stroke-width="1.5" marker-end="url(#a4)"/>
+        <rect x="177" y="36" width="58" height="48" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+        <text x="206" y="58" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" fill="#1a1d24" font-weight="700">v3</text>
+        <text x="206" y="73" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8" fill="#059669">@champion</text>
+        <!-- alias label -->
+        <rect x="148" y="5" width="87" height="22" rx="5" fill="#f4eefd" stroke="#7c3aed" stroke-width="1.2"/>
+        <text x="191" y="19" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#7c3aed">models:/Iris@champion</text>
+        <line x1="206" y1="36" x2="206" y2="27" stroke="#7c3aed" stroke-width="1.2" marker-end="url(#a4)"/>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════ CODE SNIPPETS ═══════════════════ -->
+<section class="diagrams">
+  <h2>Two ways to log a run</h2>
+  <p class="sub">Manual logging gives full control over every captured value; autologging is one line and handles the common case for most popular frameworks with no extra code.</p>
+  <div class="snip-grid">
+
+    <div class="snip">
+      <h3>Manual — full control</h3>
+      <pre><span class="kw">import</span> mlflow
+
+mlflow.set_experiment(<span class="st">"text-clf"</span>)
+
+<span class="kw">with</span> mlflow.start_run():
+    <span class="c"># 1. Log hyperparameters once</span>
+    mlflow.log_params({<span class="st">"lr"</span>: <span class="nm">0.01</span>, <span class="st">"epochs"</span>: <span class="nm">10</span>})
+
+    <span class="c"># 2. Log metrics per step</span>
+    <span class="kw">for</span> epoch <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">10</span>):
+        loss = train(epoch)
+        mlflow.log_metric(<span class="st">"loss"</span>, loss, step=epoch)
+
+    <span class="c"># 3. Save the trained model</span>
+    mlflow.sklearn.log_model(model, <span class="st">"model"</span>)
+
+    <span class="c"># 4. Optional: tag for filtering</span>
+    mlflow.set_tag(<span class="st">"framework"</span>, <span class="st">"sklearn"</span>)</pre>
+    </div>
+
+    <div class="snip">
+      <h3>Autolog — one line</h3>
+      <pre><span class="kw">import</span> mlflow.sklearn
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> RandomForestClassifier
+
+<span class="c"># Patches sklearn BEFORE training starts</span>
+mlflow.sklearn.autolog()
+
+<span class="kw">with</span> mlflow.start_run():
+    model = RandomForestClassifier(n_estimators=<span class="nm">100</span>)
+    model.fit(X_train, y_train)
+    <span class="c"># ↳ params, metrics, model all captured automatically</span>
+
+<span class="cm"># ── Nested runs for sweeps ──────────────────────</span>
+<span class="kw">with</span> mlflow.start_run(run_name=<span class="st">"sweep"</span>):
+    <span class="kw">for</span> lr <span class="kw">in</span> [<span class="nm">0.01</span>, <span class="nm">0.001</span>, <span class="nm">0.0001</span>]:
+        <span class="kw">with</span> mlflow.start_run(nested=<span class="fn">True</span>):
+            mlflow.log_param(<span class="st">"lr"</span>, lr)
+            <span class="c"># … train child trial …</span></pre>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════ COMMON ISSUES ═══════════════════ -->
+<section class="diagrams">
+  <h2>Common issues &amp; fixes</h2>
+  <p class="sub">The handful of errors that account for most "MLflow isn't working" moments.</p>
+</section>
+<section class="issues">
+  <table>
+    <thead><tr><th>Symptom</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td><code>No such file or directory: mlruns</code></td><td>Run <code>mlflow ui</code> from the directory containing <code>mlruns/</code>, or set <code>MLFLOW_TRACKING_URI</code> explicitly.</td></tr>
+      <tr><td>Authentication failures (Azure / Databricks)</td><td>Re-check tokens, service-principal permissions, and that the tracking URI matches the workspace endpoint exactly.</td></tr>
+      <tr><td>Logging is very slow in training loops</td><td>Batch metrics with <code>log_metrics({...})</code> and log every N steps rather than every step to reduce API round-trips.</td></tr>
+      <tr><td>Large files silently fail in <code>log_param</code></td><td>Use <code>log_artifact()</code> for files — <code>log_param</code> is for scalar/string values only.</td></tr>
+      <tr><td><code>RestException: Run not found</code></td><td>Double-check experiment ID and run ID — runs are scoped to one experiment and one tracking server.</td></tr>
+      <tr><td>Permission errors on <code>mlruns/</code></td><td>Check filesystem ownership and permissions on the backend store directory or S3 bucket policy.</td></tr>
+      <tr><td><code>autolog</code> captures nothing</td><td>Call <code>mlflow.autolog()</code> or the flavor-specific version <em>before</em> the training call, not inside the loop.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════ WORTH MEMORISING ═══════════════════ -->
+<section class="refs">
+  <h2>Worth memorising</h2>
+  <div class="refs-inner">
+    <div><span class="k">param once</span><span class="v">log_param errors if you set the same key twice in one run</span></div>
+    <div><span class="k">step= for curves</span><span class="v">omit it and only the latest metric value is plotted</span></div>
+    <div><span class="k">alias &gt; stage</span><span class="v">@champion alias (v2.9+) is the preferred replacement for Production stage string</span></div>
+    <div><span class="k">runs:/ vs models:/</span><span class="v">runs:/ ties to one training run; models:/ ties to the registry name</span></div>
+    <div><span class="k">autolog() first</span><span class="v">call before start_run() — it must patch the library before training starts</span></div>
+    <div><span class="k">nested=True</span><span class="v">group all sweep trials under one parent run for clean UI</span></div>
+    <div><span class="k">mlruns/</span><span class="v">default local backend + artifact store; delete it to start fresh</span></div>
+    <div><span class="k">search_runs() → DataFrame</span><span class="v">pipe it into pandas to rank/filter runs programmatically</span></div>
+  </div>
+</section>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer>
+  MLflow cheat sheet · synthesised from the
+  <a href="https://mlflow.org/docs/latest/ml/">official MLflow documentation</a>,
+  <a href="https://grafdavid.com/cheatsheets/mlflow/">grafdavid.com/cheatsheets/mlflow</a>, and
+  <a href="https://github.com/aishwaryaprabhat/MLflow">github.com/aishwaryaprabhat/MLflow</a>.<br>
+  Commands shown for MLflow 2.x / 3.x · registry stages remain supported but aliases are the forward-looking API (MLflow 2.9+).
+</footer>
+
+</body>
+</html>

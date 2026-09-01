@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matplotlib Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b;  --setup-bg:#f1f3f6;
+    --plot:#d97706;   --plot-bg:#fdf6ec;
+    --axes:#059669;   --axes-bg:#ecf7f2;
+    --style:#4f46e5;  --style-bg:#eef0fd;
+    --layout:#7c3aed; --layout-bg:#f5f0fe;
+    --output:#0d9488; --output-bg:#e7f6f4;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .mpl{font-family:var(--mono); color:var(--plot)}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)}  .dot.plot{background:var(--plot)}
+  .dot.axes{background:var(--axes)}    .dot.style{background:var(--style)}
+  .dot.layout{background:var(--layout)}.dot.output{background:var(--output)}
+  .dot.danger{background:var(--danger)}
+  .legend .st{color:var(--star); font-weight:700}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.plot{border-left-color:var(--plot)}
+  ul.cmds li.axes{border-left-color:var(--axes)}
+  ul.cmds li.style{border-left-color:var(--style)}
+  ul.cmds li.layout{border-left-color:var(--layout)}
+  ul.cmds li.output{border-left-color:var(--output)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.81rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .obj{color:var(--layout); font-weight:600}
+  code.cmd .arg{color:var(--style); font-weight:400}
+  code.cmd .kw{color:var(--star)}
+  code.cmd .cm{color:var(--muted); font-weight:400}
+  code.cmd .str{color:var(--axes)}
+  li.danger code.cmd{color:var(--danger)}
+  li.danger code.cmd .obj,li.danger code.cmd .arg,li.danger code.cmd .kw{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f1ea; padding:.03em .28em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-oo{
+    color:var(--layout); font-size:.63rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.04em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem; max-width:70ch}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#f5f0e8; background:#2c313c; padding:.02em .3em; border-radius:3px}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:var(--ink)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · scientific plotting in Python</div>
+  <h1><span class="mpl">matplotlib</span> cheat sheet</h1>
+  <p class="lede">Every plot is a nested set of objects: a <b>Figure</b> is the whole canvas, it holds one or more <b>Axes</b> (each a single plot), each Axes owns an x- and y-<b>Axis</b>, and everything drawn on them &mdash; lines, dots, text &mdash; is an <b>Artist</b>. Learn that hierarchy once and the API stops being a pile of functions to memorize.</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>setup / figure</span>
+    <span><i class="dot plot"></i>plot method</span>
+    <span><i class="dot axes"></i>configure axes</span>
+    <span><i class="dot style"></i>style artists</span>
+    <span><i class="dot layout"></i>layout</span>
+    <span><i class="dot output"></i>save / global</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="st">&#9733;</span> most common</span>
+  </div>
+  <p class="sources"><b>Verified 2026-08-26 against Matplotlib 3.11.1.</b> Distilled &amp; cross-checked across: <b>matplotlib.org/cheatsheets</b> &middot; <b>quick-start guide</b> &middot; <b>Application Interfaces (APIs)</b> &middot; <b>plot_types index</b> &middot; <b>realpython.com</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM : ANATOMY OF A FIGURE ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">Anatomy of a figure &mdash; the objects every command touches</div>
+  <svg class="flow-svg" viewBox="0 0 1120 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Anatomy of a matplotlib figure: a Figure canvas holding an Axes, which contains x and y Axis objects with ticks, a title, axis labels, a legend, a grid, spines, a line and scatter markers.">
+    <defs>
+      <marker id="lead" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/>
+      </marker>
+    </defs>
+
+    <!-- FIGURE (outer canvas) -->
+    <rect x="150" y="40" width="700" height="360" rx="10" fill="#fdfcfa" stroke="#7c3aed" stroke-width="2"/>
+    <text x="160" y="30" font-size="13" font-weight="700" fill="#7c3aed">Figure  fig = plt.figure()</text>
+
+    <!-- AXES (inner plot region) -->
+    <rect x="300" y="90" width="430" height="250" fill="#ffffff" stroke="#059669" stroke-width="2.2"/>
+
+    <!-- grid lines -->
+    <g stroke="#d9d4ca" stroke-width="1" stroke-dasharray="3 3">
+      <line x1="300" y1="152" x2="730" y2="152"/>
+      <line x1="300" y1="215" x2="730" y2="215"/>
+      <line x1="300" y1="278" x2="730" y2="278"/>
+      <line x1="407" y1="90" x2="407" y2="340"/>
+      <line x1="515" y1="90" x2="515" y2="340"/>
+      <line x1="622" y1="90" x2="622" y2="340"/>
+    </g>
+
+    <!-- data: line (amber) -->
+    <polyline points="300,300 370,255 440,270 510,180 580,205 650,135 730,150"
+              fill="none" stroke="#d97706" stroke-width="2.6"/>
+    <!-- data: scatter markers (amber, hollow) -->
+    <g fill="#fff" stroke="#b45309" stroke-width="2">
+      <circle cx="370" cy="300" r="5"/><circle cx="440" cy="235" r="5"/>
+      <circle cx="510" cy="250" r="5"/><circle cx="580" cy="160" r="5"/>
+      <circle cx="650" cy="195" r="5"/>
+    </g>
+
+    <!-- x ticks -->
+    <g stroke="#059669" stroke-width="1.6">
+      <line x1="407" y1="340" x2="407" y2="349"/><line x1="515" y1="340" x2="515" y2="349"/>
+      <line x1="622" y1="340" x2="622" y2="349"/>
+    </g>
+    <g font-size="10" fill="#4b5563" text-anchor="middle">
+      <text x="407" y="362">1</text><text x="515" y="362">2</text><text x="622" y="362">3</text>
+    </g>
+    <!-- y ticks -->
+    <g stroke="#059669" stroke-width="1.6">
+      <line x1="300" y1="278" x2="291" y2="278"/><line x1="300" y1="215" x2="291" y2="215"/>
+      <line x1="300" y1="152" x2="291" y2="152"/>
+    </g>
+    <g font-size="10" fill="#4b5563" text-anchor="end">
+      <text x="287" y="282">1</text><text x="287" y="219">2</text><text x="287" y="156">3</text>
+    </g>
+
+    <!-- title -->
+    <text x="515" y="80" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">Title  ax.set_title()</text>
+
+    <!-- x label -->
+    <text x="515" y="384" text-anchor="middle" font-size="11.5" fill="#059669">x-label  ax.set_xlabel()</text>
+    <!-- y label -->
+    <text x="262" y="215" text-anchor="middle" font-size="11.5" fill="#059669" transform="rotate(-90 262 215)">y-label  ax.set_ylabel()</text>
+
+    <!-- legend box -->
+    <g>
+      <rect x="620" y="100" width="100" height="40" rx="4" fill="#fff" stroke="#4f46e5" stroke-width="1.3"/>
+      <line x1="630" y1="114" x2="652" y2="114" stroke="#d97706" stroke-width="2.4"/>
+      <text x="658" y="118" font-size="9.5" fill="#374151">signal</text>
+      <circle cx="641" cy="129" r="4" fill="#fff" stroke="#b45309" stroke-width="1.6"/>
+      <text x="658" y="133" font-size="9.5" fill="#374151">points</text>
+    </g>
+
+    <!-- ================= CALLOUTS ================= -->
+    <g font-size="11" fill="#374151" font-family="JetBrains Mono, monospace">
+      <!-- Axes -->
+      <line x1="300" y1="118" x2="210" y2="118" stroke="#6b7280" stroke-width="1" marker-end="url(#lead)"/>
+      <text x="205" y="112" text-anchor="end" fill="#059669" font-weight="700">Axes</text>
+      <text x="205" y="126" text-anchor="end" font-size="9.5" fill="#6b7280">fig.subplots()</text>
+
+      <!-- Line / plot -->
+      <line x1="440" y1="270" x2="440" y2="418" stroke="#6b7280" stroke-width="1" marker-end="url(#lead)"/>
+      <text x="440" y="434" text-anchor="middle" fill="#d97706" font-weight="700">Line  ax.plot()</text>
+
+      <!-- Markers / scatter -->
+      <line x1="650" y1="195" x2="790" y2="240" stroke="#6b7280" stroke-width="1" marker-end="url(#lead)"/>
+      <text x="796" y="238" font-size="10.5" fill="#d97706" font-weight="700">Markers</text>
+      <text x="796" y="252" font-size="9.5" fill="#6b7280">ax.scatter()</text>
+
+      <!-- Legend -->
+      <line x1="720" y1="120" x2="798" y2="120" stroke="#6b7280" stroke-width="1" marker-end="url(#lead)"/>
+      <text x="804" y="117" font-size="10.5" fill="#4f46e5" font-weight="700">Legend</text>
+      <text x="804" y="131" font-size="9.5" fill="#6b7280">ax.legend()</text>
+
+      <!-- Grid -->
+      <line x1="515" y1="215" x2="798" y2="330" stroke="#6b7280" stroke-width="1" marker-end="url(#lead)"/>
+      <text x="804" y="328" font-size="10.5" fill="#6b7280" font-weight="700">Grid</text>
+      <text x="804" y="342" font-size="9.5" fill="#6b7280">ax.grid(True)</text>
+
+      <!-- Spine -->
+      <line x1="730" y1="290" x2="798" y2="290" stroke="#6b7280" stroke-width="1" marker-end="url(#lead)"/>
+      <text x="804" y="287" font-size="10.5" fill="#374151" font-weight="700">Spine</text>
+      <text x="804" y="301" font-size="9.5" fill="#6b7280">ax.spines[...]</text>
+
+      <!-- Major tick -->
+      <line x1="407" y1="349" x2="360" y2="405" stroke="#6b7280" stroke-width="1" marker-end="url(#lead)"/>
+      <text x="352" y="410" text-anchor="end" font-size="10.5" fill="#059669" font-weight="700">Tick</text>
+      <text x="352" y="423" text-anchor="end" font-size="9.5" fill="#6b7280">ax.set_xticks()</text>
+
+      <!-- Figure callout -->
+      <line x1="150" y1="380" x2="95" y2="380" stroke="#6b7280" stroke-width="1" marker-end="url(#lead)"/>
+      <text x="90" y="377" text-anchor="end" font-size="10.5" fill="#7c3aed" font-weight="700">Figure</text>
+      <text x="90" y="391" text-anchor="end" font-size="9.5" fill="#6b7280">the canvas</text>
+    </g>
+
+    <!-- interface banner -->
+    <text x="515" y="458" text-anchor="middle" font-size="10.5" fill="#94a3b8">
+      one call sets it all up:  <tspan fill="#64748b" font-weight="700">fig, ax = plt.subplots()</tspan>  &#8594;  then drive everything through <tspan fill="#059669" font-weight="700">ax</tspan>
+    </text>
+  </svg>
+</section>
+
+<!-- ============ COMMAND CARDS ============ -->
+<main>
+
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Create</span><span class="card-sub">import &middot; figure &middot; axes</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="cm">import</span> matplotlib.pyplot <span class="cm">as</span> plt</code><span class="star">&#9733;</span><div class="desc">The one import you always write.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm">import</span> numpy <span class="cm">as</span> np</code><div class="desc">Data almost always comes in as arrays.</div></li>
+      <li class="setup"><code class="cmd">fig, ax = plt.<span class="obj">subplots</span>()</code><span class="star">&#9733;</span><span class="badge-oo">start here</span><div class="desc">One Figure + one Axes. The modern default entry point.</div></li>
+      <li class="setup"><code class="cmd">fig, ax = plt.<span class="obj">subplots</span>(<span class="kw">figsize</span>=<span class="arg">(8,5)</span>)</code><span class="star">&#9733;</span><div class="desc">Size in <b>inches</b> (width, height).</div></li>
+      <li class="setup"><code class="cmd">fig, axs = plt.<span class="obj">subplots</span>(<span class="arg">2, 3</span>)</code><span class="star">&#9733;</span><div class="desc">A 2&times;3 grid &mdash; <code>axs</code> is a NumPy array.</div></li>
+      <li class="setup"><code class="cmd">fig, axs = plt.<span class="obj">subplots</span>(<span class="arg">2, 2</span>, <span class="kw">layout</span>=<span class="str">'constrained'</span>)</code><div class="desc">Auto-spaces subplots so nothing overlaps.</div></li>
+      <li class="setup"><code class="cmd">plt.<span class="obj">plot</span>(<span class="arg">x, y</span>)</code><div class="desc">Quick pyplot form &mdash; auto-creates fig + axes for you.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 PAIRWISE PLOTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Basic / Pairwise</span><span class="card-sub">plots of (x, y)</span></div>
+    <ul class="cmds">
+      <li class="plot"><code class="cmd">ax.<span class="obj">plot</span>(<span class="arg">x, y</span>)</code><span class="star">&#9733;</span><div class="desc">Line plot &mdash; the workhorse.</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">plot</span>(<span class="arg">x, y</span>, <span class="str">'o-'</span>)</code><span class="star">&#9733;</span><div class="desc">Fmt string: circles joined by a line. See card 16.</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">scatter</span>(<span class="arg">x, y</span>, <span class="kw">s</span>=<span class="arg">20</span>, <span class="kw">c</span>=<span class="arg">z</span>)</code><span class="star">&#9733;</span><div class="desc">Points; <code>s</code>=size, <code>c</code>=color-by-value.</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">bar</span>(<span class="arg">x, h</span>)</code><span class="star">&#9733;</span><div class="desc">Vertical bars; <code>ax.barh()</code> for horizontal.</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">fill_between</span>(<span class="arg">x, y1, y2</span>)</code><span class="star">&#9733;</span><div class="desc">Shade a band &mdash; great for confidence intervals.</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">stackplot</span>(<span class="arg">x, y1, y2</span>)</code><div class="desc">Stacked areas that sum together.</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">stem</span>(<span class="arg">x, y</span>)</code><div class="desc">Lollipop stems from a baseline.</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">stairs</span>(<span class="arg">vals, edges</span>)</code><div class="desc">Step / histogram-outline curve.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 STATISTICAL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Statistical</span><span class="card-sub">distributions</span></div>
+    <ul class="cmds">
+      <li class="plot"><code class="cmd">ax.<span class="obj">hist</span>(<span class="arg">x</span>, <span class="kw">bins</span>=<span class="arg">30</span>)</code><span class="star">&#9733;</span><div class="desc">Histogram; <code>density=True</code> to normalize.</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">boxplot</span>(<span class="arg">data</span>)</code><span class="star">&#9733;</span><div class="desc">Quartiles + whiskers + outliers.</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">violinplot</span>(<span class="arg">data</span>)</code><div class="desc">Box plot + a mirrored density shape.</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">errorbar</span>(<span class="arg">x, y</span>, <span class="kw">yerr</span>=<span class="arg">e</span>)</code><span class="star">&#9733;</span><div class="desc">Points/line with error bars.</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">hexbin</span>(<span class="arg">x, y</span>)</code><div class="desc">2-D density as hex tiles (for dense scatter).</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">pie</span>(<span class="arg">sizes</span>, <span class="kw">labels</span>=<span class="arg">lbls</span>)</code><div class="desc">Pie chart &mdash; use sparingly.</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">ecdf</span>(<span class="arg">x</span>)</code><div class="desc">Empirical cumulative distribution.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 GRIDDED -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Gridded &amp; Fields</span><span class="card-sub">2-D arrays Z, images</span></div>
+    <ul class="cmds">
+      <li class="plot"><code class="cmd">ax.<span class="obj">imshow</span>(<span class="arg">Z</span>)</code><span class="star">&#9733;</span><div class="desc">Show a matrix/image as a heatmap.</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">pcolormesh</span>(<span class="arg">X, Y, Z</span>)</code><span class="star">&#9733;</span><div class="desc">Colored grid on real X/Y coords (fast).</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">contour</span>(<span class="arg">X, Y, Z</span>)</code><span class="star">&#9733;</span><div class="desc">Iso-lines; <code>contourf</code> fills between them.</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">quiver</span>(<span class="arg">X, Y, U, V</span>)</code><div class="desc">Arrows for a vector field.</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">streamplot</span>(<span class="arg">X, Y, U, V</span>)</code><div class="desc">Flow streamlines of a field.</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">tricontourf</span>(<span class="arg">x, y, z</span>)</code><div class="desc">Contours on <i>unstructured</i> (scattered) points.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 LABELS & TEXT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Labels &amp; Title</span><span class="card-sub">words on the plot</span></div>
+    <ul class="cmds">
+      <li class="axes"><code class="cmd">ax.<span class="obj">set_title</span>(<span class="str">"..."</span>)</code><span class="star">&#9733;</span><div class="desc">Title above this Axes.</div></li>
+      <li class="axes"><code class="cmd">ax.<span class="obj">set_xlabel</span>(<span class="str">"..."</span>)</code><span class="star">&#9733;</span><div class="desc">x-axis label; <code>set_ylabel</code> for y.</div></li>
+      <li class="axes"><code class="cmd">ax.<span class="obj">set</span>(<span class="kw">xlabel</span>=<span class="str">"t"</span>, <span class="kw">ylabel</span>=<span class="str">"v"</span>, <span class="kw">title</span>=<span class="str">"..."</span>)</code><span class="star">&#9733;</span><div class="desc">Set many properties in one call.</div></li>
+      <li class="axes"><code class="cmd">ax.<span class="obj">legend</span>()</code><span class="star">&#9733;</span><div class="desc">Needs <code>label=</code> on each plot call first.</div></li>
+      <li class="layout"><code class="cmd">fig.<span class="obj">suptitle</span>(<span class="str">"..."</span>)</code><div class="desc">One title over the whole Figure.</div></li>
+      <li class="axes"><code class="cmd">ax.<span class="obj">annotate</span>(<span class="str">"peak"</span>, <span class="kw">xy</span>=<span class="arg">p</span>, <span class="kw">xytext</span>=<span class="arg">t</span>, <span class="kw">arrowprops</span>=<span class="arg">{...}</span>)</code><div class="desc">Text with an arrow pointing at a datapoint.</div></li>
+      <li class="axes"><code class="cmd">ax.<span class="obj">text</span>(<span class="arg">x, y</span>, <span class="str">"note"</span>)</code><div class="desc">Free text at data coordinates.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 LIMITS TICKS SCALE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Limits, Ticks &amp; Scale</span><span class="card-sub">the axis itself</span></div>
+    <ul class="cmds">
+      <li class="axes"><code class="cmd">ax.<span class="obj">set_xlim</span>(<span class="arg">0, 10</span>)</code><span class="star">&#9733;</span><div class="desc">View range; <code>set_ylim</code> for y.</div></li>
+      <li class="axes"><code class="cmd">ax.<span class="obj">set_xticks</span>(<span class="arg">[0,5,10]</span>)</code><span class="star">&#9733;</span><div class="desc">Where ticks sit; add a 2nd list for labels.</div></li>
+      <li class="axes"><code class="cmd">ax.<span class="obj">tick_params</span>(<span class="kw">axis</span>=<span class="str">'x'</span>, <span class="kw">rotation</span>=<span class="arg">45</span>)</code><div class="desc">Rotate / resize tick labels.</div></li>
+      <li class="axes"><code class="cmd">ax.<span class="obj">set_xscale</span>(<span class="str">'log'</span>)</code><span class="star">&#9733;</span><div class="desc">Also <code>'symlog'</code>, <code>'logit'</code>.</div></li>
+      <li class="axes"><code class="cmd">ax.<span class="obj">grid</span>(<span class="arg">True</span>)</code><span class="star">&#9733;</span><div class="desc">Toggle the grid; <code>which='both'</code> incl. minor.</div></li>
+      <li class="axes"><code class="cmd">ax.<span class="obj">axhline</span>(<span class="arg">0</span>) &middot; ax.<span class="obj">axvline</span>(<span class="arg">x</span>)</code><div class="desc">Full-width reference lines.</div></li>
+      <li class="axes"><code class="cmd">ax.<span class="obj">invert_yaxis</span>()</code><div class="desc">Flip an axis direction.</div></li>
+      <li class="axes"><code class="cmd">ax.xaxis.<span class="obj">set_major_locator</span>(<span class="arg">MultipleLocator(5)</span>)</code><div class="desc">Fine tick control via Locators / Formatters.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 COLORS LINES MARKERS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Colors, Lines &amp; Markers</span><span class="card-sub">styling one artist</span></div>
+    <ul class="cmds">
+      <li class="style"><code class="cmd">ax.plot(<span class="arg">...</span>, <span class="kw">color</span>=<span class="str">'C0'</span>)</code><span class="star">&#9733;</span><div class="desc"><code>'C0'</code>&hellip;<code>'C9'</code> = the default color cycle.</div></li>
+      <li class="style"><code class="cmd"><span class="kw">linewidth</span>=<span class="arg">2</span> &middot; <span class="kw">linestyle</span>=<span class="str">'--'</span></code><span class="star">&#9733;</span><div class="desc">Aliases <code>lw</code> / <code>ls</code>. Styles: <code>- -- -. :</code></div></li>
+      <li class="style"><code class="cmd"><span class="kw">marker</span>=<span class="str">'o'</span> &middot; <span class="kw">markersize</span>=<span class="arg">8</span></code><span class="star">&#9733;</span><div class="desc">Markers: <code>o s ^ v . * + x D</code></div></li>
+      <li class="style"><code class="cmd"><span class="kw">alpha</span>=<span class="arg">0.5</span></code><div class="desc">Transparency, 0 (clear) &rarr; 1 (solid).</div></li>
+      <li class="style"><code class="cmd"><span class="kw">label</span>=<span class="str">"series A"</span></code><span class="star">&#9733;</span><div class="desc">Feeds <code>ax.legend()</code>.</div></li>
+      <li class="style"><code class="cmd"><span class="kw">zorder</span>=<span class="arg">3</span></code><div class="desc">Higher = drawn on top.</div></li>
+      <li class="style"><code class="cmd"><span class="cm"># color forms:</span> <span class="str">'red' 'r' '#1f77b4' (.2,.4,.6) '0.5'</span></code><div class="desc">Name, 1-letter, hex, RGB tuple, or gray level.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 COLORMAPS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Colormaps &amp; Colorbar</span><span class="card-sub">data &rarr; color</span></div>
+    <ul class="cmds">
+      <li class="style"><code class="cmd">ax.imshow(<span class="arg">Z</span>, <span class="kw">cmap</span>=<span class="str">'viridis'</span>)</code><span class="star">&#9733;</span><div class="desc">Perceptually uniform, colorblind-safe default.</div></li>
+      <li class="style"><code class="cmd"><span class="cm"># sequential</span> viridis plasma magma cividis</code><div class="desc">Low&rarr;high ordered data.</div></li>
+      <li class="style"><code class="cmd"><span class="cm"># diverging</span> coolwarm RdBu bwr</code><div class="desc">Data with a meaningful center (0).</div></li>
+      <li class="style"><code class="cmd"><span class="cm"># qualitative</span> tab10 Set2 Pastel1</code><div class="desc">Unordered categories.</div></li>
+      <li class="style"><code class="cmd">fig.<span class="obj">colorbar</span>(<span class="arg">im</span>, <span class="kw">ax</span>=<span class="arg">ax</span>)</code><span class="star">&#9733;</span><div class="desc">The key relating color back to value.</div></li>
+      <li class="style"><code class="cmd"><span class="kw">vmin</span>=<span class="arg">0</span>, <span class="kw">vmax</span>=<span class="arg">1</span></code><div class="desc">Clamp the value&rarr;color range.</div></li>
+      <li class="style"><code class="cmd"><span class="kw">norm</span>=<span class="arg">LogNorm()</span></code><div class="desc">Non-linear mapping (e.g. log). Append <code>_r</code> to reverse any cmap.</div></li>
+      <li class="style"><code class="cmd">matplotlib.<span class="obj">colormaps</span>[<span class="str">'viridis'</span>]</code><div class="desc">Get a colormap <b>object</b> by name. <code>cm.get_cmap</code> &amp; <code>register_cmap</code> were <b>removed</b> &mdash; use <code>matplotlib.colormaps[...]</code> and <code>matplotlib.colormaps.register(...)</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 SUBPLOTS & LAYOUT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Subplots &amp; Layout</span><span class="card-sub">many Axes, one Figure</span></div>
+    <ul class="cmds">
+      <li class="layout"><code class="cmd">fig, axs = plt.<span class="obj">subplots</span>(<span class="arg">2, 3</span>)</code><span class="star">&#9733;</span><div class="desc">Regular grid &rarr; index <code>axs[row, col]</code>.</div></li>
+      <li class="layout"><code class="cmd">plt.<span class="obj">subplots</span>(<span class="arg">...</span>, <span class="kw">layout</span>=<span class="str">'constrained'</span>)</code><span class="star">&#9733;</span><div class="desc">Modern auto-spacing. Prefer over <code>tight_layout()</code>.</div></li>
+      <li class="layout"><code class="cmd">fig.<span class="obj">subplot_mosaic</span>(<span class="str">"AB;CC"</span>)</code><span class="star">&#9733;</span><div class="desc">Named, uneven layouts by ASCII art &rarr; dict of axes.</div></li>
+      <li class="layout"><code class="cmd">plt.<span class="obj">subplots</span>(<span class="arg">...</span>, <span class="kw">sharex</span>=<span class="arg">True</span>)</code><div class="desc">Share axis range/ticks across panels.</div></li>
+      <li class="layout"><code class="cmd">ax2 = ax.<span class="obj">twinx</span>()</code><div class="desc">Second y-axis sharing the same x.</div></li>
+      <li class="layout"><code class="cmd">iax = ax.<span class="obj">inset_axes</span>(<span class="arg">[.6,.6,.35,.35]</span>)</code><div class="desc">A small plot inside the plot.</div></li>
+      <li class="layout"><code class="cmd">fig.<span class="obj">add_gridspec</span>(<span class="arg">3, 3</span>)</code><div class="desc">Full manual control of a grid.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 SAVE & SHOW -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Save &amp; Show</span><span class="card-sub">get it out</span></div>
+    <ul class="cmds">
+      <li class="output"><code class="cmd">plt.<span class="obj">show</span>()</code><span class="star">&#9733;</span><div class="desc">Render window / inline. Call <b>once</b>, at the end.</div></li>
+      <li class="output"><code class="cmd">fig.<span class="obj">savefig</span>(<span class="str">"f.png"</span>, <span class="kw">dpi</span>=<span class="arg">300</span>)</code><span class="star">&#9733;</span><div class="desc">Raster export; bump <code>dpi</code> for print quality.</div></li>
+      <li class="output"><code class="cmd">fig.<span class="obj">savefig</span>(<span class="str">"f.pdf"</span>, <span class="kw">bbox_inches</span>=<span class="str">'tight'</span>)</code><span class="star">&#9733;</span><div class="desc">Vector (pdf/svg); <code>tight</code> trims whitespace.</div></li>
+      <li class="output"><code class="cmd">fig.<span class="obj">savefig</span>(<span class="str">"f.svg"</span>, <span class="kw">transparent</span>=<span class="arg">True</span>)</code><div class="desc">No background &mdash; good for slides.</div></li>
+      <li class="output"><code class="cmd">plt.<span class="obj">close</span>(<span class="arg">fig</span>)</code><div class="desc">Free the figure's memory (batch jobs!).</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 STYLE & RCPARAMS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Style &amp; Defaults</span><span class="card-sub">the global look</span></div>
+    <ul class="cmds">
+      <li class="output"><code class="cmd">plt.style.<span class="obj">use</span>(<span class="str">'ggplot'</span>)</code><span class="star">&#9733;</span><div class="desc">Instant theme. Try <code>'bmh'</code>, <code>'fivethirtyeight'</code>.</div></li>
+      <li class="output"><code class="cmd">plt.style.<span class="obj">available</span></code><div class="desc">List every built-in style.</div></li>
+      <li class="output"><code class="cmd"><span class="cm">with</span> plt.style.<span class="obj">context</span>(<span class="str">'dark_background'</span>):</code><div class="desc">Apply a style to just one block.</div></li>
+      <li class="output"><code class="cmd">plt.<span class="obj">rcParams</span>[<span class="str">'font.size'</span>] = <span class="arg">12</span></code><span class="star">&#9733;</span><div class="desc">Change any default globally.</div></li>
+      <li class="output"><code class="cmd">plt.<span class="obj">rcParams</span>[<span class="str">'figure.dpi'</span>] = <span class="arg">120</span></code><div class="desc">Sharper on-screen figures.</div></li>
+      <li class="output"><code class="cmd">plt.<span class="obj">rcParams</span>.<span class="obj">update</span>(<span class="arg">{...}</span>)</code><div class="desc">Set several defaults at once.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 3D, POLAR, ANIM -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">3-D, Polar &amp; Motion</span><span class="card-sub">beyond flat</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">ax = fig.<span class="obj">add_subplot</span>(<span class="kw">projection</span>=<span class="str">'3d'</span>)</code><span class="star">&#9733;</span><div class="desc">Opt into a 3-D Axes.</div></li>
+      <li class="plot"><code class="cmd">ax.<span class="obj">plot_surface</span>(<span class="arg">X, Y, Z</span>)</code><div class="desc">A 3-D surface; also <code>scatter(x,y,z)</code>.</div></li>
+      <li class="setup"><code class="cmd">fig.<span class="obj">add_subplot</span>(<span class="kw">projection</span>=<span class="str">'polar'</span>)</code><div class="desc">Radial / angular plots.</div></li>
+      <li class="axes"><code class="cmd">ax.<span class="obj">set_aspect</span>(<span class="str">'equal'</span>)</code><div class="desc">Equal x/y scale &mdash; circles stay round.</div></li>
+      <li class="output"><code class="cmd"><span class="cm">from</span> matplotlib.animation <span class="cm">import</span> FuncAnimation</code><div class="desc">Frame-by-frame animation &rarr; <code>.save("a.gif")</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 PANDAS BRIDGE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">With pandas</span><span class="card-sub">the common shortcut</span></div>
+    <ul class="cmds">
+      <li class="plot"><code class="cmd">df.<span class="obj">plot</span>(<span class="kw">ax</span>=<span class="arg">ax</span>)</code><span class="star">&#9733;</span><div class="desc">pandas plots straight onto <i>your</i> Axes.</div></li>
+      <li class="plot"><code class="cmd">df.<span class="obj">plot</span>(<span class="kw">kind</span>=<span class="str">'bar'</span>, <span class="kw">ax</span>=<span class="arg">ax</span>)</code><div class="desc"><code>line bar barh hist box area scatter</code>.</div></li>
+      <li class="plot"><code class="cmd">df.<span class="obj">plot</span>.<span class="obj">scatter</span>(<span class="kw">x</span>=<span class="str">'a'</span>, <span class="kw">y</span>=<span class="str">'b'</span>, <span class="kw">ax</span>=<span class="arg">ax</span>)</code><div class="desc">Method form of the same thing.</div></li>
+      <li class="axes"><code class="cmd"><span class="cm"># then keep tuning with ax.set_*()</span></code><div class="desc">Always pass <code>ax=</code> so you stay in control.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 THE TWO INTERFACES (key card) -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">The Two Interfaces</span><span class="card-sub">read this once</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="cm"># explicit / OO (recommended)</span></code><span class="badge-oo">prefer</span><div class="desc">You hold <code>fig</code>/<code>ax</code> and call methods on them.</div></li>
+      <li class="axes"><code class="cmd">fig, ax = plt.subplots(); ax.<span class="obj">plot</span>(x,y); ax.<span class="obj">set_title</span>(...)</code><div class="desc">Clear, scales to complex/multi-panel figures.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm"># implicit / pyplot (state-machine)</span></code><div class="desc">pyplot tracks a "current" Axes for you.</div></li>
+      <li class="plot"><code class="cmd">plt.<span class="obj">plot</span>(x,y); plt.<span class="obj">title</span>(...)</code><div class="desc">Fewer keystrokes; fine for quick throwaway plots.</div></li>
+      <li class="axes"><code class="cmd">plt.plot() &#8801; plt.gca().plot()</code><div class="desc">pyplot is a thin wrapper: <code>plt.title</code> &harr; <code>ax.set_title</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 GOTCHAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Gotchas</span><span class="card-sub">where hours go</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">Axes &ne; Axis</code><span class="badge-danger">confusing</span><div class="desc"><b>Axes</b> = the whole plot; <b>Axis</b> = one x or y line.</div></li>
+      <li class="danger"><code class="cmd">ax.legend()</code> shows nothing<div class="desc">You forgot <code>label=</code> on the plot calls.</div></li>
+      <li class="danger"><code class="cmd">from pylab import *</code><span class="badge-danger">deprecated</span><div class="desc">Strongly discouraged &mdash; pollutes the namespace.</div></li>
+      <li class="danger"><code class="cmd">axs[0]</code> vs <code class="cmd">axs[0][1]</code><div class="desc"><code>subplots(2,3)</code> gives a <b>2-D</b> array &mdash; index both.</div></li>
+      <li class="danger">too many open figures<div class="desc">Loops leak memory &mdash; <code>plt.close(fig)</code> each time.</div></li>
+      <li class="danger"><code class="cmd">plt.show()</code> then <code class="cmd">savefig</code> = blank<div class="desc"><code>show()</code> can clear the figure; save <b>first</b>.</div></li>
+      <li class="danger"><code class="cmd">imshow</code> origin is top-left<div class="desc">Row 0 is at the <b>top</b>; use <code>origin='lower'</code> to flip.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 FMT / COLOR REFERENCE (key card) -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">The fmt String &amp; Colors</span><span class="card-sub">'[marker][line][color]'</span></div>
+    <ul class="cmds">
+      <li><code class="cmd"><span class="str">'ro--'</span></code><div class="desc"><b>r</b>ed <b>o</b>-markers, <b>--</b> dashed line.</div></li>
+      <li><code class="cmd"><span class="str">'k.:'</span></code><div class="desc"><b>k</b> black, <b>.</b> point markers, <b>:</b> dotted.</div></li>
+      <li><code class="cmd"><span class="cm"># line</span> - solid  -- dash  -. dashdot  : dot</code><div class="desc">The 4 line styles.</div></li>
+      <li><code class="cmd"><span class="cm"># marker</span> o s ^ v &lt; &gt; . * + x D p</code><div class="desc">Common marker glyphs.</div></li>
+      <li><code class="cmd"><span class="cm"># color</span> b g r c m y k w</code><div class="desc">1-letter colors (blue&hellip;white).</div></li>
+      <li><code class="cmd"><span class="str">'C0'..'C9'</span></code><div class="desc">The property-cycle colors, in order.</div></li>
+      <li><code class="cmd"><span class="str">'#1f77b4'  (0.1,0.2,0.5)  'tab:blue'  '0.5'</span></code><div class="desc">Hex &middot; RGB tuple &middot; tableau name &middot; gray level.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four things worth seeing, not just reading</h2>
+  <p class="sub">The confusions that trip everyone up &mdash; two interfaces, subplot indexing, colormap families, and how a fmt string decodes &mdash; are all clearer as pictures. Based on the matplotlib quick-start and cheatsheet references.</p>
+  <div class="merge-grid">
+
+    <!-- D1 : TWO INTERFACES -->
+    <div class="merge-card">
+      <h3>implicit &nbsp;vs&nbsp; explicit</h3>
+      <p>pyplot silently drives a "current" Axes; the OO style names it. Same result &mdash; one is scalable.</p>
+      <svg viewBox="0 0 420 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="pyplot state-machine implicitly targets the current axes, while the object-oriented style names fig and ax explicitly; plt.plot equals gca().plot.">
+        <!-- implicit -->
+        <text x="16" y="22" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700" fill="#d97706">implicit &middot; pyplot</text>
+        <rect x="16" y="32" width="180" height="30" rx="5" fill="#fdf6ec" stroke="#d97706" stroke-width="1.4"/>
+        <text x="106" y="51" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#1a1d24">plt.plot(x, y)</text>
+        <line x1="106" y1="62" x2="106" y2="82" stroke="#6b7280" stroke-width="1.3" marker-end="url(#lead)"/>
+        <text x="118" y="76" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#6b7280">gca()</text>
+        <rect x="36" y="82" width="140" height="26" rx="5" fill="#fff" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <text x="106" y="99" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#6b7280">current Axes (hidden)</text>
+
+        <!-- explicit -->
+        <text x="228" y="22" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700" fill="#059669">explicit &middot; OO</text>
+        <rect x="228" y="32" width="180" height="30" rx="5" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/>
+        <text x="318" y="51" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#1a1d24">fig, ax = plt.subplots()</text>
+        <line x1="318" y1="62" x2="318" y2="82" stroke="#6b7280" stroke-width="1.3" marker-end="url(#lead)"/>
+        <rect x="248" y="82" width="140" height="26" rx="5" fill="#fff" stroke="#059669" stroke-width="1.2"/>
+        <text x="318" y="99" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#059669">ax.plot(x, y)</text>
+
+        <!-- equivalence -->
+        <line x1="16" y1="132" x2="404" y2="132" stroke="#e7e3db" stroke-width="1"/>
+        <text x="210" y="158" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#1a1d24">plt.plot()  &#8801;  plt.gca().plot()</text>
+        <text x="210" y="178" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#6b7280">plt.title(...)  &harr;  ax.set_title(...)</text>
+      </svg>
+    </div>
+
+    <!-- D2 : SUBPLOTS GRID -->
+    <div class="merge-card">
+      <h3>subplots(2, 3) indexing</h3>
+      <p>The plural call returns an array of Axes. Address each panel by <code>[row, col]</code>, zero-based.</p>
+      <svg viewBox="0 0 420 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A 2 by 3 grid of subplots, each cell labeled axs with its row and column index from zero.">
+        <text x="16" y="20" font-family="JetBrains Mono, monospace" font-size="10" fill="#6b7280">fig, axs = plt.subplots(2, 3)</text>
+        <g font-family="JetBrains Mono, monospace" font-size="11" text-anchor="middle">
+          <!-- row 0 -->
+          <rect x="16"  y="32" width="120" height="66" rx="5" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.4"/>
+          <text x="76"  y="70" fill="#7c3aed">axs[0, 0]</text>
+          <rect x="150" y="32" width="120" height="66" rx="5" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.4"/>
+          <text x="210" y="70" fill="#7c3aed">axs[0, 1]</text>
+          <rect x="284" y="32" width="120" height="66" rx="5" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.4"/>
+          <text x="344" y="70" fill="#7c3aed">axs[0, 2]</text>
+          <!-- row 1 -->
+          <rect x="16"  y="108" width="120" height="66" rx="5" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.4"/>
+          <text x="76"  y="146" fill="#7c3aed">axs[1, 0]</text>
+          <rect x="150" y="108" width="120" height="66" rx="5" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.4"/>
+          <text x="210" y="146" fill="#7c3aed">axs[1, 1]</text>
+          <rect x="284" y="108" width="120" height="66" rx="5" fill="#f5f0fe" stroke="#7c3aed" stroke-width="1.4"/>
+          <text x="344" y="146" fill="#7c3aed">axs[1, 2]</text>
+        </g>
+        <text x="210" y="192" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#6b7280">1-D result when a dim is 1 &rarr; index axs[i]  &middot;  or use subplot_mosaic for uneven</text>
+      </svg>
+    </div>
+
+    <!-- D3 : COLORMAP FAMILIES -->
+    <div class="merge-card">
+      <h3>pick the right colormap</h3>
+      <p>Match the map to the data's structure &mdash; the wrong family invents patterns that aren't there.</p>
+      <svg viewBox="0 0 420 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three colormap families: sequential viridis for ordered data, diverging coolwarm for centered data, qualitative tab10 for categories.">
+        <defs>
+          <linearGradient id="seq" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0"   stop-color="#440154"/><stop offset=".33" stop-color="#31688e"/>
+            <stop offset=".66" stop-color="#35b779"/><stop offset="1" stop-color="#fde725"/>
+          </linearGradient>
+          <linearGradient id="div" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0" stop-color="#3b4cc0"/><stop offset=".5" stop-color="#f2f2f2"/>
+            <stop offset="1" stop-color="#b40426"/>
+          </linearGradient>
+        </defs>
+        <!-- sequential -->
+        <text x="16" y="26" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700" fill="#1a1d24">sequential</text>
+        <text x="404" y="26" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#6b7280">viridis &middot; ordered low&rarr;high</text>
+        <rect x="16" y="32" width="388" height="26" rx="3" fill="url(#seq)"/>
+        <!-- diverging -->
+        <text x="16" y="86" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700" fill="#1a1d24">diverging</text>
+        <text x="404" y="86" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#6b7280">coolwarm &middot; centered on 0</text>
+        <rect x="16" y="92" width="388" height="26" rx="3" fill="url(#div)"/>
+        <line x1="210" y1="88" x2="210" y2="122" stroke="#1a1d24" stroke-width="1" stroke-dasharray="2 2"/>
+        <!-- qualitative -->
+        <text x="16" y="146" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700" fill="#1a1d24">qualitative</text>
+        <text x="404" y="146" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#6b7280">tab10 &middot; unordered categories</text>
+        <g>
+          <rect x="16"  y="152" width="38" height="26" rx="3" fill="#1f77b4"/>
+          <rect x="60"  y="152" width="38" height="26" rx="3" fill="#ff7f0e"/>
+          <rect x="104" y="152" width="38" height="26" rx="3" fill="#2ca02c"/>
+          <rect x="148" y="152" width="38" height="26" rx="3" fill="#d62728"/>
+          <rect x="192" y="152" width="38" height="26" rx="3" fill="#9467bd"/>
+          <rect x="236" y="152" width="38" height="26" rx="3" fill="#8c564b"/>
+          <rect x="280" y="152" width="38" height="26" rx="3" fill="#e377c2"/>
+          <rect x="324" y="152" width="38" height="26" rx="3" fill="#7f7f7f"/>
+          <rect x="368" y="152" width="36" height="26" rx="3" fill="#bcbd22"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D4 : FMT STRING DECODER -->
+    <div class="merge-card">
+      <h3>decoding <code>'ro--'</code></h3>
+      <p>A fmt string is a shorthand for three style kwargs, in the order marker&middot;line&middot;color (any part optional).</p>
+      <svg viewBox="0 0 420 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The fmt string r o dash dash decodes to color red, marker circle, and linestyle dashed.">
+        <text x="210" y="40" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="34" font-weight="700" fill="#1a1d24">'ro--'</text>
+
+        <!-- r -> red -->
+        <line x1="150" y1="52" x2="120" y2="92" stroke="#6b7280" stroke-width="1.2" marker-end="url(#lead)"/>
+        <rect x="40" y="94" width="130" height="42" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.3"/>
+        <text x="105" y="112" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#1a1d24">r &rarr; color</text>
+        <text x="105" y="127" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#dc2626">red</text>
+
+        <!-- o -> marker -->
+        <line x1="200" y1="52" x2="210" y2="92" stroke="#6b7280" stroke-width="1.2" marker-end="url(#lead)"/>
+        <rect x="145" y="94" width="130" height="42" rx="6" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/>
+        <text x="210" y="112" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#1a1d24">o &rarr; marker</text>
+        <text x="210" y="127" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#d97706">circle</text>
+
+        <!-- -- -> line -->
+        <line x1="255" y1="52" x2="305" y2="92" stroke="#6b7280" stroke-width="1.2" marker-end="url(#lead)"/>
+        <rect x="250" y="94" width="130" height="42" rx="6" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.3"/>
+        <text x="315" y="112" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#1a1d24">-- &rarr; line</text>
+        <text x="315" y="127" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#4f46e5">dashed</text>
+
+        <text x="210" y="170" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#6b7280">ax.plot(x, y, 'ro--')  &#8801;  color='r', marker='o', linestyle='--'</text>
+        <text x="210" y="188" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#94a3b8">omit the line part (e.g. 'ro') for markers only</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">Axes &ne; Axis</span><span class="v">Axes = one whole plot &middot; Axis = a single x or y</span></div>
+    <div><span class="k">plt.* &asymp; ax.*</span><span class="v">pyplot wraps the current Axes; <code>plt.title</code>&harr;<code>ax.set_title</code></span></div>
+    <div><span class="k">subplots()</span><span class="v">plural returns <code>(fig, ax)</code> &middot; prefer it, hold the handles</span></div>
+    <div><span class="k">ax.set(...)</span><span class="v">batch xlabel/ylabel/title/xlim in one call</span></div>
+    <div><span class="k">layout='constrained'</span><span class="v">modern auto-spacing; beats <code>tight_layout()</code></span></div>
+    <div><span class="k">save before show</span><span class="v"><code>show()</code> may clear the figure on some backends</span></div>
+    <div><span class="k">viridis</span><span class="v">default cmap: perceptually uniform, colorblind-safe</span></div>
+    <div><span class="k">'C0'..'C9'</span><span class="v">the default color cycle &mdash; consistent across plots</span></div>
+    <div><span class="k">label= + legend()</span><span class="v">legend only shows series you gave a <code>label</code></span></div>
+    <div><span class="k">plt.close(fig)</span><span class="v">free memory in loops that make many figures</span></div>
+  </div>
+</section>
+
+<footer>
+  Matplotlib cheat sheet &middot; synthesized from the official references at matplotlib.org (cheatsheets, quick-start guide, Application Interfaces, plot_types index, Anatomy of a figure) with cross-checks against Real Python and the Matplotlib matplotblog.<br>
+  Verified 2026-08-26 against Matplotlib 3.11.1 (2026) &middot; the explicit <code>ax.*</code> (object-oriented) interface is preferred throughout; <code>plt.*</code> pyplot equivalents noted where they help &middot; use <code>layout='constrained'</code> over <code>tight_layout()</code> and <code>matplotlib.colormaps[...]</code> over the removed <code>cm.get_cmap</code> &middot; <code>from pylab import *</code> is deprecated.
+</footer>
+
+</body>
+</html>

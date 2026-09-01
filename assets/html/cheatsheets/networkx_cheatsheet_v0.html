@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NetworkX Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --imp:#64748b;    --imp-bg:#f1f3f6;     /* setup · construct from data */
+    --core:#16a34a;   --core-bg:#ecf7ef;    /* nodes · edges · attributes  */
+    --struct:#4f46e5; --struct-bg:#eef0fd;  /* inspect · views · operators */
+    --path:#d97706;   --path-bg:#fdf6ec;    /* paths · traversal           */
+    --algo:#7c3aed;   --algo-bg:#f3effc;    /* centrality · community      */
+    --viz:#0d9488;    --viz-bg:#e9f6f4;     /* drawing · layouts · I/O     */
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .wm{font-family:var(--mono)}
+  h1 .wm .l1{color:var(--imp)}    h1 .wm .l2{color:var(--core)}
+  h1 .wm .l3{color:var(--struct)} h1 .wm .l4{color:var(--path)}
+  h1 .wm .l5{color:var(--algo)}   h1 .wm .l6{color:var(--viz)}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink); font-weight:600}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.imp{background:var(--imp)}       .dot.core{background:var(--core)}
+  .dot.struct{background:var(--struct)} .dot.path{background:var(--path)}
+  .dot.algo{background:var(--algo)}     .dot.viz{background:var(--viz)}
+  .dot.danger{background:var(--danger)}
+  .legend .star{color:var(--star)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- quickstart ---------- */
+  .quick-wrap{max-width:1500px; margin:0 auto; padding:.5rem clamp(1rem,4vw,3rem) 1rem}
+  .quick{
+    background:var(--ink); border-radius:12px; overflow:hidden;
+    box-shadow:0 2px 8px rgba(20,20,30,.10); max-width:1120px; margin:0 auto;
+  }
+  .quick-bar{
+    display:flex; align-items:center; gap:.5rem;
+    padding:.6rem .9rem; border-bottom:1px solid #2c313c;
+  }
+  .quick-bar i{width:11px; height:11px; border-radius:50%; display:inline-block}
+  .quick-bar .r{background:#ff5f57} .quick-bar .y{background:#febc2e} .quick-bar .g{background:#28c840}
+  .quick-bar span{
+    font-family:var(--mono); font-size:.72rem; color:#9aa2b1; margin-left:.4rem;
+  }
+  pre.quick-inner{
+    margin:0; padding:1rem 1.15rem; white-space:pre; tab-size:2;
+    font-family:var(--mono); font-size:.79rem; line-height:1.6; color:#e8e6e1;
+    overflow-x:auto;
+  }
+  .quick-inner .cm{color:#6b7280}
+  .quick-inner .kw{color:#c792ea}
+  .quick-inner .mod{color:#82aaff}
+  .quick-inner .fn{color:#82d9c9}
+  .quick-inner .str{color:#c3e88d}
+  .quick-inner .num{color:#f78c6c}
+  .quick-inner .op{color:#89ddff}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.imp{border-left-color:var(--imp)}
+  ul.cmds li.core{border-left-color:var(--core)}
+  ul.cmds li.struct{border-left-color:var(--struct)}
+  ul.cmds li.path{border-left-color:var(--path)}
+  ul.cmds li.algo{border-left-color:var(--algo)}
+  ul.cmds li.viz{border-left-color:var(--viz)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.5;
+  }
+  code.cmd .mod{color:var(--struct)}
+  code.cmd .fn{color:var(--core); font-weight:600}
+  code.cmd .arg{color:var(--algo); font-weight:400}
+  code.cmd .str{color:var(--core)}
+  code.cmd .num{color:var(--path)}
+  code.cmd .kw{color:#a626a4}
+  code.cmd .op{color:var(--muted)}
+  li.danger code.cmd{color:var(--danger)}
+  li.danger code.cmd .arg,li.danger code.cmd .fn{color:var(--danger)}
+  .desc{font-size:.77rem; color:#525761; margin-top:.2rem}
+  .desc code{font-family:var(--mono); font-size:.9em; background:#f3f0ea; padding:.02em .3em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:var(--mono)}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.8rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#e8e6e1; background:#2c313c; padding:.02em .3em; border-radius:3px}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{background:#f3f0ea; padding:.02em .3em; border-radius:3px}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · graph &amp; network analysis in Python</div>
+  <h1><span class="wm"><span class="l1">n</span><span class="l2">e</span><span class="l3">t</span><span class="l4">w</span><span class="l5">o</span><span class="l6">r</span><span class="l1">k</span><span class="l3">x</span></span> cheat sheet</h1>
+  <p class="lede">A graph is just <b>nodes</b> (any hashable object) + <b>edges</b> (pairs of nodes), each carrying an optional <b>attribute dict</b>. Under the hood it's a <b>dict-of-dicts</b>: <code>G.adj[u][v]</code> is the attributes of edge <code>u–v</code>. Pick a graph class for your directed-/multi-ness, build it, inspect its structure, run an algorithm (paths, centrality, communities), then draw or export. Conventionally imported as <code>nx</code>.</p>
+  <div class="legend">
+    <span><i class="dot imp"></i>setup / from-data</span>
+    <span><i class="dot core"></i>nodes · edges · attrs</span>
+    <span><i class="dot struct"></i>inspect · views · ops</span>
+    <span><i class="dot path"></i>paths · traversal</span>
+    <span><i class="dot algo"></i>centrality · community</span>
+    <span><i class="dot viz"></i>drawing · layouts · I/O</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&starf;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>networkx.org</b> (Reference · Tutorial, v3.6) · verified by running <b>networkx 3.6.1</b> · <b>cheatography (gonz95alo · murenei)</b> · community guides on Medium</p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The workflow &amp; the data model behind every call</div>
+  <svg class="flow-svg" viewBox="0 0 1120 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The NetworkX workflow — choose a graph class, build it, inspect it, run algorithms, draw or export — plus the dict-of-dicts data model and the four graph classes.">
+    <defs>
+      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="arD" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+        <path d="M0,0 L10,5 L0,10 z" fill="#4f46e5"/>
+      </marker>
+    </defs>
+
+    <!-- band A: workflow -->
+    <text x="20" y="28" font-size="10.5" letter-spacing="2.5" fill="#94a3b8">THE WORKFLOW</text>
+    <g>
+      <rect x="18"  y="40" width="178" height="70" rx="10" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="107" y="68" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">1 · choose class</text>
+      <text x="107" y="90" text-anchor="middle" font-size="10" fill="#64748b">Graph / DiGraph / Multi…</text>
+    </g>
+    <g>
+      <rect x="234" y="40" width="178" height="70" rx="10" fill="#ecf7ef" stroke="#16a34a" stroke-width="2"/>
+      <text x="323" y="68" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">2 · build</text>
+      <text x="323" y="90" text-anchor="middle" font-size="10" fill="#16a34a">add_edge · from_pandas</text>
+    </g>
+    <g>
+      <rect x="450" y="40" width="178" height="70" rx="10" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="539" y="68" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">3 · inspect</text>
+      <text x="539" y="90" text-anchor="middle" font-size="10" fill="#4f46e5">degree · neighbors · adj</text>
+    </g>
+    <g>
+      <rect x="666" y="40" width="178" height="70" rx="10" fill="#f3effc" stroke="#7c3aed" stroke-width="2"/>
+      <text x="755" y="68" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">4 · analyze</text>
+      <text x="755" y="90" text-anchor="middle" font-size="10" fill="#7c3aed">paths · centrality · comm.</text>
+    </g>
+    <g>
+      <rect x="882" y="40" width="220" height="70" rx="10" fill="#e9f6f4" stroke="#0d9488" stroke-width="2"/>
+      <text x="992" y="68" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">5 · draw / export</text>
+      <text x="992" y="90" text-anchor="middle" font-size="10" fill="#0d9488">nx.draw · read/write_*</text>
+    </g>
+    <line x1="196" y1="75" x2="232" y2="75" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <line x1="412" y1="75" x2="448" y2="75" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <line x1="628" y1="75" x2="664" y2="75" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <line x1="844" y1="75" x2="880" y2="75" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+
+    <!-- band B left: the data model -->
+    <text x="20" y="152" font-size="10.5" letter-spacing="2.5" fill="#94a3b8">THE DATA MODEL — a graph is a dict of dicts</text>
+    <!-- drawn graph -->
+    <g font-size="11" text-anchor="middle">
+      <line x1="90"  y1="210" x2="200" y2="185" stroke="#94a3b8" stroke-width="2"/>
+      <line x1="90"  y1="210" x2="150" y2="300" stroke="#94a3b8" stroke-width="2"/>
+      <line x1="200" y1="185" x2="150" y2="300" stroke="#94a3b8" stroke-width="2"/>
+      <line x1="200" y1="185" x2="300" y2="270" stroke="#94a3b8" stroke-width="2"/>
+      <text x="140" y="188" font-size="9" fill="#d97706">w=4</text>
+      <circle cx="90"  cy="210" r="20" fill="#16a34a"/><text x="90"  y="214" fill="#fff" font-weight="700">A</text>
+      <circle cx="200" cy="185" r="20" fill="#16a34a"/><text x="200" y="189" fill="#fff" font-weight="700">B</text>
+      <circle cx="150" cy="300" r="20" fill="#16a34a"/><text x="150" y="304" fill="#fff" font-weight="700">C</text>
+      <circle cx="300" cy="270" r="20" fill="#16a34a"/><text x="300" y="274" fill="#fff" font-weight="700">D</text>
+    </g>
+    <!-- adjacency callout -->
+    <line x1="325" y1="240" x2="378" y2="240" stroke="#4f46e5" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#arD)"/>
+    <g font-size="10.5">
+      <rect x="382" y="176" width="300" height="130" rx="8" fill="#1a1d24"/>
+      <text x="398" y="200" fill="#82d9c9" font-family="JetBrains Mono, monospace">G.adj  ≡  G._adj  (dict of dicts)</text>
+      <text x="398" y="224" fill="#e8e6e1" font-family="JetBrains Mono, monospace">{'A': {'B': {'weight': 4},</text>
+      <text x="398" y="242" fill="#e8e6e1" font-family="JetBrains Mono, monospace">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'C': {}},</text>
+      <text x="398" y="260" fill="#e8e6e1" font-family="JetBrains Mono, monospace">&nbsp;'B': {'A': {'weight': 4}, 'C':{}, 'D':{}},</text>
+      <text x="398" y="278" fill="#e8e6e1" font-family="JetBrains Mono, monospace">&nbsp;'C': {...}, 'D': {...}}</text>
+      <text x="398" y="298" fill="#6b7280" font-family="JetBrains Mono, monospace">G['A']['B']  →  the edge's attribute dict</text>
+    </g>
+
+    <!-- band B right: the 2x2 class matrix -->
+    <text x="720" y="152" font-size="10.5" letter-spacing="2.5" fill="#94a3b8">FOUR CLASSES = directed? × parallel edges?</text>
+    <g font-size="10" text-anchor="middle">
+      <!-- axis labels -->
+      <text x="820" y="176" fill="#6b7280" font-size="9">undirected</text>
+      <text x="960" y="176" fill="#6b7280" font-size="9">directed →</text>
+      <text x="726" y="212" fill="#6b7280" font-size="9" transform="rotate(-90 726 212)">simple</text>
+      <text x="726" y="278" fill="#6b7280" font-size="9" transform="rotate(-90 726 278)">multi</text>
+      <!-- Graph -->
+      <rect x="748" y="184" width="140" height="56" rx="8" fill="#ecf7ef" stroke="#16a34a"/>
+      <text x="818" y="204" font-weight="700" fill="#1a1d24">Graph</text>
+      <line x1="792" y1="222" x2="844" y2="222" stroke="#16a34a" stroke-width="2"/>
+      <circle cx="792" cy="222" r="4" fill="#16a34a"/><circle cx="844" cy="222" r="4" fill="#16a34a"/>
+      <!-- DiGraph -->
+      <rect x="898" y="184" width="196" height="56" rx="8" fill="#eef0fd" stroke="#4f46e5"/>
+      <text x="996" y="204" font-weight="700" fill="#1a1d24">DiGraph</text>
+      <line x1="965" y1="222" x2="1020" y2="222" stroke="#4f46e5" stroke-width="2" marker-end="url(#arD)"/>
+      <circle cx="965" cy="222" r="4" fill="#4f46e5"/>
+      <!-- MultiGraph -->
+      <rect x="748" y="250" width="140" height="56" rx="8" fill="#f3effc" stroke="#7c3aed"/>
+      <text x="818" y="270" font-weight="700" fill="#1a1d24">MultiGraph</text>
+      <path d="M792,288 Q818,276 844,288" fill="none" stroke="#7c3aed" stroke-width="2"/>
+      <path d="M792,288 Q818,300 844,288" fill="none" stroke="#7c3aed" stroke-width="2"/>
+      <circle cx="792" cy="288" r="4" fill="#7c3aed"/><circle cx="844" cy="288" r="4" fill="#7c3aed"/>
+      <!-- MultiDiGraph -->
+      <rect x="898" y="250" width="196" height="56" rx="8" fill="#fdf6ec" stroke="#d97706"/>
+      <text x="996" y="270" font-weight="700" fill="#1a1d24">MultiDiGraph</text>
+      <path d="M960,288 Q996,276 1028,288" fill="none" stroke="#d97706" stroke-width="2" marker-end="url(#arD)"/>
+      <path d="M960,288 Q996,300 1028,288" fill="none" stroke="#d97706" stroke-width="2"/>
+      <circle cx="960" cy="288" r="4" fill="#d97706"/>
+    </g>
+
+    <!-- footnotes -->
+    <text x="20" y="344" font-size="10.5" fill="#6b7280">Nodes can be any <tspan font-weight="700">hashable</tspan> object (int, str, tuple) — not lists/dicts. <tspan font-family="JetBrains Mono, monospace" fill="#16a34a">add_edge(u, v)</tspan> silently creates u and v if missing.</text>
+    <text x="20" y="366" font-size="10.5" fill="#6b7280"><tspan font-family="JetBrains Mono, monospace" fill="#4f46e5">G.nodes</tspan>, <tspan font-family="JetBrains Mono, monospace" fill="#4f46e5">G.edges</tspan>, <tspan font-family="JetBrains Mono, monospace" fill="#4f46e5">G.degree</tspan> are live <tspan font-style="italic">views</tspan> — iterate them, or wrap in <tspan font-family="JetBrains Mono, monospace">list()</tspan>. Pass <tspan font-family="JetBrains Mono, monospace">data=True</tspan> to get attributes too.</text>
+    <text x="20" y="388" font-size="10.5" fill="#6b7280">Most algorithms return a <tspan font-weight="700">dict keyed by node</tspan> (centrality) or a <tspan font-weight="700">generator</tspan> (components, paths) — wrap generators in <tspan font-family="JetBrains Mono, monospace">list()</tspan> to materialise.</text>
+    <text x="20" y="410" font-size="10.5" fill="#6b7280"><tspan font-family="JetBrains Mono, monospace" fill="#7c3aed">weight</tspan> is just an edge attribute named <tspan font-family="JetBrains Mono, monospace">'weight'</tspan>; unweighted shortest-path = fewest edges (BFS), weighted = Dijkstra on that attribute.</text>
+    <text x="20" y="432" font-size="10.5" fill="#6b7280">Directed graphs split the neighbourhood: <tspan font-family="JetBrains Mono, monospace" fill="#4f46e5">successors</tspan> / <tspan font-family="JetBrains Mono, monospace" fill="#4f46e5">predecessors</tspan> and <tspan font-family="JetBrains Mono, monospace">in_degree</tspan> / <tspan font-family="JetBrains Mono, monospace">out_degree</tspan>.</text>
+  </svg>
+</section>
+
+<!-- ============ QUICKSTART ============ -->
+<section class="quick-wrap">
+  <div class="quick">
+    <div class="quick-bar"><i class="r"></i><i class="y"></i><i class="g"></i><span>quickstart.py — build, analyze, draw a weighted graph</span></div>
+<pre class="quick-inner"><span class="kw">import</span> <span class="mod">networkx</span> <span class="kw">as</span> <span class="mod">nx</span>
+<span class="kw">import</span> <span class="mod">matplotlib.pyplot</span> <span class="kw">as</span> <span class="mod">plt</span>
+
+G <span class="op">=</span> nx.<span class="fn">Graph</span>()                                  <span class="cm"># undirected; use nx.DiGraph() for directed</span>
+G.<span class="fn">add_edges_from</span>([(<span class="str">"A"</span>,<span class="str">"B"</span>), (<span class="str">"B"</span>,<span class="str">"C"</span>), (<span class="str">"A"</span>,<span class="str">"C"</span>), (<span class="str">"C"</span>,<span class="str">"D"</span>)])
+G.<span class="fn">add_edge</span>(<span class="str">"A"</span>, <span class="str">"B"</span>, weight<span class="op">=</span><span class="num">4</span>)                 <span class="cm"># attributes ride along as kwargs</span>
+
+<span class="kw">print</span>(G.<span class="fn">number_of_nodes</span>(), G.<span class="fn">number_of_edges</span>())    <span class="cm"># 4 4</span>
+<span class="kw">print</span>(nx.<span class="fn">shortest_path</span>(G, <span class="str">"A"</span>, <span class="str">"D"</span>))              <span class="cm"># ['A', 'C', 'D']</span>
+<span class="kw">print</span>(nx.<span class="fn">degree_centrality</span>(G))                    <span class="cm"># {'A':0.67, 'B':0.67, 'C':1.0, ...}</span>
+
+pos <span class="op">=</span> nx.<span class="fn">spring_layout</span>(G, seed<span class="op">=</span><span class="num">42</span>)               <span class="cm"># compute node positions (fix seed!)</span>
+nx.<span class="fn">draw</span>(G, pos, with_labels<span class="op">=</span><span class="kw">True</span>, node_color<span class="op">=</span><span class="str">"#c7d2fe"</span>)
+plt.<span class="fn">show</span>()</pre>
+  </div>
+</section>
+
+<!-- ============ COMMAND CARDS ============ -->
+<main>
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Graph Types</span><span class="card-sub">import &amp; pick a class</span></div>
+    <ul class="cmds">
+      <li class="imp"><code class="cmd">pip install networkx<span class="op">[</span>default<span class="op">]</span></code><div class="desc"><code>[default]</code> pulls in matplotlib, scipy, pandas for drawing &amp; I/O.</div></li>
+      <li class="imp"><code class="cmd"><span class="kw">import</span> networkx <span class="kw">as</span> nx</code><span class="star">&starf;</span><div class="desc">The universal alias.</div></li>
+      <li class="imp"><code class="cmd">nx.<span class="fn">Graph</span>()</code><span class="star">&starf;</span><div class="desc">Undirected, no parallel edges — the default.</div></li>
+      <li class="imp"><code class="cmd">nx.<span class="fn">DiGraph</span>()</code><span class="star">&starf;</span><div class="desc">Directed edges (u&rarr;v).</div></li>
+      <li class="imp"><code class="cmd">nx.<span class="fn">MultiGraph</span>() · nx.<span class="fn">MultiDiGraph</span>()</code><div class="desc">Allow parallel edges between the same pair.</div></li>
+      <li class="imp"><code class="cmd">G.<span class="fn">to_directed</span>() · H.<span class="fn">to_undirected</span>()</code><div class="desc">Convert between directedness.</div></li>
+      <li class="imp"><code class="cmd">G.<span class="fn">is_directed</span>() · G.<span class="fn">is_multigraph</span>()</code><div class="desc">Ask what kind of graph you have.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 ADD NODES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Add Nodes</span><span class="card-sub">any hashable object</span></div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd">G.<span class="fn">add_node</span>(<span class="num">1</span>)</code><span class="star">&starf;</span><div class="desc">Add one node — an int, str, tuple, any hashable.</div></li>
+      <li class="core"><code class="cmd">G.<span class="fn">add_nodes_from</span>([<span class="num">2</span>, <span class="num">3</span>, <span class="str">"x"</span>])</code><span class="star">&starf;</span><div class="desc">Add many at once from any iterable.</div></li>
+      <li class="core"><code class="cmd">G.<span class="fn">add_node</span>(<span class="num">1</span>, color<span class="op">=</span><span class="str">"red"</span>, size<span class="op">=</span><span class="num">10</span>)</code><div class="desc">Attach attributes as keyword args.</div></li>
+      <li class="core"><code class="cmd">G.<span class="fn">add_nodes_from</span>([(<span class="num">2</span>, {<span class="str">"color"</span>: <span class="str">"blue"</span>})])</code><div class="desc">Per-node attributes via (node, dict) tuples.</div></li>
+      <li class="danger"><code class="cmd">G.<span class="fn">remove_node</span>(<span class="num">1</span>)</code><span class="badge-danger">cascades</span><div class="desc">Also deletes every edge touching it.</div></li>
+      <li class="core"><code class="cmd"><span class="num">1</span> <span class="kw">in</span> G · G.<span class="fn">has_node</span>(<span class="num">1</span>)</code><div class="desc">Membership test.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 ADD EDGES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Add Edges</span><span class="card-sub">pairs of nodes</span></div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd">G.<span class="fn">add_edge</span>(<span class="num">1</span>, <span class="num">2</span>)</code><span class="star">&starf;</span><div class="desc">Add an edge — <b>auto-creates missing nodes</b>.</div></li>
+      <li class="core"><code class="cmd">G.<span class="fn">add_edges_from</span>([(<span class="num">1</span>,<span class="num">2</span>), (<span class="num">2</span>,<span class="num">3</span>)])</code><span class="star">&starf;</span><div class="desc">Add many edges from a list of pairs.</div></li>
+      <li class="core"><code class="cmd">G.<span class="fn">add_edge</span>(<span class="num">1</span>, <span class="num">2</span>, weight<span class="op">=</span><span class="num">4.2</span>)</code><span class="star">&starf;</span><div class="desc">Edge attributes as kwargs.</div></li>
+      <li class="core"><code class="cmd">G.<span class="fn">add_weighted_edges_from</span>([(<span class="num">1</span>,<span class="num">2</span>,<span class="num">4.2</span>)])</code><div class="desc">Shorthand for (u, v, weight) triples.</div></li>
+      <li class="core"><code class="cmd">G.<span class="fn">add_edge</span>(<span class="num">1</span>, <span class="num">1</span>)</code><div class="desc">A self-loop is allowed.</div></li>
+      <li class="danger"><code class="cmd">G.<span class="fn">remove_edge</span>(<span class="num">1</span>, <span class="num">2</span>)</code><div class="desc">Nodes stay; only the edge goes.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 ATTRIBUTES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Attributes</span><span class="card-sub">data on nodes &amp; edges</span></div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd">G.nodes[<span class="num">1</span>][<span class="str">"color"</span>] <span class="op">=</span> <span class="str">"red"</span></code><span class="star">&starf;</span><div class="desc">Read/write a single node's attribute dict.</div></li>
+      <li class="core"><code class="cmd">G.edges[<span class="num">1</span>, <span class="num">2</span>][<span class="str">"weight"</span>]</code><span class="star">&starf;</span><div class="desc">Access an edge's attributes (same as <code>G[1][2]</code>).</div></li>
+      <li class="core"><code class="cmd">nx.<span class="fn">set_node_attributes</span>(G, {<span class="num">1</span>: <span class="str">"a"</span>}, <span class="str">"grp"</span>)</code><div class="desc">Bulk-set from a <code>{node: value}</code> dict.</div></li>
+      <li class="core"><code class="cmd">nx.<span class="fn">get_node_attributes</span>(G, <span class="str">"grp"</span>)</code><span class="star">&starf;</span><div class="desc">Pull one attribute across all nodes &rarr; dict.</div></li>
+      <li class="core"><code class="cmd">nx.<span class="fn">set_edge_attributes</span>(G, vals, <span class="str">"weight"</span>)</code><div class="desc">Bulk-set edge attributes.</div></li>
+      <li class="core"><code class="cmd">nx.<span class="fn">get_edge_attributes</span>(G, <span class="str">"weight"</span>)</code><div class="desc">&rarr; <code>{(u, v): weight}</code> — handy for draw labels.</div></li>
+      <li class="core"><code class="cmd">G.graph[<span class="str">"name"</span>] <span class="op">=</span> <span class="str">"demo"</span></code><div class="desc">Graph-level attributes live on <code>G.graph</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 BUILD FROM DATA -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Build From Data</span><span class="card-sub">import existing structures</span></div>
+    <ul class="cmds">
+      <li class="imp"><code class="cmd">nx.<span class="fn">from_pandas_edgelist</span>(df, <span class="str">"src"</span>, <span class="str">"dst"</span>, edge_attr<span class="op">=</span><span class="str">"w"</span>)</code><span class="star">&starf;</span><div class="desc">The most common real-world entry point.</div></li>
+      <li class="imp"><code class="cmd">nx.<span class="fn">from_edgelist</span>([(<span class="num">1</span>,<span class="num">2</span>), (<span class="num">2</span>,<span class="num">3</span>)])</code><div class="desc">From a plain list of pairs.</div></li>
+      <li class="imp"><code class="cmd">nx.<span class="fn">from_dict_of_lists</span>({<span class="num">1</span>: [<span class="num">2</span>, <span class="num">3</span>]})</code><div class="desc">From an adjacency dict.</div></li>
+      <li class="imp"><code class="cmd">nx.<span class="fn">from_numpy_array</span>(A)</code><div class="desc">From an adjacency matrix (weights from cell values).</div></li>
+      <li class="imp"><code class="cmd">nx.<span class="fn">from_scipy_sparse_array</span>(S)</code><div class="desc">From a SciPy sparse adjacency matrix.</div></li>
+      <li class="imp"><code class="cmd">nx.<span class="fn">Graph</span>([(<span class="num">1</span>,<span class="num">2</span>), (<span class="num">2</span>,<span class="num">3</span>)])</code><div class="desc">Constructors also accept edge lists directly.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 INSPECT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Inspect Nodes &amp; Edges</span><span class="card-sub">the views</span></div>
+    <ul class="cmds">
+      <li class="struct"><code class="cmd">G.nodes · <span class="kw">list</span>(G.nodes)</code><span class="star">&starf;</span><div class="desc">A live NodeView — iterate or listify.</div></li>
+      <li class="struct"><code class="cmd">G.edges · <span class="kw">list</span>(G.edges)</code><span class="star">&starf;</span><div class="desc">A live EdgeView of (u, v) tuples.</div></li>
+      <li class="struct"><code class="cmd">G.nodes(data<span class="op">=</span><span class="kw">True</span>) · G.edges(data<span class="op">=</span><span class="kw">True</span>)</code><span class="star">&starf;</span><div class="desc">Include the attribute dicts.</div></li>
+      <li class="struct"><code class="cmd">G.<span class="fn">number_of_nodes</span>() · <span class="kw">len</span>(G)</code><div class="desc">Order (node count). <code>G.number_of_edges()</code> = size.</div></li>
+      <li class="struct"><code class="cmd">G.<span class="fn">has_edge</span>(<span class="num">1</span>, <span class="num">2</span>)</code><span class="star">&starf;</span><div class="desc">Edge membership test.</div></li>
+      <li class="struct"><code class="cmd">nx.<span class="fn">is_empty</span>(G) · nx.<span class="fn">info</span></code><div class="desc">Quick structural summaries.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 NEIGHBORS & DEGREE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Neighbors &amp; Degree</span><span class="card-sub">local structure</span></div>
+    <ul class="cmds">
+      <li class="struct"><code class="cmd">G.<span class="fn">degree</span>() · G.<span class="fn">degree</span>(<span class="num">1</span>)</code><span class="star">&starf;</span><div class="desc">Degree view / one node's degree.</div></li>
+      <li class="struct"><code class="cmd">G[<span class="num">1</span>] · G.<span class="fn">neighbors</span>(<span class="num">1</span>)</code><span class="star">&starf;</span><div class="desc">Adjacency of a node (neighbors + edge attrs).</div></li>
+      <li class="struct"><code class="cmd">G.adj · G.adj[<span class="num">1</span>]</code><div class="desc">The whole dict-of-dicts adjacency structure.</div></li>
+      <li class="struct"><code class="cmd">D.<span class="fn">successors</span>(<span class="num">1</span>) · D.<span class="fn">predecessors</span>(<span class="num">1</span>)</code><span class="star">&starf;</span><div class="desc"><b>DiGraph:</b> out-neighbors vs in-neighbors.</div></li>
+      <li class="struct"><code class="cmd">D.<span class="fn">in_degree</span>() · D.<span class="fn">out_degree</span>()</code><div class="desc">Directed degree split (plain <code>degree</code> = in+out).</div></li>
+      <li class="struct"><code class="cmd">G.<span class="fn">degree</span>(weight<span class="op">=</span><span class="str">"weight"</span>)</code><div class="desc">Weighted degree = sum of incident edge weights.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 GENERATORS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Graph Generators</span><span class="card-sub">instant test graphs</span></div>
+    <ul class="cmds">
+      <li class="imp"><code class="cmd">nx.<span class="fn">complete_graph</span>(<span class="num">5</span>) · nx.<span class="fn">cycle_graph</span>(<span class="num">6</span>)</code><div class="desc">Classic deterministic shapes.</div></li>
+      <li class="imp"><code class="cmd">nx.<span class="fn">path_graph</span>(<span class="num">5</span>) · nx.<span class="fn">star_graph</span>(<span class="num">4</span>)</code><div class="desc">Line &amp; hub-and-spoke.</div></li>
+      <li class="imp"><code class="cmd">nx.<span class="fn">grid_2d_graph</span>(<span class="num">3</span>, <span class="num">3</span>)</code><div class="desc">A lattice; nodes are (row, col) tuples.</div></li>
+      <li class="imp"><code class="cmd">nx.<span class="fn">erdos_renyi_graph</span>(<span class="num">100</span>, <span class="num">0.05</span>)</code><span class="star">&starf;</span><div class="desc">Random graph — each edge present with prob p.</div></li>
+      <li class="imp"><code class="cmd">nx.<span class="fn">barabasi_albert_graph</span>(<span class="num">100</span>, <span class="num">3</span>)</code><div class="desc">Scale-free (preferential attachment).</div></li>
+      <li class="imp"><code class="cmd">nx.<span class="fn">karate_club_graph</span>()</code><span class="star">&starf;</span><div class="desc">Zachary's karate club — the "hello world" dataset.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 SHORTEST PATHS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Shortest Paths</span><span class="card-sub">get from u to v</span></div>
+    <ul class="cmds">
+      <li class="path"><code class="cmd">nx.<span class="fn">shortest_path</span>(G, <span class="num">1</span>, <span class="num">5</span>)</code><span class="star">&starf;</span><div class="desc">Fewest-edges path (BFS) when unweighted.</div></li>
+      <li class="path"><code class="cmd">nx.<span class="fn">shortest_path</span>(G, <span class="num">1</span>, <span class="num">5</span>, weight<span class="op">=</span><span class="str">"weight"</span>)</code><span class="star">&starf;</span><div class="desc">Min-total-weight path (Dijkstra).</div></li>
+      <li class="path"><code class="cmd">nx.<span class="fn">shortest_path_length</span>(G, <span class="num">1</span>, <span class="num">5</span>)</code><div class="desc">Just the distance (hops or summed weight).</div></li>
+      <li class="path"><code class="cmd">nx.<span class="fn">has_path</span>(G, <span class="num">1</span>, <span class="num">5</span>)</code><span class="star">&starf;</span><div class="desc">Is v reachable from u?</div></li>
+      <li class="path"><code class="cmd">nx.<span class="fn">all_shortest_paths</span>(G, <span class="num">1</span>, <span class="num">5</span>)</code><div class="desc">Every tied-shortest path (a generator).</div></li>
+      <li class="path"><code class="cmd">nx.<span class="fn">all_pairs_shortest_path_length</span>(G)</code><div class="desc">Distances between every pair.</div></li>
+      <li class="path"><code class="cmd">nx.<span class="fn">astar_path</span>(G, <span class="num">1</span>, <span class="num">5</span>, heuristic<span class="op">=</span>h)</code><div class="desc">A* when you have a distance heuristic.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 TRAVERSAL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Traversal &amp; Ordering</span><span class="card-sub">walk the graph</span></div>
+    <ul class="cmds">
+      <li class="path"><code class="cmd">nx.<span class="fn">bfs_tree</span>(G, <span class="num">0</span>) · nx.<span class="fn">bfs_edges</span>(G, <span class="num">0</span>)</code><span class="star">&starf;</span><div class="desc">Breadth-first — explores in layers from the root.</div></li>
+      <li class="path"><code class="cmd">nx.<span class="fn">dfs_tree</span>(G, <span class="num">0</span>) · nx.<span class="fn">dfs_edges</span>(G, <span class="num">0</span>)</code><span class="star">&starf;</span><div class="desc">Depth-first — dives deep before backtracking.</div></li>
+      <li class="path"><code class="cmd">nx.<span class="fn">descendants</span>(G, <span class="num">0</span>) · nx.<span class="fn">ancestors</span>(G, <span class="num">0</span>)</code><div class="desc">All nodes reachable to/from a node.</div></li>
+      <li class="path"><code class="cmd">nx.<span class="fn">topological_sort</span>(D)</code><span class="star">&starf;</span><div class="desc">Dependency order of a DAG (raises if cyclic).</div></li>
+      <li class="path"><code class="cmd">nx.<span class="fn">dag_longest_path</span>(D)</code><div class="desc">Critical path through a DAG.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 CONNECTIVITY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Connectivity &amp; Components</span><span class="card-sub">is it one piece?</span></div>
+    <ul class="cmds">
+      <li class="algo"><code class="cmd">nx.<span class="fn">is_connected</span>(G)</code><span class="star">&starf;</span><div class="desc">Undirected: is every node reachable?</div></li>
+      <li class="algo"><code class="cmd">nx.<span class="fn">connected_components</span>(G)</code><span class="star">&starf;</span><div class="desc">Generator of node sets — wrap in <code>list()</code>.</div></li>
+      <li class="algo"><code class="cmd">nx.<span class="fn">number_connected_components</span>(G)</code><div class="desc">How many disconnected pieces.</div></li>
+      <li class="algo"><code class="cmd">G.<span class="fn">subgraph</span>(<span class="kw">max</span>(nx.<span class="fn">connected_components</span>(G), key<span class="op">=</span><span class="kw">len</span>))</code><div class="desc">Extract the largest component.</div></li>
+      <li class="algo"><code class="cmd">nx.<span class="fn">strongly_connected_components</span>(D)</code><span class="star">&starf;</span><div class="desc"><b>DiGraph:</b> mutually reachable node sets.</div></li>
+      <li class="algo"><code class="cmd">nx.<span class="fn">weakly_connected_components</span>(D)</code><div class="desc">Connected if you ignore edge direction.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 CENTRALITY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Centrality</span><span class="card-sub">who matters most</span></div>
+    <ul class="cmds">
+      <li class="algo"><code class="cmd">nx.<span class="fn">degree_centrality</span>(G)</code><span class="star">&starf;</span><div class="desc">Share of nodes you're directly linked to.</div></li>
+      <li class="algo"><code class="cmd">nx.<span class="fn">betweenness_centrality</span>(G)</code><span class="star">&starf;</span><div class="desc">How often you sit on shortest paths — the "brokers".</div></li>
+      <li class="algo"><code class="cmd">nx.<span class="fn">closeness_centrality</span>(G)</code><div class="desc">Inverse mean distance to everyone else.</div></li>
+      <li class="algo"><code class="cmd">nx.<span class="fn">eigenvector_centrality</span>(G)</code><div class="desc">Being linked to well-connected nodes.</div></li>
+      <li class="algo"><code class="cmd">nx.<span class="fn">pagerank</span>(G, alpha<span class="op">=</span><span class="num">0.85</span>)</code><span class="star">&starf;</span><div class="desc">The Google ranking — a random-walk score.</div></li>
+      <li class="algo"><code class="cmd">nx.<span class="fn">betweenness_centrality</span>(G, k<span class="op">=</span><span class="num">100</span>)</code><div class="desc"><code>k</code> samples pivots — approximate but fast on big graphs.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 CLUSTERING & STRUCTURE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Clustering &amp; Structure</span><span class="card-sub">global properties</span></div>
+    <ul class="cmds">
+      <li class="algo"><code class="cmd">nx.<span class="fn">clustering</span>(G) · nx.<span class="fn">average_clustering</span>(G)</code><span class="star">&starf;</span><div class="desc">How often a node's neighbors are also linked.</div></li>
+      <li class="algo"><code class="cmd">nx.<span class="fn">transitivity</span>(G)</code><div class="desc">Global triangle density.</div></li>
+      <li class="algo"><code class="cmd">nx.<span class="fn">density</span>(G)</code><span class="star">&starf;</span><div class="desc">Edges present / edges possible.</div></li>
+      <li class="algo"><code class="cmd">nx.<span class="fn">diameter</span>(G) · nx.<span class="fn">average_shortest_path_length</span>(G)</code><div class="desc">Longest / mean shortest path (needs connected).</div></li>
+      <li class="algo"><code class="cmd">nx.<span class="fn">is_directed_acyclic_graph</span>(D)</code><span class="star">&starf;</span><div class="desc">DAG check before topological sort.</div></li>
+      <li class="algo"><code class="cmd">nx.<span class="fn">find_cycle</span>(G) · nx.<span class="fn">simple_cycles</span>(D)</code><div class="desc">Detect / enumerate cycles.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 COMMUNITIES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Communities</span><span class="card-sub">find clusters</span></div>
+    <ul class="cmds">
+      <li class="algo"><code class="cmd"><span class="kw">from</span> networkx.algorithms <span class="kw">import</span> community</code><div class="desc">Community detection lives in its own module.</div></li>
+      <li class="algo"><code class="cmd">community.<span class="fn">louvain_communities</span>(G, seed<span class="op">=</span><span class="num">1</span>)</code><span class="star">&starf;</span><div class="desc">Fast modularity optimization — the go-to.</div></li>
+      <li class="algo"><code class="cmd">community.<span class="fn">greedy_modularity_communities</span>(G)</code><span class="star">&starf;</span><div class="desc">Deterministic modularity clustering.</div></li>
+      <li class="algo"><code class="cmd">community.<span class="fn">label_propagation_communities</span>(G)</code><div class="desc">Near-linear-time label spreading.</div></li>
+      <li class="algo"><code class="cmd">community.<span class="fn">modularity</span>(G, comms)</code><div class="desc">Score a partition (higher = better separated).</div></li>
+      <li class="algo"><code class="cmd">community.<span class="fn">girvan_newman</span>(G)</code><div class="desc">Hierarchical edge-betweenness splitting.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 OPERATORS & VIEWS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Subgraphs &amp; Operators</span><span class="card-sub">slice &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="struct"><code class="cmd">G.<span class="fn">subgraph</span>([<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>])</code><span class="star">&starf;</span><div class="desc">A read-only view on a node subset.</div></li>
+      <li class="struct"><code class="cmd">nx.<span class="fn">ego_graph</span>(G, <span class="num">1</span>, radius<span class="op">=</span><span class="num">2</span>)</code><div class="desc">A node's neighborhood out to N hops.</div></li>
+      <li class="struct"><code class="cmd">G.<span class="fn">copy</span>()</code><span class="star">&starf;</span><div class="desc">An independent, mutable copy (views aren't).</div></li>
+      <li class="struct"><code class="cmd">nx.<span class="fn">compose</span>(G, H) · nx.<span class="fn">union</span>(G, H)</code><div class="desc">Merge graphs (compose = overlay shared nodes).</div></li>
+      <li class="struct"><code class="cmd">nx.<span class="fn">complement</span>(G) · D.<span class="fn">reverse</span>()</code><div class="desc">Non-edges as edges · flip all directions.</div></li>
+      <li class="struct"><code class="cmd">nx.<span class="fn">relabel_nodes</span>(G, {<span class="num">1</span>: <span class="str">"a"</span>})</code><div class="desc">Rename nodes (returns a new graph by default).</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 DRAWING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Drawing</span><span class="card-sub">with matplotlib</span></div>
+    <ul class="cmds">
+      <li class="viz"><code class="cmd">nx.<span class="fn">draw</span>(G, with_labels<span class="op">=</span><span class="kw">True</span>)</code><span class="star">&starf;</span><div class="desc">One-liner plot; then <code>plt.show()</code>.</div></li>
+      <li class="viz"><code class="cmd">pos <span class="op">=</span> nx.<span class="fn">spring_layout</span>(G, seed<span class="op">=</span><span class="num">42</span>)</code><span class="star">&starf;</span><div class="desc">Force-directed positions — <b>fix the seed</b> for stable plots.</div></li>
+      <li class="viz"><code class="cmd">nx.<span class="fn">circular_layout</span> · <span class="fn">kamada_kawai_layout</span> · <span class="fn">shell_layout</span></code><div class="desc">Other layout algorithms &rarr; <code>{node: (x, y)}</code>.</div></li>
+      <li class="viz"><code class="cmd">nx.<span class="fn">draw</span>(G, pos, node_color<span class="op">=</span>vals, cmap<span class="op">=</span>plt.cm.Blues)</code><div class="desc">Colour nodes by a metric (e.g. centrality).</div></li>
+      <li class="viz"><code class="cmd">nx.<span class="fn">draw_networkx_edge_labels</span>(G, pos, labels)</code><div class="desc">Annotate edges (e.g. weights).</div></li>
+      <li class="viz"><code class="cmd">nx.<span class="fn">draw_networkx_nodes</span> / <span class="fn">_edges</span> / <span class="fn">_labels</span></code><div class="desc">Draw layers separately for full control.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 IO -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Read / Write &amp; Convert</span><span class="card-sub">persist &amp; interop</span></div>
+    <ul class="cmds">
+      <li class="viz"><code class="cmd">nx.<span class="fn">write_graphml</span>(G, <span class="str">"g.graphml"</span>)</code><span class="star">&starf;</span><div class="desc">Portable XML — keeps attributes (Gephi/Cytoscape).</div></li>
+      <li class="viz"><code class="cmd">nx.<span class="fn">read_edgelist</span>(<span class="str">"g.txt"</span>) · nx.<span class="fn">write_edgelist</span></code><div class="desc">Simple <code>u v {attrs}</code> text format.</div></li>
+      <li class="viz"><code class="cmd">nx.<span class="fn">read_gml</span> · nx.<span class="fn">read_adjlist</span> · nx.<span class="fn">read_pajek</span></code><div class="desc">Other common on-disk formats.</div></li>
+      <li class="viz"><code class="cmd">nx.<span class="fn">node_link_data</span>(G, edges<span class="op">=</span><span class="str">"edges"</span>)</code><span class="star">&starf;</span><div class="desc">To a JSON-friendly dict (for D3 / web).</div></li>
+      <li class="viz"><code class="cmd">nx.<span class="fn">to_pandas_edgelist</span>(G) · nx.<span class="fn">to_pandas_adjacency</span>(G)</code><div class="desc">Back to DataFrames.</div></li>
+      <li class="viz"><code class="cmd">nx.<span class="fn">to_numpy_array</span>(G) · nx.<span class="fn">adjacency_matrix</span>(G)</code><div class="desc">Dense / sparse adjacency matrix.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 PERFORMANCE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Scale &amp; Backends</span><span class="card-sub">bigger graphs, 2026</span></div>
+    <ul class="cmds">
+      <li class="imp"><code class="cmd">nx.<span class="fn">draw</span>(G) <span class="op">→</span> slow &gt; ~1k nodes</code><div class="desc">Matplotlib isn't for huge graphs — export to Gephi/Cytoscape.</div></li>
+      <li class="imp"><code class="cmd">pip install nx-cugraph · nx-parallel</code><span class="badge-danger">3.x</span><div class="desc">Drop-in <b>backends</b> that accelerate algorithms.</div></li>
+      <li class="imp"><code class="cmd">nx.<span class="fn">pagerank</span>(G, backend<span class="op">=</span><span class="str">"cugraph"</span>)</code><div class="desc">Route one call to a GPU/parallel backend.</div></li>
+      <li class="imp"><code class="cmd">NX_CUGRAPH_AUTOCONFIG<span class="op">=</span>True</code><div class="desc">Env var to auto-dispatch supported algorithms.</div></li>
+      <li class="imp"><code class="cmd">nx.<span class="fn">config</span>.backend_priority</code><div class="desc">Control which backend is tried first.</div></li>
+      <li class="imp"><code class="cmd">G.<span class="fn">subgraph</span>(nodes).<span class="fn">copy</span>() <span class="kw">before</span> heavy work</code><div class="desc">Trim to what you need — algorithms scale with size.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four ideas worth a picture</h2>
+  <p class="sub">The intuitions the API rests on — traversal order, weighted paths, what "important" means, and directed neighbourhoods. Values below are the real NetworkX outputs.</p>
+  <div class="merge-grid">
+
+    <!-- D1 BFS vs DFS -->
+    <div class="merge-card">
+      <h3>BFS vs DFS — order you visit nodes</h3>
+      <p>Same tree, same root A. BFS sweeps level by level; DFS dives deep before backtracking.</p>
+      <svg viewBox="0 0 400 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Breadth-first search visits A, B, C, then D, E, F by layer; depth-first visits A, B, D, E, C, F going deep first.">
+        <!-- BFS tree (left) -->
+        <text x="100" y="20" text-anchor="middle" font-size="10.5" font-weight="700" fill="#d97706">BFS · by layer</text>
+        <g stroke="#e2e0da" stroke-width="1.6">
+          <line x1="100" y1="42" x2="60" y2="92"/><line x1="100" y1="42" x2="140" y2="92"/>
+          <line x1="60" y1="92" x2="35" y2="150"/><line x1="60" y1="92" x2="80" y2="150"/>
+          <line x1="140" y1="92" x2="140" y2="150"/>
+        </g>
+        <g font-size="10" text-anchor="middle">
+          <circle cx="100" cy="42" r="15" fill="#d97706"/><text x="100" y="46" fill="#fff" font-weight="700">A</text>
+          <circle cx="60" cy="92" r="15" fill="#d97706"/><text x="60" y="96" fill="#fff" font-weight="700">B</text>
+          <circle cx="140" cy="92" r="15" fill="#d97706"/><text x="140" y="96" fill="#fff" font-weight="700">C</text>
+          <circle cx="35" cy="150" r="15" fill="#f0b366"/><text x="35" y="154" fill="#fff" font-weight="700">D</text>
+          <circle cx="80" cy="150" r="15" fill="#f0b366"/><text x="80" y="154" fill="#fff" font-weight="700">E</text>
+          <circle cx="140" cy="150" r="15" fill="#f0b366"/><text x="140" y="154" fill="#fff" font-weight="700">F</text>
+        </g>
+        <text x="100" y="185" text-anchor="middle" font-size="9" fill="#525761">A │ B C │ D E F</text>
+        <!-- divider -->
+        <line x1="200" y1="20" x2="200" y2="195" stroke="#e7e3db" stroke-dasharray="3 3"/>
+        <!-- DFS tree (right) -->
+        <text x="300" y="20" text-anchor="middle" font-size="10.5" font-weight="700" fill="#7c3aed">DFS · go deep</text>
+        <g stroke="#e2e0da" stroke-width="1.6">
+          <line x1="300" y1="42" x2="260" y2="92"/><line x1="300" y1="42" x2="340" y2="92"/>
+          <line x1="260" y1="92" x2="235" y2="150"/><line x1="260" y1="92" x2="280" y2="150"/>
+          <line x1="340" y1="92" x2="340" y2="150"/>
+        </g>
+        <g font-size="9" text-anchor="middle">
+          <circle cx="300" cy="42" r="15" fill="#7c3aed"/><text x="300" y="45" fill="#fff" font-weight="700">A</text><text x="318" y="34" fill="#7c3aed" font-size="8">1</text>
+          <circle cx="260" cy="92" r="15" fill="#7c3aed"/><text x="260" y="95" fill="#fff" font-weight="700">B</text><text x="278" y="84" fill="#7c3aed" font-size="8">2</text>
+          <circle cx="235" cy="150" r="15" fill="#7c3aed"/><text x="235" y="153" fill="#fff" font-weight="700">D</text><text x="253" y="142" fill="#7c3aed" font-size="8">3</text>
+          <circle cx="280" cy="150" r="15" fill="#7c3aed"/><text x="280" y="153" fill="#fff" font-weight="700">E</text><text x="298" y="142" fill="#7c3aed" font-size="8">4</text>
+          <circle cx="340" cy="92" r="15" fill="#7c3aed"/><text x="340" y="95" fill="#fff" font-weight="700">C</text><text x="358" y="84" fill="#7c3aed" font-size="8">5</text>
+          <circle cx="340" cy="150" r="15" fill="#7c3aed"/><text x="340" y="153" fill="#fff" font-weight="700">F</text><text x="358" y="142" fill="#7c3aed" font-size="8">6</text>
+        </g>
+        <text x="300" y="185" text-anchor="middle" font-size="9" fill="#525761">A→B→D→E→C→F</text>
+      </svg>
+    </div>
+
+    <!-- D2 shortest path -->
+    <div class="merge-card">
+      <h3>Shortest path — hops vs weight</h3>
+      <p>Unweighted picks the fewest edges; weighted (Dijkstra) picks the least total weight — often a different route.</p>
+      <svg viewBox="0 0 400 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="From S to T, the unweighted path S-X-T is 2 hops but costs 9; the weighted path S-A-B-T is 3 hops but costs only 3.">
+        <!-- edges -->
+        <g stroke-width="5" fill="none" stroke-linecap="round">
+          <line x1="40" y1="150" x2="150" y2="55" stroke="#f5c98a"/>
+          <line x1="150" y1="55" x2="360" y2="150" stroke="#f5c98a"/>
+          <line x1="40" y1="150" x2="150" y2="175" stroke="#c4b5f0"/>
+          <line x1="150" y1="175" x2="255" y2="175" stroke="#c4b5f0"/>
+          <line x1="255" y1="175" x2="360" y2="150" stroke="#c4b5f0"/>
+        </g>
+        <!-- weight labels -->
+        <g font-size="9.5" fill="#525761" text-anchor="middle">
+          <text x="88" y="95" fill="#b45309">1</text>
+          <text x="262" y="95" fill="#b45309" font-weight="700">8</text>
+          <text x="92" y="177" fill="#7c3aed">1</text>
+          <text x="202" y="168" fill="#7c3aed">1</text>
+          <text x="315" y="177" fill="#7c3aed">1</text>
+        </g>
+        <!-- nodes -->
+        <g font-size="10" text-anchor="middle">
+          <circle cx="40" cy="150" r="16" fill="#16a34a"/><text x="40" y="154" fill="#fff" font-weight="700">S</text>
+          <circle cx="150" cy="55" r="15" fill="#64748b"/><text x="150" y="59" fill="#fff" font-weight="700">X</text>
+          <circle cx="360" cy="150" r="16" fill="#16a34a"/><text x="360" y="154" fill="#fff" font-weight="700">T</text>
+          <circle cx="150" cy="175" r="14" fill="#64748b"/><text x="150" y="179" fill="#fff">A</text>
+          <circle cx="255" cy="175" r="14" fill="#64748b"/><text x="255" y="179" fill="#fff">B</text>
+        </g>
+        <!-- legend -->
+        <rect x="24" y="16" width="150" height="17" rx="4" fill="#fdf6ec"/><text x="32" y="28" font-size="9" fill="#b45309" font-weight="700">S-X-T</text><text x="74" y="28" font-size="9" fill="#525761">2 hops · cost 9</text>
+        <rect x="212" y="16" width="164" height="17" rx="4" fill="#f3effc"/><text x="220" y="28" font-size="9" fill="#7c3aed" font-weight="700">S-A-B-T</text><text x="270" y="28" font-size="9" fill="#525761">3 hops · cost 3 ✓</text>
+      </svg>
+    </div>
+
+    <!-- D3 centrality -->
+    <div class="merge-card">
+      <h3>Centrality — "important" has many meanings</h3>
+      <p>Node size ∝ score. Degree favours the hubs; betweenness exposes the bridge <code>m</code> — few links, but every crossing path runs through it.</p>
+      <svg viewBox="0 0 400 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="By degree centrality the two hubs h1 and h2 are largest; by betweenness the bridge node m becomes prominent despite having only two links.">
+        <!-- LEFT: degree -->
+        <text x="100" y="18" text-anchor="middle" font-size="10.5" font-weight="700" fill="#4f46e5">degree</text>
+        <g stroke="#e2e0da" stroke-width="1.4">
+          <line x1="45" y1="105" x2="20" y2="55"/><line x1="45" y1="105" x2="18" y2="105"/><line x1="45" y1="105" x2="20" y2="155"/>
+          <line x1="45" y1="105" x2="100" y2="105"/><line x1="100" y1="105" x2="150" y2="105"/>
+          <line x1="150" y1="105" x2="182" y2="55"/><line x1="150" y1="105" x2="184" y2="105"/><line x1="150" y1="105" x2="182" y2="155"/>
+        </g>
+        <g font-size="9" text-anchor="middle">
+          <circle cx="20" cy="55" r="4" fill="#a5b4fc"/><circle cx="18" cy="105" r="4" fill="#a5b4fc"/><circle cx="20" cy="155" r="4" fill="#a5b4fc"/>
+          <circle cx="182" cy="55" r="4" fill="#a5b4fc"/><circle cx="184" cy="105" r="4" fill="#a5b4fc"/><circle cx="182" cy="155" r="4" fill="#a5b4fc"/>
+          <circle cx="45" cy="105" r="17" fill="#4f46e5"/><text x="45" y="108" fill="#fff" font-weight="700">h1</text>
+          <circle cx="150" cy="105" r="17" fill="#4f46e5"/><text x="150" y="108" fill="#fff" font-weight="700">h2</text>
+          <circle cx="100" cy="105" r="9" fill="#818cf8"/><text x="100" y="108" fill="#fff">m</text>
+        </g>
+        <text x="100" y="197" text-anchor="middle" font-size="8.5" fill="#525761">hubs win · m looks minor (0.25)</text>
+        <line x1="200" y1="16" x2="200" y2="200" stroke="#e7e3db" stroke-dasharray="3 3"/>
+        <!-- RIGHT: betweenness -->
+        <text x="300" y="18" text-anchor="middle" font-size="10.5" font-weight="700" fill="#7c3aed">betweenness</text>
+        <g stroke="#e2e0da" stroke-width="1.4">
+          <line x1="245" y1="105" x2="222" y2="60"/><line x1="245" y1="105" x2="220" y2="105"/><line x1="245" y1="105" x2="222" y2="150"/>
+          <line x1="245" y1="105" x2="300" y2="105"/><line x1="300" y1="105" x2="355" y2="105"/>
+          <line x1="355" y1="105" x2="382" y2="60"/><line x1="355" y1="105" x2="384" y2="105"/><line x1="355" y1="105" x2="382" y2="150"/>
+        </g>
+        <g font-size="9" text-anchor="middle">
+          <circle cx="222" cy="60" r="3" fill="#c4b5fd"/><circle cx="220" cy="105" r="3" fill="#c4b5fd"/><circle cx="222" cy="150" r="3" fill="#c4b5fd"/>
+          <circle cx="382" cy="60" r="3" fill="#c4b5fd"/><circle cx="384" cy="105" r="3" fill="#c4b5fd"/><circle cx="382" cy="150" r="3" fill="#c4b5fd"/>
+          <circle cx="245" cy="105" r="18" fill="#7c3aed"/><text x="245" y="108" fill="#fff" font-weight="700">h1</text>
+          <circle cx="355" cy="105" r="18" fill="#7c3aed"/><text x="355" y="108" fill="#fff" font-weight="700">h2</text>
+          <circle cx="300" cy="105" r="16" fill="#7c3aed"/><text x="300" y="108" fill="#fff" font-weight="700">m</text>
+        </g>
+        <text x="300" y="197" text-anchor="middle" font-size="8.5" fill="#525761">m jumps to 0.57 — the broker</text>
+      </svg>
+    </div>
+
+    <!-- D4 directed neighborhood -->
+    <div class="merge-card">
+      <h3>Directed graphs split the neighbourhood</h3>
+      <p>On a DiGraph, <code>neighbors()</code> = successors only. Use <code>predecessors()</code> for edges coming in.</p>
+      <svg viewBox="0 0 400 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Node C has predecessors A and B pointing in, and successors D and E pointing out; in_degree and out_degree are each 2.">
+        <defs><marker id="arE" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4f46e5"/></marker></defs>
+        <!-- in edges -->
+        <line x1="112" y1="70" x2="178" y2="98" stroke="#4f46e5" stroke-width="2" marker-end="url(#arE)"/>
+        <line x1="112" y1="150" x2="178" y2="112" stroke="#4f46e5" stroke-width="2" marker-end="url(#arE)"/>
+        <!-- out edges -->
+        <line x1="222" y1="98" x2="288" y2="70" stroke="#7c3aed" stroke-width="2" marker-end="url(#arE)"/>
+        <line x1="222" y1="112" x2="288" y2="150" stroke="#7c3aed" stroke-width="2" marker-end="url(#arE)"/>
+        <g font-size="10" text-anchor="middle">
+          <circle cx="95" cy="60" r="15" fill="#64748b"/><text x="95" y="64" fill="#fff" font-weight="700">A</text>
+          <circle cx="95" cy="160" r="15" fill="#64748b"/><text x="95" y="164" fill="#fff" font-weight="700">B</text>
+          <circle cx="200" cy="105" r="19" fill="#16a34a"/><text x="200" y="109" fill="#fff" font-weight="700">C</text>
+          <circle cx="305" cy="60" r="15" fill="#64748b"/><text x="305" y="64" fill="#fff" font-weight="700">D</text>
+          <circle cx="305" cy="160" r="15" fill="#64748b"/><text x="305" y="164" fill="#fff" font-weight="700">E</text>
+        </g>
+        <text x="95" y="105" text-anchor="middle" font-size="9" fill="#4f46e5" font-weight="700">predecessors</text>
+        <text x="305" y="105" text-anchor="middle" font-size="9" fill="#7c3aed" font-weight="700">successors</text>
+        <text x="200" y="192" text-anchor="middle" font-size="9" fill="#525761">C.in_degree = 2 · C.out_degree = 2 · neighbors(C) → {D, E}</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WORTH MEMORIZING ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">nodes = hashable</span><span class="v">int/str/tuple work; a list or dict as a node raises <code>TypeError</code></span></div>
+    <div><span class="k">add_edge auto-adds</span><span class="v"><code>add_edge(u,v)</code> silently creates u and v if missing</span></div>
+    <div><span class="k">re-adding updates</span><span class="v">adding an existing node/edge merges attributes — no duplicate (except MultiGraph)</span></div>
+    <div><span class="k">views, not lists</span><span class="v"><code>G.nodes</code>/<code>G.edges</code>/<code>G.degree</code> are live views — wrap in <code>list()</code></span></div>
+    <div><span class="k">data=True</span><span class="v">add it to <code>.nodes</code>/<code>.edges</code> to get the attribute dicts</span></div>
+    <div><span class="k">weight is an attr</span><span class="v">named <code>'weight'</code> by default; pass <code>weight='cost'</code> to use another</span></div>
+    <div><span class="k">unweighted = BFS</span><span class="v"><code>shortest_path</code> with no weight = fewest edges; add <code>weight=</code> for Dijkstra</span></div>
+    <div><span class="k">generators</span><span class="v">components &amp; paths return generators — <code>list()</code> them to reuse</span></div>
+    <div><span class="k">directed ≠ undirected</span><span class="v">on DiGraph <code>neighbors</code>=successors; use <code>predecessors</code> for in-edges</span></div>
+    <div><span class="k">degree on DiGraph</span><span class="v"><code>degree</code> = in+out; use <code>in_degree</code>/<code>out_degree</code> separately</span></div>
+    <div><span class="k">check preconditions</span><span class="v">many algos need connected / DAG — test <code>is_connected</code>/<code>is_directed_acyclic_graph</code> first</span></div>
+    <div><span class="k">subgraph is a view</span><span class="v">read-only &amp; ties to G; <code>.copy()</code> to detach and edit</span></div>
+    <div><span class="k">fix the layout seed</span><span class="v"><code>spring_layout(G, seed=…)</code> or the plot jumps every run</span></div>
+    <div><span class="k">removing cascades</span><span class="v"><code>remove_node</code> also drops all its incident edges — silently</span></div>
+  </div>
+</section>
+
+<footer>
+  NetworkX cheat sheet · verified by running <code>networkx 3.6.1</code> (build → inspect → algorithms → draw → I/O), with the four concept-diagram values computed from real graphs; cross-checked with the official reference &amp; tutorial at <code>networkx.org</code> and the community cheat sheets (gonz95alo, murenei).<br>
+  API shown for <b>NetworkX 3.x</b> — the modern era added a pluggable <b>backend</b> system (<code>nx-cugraph</code> on GPU, <code>nx-parallel</code>) so heavy algorithms can run elsewhere without changing your code. Drawing is matplotlib-based; for very large graphs export to Gephi/Cytoscape via GraphML.
+</footer>
+
+</body>
+</html>

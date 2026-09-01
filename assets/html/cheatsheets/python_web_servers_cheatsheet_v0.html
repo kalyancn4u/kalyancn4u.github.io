@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Web Servers Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Serving Python web apps &middot; Uvicorn (ASGI) + Gunicorn (WSGI/process manager) &middot; verified against Uvicorn 0.52 / Gunicorn 26 (2026)</div>
+  <h1><span class="mono">Python Web Servers</span> cheat sheet</h1>
+  <p class="lede"><b>Uvicorn</b> is the fast <b>ASGI</b> server for async apps (FastAPI, Starlette, Django-async); <b>Gunicorn</b> is the battle-tested <b>WSGI</b> server + process manager for sync apps (Flask, Django). The classic production pattern runs <b>Gunicorn as the process master with Uvicorn workers</b> for ASGI apps &mdash; robust process supervision plus async speed. This grouped sheet covers both, the combo, tuning, and deployment, with pointers to Hypercorn &amp; Granian. Targets <b>Uvicorn 0.52.x</b> + <b>Gunicorn 26.x</b>, Python 3.10+.</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>Uvicorn (ASGI)</span>
+    <span><i class="dot c2"></i>Gunicorn (WSGI)</span>
+    <span><i class="dot c3"></i>the combo</span>
+    <span><i class="dot c4"></i>tuning &amp; lifecycle</span>
+    <span><i class="dot c5"></i>deploy &amp; alternatives</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-08-31 against <b>uvicorn.dev</b> (Uvicorn 0.52.3, 2026-08-13) and <b>gunicorn.org</b> (Gunicorn 26.2.0, 2026-08-24; Python 3.10&ndash;3.13). <b>App path syntax</b> is <code>module:app_variable</code> for both. <b>Gunicorn is UNIX-only</b> (no Windows).</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub">ASGI app? Uvicorn. WSGI app? Gunicorn. Production ASGI? Gunicorn managing Uvicorn workers. Then tune workers/timeouts and deploy behind a reverse proxy.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Uvicorn (ASGI)</h3>
+      <ol class="toc-list">
+        <li><span class="rk">1</span><a href="#uvicorn">Install &amp; run</a></li>
+        <li><span class="rk">2</span><a href="#uvicorn-opts">CLI options</a></li>
+        <li><span class="rk">3</span><a href="#uvicorn-prog">Programmatic &amp; reload</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">Gunicorn (WSGI)</h3>
+      <ol class="toc-list">
+        <li><span class="rk">4</span><a href="#gunicorn">Install &amp; run</a></li>
+        <li><span class="rk">5</span><a href="#workers">Workers &amp; worker classes</a></li>
+        <li><span class="rk">6</span><a href="#config">Config file</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>The combo</h3>
+      <ol class="toc-list">
+        <li><span class="rk">7</span><a href="#combo">Gunicorn + Uvicorn workers</a></li>
+        <li><span class="rk">8</span><a href="#which">Which multi-worker?</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">Tuning &amp; lifecycle</h3>
+      <ol class="toc-list">
+        <li><span class="rk">9</span><a href="#lifecycle">Timeouts, reload &amp; signals</a></li>
+        <li><span class="rk">10</span><a href="#binding">Binding, sockets &amp; proxies</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Deploy &amp; alternatives</h3>
+      <ol class="toc-list">
+        <li><span class="rk">11</span><a href="#deploy">systemd, Docker &amp; nginx</a></li>
+        <li><span class="rk">12</span><a href="#alts">Alternatives &amp; choosing</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-uv"><h2 style="color:var(--c1)">Uvicorn (ASGI)</h2><p class="sub">The go-to server for async frameworks. One command in dev; multi-worker in prod.</p></div>
+<main>
+  <article class="card" id="uvicorn">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Install &amp; run</span><span class="card-sub">ASGI</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">pip install <span class="str">"uvicorn[standard]"</span></code><span class="star">&#9733;</span><div class="desc"><code>[standard]</code> adds the fast extras: <b>uvloop</b>, <b>httptools</b>, websockets, and watchfiles (for reload). Plain <code>uvicorn</code> is pure-Python.</div></li>
+      <li class="c1"><code class="cmd">uvicorn main:app</code><span class="star">&#9733;</span><div class="desc">Run the ASGI callable <code>app</code> in <code>main.py</code>. Serves on <code>127.0.0.1:8000</code> by default. Works with FastAPI/Starlette/Django-ASGI.</div></li>
+      <li class="c1"><code class="cmd">uvicorn main:app <span class="flag">--host</span> 0.0.0.0 <span class="flag">--port</span> 8000</code><span class="star">&#9733;</span><div class="desc"><code>0.0.0.0</code> to accept external connections. This is the minimal production-ish invocation.</div></li>
+      <li class="c1"><code class="cmd">uvicorn main:app <span class="flag">--reload</span>   <span class="cm"># dev auto-reload</span></code><span class="star">&#9733;</span><div class="desc"><code>--reload</code> restarts on file changes &mdash; <b>dev only</b> (never in production).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="uvicorn-opts">
+    <div class="card-head"><span class="card-num n1">2</span><span class="card-title">CLI options</span><span class="card-sub">the useful flags</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">uvicorn main:app <span class="flag">--workers</span> 4</code><span class="star">&#9733;</span><div class="desc">Run 4 worker processes &mdash; Uvicorn now manages its own multiprocessing (you no longer need Gunicorn just for this). Mutually exclusive with <code>--reload</code>.</div></li>
+      <li class="c1"><code class="cmd">uvicorn main:app <span class="flag">--log-level</span> warning <span class="flag">--no-access-log</span></code><div class="desc">Control logging. <code>--log-config file.json/.yaml</code> for full control.</div></li>
+      <li class="c1"><code class="cmd">uvicorn main:app <span class="flag">--proxy-headers</span> <span class="flag">--forwarded-allow-ips</span> <span class="str">'*'</span></code><span class="star">&#9733;</span><div class="desc">Trust <code>X-Forwarded-For/Proto</code> when behind nginx/a load balancer so the app sees the real client IP/scheme.</div></li>
+      <li class="c1"><code class="cmd">uvicorn main:app <span class="flag">--env-file</span> .env <span class="flag">--timeout-keep-alive</span> 5</code><div class="desc">Load env vars; tune keep-alive. <code>--loop uvloop</code>, <code>--http httptools</code>, <code>--lifespan on</code> also available.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="uvicorn-prog">
+    <div class="card-head"><span class="card-num n1">3</span><span class="card-title">Programmatic &amp; reload</span><span class="card-sub">run from code</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd"><span class="kw">import</span> uvicorn
+<span class="kw">if</span> __name__ == <span class="str">"__main__"</span>:
+    uvicorn.run(<span class="str">"main:app"</span>, host=<span class="str">"0.0.0.0"</span>, port=8000, reload=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Start Uvicorn from Python. ⚠️ Pass the app as an <b>import string</b> (<code>"main:app"</code>), not the object, when using <code>reload=True</code>/<code>workers=</code>.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">async def</span> app(scope, receive, send): ...  <span class="cm"># a raw ASGI app</span></code><div class="desc">Any ASGI callable works; usually it's a framework instance (<code>app = FastAPI()</code>).</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># uvicorn.run(app_object, reload=True)  ->  reload won't work</span></code><span class="badge-warn">gotcha</span><div class="desc">Reload &amp; multiple workers require the import-string form so child processes can re-import the app.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-gun"><h2 style="color:var(--c2)">Gunicorn (WSGI)</h2><p class="sub">The mature process manager for sync apps &mdash; and the master for ASGI workers.</p></div>
+<main>
+  <article class="card" id="gunicorn">
+    <div class="card-head"><span class="card-num n2">4</span><span class="card-title">Install &amp; run</span><span class="card-sub">WSGI · UNIX</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">pip install <span class="arg">gunicorn</span></code><span class="star">&#9733;</span><div class="desc">⚠️ <b>UNIX/macOS only</b> &mdash; Gunicorn does not run on Windows (use Uvicorn, Hypercorn, or Waitress there).</div></li>
+      <li class="c2"><code class="cmd">gunicorn main:app</code><span class="star">&#9733;</span><div class="desc">Serve the WSGI callable <code>app</code> from <code>main.py</code> (Flask/Django). Django: <code>gunicorn myproject.wsgi:application</code>.</div></li>
+      <li class="c2"><code class="cmd">gunicorn main:app <span class="flag">-b</span> 0.0.0.0:8000 <span class="flag">-w</span> 4</code><span class="star">&#9733;</span><div class="desc"><code>-b</code> bind address, <code>-w</code> worker count. This is the everyday production command.</div></li>
+      <li class="c2"><code class="cmd">gunicorn main:app <span class="flag">--reload</span>   <span class="cm"># dev only</span></code><div class="desc">Auto-reload on code changes for development.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="workers">
+    <div class="card-head"><span class="card-num n2">5</span><span class="card-title">Workers &amp; worker classes</span><span class="card-sub">concurrency model</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd"><span class="flag">-w</span> $((2 * $(nproc) + 1))   <span class="cm"># rule of thumb: 2*CPU + 1</span></code><span class="star">&#9733;</span><div class="desc">Start with <code>2&times;cores+1</code> workers for CPU-bound sync apps, then measure.</div></li>
+      <li class="c2"><code class="cmd">gunicorn main:app <span class="flag">-k</span> gthread <span class="flag">--threads</span> 4</code><span class="star">&#9733;</span><div class="desc">Worker classes: <code>sync</code> (default, one request at a time), <code>gthread</code> (threads per worker &mdash; good for I/O), <code>gevent</code>/<code>eventlet</code> (async via greenlets).</div></li>
+      <li class="c2"><code class="cmd"><span class="flag">--max-requests</span> 1000 <span class="flag">--max-requests-jitter</span> 100</code><span class="star">&#9733;</span><div class="desc">Recycle a worker after N requests (± jitter) to bound memory leaks &mdash; a common production safeguard.</div></li>
+      <li class="c2"><code class="cmd"><span class="flag">--preload</span>   <span class="cm"># load app before forking workers</span></code><div class="desc">Saves memory (copy-on-write) &amp; catches import errors early, but disables <code>--reload</code> and per-worker fork setup.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="config">
+    <div class="card-head"><span class="card-num n2">6</span><span class="card-title">Config file</span><span class="card-sub">gunicorn.conf.py</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd"><span class="cm"># gunicorn.conf.py (auto-loaded from CWD)</span>
+bind = <span class="str">"0.0.0.0:8000"</span>
+workers = 4
+worker_class = <span class="str">"uvicorn_worker.UvicornWorker"</span>
+timeout = 30</code><span class="star">&#9733;</span><div class="desc">A Python config file is the clean way to configure Gunicorn &mdash; every CLI flag has an equivalent variable. Auto-loaded if named <code>gunicorn.conf.py</code>.</div></li>
+      <li class="c2"><code class="cmd">gunicorn main:app <span class="flag">-c</span> gunicorn.conf.py</code><div class="desc">Or point at any path with <code>-c</code>.</div></li>
+      <li class="c2"><code class="cmd">accesslog = <span class="str">"-"</span>; errorlog = <span class="str">"-"</span>; loglevel = <span class="str">"info"</span>
+preload_app = <span class="kw">True</span>; keepalive = 5</code><div class="desc"><code>"-"</code> logs to stdout/stderr (ideal for containers). Set <code>proxy_allow_ips</code>, <code>forwarded_allow_ips</code> behind a proxy.</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">def</span> post_fork(server, worker): ...   <span class="cm"># lifecycle hooks</span></code><div class="desc">Hooks (<code>on_starting</code>, <code>post_fork</code>, <code>worker_int</code>, <code>on_exit</code>) run Python at each lifecycle stage.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-combo"><h2 style="color:var(--c3)">The Production Combo</h2><p class="sub">Gunicorn's process supervision + Uvicorn's async workers = the standard ASGI deploy.</p></div>
+<main>
+  <article class="card" id="combo">
+    <div class="card-head"><span class="card-num n3">7</span><span class="card-title">Gunicorn + Uvicorn workers</span><span class="card-sub">FastAPI in prod</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">pip install uvicorn-worker</code><span class="star">&#9733;</span><span class="badge-new">changed</span><div class="desc">⚠️ The Uvicorn worker class moved to its <b>own package</b>. Install <code>uvicorn-worker</code> separately.</div></li>
+      <li class="c3"><code class="cmd">gunicorn main:app <span class="flag">-w</span> 4 <span class="flag">-k</span> uvicorn_worker.UvicornWorker <span class="flag">-b</span> 0.0.0.0:8000</code><span class="star">&#9733;</span><div class="desc">The canonical ASGI production command: Gunicorn manages 4 <b>Uvicorn</b> workers. Gunicorn handles supervision/restarts; each worker runs the async event loop.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># OLD: -k uvicorn.workers.UvicornWorker  ->  deprecated/removed</span></code><span class="badge-danger">migration</span><div class="desc">The in-tree <code>uvicorn.workers.UvicornWorker</code> was <b>removed from Uvicorn</b>. Switch to <code>uvicorn_worker.UvicornWorker</code> from the <code>uvicorn-worker</code> package.</div></li>
+      <li class="c3"><code class="cmd">worker_class = <span class="str">"uvicorn_worker.UvicornWorkerH11"</span>  <span class="cm"># pure-python h11 variant</span></code><div class="desc">Variants exist (e.g. an h11-based worker) when you can't build httptools.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="which">
+    <div class="card-head"><span class="card-num n3">8</span><span class="card-title">Which multi-worker?</span><span class="card-sub">gunicorn vs uvicorn --workers</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="cm"># uvicorn --workers N   (simple, one tool)</span></code><span class="star">&#9733;</span><div class="desc">Uvicorn's own multiprocessing is fine for many deployments &mdash; fewer moving parts. Good default now that it exists.</div></li>
+      <li class="c3"><code class="cmd"><span class="cm"># gunicorn -k UvicornWorker   (richer process management)</span></code><div class="desc">Choose Gunicorn when you want its mature supervision: <code>--max-requests</code> recycling, graceful <code>HUP</code> reloads, <code>TTIN/TTOU</code> worker scaling, and battle-tested signal handling.</div></li>
+      <li class="c3"><code class="cmd"><span class="cm"># containers/k8s: often 1 worker/process, scale via replicas</span></code><div class="desc">Under an orchestrator, many teams run a single process per container and scale horizontally &mdash; then the choice matters less.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-tune"><h2 style="color:var(--c4)">Tuning &amp; Lifecycle</h2><p class="sub">Timeouts, zero-downtime reloads, signals, and running behind a proxy.</p></div>
+<main>
+  <article class="card" id="lifecycle">
+    <div class="card-head"><span class="card-num n4">9</span><span class="card-title">Timeouts, reload &amp; signals</span><span class="card-sub">operate it</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">gunicorn ... <span class="flag">--timeout</span> 30 <span class="flag">--graceful-timeout</span> 30 <span class="flag">--keep-alive</span> 5</code><span class="star">&#9733;</span><div class="desc"><code>--timeout</code>: a worker silent this long is killed &amp; restarted (raise it for slow requests, or use async workers). <code>--graceful-timeout</code>: how long to finish in-flight requests on reload.</div></li>
+      <li class="c4"><code class="cmd">kill -HUP $(cat gunicorn.pid)   <span class="cm"># graceful config/code reload</span></code><span class="star">&#9733;</span><div class="desc"><b>HUP</b> reloads workers with (near) zero downtime. <code>--pid gunicorn.pid</code> to write the master PID.</div></li>
+      <li class="c4"><code class="cmd">kill -TTIN / -TTOU pid   <span class="cm"># add / remove one worker</span>
+kill -USR2 pid           <span class="cm"># hot-upgrade the binary</span></code><div class="desc">Gunicorn's signal toolkit: scale workers live, and do zero-downtime binary upgrades with <code>USR2</code> + <code>WINCH</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># WORKER TIMEOUT killing a slow sync request?</span></code><span class="badge-warn">gotcha</span><div class="desc">A long request on a <code>sync</code> worker blocks it and trips <code>--timeout</code>. Use <code>gthread</code>/async workers, offload to a task queue, or raise the timeout.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="binding">
+    <div class="card-head"><span class="card-num n4">10</span><span class="card-title">Binding, sockets &amp; proxies</span><span class="card-sub">the network edge</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">gunicorn ... <span class="flag">-b</span> unix:/run/app.sock   <span class="cm"># uvicorn: --uds /run/app.sock</span></code><span class="star">&#9733;</span><div class="desc">Bind a <b>Unix domain socket</b> to talk to nginx on the same host &mdash; faster &amp; more secure than a TCP port.</div></li>
+      <li class="c4"><code class="cmd"><span class="cm"># behind a proxy: trust forwarded headers</span>
+gunicorn ... <span class="flag">--forwarded-allow-ips</span> <span class="str">"*"</span>
+uvicorn ... <span class="flag">--proxy-headers</span> <span class="flag">--forwarded-allow-ips</span> <span class="str">"*"</span></code><span class="star">&#9733;</span><div class="desc">So the app sees the real client IP/scheme from <code>X-Forwarded-*</code>. Restrict the allowed IPs in production.</div></li>
+      <li class="c4"><code class="cmd">uvicorn ... <span class="flag">--ssl-keyfile</span> key.pem <span class="flag">--ssl-certfile</span> cert.pem</code><div class="desc">TLS termination is possible in the app server, but usually you let nginx/the load balancer terminate TLS.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-deploy"><h2 style="color:var(--c5)">Deploy &amp; Alternatives</h2><p class="sub">Supervise it, containerize it, and know the other servers in the space.</p></div>
+<main>
+  <article class="card" id="deploy">
+    <div class="card-head"><span class="card-num n5">11</span><span class="card-title">systemd, Docker &amp; nginx</span><span class="card-sub">run it for real</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="cm"># /etc/systemd/system/app.service</span>
+[Service]
+ExecStart=/venv/bin/gunicorn main:app -c gunicorn.conf.py
+Restart=always</code><span class="star">&#9733;</span><div class="desc"><b>systemd</b> supervises the master process &amp; restarts on failure &mdash; the standard VM/bare-metal deploy.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># Dockerfile</span>
+CMD [<span class="str">"gunicorn"</span>, <span class="str">"main:app"</span>, <span class="str">"-k"</span>, <span class="str">"uvicorn_worker.UvicornWorker"</span>,
+     <span class="str">"-b"</span>, <span class="str">"0.0.0.0:8000"</span>]</code><span class="star">&#9733;</span><div class="desc">Bind <code>0.0.0.0</code>, log to stdout (<code>accesslog="-"</code>), and let the orchestrator restart the container. Don't use <code>--reload</code>.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># nginx: proxy_pass to the app socket/port; it serves static + TLS</span></code><div class="desc">Put nginx (or a cloud LB) in front for TLS, static files, buffering, and rate limiting; proxy dynamic requests to Gunicorn/Uvicorn.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="alts">
+    <div class="card-head"><span class="card-num n5">12</span><span class="card-title">Alternatives &amp; choosing</span><span class="card-sub">the landscape</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="cm"># Hypercorn — ASGI, HTTP/2 + HTTP/3, asyncio or trio</span></code><div class="desc"><b>Hypercorn</b>: the ASGI alternative to Uvicorn when you need HTTP/2/3 or trio. <code>hypercorn main:app --workers 4</code>.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># Granian — Rust-based, serves ASGI + WSGI + RSGI, very fast</span></code><div class="desc"><b>Granian</b>: a fast Rust server handling ASGI, WSGI, and its own RSGI &mdash; a rising single-tool option.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># Waitress — pure-Python WSGI, works on Windows</span></code><div class="desc"><b>Waitress</b> is the go-to WSGI server on Windows (where Gunicorn can't run). <b>Daphne</b> for Django Channels.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># pick: async app -> Uvicorn/Hypercorn/Granian; sync -> Gunicorn/Waitress</span></code><span class="star">&#9733;</span><div class="desc">Match the server to your app's interface (ASGI vs WSGI). For ASGI in production, Gunicorn+UvicornWorker or plain <code>uvicorn --workers</code> are both solid.</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">ASGI vs WSGI</span><span class="v">Uvicorn=async, Gunicorn=sync master</span></div>
+    <div><span class="k">module:app</span><span class="v">app path syntax for both</span></div>
+    <div><span class="k">uvicorn[standard]</span><span class="v">uvloop + httptools + reload extras</span></div>
+    <div><span class="k">uvicorn --host 0.0.0.0 --workers N</span><span class="v">multi-worker, no gunicorn needed</span></div>
+    <div><span class="k">--reload</span><span class="v">dev only; needs import-string app</span></div>
+    <div><span class="k">gunicorn -w 4 -b :8000</span><span class="v">workers = 2*CPU+1 rule of thumb</span></div>
+    <div><span class="k">-k uvicorn_worker.UvicornWorker</span><span class="v">the ASGI-in-prod combo (new package!)</span></div>
+    <div><span class="k">gunicorn.conf.py</span><span class="v">Python config, auto-loaded from CWD</span></div>
+    <div><span class="k">--max-requests</span><span class="v">recycle workers to bound leaks</span></div>
+    <div><span class="k">--timeout / kill -HUP</span><span class="v">worker timeout / graceful reload</span></div>
+    <div><span class="k">-b unix:/run/app.sock</span><span class="v">+ --proxy-headers behind nginx</span></div>
+    <div><span class="k">gunicorn = UNIX only</span><span class="v">Windows -> uvicorn / waitress</span></div>
+  </div>
+</section>
+
+<footer>
+  <b>Python Web Servers cheat sheet</b> (Uvicorn + Gunicorn) &middot; v0 &middot; content verified 2026-08-31 against uvicorn.dev (Uvicorn 0.52.3) &amp; gunicorn.org (Gunicorn 26.2.0), Python 3.10+.<br>
+  Uvicorn serves ASGI (FastAPI/Starlette); Gunicorn is the UNIX-only WSGI server &amp; process manager. Production ASGI = <code>gunicorn -k uvicorn_worker.UvicornWorker</code> (worker class now in the separate <code>uvicorn-worker</code> package) or plain <code>uvicorn --workers</code>. Tune with <code>-w</code> (~2&times;CPU+1), <code>--max-requests</code>, <code>--timeout</code>; reload with <code>HUP</code>; run behind nginx with forwarded headers. Alternatives: Hypercorn (HTTP/2/3), Granian (Rust), Waitress (Windows WSGI).<br>
+  Star (&#9733;) marks the most common operations. Flags &amp; the worker-package split evolve &mdash; confirm against the current docs before shipping.
+</footer>
+</body>
+</html>

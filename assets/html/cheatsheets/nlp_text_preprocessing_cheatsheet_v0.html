@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NLP Text Preprocessing Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Text normalization &amp; keyword extraction &middot; grouped bundle &middot; contractions 0.1 &middot; rake-nltk 1.0 &middot; KeyBERT 0.9</div>
+  <h1><span class="mono">NLP Text Preprocessing</span> cheat sheet</h1>
+  <p class="lede">Three small, focused libraries for the front of an NLP pipeline. <b>contractions</b> normalizes text (expands <code>don't</code> &rarr; <code>do not</code>); <b>rake-nltk</b> extracts keyphrases <em>statistically</em> (fast, no model); <b>KeyBERT</b> extracts them <em>semantically</em> using BERT embeddings. Clean first, then pull out the keywords &mdash; with RAKE when you want speed, KeyBERT when you want meaning. This sheet targets <b>contractions 0.1.73</b>, <b>rake-nltk 1.0.6</b>, and <b>KeyBERT 0.9</b>.</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>contractions (normalize)</span>
+    <span><i class="dot c3"></i>rake-nltk (statistical)</span>
+    <span><i class="dot c5"></i>KeyBERT (semantic)</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-08-25: <b>contractions 0.1.73</b> (github.com/kootenpv/contractions), <b>rake-nltk 1.0.6</b> (csurfer.github.io/rake-nltk), <b>KeyBERT 0.9.0</b> (maartengr.github.io/KeyBERT). rake-nltk needs NLTK data (stopwords, punkt); KeyBERT pulls a sentence-transformers model (<code>all-MiniLM-L6-v2</code>) on first use. Pairs with the NLTK/spaCy sheets.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub">Normalize with contractions, then extract keyphrases two ways: RAKE (word co-occurrence statistics, instant) or KeyBERT (embedding similarity, semantic). Pick per your speed/quality trade-off.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Normalize &middot; contractions</h3>
+      <ol class="toc-list">
+        <li><a href="#overview">1 &middot; Overview &amp; install</a></li>
+        <li><a href="#fix">2 &middot; Expand contractions</a></li>
+        <li><a href="#pipeline">3 &middot; Cleaning pipeline</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>RAKE &middot; rake-nltk</h3>
+      <ol class="toc-list">
+        <li><a href="#rake-setup">4 &middot; Rake setup</a></li>
+        <li><a href="#rake-extract">5 &middot; Extract &amp; rank</a></li>
+        <li><a href="#rake-tune">6 &middot; Tuning</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>KeyBERT &middot; semantic</h3>
+      <ol class="toc-list">
+        <li><a href="#kb-extract">7 &middot; Extract keywords</a></li>
+        <li><a href="#kb-diversity">8 &middot; Diversity &amp; models</a></li>
+        <li><a href="#gotchas">9 &middot; Gotchas &amp; choosing</a></li>
+        <li><a href="#worth">Worth memorizing</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-norm"><h2 style="color:var(--c1)">Normalize &mdash; contractions</h2><p class="sub">Expand contracted forms so downstream tokenizing, stopword removal, and embeddings behave.</p></div>
+<main>
+  <article class="card" id="overview">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Overview &amp; install</span><span class="card-sub">the three tools</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">pip install contractions rake-nltk keybert</code><span class="star">&#9733;</span><div class="desc"><b>contractions</b> = normalize; <b>rake-nltk</b> = statistical keyphrases (no ML); <b>KeyBERT</b> = semantic keyphrases (BERT embeddings, pulls in sentence-transformers + torch).</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">import</span> nltk
+nltk.download(<span class="str">"stopwords"</span>); nltk.download(<span class="str">"punkt_tab"</span>)</code><span class="star">&#9733;</span><div class="desc"><b>rake-nltk needs NLTK data</b> &mdash; stopwords and the tokenizer (<code>punkt_tab</code> on NLTK 3.9+). Do this once before using RAKE.</div></li>
+      <li class="c1"><code class="cmd"><span class="cm"># RAKE: fast, deterministic, no semantics</span>
+<span class="cm"># KeyBERT: semantic, needs a model (slower, better phrases)</span></code><div class="desc">Rule of thumb: reach for <b>RAKE</b> at scale or with no GPU; <b>KeyBERT</b> when phrase quality/meaning matters.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="fix">
+    <div class="card-head"><span class="card-num n1">2</span><span class="card-title">Expand contractions</span><span class="card-sub">contractions 0.1.73</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd"><span class="kw">import</span> contractions
+contractions.fix(<span class="str">"I can't believe it's working"</span>)
+<span class="cm"># -> "I cannot believe it is working"</span></code><span class="star">&#9733;</span><div class="desc"><b>One function does it.</b> Handles hundreds of forms, including compound ones like <code>shouldn't've</code> &rarr; <code>should not have</code>.</div></li>
+      <li class="c1"><code class="cmd">contractions.add(<span class="str">"mfw"</span>, <span class="str">"my face when"</span>)</code><span class="star">&#9733;</span><div class="desc">Register your own expansions (slang, domain abbreviations) before calling <code>fix</code>.</div></li>
+      <li class="c1"><code class="cmd"><span class="cm"># ambiguous forms expand to ONE fixed meaning</span>
+contractions.fix(<span class="str">"ain't"</span>)   <span class="cm"># -> "are not"</span></code><div class="desc"><b>Limitation:</b> it's not context-aware &mdash; <code>ain't</code> (am/are/is/has/have not) always becomes one form.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="pipeline">
+    <div class="card-head"><span class="card-num n1">3</span><span class="card-title">Cleaning pipeline</span><span class="card-sub">order matters</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">text = contractions.fix(raw_text)
+text = text.strip()
+<span class="cm"># then tokenize / remove stopwords / extract keywords</span></code><span class="star">&#9733;</span><div class="desc"><b>Expand contractions early</b> &mdash; before tokenizing or stopword removal &mdash; so <code>"don't"</code> doesn't split into a junk <code>"n't"</code> token.</div></li>
+      <li class="c1"><code class="cmd"><span class="cm"># be gentle with lowercasing</span></code><div class="desc">Aggressive <code>.lower()</code> helps RAKE/count methods but can slightly hurt KeyBERT (its embeddings handle case). Normalize to match the extractor.</div></li>
+      <li class="c1"><code class="cmd"><span class="cm"># combine with NLTK / spaCy for tokenize + lemmatize</span></code><div class="desc">These three cover normalize + keyphrases; use the NLTK/spaCy sheets for tokenization, POS, and lemmatization in the same pipeline.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-rake"><h2 style="color:var(--c3)">RAKE &mdash; rake-nltk</h2><p class="sub">Rapid Automatic Keyword Extraction: statistical keyphrases from word co-occurrence. No model, instant.</p></div>
+<main>
+  <article class="card" id="rake-setup">
+    <div class="card-head"><span class="card-num n3">4</span><span class="card-title">Rake setup</span><span class="card-sub">rake-nltk 1.0.6</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="kw">from</span> rake_nltk <span class="kw">import</span> Rake
+r = Rake()   <span class="cm"># English stopwords + punctuation by default</span></code><span class="star">&#9733;</span><div class="desc"><b>Import is <code>rake_nltk</code></b> (underscore). A default <code>Rake()</code> uses NLTK English stopwords as phrase delimiters.</div></li>
+      <li class="c3"><code class="cmd">r = Rake(stopwords=my_stopwords, language=<span class="str">"german"</span>)</code><div class="desc">Override the stopword set or language. Stopwords + punctuation are the boundaries that split text into candidate phrases.</div></li>
+      <li class="c3"><code class="cmd"><span class="cm"># purely statistical: word degree / frequency &mdash; no ML, no GPU</span></code><div class="desc">RAKE scores phrases from how often words co-occur and how "connected" they are &mdash; fully deterministic and instant.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="rake-extract">
+    <div class="card-head"><span class="card-num n3">5</span><span class="card-title">Extract &amp; rank</span><span class="card-sub">phrases out</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">r.extract_keywords_from_text(text)</code><span class="star">&#9733;</span><div class="desc"><b>Run extraction</b> (stores results on the instance). Or <code>r.extract_keywords_from_sentences([...])</code> for a list of sentences.</div></li>
+      <li class="c3"><code class="cmd">r.get_ranked_phrases()          <span class="cm"># ['phrase', ...] high -> low</span></code><span class="star">&#9733;</span><div class="desc">The ranked keyphrases as plain strings.</div></li>
+      <li class="c3"><code class="cmd">r.get_ranked_phrases_with_scores()  <span class="cm"># [(9.0, 'phrase'), ...]</span></code><span class="star">&#9733;</span><div class="desc">Same list with numeric scores &mdash; use it to threshold or take the top-k.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="rake-tune">
+    <div class="card-head"><span class="card-num n3">6</span><span class="card-title">Tuning</span><span class="card-sub">phrase length &amp; metric</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">r = Rake(min_length=1, max_length=3)</code><span class="star">&#9733;</span><div class="desc"><b>Bound phrase word-count</b> &mdash; e.g. 1&ndash;3 words to avoid long run-on phrases.</div></li>
+      <li class="c3"><code class="cmd"><span class="kw">from</span> rake_nltk <span class="kw">import</span> Metric
+r = Rake(ranking_metric=Metric.DEGREE_TO_FREQUENCY_RATIO)</code><div class="desc">The default metric. Alternatives: <code>Metric.WORD_DEGREE</code>, <code>Metric.WORD_FREQUENCY</code> &mdash; trade off favoring longer vs more frequent phrases.</div></li>
+      <li class="c3"><code class="cmd">r = Rake(include_repeated_phrases=<span class="kw">False</span>)</code><div class="desc">Drop duplicate phrases. Also <code>punctuations=</code> to customize the delimiter set.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-keybert"><h2 style="color:var(--c5)">KeyBERT &mdash; semantic</h2><p class="sub">Keyphrases by embedding similarity: candidates most like the whole document. Meaning-aware.</p></div>
+<main>
+  <article class="card" id="kb-extract">
+    <div class="card-head"><span class="card-num n5">7</span><span class="card-title">Extract keywords</span><span class="card-sub">KeyBERT 0.9</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="kw">from</span> keybert <span class="kw">import</span> KeyBERT
+kw = KeyBERT()   <span class="cm"># default: all-MiniLM-L6-v2 (sentence-transformers)</span></code><span class="star">&#9733;</span><div class="desc"><b>Loads a sentence-transformers model</b> (downloaded on first use). It embeds the document and candidate n-grams, then ranks by cosine similarity.</div></li>
+      <li class="c5"><code class="cmd">kw.extract_keywords(doc,
+    keyphrase_ngram_range=(1, 2),
+    stop_words=<span class="str">"english"</span>, top_n=10)</code><span class="star">&#9733;</span><div class="desc"><b>The core call.</b> Returns <code>[(keyword, score)]</code> sorted by similarity. <code>keyphrase_ngram_range</code> sets phrase length; <code>top_n</code> the count.</div></li>
+      <li class="c5"><code class="cmd">kw = KeyBERT(model=<span class="str">"all-mpnet-base-v2"</span>)</code><div class="desc"><b>Swap the embedding model</b> &mdash; bigger models (mpnet) = better quality, slower. Pass any sentence-transformers name or model object.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="kb-diversity">
+    <div class="card-head"><span class="card-num n5">8</span><span class="card-title">Diversity &amp; models</span><span class="card-sub">avoid near-duplicates</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd">kw.extract_keywords(doc, use_mmr=<span class="kw">True</span>, diversity=0.7)</code><span class="star">&#9733;</span><div class="desc"><b>Maximal Marginal Relevance</b> spreads out the results so you don't get five phrasings of the same idea. Higher <code>diversity</code> = more varied.</div></li>
+      <li class="c5"><code class="cmd">kw.extract_keywords(doc, use_maxsum=<span class="kw">True</span>, nr_candidates=20)</code><div class="desc"><b>Max Sum Similarity</b> &mdash; picks the top-n whose pairwise similarity is lowest, from a candidate pool.</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">from</span> keyphrase_vectorizers <span class="kw">import</span> KeyphraseCountVectorizer
+kw.extract_keywords(doc, vectorizer=KeyphraseCountVectorizer())</code><div class="desc"><b>POS-aware candidates</b> &mdash; a keyphrase vectorizer proposes grammatically valid noun phrases instead of raw n-grams. Also <code>candidates=</code> and <code>seed_keywords=</code> to steer.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="gotchas">
+    <div class="card-head"><span class="card-num">!</span><span class="card-title">Gotchas &amp; choosing</span><span class="card-sub">read before shipping</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">rake-nltk: download NLTK data first</code><div class="desc">Missing <code>stopwords</code>/<code>punkt_tab</code> raises <code>LookupError</code>. On NLTK 3.9+ the tokenizer resource is <code>punkt_tab</code> (older code used <code>punkt</code>).</div></li>
+      <li class="danger"><code class="cmd">KeyBERT downloads a model (~90MB) + needs torch</code><div class="desc">First run fetches the sentence-transformers model and pulls in torch. Heavier and slower than RAKE; a GPU speeds up embedding.</div></li>
+      <li class="danger"><code class="cmd">RAKE vs KeyBERT = statistics vs meaning</code><div class="desc"><b>RAKE</b> is fast/deterministic but blind to synonyms and context; <b>KeyBERT</b> captures meaning but needs a model. Choose per corpus size and quality bar (or run both and compare).</div></li>
+      <li class="danger"><code class="cmd">return shapes differ</code><div class="desc">KeyBERT returns <code>(phrase, score)</code> tuples; RAKE's <code>get_ranked_phrases()</code> returns plain strings (use <code>..._with_scores()</code> for scores). Don't assume the same shape.</div></li>
+      <li class="danger"><code class="cmd">contractions isn't context-aware</code><div class="desc">Ambiguous forms expand to one fixed meaning. Fine for normalization; don't treat it as disambiguation.</div></li>
+      <li class="danger"><code class="cmd">expand contractions BEFORE tokenizing</code><div class="desc">Run <code>contractions.fix</code> on raw text first, or apostrophe splitting produces junk tokens that pollute stopword removal and keyphrases.</div></li>
+      <li class="danger"><code class="cmd">KeyBERT stop_words filters candidates, not the doc</code><div class="desc"><code>stop_words</code> removes stopword n-grams from the <em>candidate</em> set; the document embedding still uses the full text.</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs" id="worth">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">pip install contractions rake-nltk keybert</span><span class="v">normalize + 2 keyphrase methods</span></div>
+    <div><span class="k">contractions.fix(text)</span><span class="v">don't -> do not; .add() for custom</span></div>
+    <div><span class="k">expand contractions FIRST</span><span class="v">before tokenize / stopword removal</span></div>
+    <div><span class="k">nltk.download stopwords + punkt_tab</span><span class="v">rake-nltk prerequisite</span></div>
+    <div><span class="k">Rake(); extract_keywords_from_text(t)</span><span class="v">then get_ranked_phrases()</span></div>
+    <div><span class="k">get_ranked_phrases_with_scores()</span><span class="v">[(score, phrase)] to threshold</span></div>
+    <div><span class="k">Rake(min_length, max_length)</span><span class="v">bound phrase word-count</span></div>
+    <div><span class="k">KeyBERT(); extract_keywords(doc, ...)</span><span class="v">-> [(phrase, score)] by cosine sim</span></div>
+    <div><span class="k">keyphrase_ngram_range + top_n</span><span class="v">phrase length &amp; count</span></div>
+    <div><span class="k">use_mmr=True, diversity=</span><span class="v">diverse, non-duplicate keywords</span></div>
+    <div><span class="k">KeyBERT(model="all-mpnet-base-v2")</span><span class="v">bigger model = better/slower</span></div>
+    <div><span class="k">RAKE = fast/statistical, KeyBERT = semantic</span><span class="v">pick per speed vs quality</span></div>
+  </div>
+</section>
+
+<footer>
+  NLP Text Preprocessing cheat sheet (nlp_text_preprocessing_cheatsheet v0) &mdash; grouped bundle.<br>
+  Verified 2026-08-25: <b>contractions 0.1.73</b> (github.com/kootenpv/contractions), <b>rake-nltk 1.0.6</b> (csurfer.github.io/rake-nltk), <b>KeyBERT 0.9.0</b> (maartengr.github.io/KeyBERT). Front-of-pipeline NLP: <code>contractions.fix</code> normalizes text (<code>don't</code>&rarr;<code>do not</code>, <code>.add</code> for custom); <code>rake-nltk</code> extracts keyphrases statistically (<code>Rake().extract_keywords_from_text</code> &rarr; <code>get_ranked_phrases[_with_scores]</code>, tune <code>min/max_length</code> and <code>Metric</code>); <code>KeyBERT</code> extracts them semantically via sentence-transformers embeddings (<code>extract_keywords(doc, keyphrase_ngram_range, stop_words, top_n, use_mmr/diversity)</code>, swap the model, POS candidates via keyphrase-vectorizers). NB: expand contractions before tokenizing; download NLTK data for RAKE; KeyBERT needs a model + torch. RAKE = speed/determinism, KeyBERT = meaning. Pairs with the NLTK and spaCy sheets. APIs evolve &mdash; check the docs.<br>
+  Design system = shared cheat-sheet tokens (Inter + JetBrains Mono, light theme). Content only.
+</footer>
+</body>
+</html>

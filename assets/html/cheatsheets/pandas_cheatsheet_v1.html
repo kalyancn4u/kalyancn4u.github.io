@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pandas Cheat Sheet — Comprehensive Edition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --create:#2563eb;  --create-bg:#eff4fe;
+    --inspect:#64748b; --inspect-bg:#f1f3f6;
+    --select:#d97706;  --select-bg:#fdf6ec;
+    --shape:#7c3aed;   --shape-bg:#f5f0fd;
+    --clean:#059669;   --clean-bg:#ecf7f2;
+    --stats:#0891b2;   --stats-bg:#eafafd;
+    --viz:#db2777;     --viz-bg:#fdf0f7;
+    --idx:#c2410c;     --idx-bg:#fdf1ea;
+    --danger:#dc2626;  --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .pd{font-family:var(--mono); color:var(--create)}
+  h1 .v2{font-family:var(--mono); font-size:.4em; color:var(--viz); vertical-align:super; letter-spacing:0}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.create{background:var(--create)} .dot.inspect{background:var(--inspect)}
+  .dot.select{background:var(--select)} .dot.shape{background:var(--shape)}
+  .dot.clean{background:var(--clean)} .dot.stats{background:var(--stats)}
+  .dot.viz{background:var(--viz)} .dot.idx{background:var(--idx)}
+  .dot.danger{background:var(--danger)}
+
+  /* ---------- section band ---------- */
+  .band{
+    max-width:1500px; margin:0 auto; padding:1.4rem clamp(1rem,4vw,3rem) 0;
+  }
+  .band h2{
+    font-family:var(--mono); font-size:.82rem; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink); padding:.5rem 0 .1rem; border-top:2px solid var(--ink); display:flex; gap:.6rem; align-items:baseline;
+  }
+  .band h2 .tag{font-size:.66rem; color:var(--muted); letter-spacing:.05em; font-weight:400; text-transform:none}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1080px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:.6rem clamp(1rem,4vw,3rem) 1rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1240px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.73rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.create{border-left-color:var(--create)}
+  ul.cmds li.inspect{border-left-color:var(--inspect)}
+  ul.cmds li.select{border-left-color:var(--select)}
+  ul.cmds li.shape{border-left-color:var(--shape)}
+  ul.cmds li.clean{border-left-color:var(--clean)}
+  ul.cmds li.stats{border-left-color:var(--stats)}
+  ul.cmds li.viz{border-left-color:var(--viz)}
+  ul.cmds li.idx{border-left-color:var(--idx)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  ul.cmds li.note{border-left-color:var(--line); background:#faf9f6}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.78rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .arg{color:var(--create); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .num{color:var(--stats); font-weight:400}
+  li.danger code.cmd{color:var(--danger)}
+  li.note code.cmd{color:#525761; font-style:italic; font-weight:400}
+  .desc{font-size:.77rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.95em; background:#f1eee8; padding:.02rem .2rem; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-safe{
+    color:var(--clean); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Comprehensive Quick Reference &middot; tabular data analysis in Python</div>
+  <h1><span class="pd">pandas</span> cheat sheet <span class="v2">v2 &middot; all modules</span></h1>
+  <p class="lede">A single source of truth across the whole pandas surface: the <b>Series</b>/<b>DataFrame</b> core, the <b>.str / .dt / .cat</b> accessors, <b>groupby</b>, <b>window</b> &amp; <b>resample</b>, <b>MultiIndex</b>, <b>reshaping</b>, <b>plotting</b>, the <b>Styler</b>, <b>nullable &amp; Arrow dtypes</b>, top-level functions, and <b>options</b>. It all rests on one idea: every DataFrame carries an <b>index</b>, and <b>.loc</b> (labels) vs <b>.iloc</b> (positions) is how you reach into it.</p>
+  <div class="legend">
+    <span><i class="dot create"></i>create / load</span>
+    <span><i class="dot inspect"></i>inspect</span>
+    <span><i class="dot select"></i>select &amp; filter</span>
+    <span><i class="dot shape"></i>shape &amp; combine</span>
+    <span><i class="dot clean"></i>clean &amp; transform</span>
+    <span><i class="dot stats"></i>aggregate / stats</span>
+    <span><i class="dot idx"></i>index</span>
+    <span><i class="dot viz"></i>plot / style</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Validated against the official <b>pandas 3.x API reference</b> (pandas.pydata.org) — I/O, General functions, Series/DataFrame, Accessors, GroupBy, Window, Resampling, Style, Plotting, Extensions &amp; Options; cross-checked with the official PDF cheat sheet, Dataquest, DataCamp, Coursera &amp; GeeksforGeeks. <b>v2 gap-analysis edition.</b></p>
+</header>
+
+<!-- ============ MODULE MAP DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The pandas surface &mdash; two objects, many accessors &amp; modules</div>
+  <svg class="flow-svg" viewBox="0 0 1080 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Map of pandas: the Series (1D) and DataFrame (2D) core objects, both carrying an Index; accessors str, dt, cat, plot attach to columns; and the specialized modules groupby, rolling/resample, Styler, plotting, and the api extensions build on top.">
+    <defs>
+      <marker id="arrM" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+    </defs>
+
+    <!-- core objects -->
+    <rect x="360" y="12" width="170" height="50" rx="9" fill="#1a1d24"/>
+    <text x="445" y="33" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Series (1D)</text>
+    <text x="445" y="52" text-anchor="middle" font-size="9.5" fill="#facc15">one labeled column</text>
+    <rect x="550" y="12" width="170" height="50" rx="9" fill="#1a1d24"/>
+    <text x="635" y="33" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">DataFrame (2D)</text>
+    <text x="635" y="52" text-anchor="middle" font-size="9.5" fill="#facc15">table of Series</text>
+    <rect x="470" y="74" width="140" height="26" rx="6" fill="#fdf1ea" stroke="#c2410c" stroke-width="1.5"/>
+    <text x="540" y="91" text-anchor="middle" font-size="10.5" font-weight="700" fill="#c2410c">+ Index / MultiIndex</text>
+    <line x1="445" y1="62" x2="510" y2="74" stroke="#64748b" stroke-width="1.4" marker-end="url(#arrM)"/>
+    <line x1="635" y1="62" x2="570" y2="74" stroke="#64748b" stroke-width="1.4" marker-end="url(#arrM)"/>
+
+    <!-- accessors -->
+    <text x="150" y="128" text-anchor="middle" font-size="11" font-weight="700" fill="#059669">column accessors</text>
+    <g font-size="10" text-anchor="middle" font-weight="700">
+      <rect x="20"  y="140" width="60" height="30" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/><text x="50"  y="159" fill="#059669">.str</text>
+      <rect x="88"  y="140" width="60" height="30" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/><text x="118" y="159" fill="#059669">.dt</text>
+      <rect x="156" y="140" width="60" height="30" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/><text x="186" y="159" fill="#059669">.cat</text>
+      <rect x="224" y="140" width="60" height="30" rx="6" fill="#fdf0f7" stroke="#db2777" stroke-width="1.4"/><text x="254" y="159" fill="#db2777">.plot</text>
+    </g>
+    <line x1="400" y1="60" x2="200" y2="138" stroke="#64748b" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arrM)"/>
+
+    <!-- specialized modules -->
+    <text x="620" y="128" text-anchor="middle" font-size="11" font-weight="700" fill="#0891b2">operation modules (returned by method calls)</text>
+    <g font-size="9.5" text-anchor="middle" font-weight="700">
+      <rect x="330" y="140" width="110" height="44" rx="7" fill="#eafafd" stroke="#0891b2" stroke-width="1.4"/><text x="385" y="159" fill="#0891b2">.groupby()</text><text x="385" y="174" font-size="8.5" font-weight="400" fill="#0891b2">GroupBy</text>
+      <rect x="450" y="140" width="120" height="44" rx="7" fill="#eafafd" stroke="#0891b2" stroke-width="1.4"/><text x="510" y="159" fill="#0891b2">.rolling / .ewm</text><text x="510" y="174" font-size="8.5" font-weight="400" fill="#0891b2">Window</text>
+      <rect x="580" y="140" width="110" height="44" rx="7" fill="#eafafd" stroke="#0891b2" stroke-width="1.4"/><text x="635" y="159" fill="#0891b2">.resample()</text><text x="635" y="174" font-size="8.5" font-weight="400" fill="#0891b2">Resampler</text>
+      <rect x="700" y="140" width="110" height="44" rx="7" fill="#fdf0f7" stroke="#db2777" stroke-width="1.4"/><text x="755" y="159" fill="#db2777">.style</text><text x="755" y="174" font-size="8.5" font-weight="400" fill="#db2777">Styler</text>
+      <rect x="820" y="140" width="120" height="44" rx="7" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.4"/><text x="880" y="159" fill="#7c3aed">pd.* funcs</text><text x="880" y="174" font-size="8.5" font-weight="400" fill="#7c3aed">merge/cut/melt</text>
+    </g>
+    <line x1="620" y1="100" x2="500" y2="138" stroke="#64748b" stroke-width="1.2" marker-end="url(#arrM)"/>
+
+    <!-- foundations -->
+    <g font-size="9.5" text-anchor="middle" font-weight="700">
+      <rect x="120" y="220" width="200" height="40" rx="7" fill="#f1f3f6" stroke="#64748b" stroke-width="1.4"/><text x="220" y="238" fill="#64748b">dtypes: NumPy + nullable</text><text x="220" y="252" font-size="8.5" font-weight="400" fill="#64748b">Int64 · string · category · Arrow</text>
+      <rect x="440" y="220" width="200" height="40" rx="7" fill="#f1f3f6" stroke="#64748b" stroke-width="1.4"/><text x="540" y="238" fill="#64748b">pd.set_option()</text><text x="540" y="252" font-size="8.5" font-weight="400" fill="#64748b">display / compute settings</text>
+      <rect x="760" y="220" width="200" height="40" rx="7" fill="#f1f3f6" stroke="#64748b" stroke-width="1.4"/><text x="860" y="238" fill="#64748b">pd.api / testing</text><text x="860" y="252" font-size="8.5" font-weight="400" fill="#64748b">type checks · extensions</text>
+    </g>
+    <text x="540" y="288" text-anchor="middle" font-size="10" fill="#94a3b8">everything is built on the dtype system, tuned via options, and extendable via the public api</text>
+  </svg>
+</section>
+
+<!-- ================= SECTION 1: CORE ================= -->
+<section class="band"><h2>I &middot; Core: Load, Create &amp; Inspect <span class="tag">I/O · constructors · the first look</span></h2></section>
+
+<main>
+
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Options</span><span class="card-sub">create · inspect</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">import pandas <span class="flag">as</span> <span class="arg">pd</span></code><span class="star">&#9733;</span><div class="desc">Universal alias — always <code>pd</code>.</div></li>
+      <li class="create"><code class="cmd">import numpy <span class="flag">as</span> <span class="arg">np</span></code><div class="desc">Almost always imported alongside.</div></li>
+      <li class="inspect"><code class="cmd">pd.set_option(<span class="arg">'display.max_columns', None</span>)</code><span class="star">&#9733;</span><div class="desc">Tune display / compute settings (accepts a dict in 3.0).</div></li>
+      <li class="inspect"><code class="cmd">with pd.option_context(<span class="arg">'display.max_rows', 100</span>):</code><div class="desc">Temporarily override options in a block.</div></li>
+      <li class="create"><code class="cmd">pd.__version__ &nbsp;pd.show_versions()</code><div class="desc">Version / full environment report.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 READING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Reading Data</span><span class="card-sub">create · pd.read_*</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">pd.read_csv(<span class="arg">'f.csv'</span>)</code><span class="star">&#9733;</span><div class="desc">CSV → DataFrame; args: <code>usecols</code>, <code>dtype</code>, <code>parse_dates</code>, <code>chunksize</code>.</div></li>
+      <li class="create"><code class="cmd">pd.read_excel(<span class="arg">'f.xlsx', sheet_name='S1'</span>)</code><span class="star">&#9733;</span><div class="desc">Read one Excel sheet (or a list / None for all).</div></li>
+      <li class="create"><code class="cmd">pd.read_parquet(<span class="arg">'f.parquet'</span>)</code><span class="star">&#9733;</span><div class="desc">Columnar Parquet — fast &amp; typed.</div></li>
+      <li class="create"><code class="cmd">pd.read_json / read_html / read_xml</code><div class="desc">JSON / every &lt;table&gt; on a page / XML.</div></li>
+      <li class="create"><code class="cmd">pd.read_sql(<span class="arg">query, conn</span>)</code><div class="desc">SQL query result (also <code>read_sql_table</code>).</div></li>
+      <li class="create"><code class="cmd">pd.read_csv(<span class="arg">..., dtype_backend='pyarrow'</span>)</code><span class="star">&#9733;</span><div class="desc">Read straight into Arrow-backed dtypes.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 WRITING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Writing Data</span><span class="card-sub">create · df.to_*</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">df.to_csv(<span class="arg">'f.csv', index=False</span>)</code><span class="star">&#9733;</span><div class="desc"><code>index=False</code> skips writing row labels.</div></li>
+      <li class="create"><code class="cmd">df.to_parquet(<span class="arg">'f.parquet'</span>)</code><span class="star">&#9733;</span><div class="desc">Columnar, compressed, preserves dtypes.</div></li>
+      <li class="create"><code class="cmd">df.to_excel(<span class="arg">'f.xlsx', sheet_name='S1'</span>)</code><div class="desc">Write to an Excel sheet.</div></li>
+      <li class="create"><code class="cmd">df.to_sql(<span class="arg">'table', conn, if_exists='replace'</span>)</code><div class="desc">Write to a SQL table.</div></li>
+      <li class="create"><code class="cmd">df.to_dict() &nbsp;df.to_numpy() &nbsp;df.to_markdown()</code><div class="desc">Convert to other in-memory forms.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 CREATE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Creating Series &amp; DataFrame</span><span class="card-sub">create</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">pd.Series(<span class="arg">[1,2,3], index=['a','b','c']</span>)</code><span class="star">&#9733;</span><div class="desc">One labeled 1D array.</div></li>
+      <li class="create"><code class="cmd">pd.DataFrame(<span class="arg">{'a':[1,2], 'b':[3,4]}</span>)</code><span class="star">&#9733;</span><div class="desc">Dict keys → columns, values → rows.</div></li>
+      <li class="create"><code class="cmd">pd.DataFrame(<span class="arg">data, columns=[...], index=[...]</span>)</code><div class="desc">From records with explicit labels.</div></li>
+      <li class="create"><code class="cmd">pd.date_range(<span class="arg">'2024-01-01', periods=5, freq='D'</span>)</code><span class="star">&#9733;</span><div class="desc">Build a DatetimeIndex.</div></li>
+      <li class="create"><code class="cmd">pd.DataFrame().convert_dtypes()</code><div class="desc">Infer the best nullable dtypes for each column.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 INSPECT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Inspect &amp; Explore</span><span class="card-sub">inspect</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">df.head(<span class="arg">n</span>) &nbsp;df.tail(<span class="arg">n</span>)</code><span class="star">&#9733;</span><div class="desc">First / last n rows (default 5).</div></li>
+      <li class="inspect"><code class="cmd">df.shape &nbsp;df.info() &nbsp;df.describe()</code><span class="star">&#9733;</span><div class="desc">Dimensions / dtypes+nulls+memory / summary stats.</div></li>
+      <li class="inspect"><code class="cmd">df.dtypes &nbsp;df.columns &nbsp;df.index</code><div class="desc">Per-column types / column &amp; row labels.</div></li>
+      <li class="inspect"><code class="cmd">df.memory_usage(deep=True)</code><div class="desc">Per-column memory (deep = true object cost).</div></li>
+      <li class="inspect"><code class="cmd">df.sample(<span class="arg">n</span>) &nbsp;df.nunique() &nbsp;df['c'].unique()</code><div class="desc">Random rows / distinct counts / distinct values.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ================= SECTION 2: SELECT & FILTER ================= -->
+<section class="band"><h2>II &middot; Select, Filter &amp; Sort <span class="tag">loc/iloc · boolean masks · query · eval</span></h2></section>
+
+<main>
+
+  <!-- 06 SELECTING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Selecting Columns &amp; Rows</span><span class="card-sub">select &amp; filter</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">df[<span class="arg">'col'</span>] &nbsp;/ df[[<span class="arg">'a','b'</span>]]</code><span class="star">&#9733;</span><div class="desc">One column (Series) / many columns (DataFrame).</div></li>
+      <li class="select"><code class="cmd">df.loc[<span class="arg">'row', 'col'</span>]</code><span class="star">&#9733;</span><div class="desc">Label-based — inclusive of both slice endpoints.</div></li>
+      <li class="select"><code class="cmd">df.iloc[<span class="num">2, 0</span>]</code><span class="star">&#9733;</span><div class="desc">Integer-position — exclusive stop, like Python.</div></li>
+      <li class="select"><code class="cmd">df.at[<span class="arg">'r','c'</span>] &nbsp;df.iat[<span class="num">1,2</span>]</code><div class="desc">Fast scalar access — by label / by position.</div></li>
+      <li class="select"><code class="cmd">df.loc[<span class="arg">:, 'a':'c'</span>]</code><div class="desc">Label slice across columns.</div></li>
+      <li class="select"><code class="cmd">df.filter(<span class="arg">like='2024', axis=1</span>)</code><div class="desc">Select labels by name pattern / regex.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 BOOLEAN / QUERY / EVAL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Boolean Indexing, Query &amp; Eval</span><span class="card-sub">select &amp; filter</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">df[df[<span class="arg">'c'</span>] &gt; <span class="num">50</span>]</code><span class="star">&#9733;</span><div class="desc">Rows where a condition is True.</div></li>
+      <li class="select"><code class="cmd">df[(df.a&gt;1) &amp; (df.b&lt;9)]</code><span class="star">&#9733;</span><div class="desc">Combine masks with <code>&amp; | ~</code> (not <code>and/or</code>).</div></li>
+      <li class="select"><code class="cmd">df.query(<span class="arg">'a &gt; 1 and b &lt; 9'</span>)</code><span class="star">&#9733;</span><div class="desc">Same filter, readable string; <code>@var</code> injects locals.</div></li>
+      <li class="select"><code class="cmd">df[df.c.isin([...])] &nbsp;df.c.between(a, b)</code><span class="star">&#9733;</span><div class="desc">Membership / inclusive range.</div></li>
+      <li class="select"><code class="cmd">df.eval(<span class="arg">'d = a + b'</span>)</code><div class="desc">Fast in-engine column expression (numexpr).</div></li>
+      <li class="select"><code class="cmd">df.where(cond) &nbsp;df.mask(cond)</code><div class="desc">Keep / blank cells failing the condition.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 SORTING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Sorting &amp; Top-N</span><span class="card-sub">select &amp; filter</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">df.sort_values(<span class="arg">'c', ascending=False</span>)</code><span class="star">&#9733;</span><div class="desc">Sort by one or more columns.</div></li>
+      <li class="select"><code class="cmd">df.sort_values([<span class="arg">'a','b'</span>], ascending=[<span class="arg">1,0</span>])</code><div class="desc">Mixed sort direction, per column.</div></li>
+      <li class="select"><code class="cmd">df.sort_index()</code><div class="desc">Sort by the row index/labels.</div></li>
+      <li class="select"><code class="cmd">df.nlargest(<span class="arg">n, 'c'</span>) &nbsp;df.nsmallest(<span class="arg">n, 'c'</span>)</code><span class="star">&#9733;</span><div class="desc">Top / bottom n by a column — faster than sort+head.</div></li>
+      <li class="select"><code class="cmd">df.rank(<span class="arg">method='dense'</span>)</code><div class="desc">Rank values within a column.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ================= SECTION 3: CLEAN & TRANSFORM ================= -->
+<section class="band"><h2>III &middot; Clean &amp; Transform <span class="tag">missing data · dtypes · apply/map · accessors</span></h2></section>
+
+<main>
+
+  <!-- 09 MISSING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Missing Data</span><span class="card-sub">clean &amp; transform</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">df.isna() &nbsp;df.notna() &nbsp;df.isna().sum()</code><span class="star">&#9733;</span><div class="desc">Mask of missing/present; per-column null count.</div></li>
+      <li class="clean"><code class="cmd">df.dropna(<span class="arg">subset=['a'], how='any'</span>)</code><span class="star">&#9733;</span><div class="desc">Drop rows/cols with nulls (any/all, thresh, subset).</div></li>
+      <li class="clean"><code class="cmd">df.fillna(<span class="arg">value</span>) &nbsp;df.fillna({'a': 0})</code><span class="star">&#9733;</span><div class="desc">Replace nulls — scalar, dict, or per-column stat.</div></li>
+      <li class="clean"><code class="cmd">df.ffill() &nbsp;df.bfill()</code><span class="star">&#9733;</span><div class="desc">Forward / backward fill from neighbors.</div></li>
+      <li class="clean"><code class="cmd">df.interpolate()</code><div class="desc">Fill gaps by interpolating between values.</div></li>
+      <li class="note"><code class="cmd">pd.NA vs np.nan</code><div class="desc">Nullable dtypes use <code>pd.NA</code>; float NaN is distinct.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 CLEANING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Cleaning &amp; Type Conversion</span><span class="card-sub">clean &amp; transform</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">df.astype({<span class="arg">'a': 'float', 'b': 'Int64'</span>})</code><span class="star">&#9733;</span><div class="desc">Cast columns (capital <code>Int64</code> = nullable).</div></li>
+      <li class="clean"><code class="cmd">pd.to_numeric(df.c, errors='coerce')</code><span class="star">&#9733;</span><div class="desc">Parse to numbers; bad values → NaN.</div></li>
+      <li class="clean"><code class="cmd">df.rename(<span class="arg">columns={'old':'new'}</span>)</code><span class="star">&#9733;</span><div class="desc">Rename columns (or index via <code>index=</code>).</div></li>
+      <li class="clean"><code class="cmd">df.replace({<span class="arg">1: 'one'</span>})</code><div class="desc">Replace matching values (dict / regex).</div></li>
+      <li class="clean"><code class="cmd">df.duplicated() &nbsp;df.drop_duplicates(<span class="arg">subset=['a']</span>)</code><span class="star">&#9733;</span><div class="desc">Flag / remove duplicate rows.</div></li>
+      <li class="clean"><code class="cmd">df.clip(lower, upper) &nbsp;df.round(2)</code><div class="desc">Clamp outliers / round numerics.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 APPLY / MAP / PIPE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Function Application &amp; Iteration</span><span class="card-sub">clean &amp; transform</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">df[<span class="arg">'c'</span>].map(<span class="arg">func</span>)</code><span class="star">&#9733;</span><div class="desc">Elementwise transform of a Series.</div></li>
+      <li class="clean"><code class="cmd">df.apply(<span class="arg">func, axis=0</span>)</code><span class="star">&#9733;</span><div class="desc">Apply along columns (0) or rows (1).</div></li>
+      <li class="clean"><code class="cmd">df.map(<span class="arg">func</span>)</code><div class="desc">Elementwise over the whole frame (was <code>applymap</code>).</div></li>
+      <li class="clean"><code class="cmd">df.pipe(<span class="arg">func</span>)</code><span class="star">&#9733;</span><div class="desc">Chain a whole-DataFrame function fluently.</div></li>
+      <li class="clean"><code class="cmd">df.assign(<span class="arg">x=lambda d: d.a * d.b</span>)</code><span class="star">&#9733;</span><div class="desc">Add columns via chained expressions.</div></li>
+      <li class="danger"><code class="cmd">for i, row in df.iterrows(): ...</code><span class="badge-danger">slow</span><div class="desc">Row iteration — vectorize first; <code>itertuples</code> is faster.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 STRING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">String Methods</span><span class="card-sub">.str accessor</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">df.c.str.lower() / .upper() / .strip()</code><span class="star">&#9733;</span><div class="desc">Case / whitespace cleanup.</div></li>
+      <li class="clean"><code class="cmd">df.c.str.contains(<span class="arg">'pat'</span>) / .startswith(...)</code><span class="star">&#9733;</span><div class="desc">Boolean substring / prefix / regex match.</div></li>
+      <li class="clean"><code class="cmd">df.c.str.replace(<span class="arg">'a','b', regex=True</span>)</code><span class="star">&#9733;</span><div class="desc">Find-and-replace (regex opt-in).</div></li>
+      <li class="clean"><code class="cmd">df.c.str.split(<span class="arg">',', expand=True</span>)</code><span class="star">&#9733;</span><div class="desc">Split into a list — or new columns.</div></li>
+      <li class="clean"><code class="cmd">df.c.str.extract(<span class="arg">r'(\d+)'</span>)</code><div class="desc">Pull regex capture groups into columns.</div></li>
+      <li class="clean"><code class="cmd">df.c.str.get_dummies(<span class="arg">'|'</span>)</code><div class="desc">One-hot from delimited strings.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 DATES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Dates &amp; Times</span><span class="card-sub">.dt accessor</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">pd.to_datetime(df.c, format='%Y-%m-%d')</code><span class="star">&#9733;</span><div class="desc">Parse strings/ints into datetime64.</div></li>
+      <li class="clean"><code class="cmd">df.c.dt.year / .month / .day / .dayofweek</code><span class="star">&#9733;</span><div class="desc">Extract date components via <code>.dt</code>.</div></li>
+      <li class="clean"><code class="cmd">df.c.dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')</code><div class="desc">Attach then shift a timezone.</div></li>
+      <li class="clean"><code class="cmd">df.c.dt.to_period('M') &nbsp;df.c.dt.strftime('%b %Y')</code><div class="desc">Period bucket / format as string.</div></li>
+      <li class="clean"><code class="cmd">df.c + pd.Timedelta(days=1)</code><div class="desc">Date arithmetic with offsets/timedeltas.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 CATEGORICAL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Categorical Data</span><span class="card-sub">.cat accessor</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">df.c = df.c.astype(<span class="arg">'category'</span>)</code><span class="star">&#9733;</span><div class="desc">Encode repeated strings — big memory win.</div></li>
+      <li class="clean"><code class="cmd">df.c.cat.categories &nbsp;df.c.cat.codes</code><span class="star">&#9733;</span><div class="desc">The category labels / their integer codes.</div></li>
+      <li class="clean"><code class="cmd">pd.Categorical(vals, categories=[...], ordered=True)</code><span class="star">&#9733;</span><div class="desc">Ordered category — enables <code>&lt; &gt;</code> comparisons.</div></li>
+      <li class="clean"><code class="cmd">df.c.cat.add_categories / .remove_unused_categories()</code><div class="desc">Manage the category set.</div></li>
+      <li class="clean"><code class="cmd">df.c.cat.reorder_categories([...])</code><div class="desc">Change ordering (e.g. for sorting/plots).</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ================= SECTION 4: RESHAPE & COMBINE ================= -->
+<section class="band"><h2>IV &middot; Reshape, Combine &amp; Index <span class="tag">add/drop · pivot · concat · merge · MultiIndex</span></h2></section>
+
+<main>
+
+  <!-- 15 ADD/DROP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Adding &amp; Dropping</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">df[<span class="arg">'new'</span>] = values</code><span class="star">&#9733;</span><div class="desc">Add a column (length must match rows).</div></li>
+      <li class="shape"><code class="cmd">df.insert(<span class="num">1</span>, <span class="arg">'c', values</span>)</code><div class="desc">Insert a column at a specific position.</div></li>
+      <li class="shape"><code class="cmd">df.drop(<span class="arg">columns=['c']</span>)</code><span class="star">&#9733;</span><div class="desc">Drop column(s); rows via <code>index=</code>.</div></li>
+      <li class="shape"><code class="cmd">df.pop(<span class="arg">'c'</span>)</code><div class="desc">Remove &amp; return a column in one step.</div></li>
+      <li class="shape"><code class="cmd">df.reset_index(<span class="arg">drop=True</span>)</code><span class="star">&#9733;</span><div class="desc">Fresh 0..n index; drop the old one.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 GROUPBY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">GroupBy &amp; Aggregation</span><span class="card-sub">aggregate / stats</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">df.groupby(<span class="arg">'c'</span>)[<span class="arg">'x'</span>].mean()</code><span class="star">&#9733;</span><div class="desc">Split-apply-combine: per-group aggregate.</div></li>
+      <li class="stats"><code class="cmd">df.groupby('c').agg(m=('x','mean'), s=('y','sum'))</code><span class="star">&#9733;</span><div class="desc"><b>Named aggregation</b> — clean output columns.</div></li>
+      <li class="stats"><code class="cmd">df.groupby('c').transform('mean')</code><span class="star">&#9733;</span><div class="desc">Group stat broadcast back to row shape.</div></li>
+      <li class="stats"><code class="cmd">df.groupby('c').filter(lambda g: len(g) &gt; 5)</code><div class="desc">Keep only groups meeting a condition.</div></li>
+      <li class="stats"><code class="cmd">df.groupby('c').apply(func)</code><div class="desc">Arbitrary per-group function (flexible, slower).</div></li>
+      <li class="stats"><code class="cmd">gb.size() &nbsp;gb.nunique() &nbsp;gb.cumcount() &nbsp;gb.get_group(k)</code><div class="desc">Counts / distinct / within-group index / one group.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 PIVOT / RESHAPE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Pivoting &amp; Reshaping</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">df.pivot_table(index='a', columns='b', values='c', aggfunc='mean')</code><span class="star">&#9733;</span><div class="desc">Long → wide, aggregating duplicate keys.</div></li>
+      <li class="shape"><code class="cmd">df.pivot(index='a', columns='b', values='c')</code><div class="desc">Long → wide, no aggregation (keys must be unique).</div></li>
+      <li class="shape"><code class="cmd">pd.melt(df, id_vars='a', value_vars=[...])</code><span class="star">&#9733;</span><div class="desc">Wide → long — unpivot columns into rows.</div></li>
+      <li class="shape"><code class="cmd">df.explode(<span class="arg">'list_col'</span>)</code><span class="star">&#9733;</span><div class="desc">One row per element of a list-valued cell.</div></li>
+      <li class="shape"><code class="cmd">pd.crosstab(df.a, df.b)</code><div class="desc">Frequency table of two columns.</div></li>
+      <li class="shape"><code class="cmd">df.stack() &nbsp;df.unstack() &nbsp;df.T</code><div class="desc">Columns ↔ index level / transpose.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 CONCAT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Combining: Concatenate</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">pd.concat([<span class="arg">df1, df2</span>], ignore_index=True)</code><span class="star">&#9733;</span><div class="desc">Stack rows (axis=0), renumber the index.</div></li>
+      <li class="shape"><code class="cmd">pd.concat([<span class="arg">df1, df2</span>], axis=1)</code><div class="desc">Stack columns side by side, aligned on index.</div></li>
+      <li class="shape"><code class="cmd">pd.concat([...], keys=['a','b'])</code><div class="desc">Tag each source with an outer index level.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 MERGE / JOIN -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Combining: Merge &amp; Join</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">pd.merge(df1, df2, on='key', how='left')</code><span class="star">&#9733;</span><div class="desc">SQL-style join on a shared column.</div></li>
+      <li class="shape"><code class="cmd">pd.merge(df1, df2, left_on='a', right_on='b')</code><div class="desc">Join on differently-named keys.</div></li>
+      <li class="shape"><code class="cmd">df1.join(df2, how='inner')</code><div class="desc">Merge on the index instead of a column.</div></li>
+      <li class="shape"><code class="cmd">pd.merge(df1, df2, on='k', validate='1:m')</code><span class="star">&#9733;</span><div class="desc">Assert the join cardinality (catches bad keys).</div></li>
+      <li class="shape"><code class="cmd">pd.merge_asof(l, r, on='ts', by='id')</code><span class="star">&#9733;</span><div class="desc">Nearest-key join — classic for time series.</div></li>
+    </ul>
+  </article>
+
+  <!-- 20 MULTIINDEX -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">20</span><span class="card-title">MultiIndex &amp; Index Objects</span><span class="card-sub">idx</span></div>
+    <ul class="cmds">
+      <li class="idx"><code class="cmd">df.set_index([<span class="arg">'a', 'b'</span>])</code><span class="star">&#9733;</span><div class="desc">Promote columns to a hierarchical index.</div></li>
+      <li class="idx"><code class="cmd">df.loc[(<span class="arg">'x', 'y'</span>)]</code><span class="star">&#9733;</span><div class="desc">Select by a tuple of index levels.</div></li>
+      <li class="idx"><code class="cmd">df.xs(<span class="arg">'y', level='b'</span>)</code><div class="desc">Cross-section at one level.</div></li>
+      <li class="idx"><code class="cmd">df.loc[pd.IndexSlice[:, 'y'], :]</code><div class="desc">Slice inner levels with <code>IndexSlice</code>.</div></li>
+      <li class="idx"><code class="cmd">df.swaplevel() &nbsp;df.droplevel(0) &nbsp;df.reorder_levels([...])</code><div class="desc">Rearrange index levels.</div></li>
+      <li class="idx"><code class="cmd">df.reindex([...]) &nbsp;df.rename_axis('idx')</code><div class="desc">Conform to new labels / name the axis.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ================= SECTION 5: STATS, WINDOW & TIME SERIES ================= -->
+<section class="band"><h2>V &middot; Statistics, Window &amp; Time Series <span class="tag">describe · rolling/ewm · resample · binning</span></h2></section>
+
+<main>
+
+  <!-- 21 STATISTICS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">21</span><span class="card-title">Statistics &amp; Descriptive</span><span class="card-sub">aggregate / stats</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">df.sum() &nbsp;df.mean() &nbsp;df.median() &nbsp;df.std()</code><span class="star">&#9733;</span><div class="desc">Per-column aggregates (axis=0 default).</div></li>
+      <li class="stats"><code class="cmd">df['c'].value_counts(normalize=True)</code><span class="star">&#9733;</span><div class="desc">Frequency (or proportion) of each value.</div></li>
+      <li class="stats"><code class="cmd">df.corr() &nbsp;df.cov()</code><span class="star">&#9733;</span><div class="desc">Correlation / covariance matrix.</div></li>
+      <li class="stats"><code class="cmd">df['c'].quantile([.25, .5, .75])</code><div class="desc">Percentile values.</div></li>
+      <li class="stats"><code class="cmd">df.cumsum() &nbsp;df.cummax() &nbsp;df['c'].agg(['min','max'])</code><div class="desc">Cumulative / multi-stat aggregation.</div></li>
+      <li class="stats"><code class="cmd">df['c'].describe()</code><div class="desc">One-column summary (count, mean, std, quartiles).</div></li>
+    </ul>
+  </article>
+
+  <!-- 22 WINDOW -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">22</span><span class="card-title">Window Operations</span><span class="card-sub">rolling · expanding · ewm</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">df['c'].rolling(<span class="num">3</span>).mean()</code><span class="star">&#9733;</span><div class="desc">Moving average over a fixed window.</div></li>
+      <li class="stats"><code class="cmd">df['c'].rolling('7D').sum()</code><div class="desc">Time-based window on a datetime index.</div></li>
+      <li class="stats"><code class="cmd">df['c'].rolling(3).agg(['mean','std'])</code><div class="desc">Multiple window stats at once.</div></li>
+      <li class="stats"><code class="cmd">df['c'].expanding().sum()</code><div class="desc">Cumulative aggregate from the start.</div></li>
+      <li class="stats"><code class="cmd">df['c'].ewm(span=5).mean()</code><span class="star">&#9733;</span><div class="desc">Exponentially weighted moving average.</div></li>
+      <li class="stats"><code class="cmd">df['c'].rolling(3).apply(func, raw=True)</code><div class="desc">Custom window function (raw=NumPy, faster).</div></li>
+    </ul>
+  </article>
+
+  <!-- 23 TIME SERIES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">23</span><span class="card-title">Time Series &amp; Resampling</span><span class="card-sub">aggregate / stats</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">df.set_index('date').resample('ME').mean()</code><span class="star">&#9733;</span><div class="desc">Regroup a time series by frequency (ME=month-end).</div></li>
+      <li class="stats"><code class="cmd">df['c'].shift(1) &nbsp;df['c'].diff()</code><span class="star">&#9733;</span><div class="desc">Lag/lead / period-over-period change.</div></li>
+      <li class="stats"><code class="cmd">df['c'].pct_change()</code><span class="star">&#9733;</span><div class="desc">Fractional change vs. the previous row.</div></li>
+      <li class="stats"><code class="cmd">df.asfreq('D', method='ffill')</code><div class="desc">Conform to a regular frequency.</div></li>
+      <li class="stats"><code class="cmd">pd.date_range / period_range / bdate_range</code><div class="desc">Build datetime / period / business-day ranges.</div></li>
+    </ul>
+  </article>
+
+  <!-- 24 BINNING / RESHAPE HELPERS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">24</span><span class="card-title">Binning &amp; Top-Level Helpers</span><span class="card-sub">pd.* general functions</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">pd.cut(df.c, bins=[0,10,20])</code><span class="star">&#9733;</span><div class="desc">Bin values into fixed intervals.</div></li>
+      <li class="clean"><code class="cmd">pd.qcut(df.c, q=4)</code><span class="star">&#9733;</span><div class="desc">Bin into equal-frequency quantiles.</div></li>
+      <li class="shape"><code class="cmd">pd.get_dummies(df, columns=['cat'])</code><span class="star">&#9733;</span><div class="desc">One-hot encode categorical columns.</div></li>
+      <li class="clean"><code class="cmd">codes, uniques = pd.factorize(df.c)</code><div class="desc">Encode values as integer codes + labels.</div></li>
+      <li class="shape"><code class="cmd">pd.wide_to_long(df, stubnames, i, j)</code><div class="desc">Reshape repeated-column-group data to long.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ================= SECTION 6: VISUALIZE, STYLE, EXTEND ================= -->
+<section class="band"><h2>VI &middot; Visualize, Style, Extend &amp; Tune <span class="tag">plotting · Styler · Arrow dtypes · api · gotchas</span></h2></section>
+
+<main>
+
+  <!-- 25 PLOTTING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">25</span><span class="card-title">Plotting</span><span class="card-sub">viz · .plot</span></div>
+    <ul class="cmds">
+      <li class="viz"><code class="cmd">df.plot()</code><span class="star">&#9733;</span><div class="desc">Line plot of every numeric column (matplotlib).</div></li>
+      <li class="viz"><code class="cmd">df.plot(kind='bar', x='a', y='b')</code><span class="star">&#9733;</span><div class="desc">Bar chart; also <code>barh</code>, <code>area</code>, <code>pie</code>.</div></li>
+      <li class="viz"><code class="cmd">df.plot.scatter(x='a', y='b', c='g')</code><span class="star">&#9733;</span><div class="desc">Scatter plot with an optional color column.</div></li>
+      <li class="viz"><code class="cmd">df['c'].plot.hist(bins=30) &nbsp;df.plot.box()</code><div class="desc">Distribution: histogram / box plot.</div></li>
+      <li class="viz"><code class="cmd">df.plot(subplots=True, figsize=(10,8))</code><div class="desc">One panel per column.</div></li>
+      <li class="viz"><code class="cmd">pd.plotting.scatter_matrix(df)</code><div class="desc">Pairwise scatter grid from <code>pd.plotting</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 26 STYLER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">26</span><span class="card-title">Styling Output</span><span class="card-sub">viz · df.style</span></div>
+    <ul class="cmds">
+      <li class="viz"><code class="cmd">df.style.format(<span class="arg">'{:.2f}'</span>)</code><span class="star">&#9733;</span><div class="desc">Format displayed values (dict for per-column).</div></li>
+      <li class="viz"><code class="cmd">df.style.background_gradient(cmap='Blues')</code><span class="star">&#9733;</span><div class="desc">Heatmap-shade cells by value.</div></li>
+      <li class="viz"><code class="cmd">df.style.highlight_max(axis=0)</code><div class="desc">Highlight max/min/null cells.</div></li>
+      <li class="viz"><code class="cmd">df.style.bar(subset=['c'], color='#5fba7d')</code><div class="desc">In-cell bar charts.</div></li>
+      <li class="viz"><code class="cmd">df.style.to_html() &nbsp;.to_excel()</code><div class="desc">Export the styled table.</div></li>
+    </ul>
+  </article>
+
+  <!-- 27 NULLABLE / ARROW DTYPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">27</span><span class="card-title">Nullable &amp; Arrow Dtypes</span><span class="card-sub">extension types</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">df.astype(<span class="arg">'Int64'</span>) / 'Float64' / 'boolean'</code><span class="star">&#9733;</span><div class="desc">Nullable (capitalized) types — hold <code>pd.NA</code>.</div></li>
+      <li class="clean"><code class="cmd">df.convert_dtypes()</code><span class="star">&#9733;</span><div class="desc">Auto-upgrade a frame to best nullable dtypes.</div></li>
+      <li class="clean"><code class="cmd">df.astype(<span class="arg">'string'</span>)</code><span class="star">&#9733;</span><div class="desc">Dedicated string dtype (PyArrow-backed in 3.0).</div></li>
+      <li class="clean"><code class="cmd">df.astype(<span class="arg">'int64[pyarrow]'</span>)</code><div class="desc">Explicit Arrow-backed column dtype.</div></li>
+      <li class="note"><code class="cmd">pandas 3.0: string dtype by default</code><div class="desc">Object-dtype strings are being phased out.</div></li>
+    </ul>
+  </article>
+
+  <!-- 28 API / TYPES / TESTING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">28</span><span class="card-title">Type Checks, Testing &amp; API</span><span class="card-sub">pd.api · pd.testing</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">pd.api.types.is_numeric_dtype(df.c)</code><span class="star">&#9733;</span><div class="desc">Programmatic dtype checks.</div></li>
+      <li class="inspect"><code class="cmd">df.select_dtypes(include='number')</code><span class="star">&#9733;</span><div class="desc">Pick columns by dtype family.</div></li>
+      <li class="inspect"><code class="cmd">pd.testing.assert_frame_equal(a, b)</code><div class="desc">Equality assert for tests (also <code>assert_series_equal</code>).</div></li>
+      <li class="inspect"><code class="cmd">pd.api.extensions.register_dataframe_accessor('x')</code><div class="desc">Attach a custom <code>df.x.*</code> accessor.</div></li>
+    </ul>
+  </article>
+
+  <!-- 29 PERFORMANCE / GOTCHAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">29</span><span class="card-title">Performance &amp; Gotchas</span><span class="card-sub">handle with care</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">df[df.a&gt;0][<span class="arg">'b'</span>] = <span class="num">1</span></code><span class="badge-danger">chained</span><div class="desc">Chained indexing — may silently fail to write.</div></li>
+      <li class="clean"><code class="cmd">df.loc[df.a&gt;0, <span class="arg">'b'</span>] = <span class="num">1</span></code><span class="badge-safe">safe</span><div class="desc">The single-step fix for the pattern above.</div></li>
+      <li class="danger"><code class="cmd">df.apply(..., axis=1)</code><span class="badge-danger">slow</span><div class="desc">Row-wise apply is slow — prefer vectorized ops.</div></li>
+      <li class="clean"><code class="cmd">category &amp; nullable dtypes</code><span class="badge-safe">lean</span><div class="desc">Cut memory on repeated strings / integer columns.</div></li>
+      <li class="clean"><code class="cmd">df.copy()</code><div class="desc">Copy before mutating a slice you keep (CoW in 3.0).</div></li>
+    </ul>
+  </article>
+
+  <!-- STAR: DTYPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Common dtypes</span><span class="card-sub">anywhere you see dtype:</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">int64 / float64</code><span class="star">&#9733;</span><div class="desc">Default NumPy-backed numerics.</div></li>
+      <li class="inspect"><code class="cmd">Int64 / Float64 / boolean</code><span class="star">&#9733;</span><div class="desc">Nullable (capitalized) — support <code>pd.NA</code>.</div></li>
+      <li class="inspect"><code class="cmd">object</code><div class="desc">Mixed / legacy text — the slow catch-all.</div></li>
+      <li class="inspect"><code class="cmd">string</code><span class="star">&#9733;</span><div class="desc">Dedicated strings (Arrow-backed default in 3.0).</div></li>
+      <li class="inspect"><code class="cmd">category</code><div class="desc">Repeated values encoded once — big memory win.</div></li>
+      <li class="inspect"><code class="cmd">datetime64[ns] / timedelta64[ns] / period[M]</code><span class="star">&#9733;</span><div class="desc">Timestamps / durations / periods (enable <code>.dt</code>).</div></li>
+      <li class="inspect"><code class="cmd">int64[pyarrow]</code><div class="desc">Arrow-backed column — fast, interop-friendly.</div></li>
+    </ul>
+  </article>
+
+  <!-- STAR: MERGE HOW -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Merge how= Quick-Read</span><span class="card-sub">pd.merge(..., how=)</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">'inner'</code><span class="star">&#9733;</span><div class="desc">Only keys present in both frames.</div></li>
+      <li class="select"><code class="cmd">'left' / 'right'</code><span class="star">&#9733;</span><div class="desc">All keys of the left / right frame.</div></li>
+      <li class="select"><code class="cmd">'outer'</code><div class="desc">Every key from both; NaN where unmatched.</div></li>
+      <li class="select"><code class="cmd">'cross'</code><div class="desc">Cartesian product of both frames.</div></li>
+      <li class="select"><code class="cmd">indicator=True</code><div class="desc">Add a <code>_merge</code> column showing each row's source.</div></li>
+    </ul>
+  </article>
+
+  <!-- STAR: LOC VS ILOC -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">.loc vs .iloc Quick-Read</span><span class="card-sub">the #1 confusion</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">df.loc['b', 'Price']</code><span class="badge-safe">labels</span><div class="desc">By <b>label</b> — slice end is <b>inclusive</b>.</div></li>
+      <li class="select"><code class="cmd">df.iloc[1, 2]</code><span class="badge-danger">positions</span><div class="desc">By <b>integer position</b> — slice end <b>exclusive</b>.</div></li>
+      <li class="note"><code class="cmd">boolean masks work in .loc</code><div class="desc"><code>df.loc[mask, 'c']</code> both filters and assigns safely.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Split-apply-combine &amp; the reshape family</h2>
+  <p class="sub">The two mental models that unlock most of pandas: how <code>groupby</code> actually works, and how the reshape verbs move data between long and wide. Based on the official pandas user-guide diagrams.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>groupby: split → apply → combine &#9733;</h3>
+      <p>Rows are split by key, a function runs per group, and results recombine into one output — the model behind <code>agg</code>, <code>transform</code> &amp; <code>filter</code>.</p>
+      <svg viewBox="0 0 390 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="split-apply-combine: a table splits into two key groups, each is aggregated to a mean, then combined into a two-row result">
+        <defs><marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0891b2"/></marker></defs>
+        <g font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">
+          <rect x="10" y="70" width="80" height="60" rx="6" fill="#f1f3f6" stroke="#64748b" stroke-width="1.4"/>
+          <text x="50" y="60" fill="#64748b" font-size="8">A 1 / A 3 / B 2 / B 4</text>
+          <text x="50" y="90" fill="#64748b">input</text><text x="50" y="105" fill="#64748b">df</text>
+        </g>
+        <line x1="92" y1="85" x2="120" y2="60" stroke="#0891b2" stroke-width="1.4" marker-end="url(#arrG)"/>
+        <line x1="92" y1="115" x2="120" y2="140" stroke="#0891b2" stroke-width="1.4" marker-end="url(#arrG)"/>
+        <g font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" font-weight="700">
+          <rect x="122" y="40" width="70" height="40" rx="6" fill="#eafafd" stroke="#0891b2" stroke-width="1.4"/><text x="157" y="56" fill="#0891b2">group A</text><text x="157" y="70" font-weight="400" fill="#0891b2">1, 3</text>
+          <rect x="122" y="120" width="70" height="40" rx="6" fill="#eafafd" stroke="#0891b2" stroke-width="1.4"/><text x="157" y="136" fill="#0891b2">group B</text><text x="157" y="150" font-weight="400" fill="#0891b2">2, 4</text>
+        </g>
+        <line x1="194" y1="60" x2="222" y2="70" stroke="#0891b2" stroke-width="1.4" marker-end="url(#arrG)"/>
+        <line x1="194" y1="140" x2="222" y2="130" stroke="#0891b2" stroke-width="1.4" marker-end="url(#arrG)"/>
+        <g font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" font-weight="700">
+          <rect x="224" y="60" width="76" height="30" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/><text x="262" y="79" fill="#059669">mean=2</text>
+          <rect x="224" y="110" width="76" height="30" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/><text x="262" y="129" fill="#059669">mean=3</text>
+        </g>
+        <line x1="302" y1="75" x2="325" y2="90" stroke="#0891b2" stroke-width="1.4" marker-end="url(#arrG)"/>
+        <line x1="302" y1="125" x2="325" y2="110" stroke="#0891b2" stroke-width="1.4" marker-end="url(#arrG)"/>
+        <g font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" font-weight="700">
+          <rect x="327" y="82" width="56" height="36" rx="6" fill="#1a1d24"/><text x="355" y="98" fill="#fff">A 2</text><text x="355" y="112" fill="#fff">B 3</text>
+        </g>
+        <text x="157" y="185" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#64748b">split</text>
+        <text x="262" y="185" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#059669">apply</text>
+        <text x="355" y="135" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#1a1d24">combine</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>The reshape verbs &#9733;</h3>
+      <p><code>melt</code>/<code>stack</code> go wide→long; <code>pivot</code>/<code>unstack</code> go long→wide; <code>explode</code> unpacks list cells; <code>pivot_table</code> aggregates on the way.</p>
+      <svg viewBox="0 0 390 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="wide table on the left and long table on the right, with melt/stack arrows going wide to long and pivot/unstack arrows going long to wide">
+        <defs><marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker></defs>
+        <g font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">
+          <text x="70" y="28" font-weight="700" fill="#7c3aed" font-size="10">WIDE</text>
+          <rect x="20" y="35" width="100" height="90" rx="6" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.4"/>
+          <line x1="20" y1="60" x2="120" y2="60" stroke="#7c3aed" stroke-width=".8"/>
+          <line x1="53" y1="35" x2="53" y2="125" stroke="#7c3aed" stroke-width=".8"/>
+          <line x1="86" y1="35" x2="86" y2="125" stroke="#7c3aed" stroke-width=".8"/>
+          <text x="36" y="52" fill="#7c3aed">id</text><text x="70" y="52" fill="#7c3aed">Jan</text><text x="103" y="52" fill="#7c3aed">Feb</text>
+          <text x="36" y="80" fill="#7c3aed">a</text><text x="70" y="80" fill="#7c3aed">1</text><text x="103" y="80" fill="#7c3aed">2</text>
+          <text x="36" y="105" fill="#7c3aed">b</text><text x="70" y="105" fill="#7c3aed">3</text><text x="103" y="105" fill="#7c3aed">4</text>
+
+          <text x="320" y="28" font-weight="700" fill="#059669" font-size="10">LONG</text>
+          <rect x="270" y="35" width="105" height="115" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/>
+          <line x1="270" y1="60" x2="375" y2="60" stroke="#059669" stroke-width=".8"/>
+          <text x="288" y="52" fill="#059669">id</text><text x="322" y="52" fill="#059669">mon</text><text x="357" y="52" fill="#059669">val</text>
+          <text x="288" y="72" fill="#059669">a</text><text x="322" y="72" fill="#059669">Jan</text><text x="357" y="72" fill="#059669">1</text>
+          <text x="288" y="88" fill="#059669">a</text><text x="322" y="88" fill="#059669">Feb</text><text x="357" y="88" fill="#059669">2</text>
+          <text x="288" y="104" fill="#059669">b</text><text x="322" y="104" fill="#059669">Jan</text><text x="357" y="104" fill="#059669">3</text>
+          <text x="288" y="120" fill="#059669">b</text><text x="322" y="120" fill="#059669">Feb</text><text x="357" y="120" fill="#059669">4</text>
+        </g>
+        <path d="M125,70 C 195,55 205,55 268,70" fill="none" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arrR)"/>
+        <text x="196" y="52" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#7c3aed" font-weight="700">melt / stack &#8594;</text>
+        <path d="M268,120 C 205,140 195,140 125,120" fill="none" stroke="#059669" stroke-width="1.5" marker-end="url(#arrR)"/>
+        <text x="196" y="152" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#059669" font-weight="700">&#8592; pivot / unstack</text>
+        <text x="196" y="180" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#64748b">pivot_table also aggregates duplicate keys</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">.loc vs .iloc</span><span class="v">loc = labels &amp; inclusive; iloc = positions &amp; exclusive</span></div>
+    <div><span class="k">chained indexing</span><span class="v">df[mask]['c']=x may not write — use df.loc[mask,'c']=x</span></div>
+    <div><span class="k">named aggregation</span><span class="v"><code>agg(new=('col','func'))</code> gives clean, flat output columns</span></div>
+    <div><span class="k">apply vs map vs transform</span><span class="v">map=elementwise; apply=row/col func; transform=keeps shape</span></div>
+    <div><span class="k">melt vs pivot</span><span class="v">melt goes wide&#8594;long; pivot/pivot_table go long&#8594;wide</span></div>
+    <div><span class="k">merge vs join</span><span class="v">merge joins on columns; join defaults to the index</span></div>
+    <div><span class="k">category &amp; nullable dtypes</span><span class="v">huge memory savings on repeated strings / integer columns</span></div>
+    <div><span class="k">NaN != NaN</span><span class="v">use <code>isna()</code>/<code>notna()</code>, never <code>==</code>, for missing checks</span></div>
+    <div><span class="k">apply(axis=1) is slow</span><span class="v">vectorized column math beats row-wise apply 10&#215;+</span></div>
+    <div><span class="k">pandas 3.0 defaults</span><span class="v">PyArrow-backed string dtype &amp; Copy-on-Write are now on</span></div>
+    <div><span class="k">accessors</span><span class="v"><code>.str</code> <code>.dt</code> <code>.cat</code> unlock vectorized text/date/category ops</span></div>
+    <div><span class="k">resample = time groupby</span><span class="v">needs a datetime index; ME/QE/YE are period-end aliases</span></div>
+  </div>
+</section>
+
+<footer>
+  Pandas cheat sheet &middot; comprehensive v2 &middot; gap-analysis edition &mdash; validated against the official pandas 3.x API reference (pandas.pydata.org): I/O, General functions, Series/DataFrame, the .str/.dt/.cat accessors, GroupBy, Window, Resampling, Style, Plotting, Extensions &amp; Options; cross-checked with the official PDF cheat sheet, Dataquest, DataCamp, Coursera &amp; GeeksforGeeks.<br>
+  Covers the Series/DataFrame core plus the specialized modules &amp; extensions &middot; pandas 3.0 defaults to a PyArrow-backed string dtype and Copy-on-Write &middot; nullable dtypes (<code>Int64</code>, <code>boolean</code>, <code>string</code>) are preferred when a column can contain missing values.
+</footer>
+
+</body>
+</html>

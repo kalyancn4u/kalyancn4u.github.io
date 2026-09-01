@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PyMongo Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Official MongoDB driver for Python &middot; documents &amp; aggregation &middot; verified against PyMongo 4.17 (2026)</div>
+  <h1><span class="mono">PyMongo</span> cheat sheet</h1>
+  <p class="lede"><b>PyMongo</b> is the official Python driver for <b>MongoDB</b> &mdash; a document database where rows are JSON-like dicts (BSON) and tables are "collections". No fixed schema, no SQL: you insert dicts, query with dict filters and <code>$</code>-operators, and transform with the aggregation pipeline. PyMongo 4.13+ ships a <b>native async client</b> (<code>AsyncMongoClient</code>) that supersedes Motor. This sheet targets <b>PyMongo 4.17</b> (MongoDB 4.2&ndash;8.0, Python 3.9+).</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>connect</span>
+    <span><i class="dot c2"></i>insert &amp; query</span>
+    <span><i class="dot c3"></i>update &amp; delete</span>
+    <span><i class="dot c4"></i>aggregate &amp; index</span>
+    <span><i class="dot c5"></i>transactions &amp; async</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-08-24 against the official docs at <b>pymongo.readthedocs.io</b> &amp; <b>mongodb.com/docs</b> (PyMongo 4.17.0, 2026-04). Supports MongoDB 4.2&ndash;8.0 and Python 3.9+. The async API is stable since 4.13; <b>Motor is being retired</b> in favor of <code>AsyncMongoClient</code>.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub"><code>MongoClient</code> &rarr; pick a <code>db["collection"]</code> &rarr; <code>insert_one</code> / <code>find</code> with dict filters &rarr; <code>update_one</code> with <code>$</code>-operators. Then aggregation, indexes, transactions, and async.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Connect &amp; read</h3>
+      <ol class="toc-list">
+        <li><a href="#connect">1 &middot; Install &amp; connect</a></li>
+        <li><a href="#insert">2 &middot; Collections &amp; insert</a></li>
+        <li><a href="#find">3 &middot; Query with find</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Modify &amp; shape</h3>
+      <ol class="toc-list">
+        <li><a href="#update">4 &middot; Update &amp; delete</a></li>
+        <li><a href="#agg">5 &middot; Aggregation pipeline</a></li>
+        <li><a href="#index">6 &middot; Indexes &amp; bulk</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Power &amp; ship</h3>
+      <ol class="toc-list">
+        <li><a href="#txn">7 &middot; Transactions</a></li>
+        <li><a href="#async">8 &middot; Async</a></li>
+        <li><a href="#gotchas">9 &middot; Gotchas</a></li>
+        <li><a href="#worth">Worth memorizing</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-read"><h2 style="color:var(--c1)">Connect &amp; read</h2><p class="sub">Open a client, insert documents, and query them back.</p></div>
+<main>
+  <article class="card" id="connect">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Install &amp; connect</span><span class="card-sub">4.17</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">pip install pymongo          <span class="cm"># or "pymongo[srv]" for Atlas</span></code><span class="star">&#9733;</span><div class="desc">The <code>srv</code> extra enables <code>mongodb+srv://</code> connection strings used by MongoDB Atlas.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">from</span> pymongo <span class="kw">import</span> MongoClient
+client = MongoClient(<span class="str">"mongodb://localhost:27017/"</span>)</code><span class="star">&#9733;</span><div class="desc"><b>One client per app</b> &mdash; it's a connection pool, thread-safe, and connects lazily on first operation. Atlas: <code>MongoClient("mongodb+srv://user:pass@cluster.mongodb.net/")</code>.</div></li>
+      <li class="c1"><code class="cmd">client.admin.command(<span class="str">"ping"</span>)  <span class="cm"># verify connectivity</span></code><div class="desc">Since connection is lazy, ping to fail fast at startup if the server is unreachable.</div></li>
+      <li class="c1"><code class="cmd">client.close()  <span class="cm"># at shutdown; don't create one per request</span></code><div class="desc">Reuse the single client for the process lifetime. Creating clients per request exhausts connections.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="insert">
+    <div class="card-head"><span class="card-num n2">2</span><span class="card-title">Collections &amp; insert</span><span class="card-sub">databases are dicts of dicts</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">db = client[<span class="str">"shop"</span>]          <span class="cm"># or client.shop</span>
+users = db[<span class="str">"users"</span>]           <span class="cm"># a collection</span></code><span class="star">&#9733;</span><div class="desc">Databases and collections are created <b>lazily on first write</b> &mdash; no <code>CREATE</code> needed.</div></li>
+      <li class="c2"><code class="cmd">res = users.insert_one({<span class="str">"name"</span>: <span class="str">"Ada"</span>, <span class="str">"age"</span>: 36})
+res.inserted_id  <span class="cm"># ObjectId(...)</span></code><span class="star">&#9733;</span><div class="desc">Documents are plain dicts. If you omit <code>_id</code>, MongoDB assigns an <b>ObjectId</b>. Nested dicts/lists are fine.</div></li>
+      <li class="c2"><code class="cmd">res = users.insert_many([{<span class="str">"name"</span>: <span class="str">"Al"</span>}, {<span class="str">"name"</span>: <span class="str">"Grace"</span>}])
+res.inserted_ids</code><span class="star">&#9733;</span><div class="desc">Batch insert. <code>ordered=False</code> keeps going past a failing doc (e.g. duplicate key).</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">from</span> bson <span class="kw">import</span> ObjectId
+users.find_one({<span class="str">"_id"</span>: ObjectId(<span class="str">"665f1c..."</span>)})</code><div class="desc"><code>_id</code> is an <b>ObjectId, not a string</b> &mdash; wrap a hex id from a URL/param in <code>ObjectId()</code> to query by it.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="find">
+    <div class="card-head"><span class="card-num n2">3</span><span class="card-title">Query with find</span><span class="card-sub">dict filters + $-operators</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">users.find_one({<span class="str">"name"</span>: <span class="str">"Ada"</span>})   <span class="cm"># one dict or None</span></code><span class="star">&#9733;</span><div class="desc">Exact match on a field. An empty filter <code>{}</code> matches everything.</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">for</span> doc <span class="kw">in</span> users.find({<span class="str">"age"</span>: {<span class="str">"$gt"</span>: 30}}):
+    ...  <span class="cm"># find() returns a lazy cursor</span></code><span class="star">&#9733;</span><div class="desc"><b>Operators:</b> <code>$gt $gte $lt $lte $ne $in $nin $and $or $exists $regex</code>. The cursor streams &mdash; iterate once.</div></li>
+      <li class="c2"><code class="cmd">users.find({}, {<span class="str">"name"</span>: 1, <span class="str">"_id"</span>: 0}) \
+     .sort(<span class="str">"age"</span>, -1).limit(10).skip(20)</code><span class="star">&#9733;</span><div class="desc"><b>Projection</b> (2nd arg): <code>1</code> include / <code>0</code> exclude. Chain <code>sort</code>/<code>limit</code>/<code>skip</code> on the cursor.</div></li>
+      <li class="c2"><code class="cmd">users.count_documents({<span class="str">"age"</span>: {<span class="str">"$gte"</span>: 18}})</code><div class="desc">Exact count for a filter. <code>estimated_document_count()</code> is fast but approximate (whole collection only).</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-modify"><h2 style="color:var(--c3)">Modify &amp; shape</h2><p class="sub">Change documents, aggregate them, and index for speed.</p></div>
+<main>
+  <article class="card" id="update">
+    <div class="card-head"><span class="card-num n3">4</span><span class="card-title">Update &amp; delete</span><span class="card-sub">update operators</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">users.update_one({<span class="str">"name"</span>: <span class="str">"Ada"</span>}, {<span class="str">"$set"</span>: {<span class="str">"age"</span>: 37}})</code><span class="star">&#9733;</span><div class="desc"><b>Use an update operator</b> (<code>$set</code>) &mdash; the 2nd arg is a change spec, not a replacement doc. Matches the <b>first</b> matching document.</div></li>
+      <li class="c3"><code class="cmd">users.update_many({<span class="str">"active"</span>: <span class="kw">True</span>}, {<span class="str">"$inc"</span>: {<span class="str">"visits"</span>: 1}})</code><span class="star">&#9733;</span><div class="desc"><b>Operators:</b> <code>$set $unset $inc $mul $push $pull $addToSet $rename $min $max</code>. <code>update_many</code> hits all matches.</div></li>
+      <li class="c3"><code class="cmd">users.update_one({<span class="str">"email"</span>: e}, {<span class="str">"$set"</span>: {...}}, upsert=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc"><b><code>upsert=True</code></b> inserts the document if no match exists &mdash; the classic get-or-create.</div></li>
+      <li class="c3"><code class="cmd">users.delete_one({<span class="str">"_id"</span>: oid})  &middot;  users.delete_many({<span class="str">"active"</span>: <span class="kw">False</span>})</code><span class="star">&#9733;</span><div class="desc">Delete first match / all matches. <code>find_one_and_update(..., return_document=ReturnDocument.AFTER)</code> updates and returns the doc atomically.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="agg">
+    <div class="card-head"><span class="card-num n4">5</span><span class="card-title">Aggregation pipeline</span><span class="card-sub">transform &amp; group</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">users.aggregate([
+    {<span class="str">"$match"</span>: {<span class="str">"active"</span>: <span class="kw">True</span>}},
+    {<span class="str">"$group"</span>: {<span class="str">"_id"</span>: <span class="str">"$city"</span>, <span class="str">"n"</span>: {<span class="str">"$sum"</span>: 1}}},
+    {<span class="str">"$sort"</span>: {<span class="str">"n"</span>: -1}},
+])</code><span class="star">&#9733;</span><div class="desc"><b>A list of stages</b>, each a dict. Data flows stage&rarr;stage. <code>$group._id</code> is the group key; <code>$sum:1</code> counts.</div></li>
+      <li class="c4"><code class="cmd"><span class="cm"># stages: $match $project $group $sort $limit $skip $unwind</span></code><div class="desc"><code>$project</code> reshapes fields, <code>$unwind</code> explodes an array into one doc per element.</div></li>
+      <li class="c4"><code class="cmd">{<span class="str">"$lookup"</span>: {<span class="str">"from"</span>: <span class="str">"orders"</span>, <span class="str">"localField"</span>: <span class="str">"_id"</span>,
+             <span class="str">"foreignField"</span>: <span class="str">"user_id"</span>, <span class="str">"as"</span>: <span class="str">"orders"</span>}}</code><div class="desc"><b><code>$lookup</code> is a join</b> &mdash; embeds matching docs from another collection as an array.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="index">
+    <div class="card-head"><span class="card-num n4">6</span><span class="card-title">Indexes &amp; bulk</span><span class="card-sub">speed + batched writes</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">users.create_index(<span class="str">"email"</span>, unique=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc"><b>Index the fields you filter/sort on</b> &mdash; without one, queries do a full collection scan. <code>unique=True</code> enforces uniqueness.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">from</span> pymongo <span class="kw">import</span> ASCENDING, DESCENDING
+users.create_index([(<span class="str">"city"</span>, ASCENDING), (<span class="str">"age"</span>, DESCENDING)])</code><div class="desc"><b>Compound index</b> &mdash; order matters and should match your query/sort pattern. Also text and <code>2dsphere</code> (geo) indexes.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">from</span> pymongo <span class="kw">import</span> InsertOne, UpdateOne, DeleteOne
+users.bulk_write([InsertOne({...}),
+                  UpdateOne({<span class="str">"_id"</span>: 1}, {<span class="str">"$set"</span>: {...}})],
+                 ordered=<span class="kw">False</span>)</code><span class="star">&#9733;</span><div class="desc"><b>Batch mixed writes</b> in one round-trip. <code>ordered=False</code> parallelizes and continues past errors.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-power"><h2 style="color:var(--c5)">Power &amp; ship</h2><p class="sub">Multi-document transactions and the native async client.</p></div>
+<main>
+  <article class="card" id="txn">
+    <div class="card-head"><span class="card-num n5">7</span><span class="card-title">Transactions</span><span class="card-sub">multi-doc atomicity</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="kw">with</span> client.start_session() <span class="kw">as</span> s:
+    s.with_transaction(<span class="kw">lambda</span> s: transfer(s))</code><span class="star">&#9733;</span><div class="desc"><b>The recommended pattern:</b> <code>with_transaction</code> runs your callback and handles commit + automatic retries on transient errors.</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">def</span> <span class="fn">transfer</span>(s):
+    accts.update_one({<span class="str">"_id"</span>: a}, {<span class="str">"$inc"</span>: {<span class="str">"bal"</span>: -100}}, session=s)
+    accts.update_one({<span class="str">"_id"</span>: b}, {<span class="str">"$inc"</span>: {<span class="str">"bal"</span>: 100}}, session=s)</code><span class="star">&#9733;</span><div class="desc"><b>Pass <code>session=s</code> to every operation</b> in the transaction &mdash; operations without it aren't part of it.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># transactions REQUIRE a replica set (or Atlas)</span></code><div class="desc">A standalone <code>mongod</code> can't run transactions. Single-document writes are always atomic without one.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="async">
+    <div class="card-head"><span class="card-num n5">8</span><span class="card-title">Async</span><span class="card-sub">AsyncMongoClient (supersedes Motor)</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="kw">from</span> pymongo <span class="kw">import</span> AsyncMongoClient
+client = AsyncMongoClient(<span class="str">"mongodb://localhost:27017/"</span>)
+<span class="kw">await</span> client.shop.users.insert_one({<span class="str">"name"</span>: <span class="str">"Ada"</span>})</code><span class="star">&#9733;</span><div class="desc"><b>Native async</b> (stable since 4.13) &mdash; the same API, awaited. Use this instead of the retiring Motor driver.</div></li>
+      <li class="c5"><code class="cmd">doc = <span class="kw">await</span> client.shop.users.find_one({<span class="str">"name"</span>: <span class="str">"Ada"</span>})
+<span class="kw">async for</span> d <span class="kw">in</span> client.shop.users.find({<span class="str">"age"</span>: {<span class="str">"$gt"</span>: 30}}):
+    ...</code><span class="star">&#9733;</span><div class="desc"><code>await</code> single-result calls; <code>async for</code> over a cursor. <code>aggregate</code>, <code>bulk_write</code>, sessions all have awaitable forms.</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">await</span> client.aclose()</code><div class="desc">Close the async client on shutdown (<code>aclose</code>, the async counterpart of <code>close</code>).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="gotchas">
+    <div class="card-head"><span class="card-num">!</span><span class="card-title">Common gotchas</span><span class="card-sub">read before shipping</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">update needs $-operators</code><div class="desc"><code>update_one(f, {"age": 37})</code> is wrong &mdash; a bare dict without operators errors (or, historically, replaced the whole doc). Use <code>{"$set": {...}}</code>.</div></li>
+      <li class="danger"><code class="cmd">_id is an ObjectId, not a str</code><div class="desc">Querying <code>{"_id": "665f..."}</code> won't match. Wrap it: <code>ObjectId(hex)</code>. Serialize ids to <code>str</code> for JSON APIs.</div></li>
+      <li class="danger"><code class="cmd">find() returns a one-shot cursor</code><div class="desc">It's lazy and exhausted after one iteration. Re-query, or materialize with <code>list(cursor)</code> if you need it twice.</div></li>
+      <li class="danger"><code class="cmd">no schema = silent typos</code><div class="desc">Misspelling a field on insert/update just creates a new field &mdash; nothing errors. Consider JSON-schema validation on the collection.</div></li>
+      <li class="danger"><code class="cmd">transactions need a replica set</code><div class="desc">They fail on a standalone server. For local dev, run a single-node replica set or use Atlas.</div></li>
+      <li class="danger"><code class="cmd">index or full scan</code><div class="desc">Unindexed filters/sorts scan every document. <code>create_index</code> the fields you query; check with <code>.explain()</code>.</div></li>
+      <li class="danger"><code class="cmd">one MongoClient per process</code><div class="desc">It's a pool &mdash; share it. Creating one per request (or per function) leaks connections and is slow.</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs" id="worth">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">MongoClient(uri) &mdash; one per app</span><span class="v">pool, thread-safe, lazy connect</span></div>
+    <div><span class="k">db["coll"] created on first write</span><span class="v">no schema, no CREATE</span></div>
+    <div><span class="k">insert_one / insert_many</span><span class="v">.inserted_id / .inserted_ids (ObjectId)</span></div>
+    <div><span class="k">find(filter, projection)</span><span class="v">lazy cursor; .sort/.limit/.skip</span></div>
+    <div><span class="k">$gt $in $or $exists $regex</span><span class="v">query operators in the filter dict</span></div>
+    <div><span class="k">update_one(f, {"$set": ...})</span><span class="v">operators required; upsert=True</span></div>
+    <div><span class="k">aggregate([{$match},{$group},...])</span><span class="v">$lookup = join, $unwind = explode</span></div>
+    <div><span class="k">create_index(field, unique=True)</span><span class="v">else full collection scan</span></div>
+    <div><span class="k">bulk_write([InsertOne, UpdateOne])</span><span class="v">one round-trip; ordered=False</span></div>
+    <div><span class="k">start_session + with_transaction</span><span class="v">pass session= to each op; needs replica set</span></div>
+    <div><span class="k">AsyncMongoClient + await</span><span class="v">native async, supersedes Motor</span></div>
+    <div><span class="k">ObjectId(hex) to query by _id</span><span class="v">_id is not a string</span></div>
+  </div>
+</section>
+
+<footer>
+  PyMongo cheat sheet (pymongo_cheatsheet v0).<br>
+  Verified 2026-08-24 against <b>pymongo.readthedocs.io</b> &amp; <b>mongodb.com/docs</b> (PyMongo 4.17.0, 2026-04; MongoDB 4.2&ndash;8.0, Python 3.9+). Official MongoDB driver: <code>MongoClient</code> (one per app, a pool) &rarr; <code>db["coll"]</code> &rarr; <code>insert_one</code>/<code>find</code> with dict filters and <code>$</code>-operators &rarr; <code>update_one</code> with <code>$set</code> (upsert); aggregation pipeline (<code>$match</code>/<code>$group</code>/<code>$lookup</code>); indexes (<code>create_index</code>, unique/compound/geo); <code>bulk_write</code>; multi-doc transactions via <code>start_session</code>/<code>with_transaction</code> (replica set required); and the native <code>AsyncMongoClient</code> that supersedes Motor. <code>_id</code> is an <code>ObjectId</code>. APIs evolve &mdash; check the docs.<br>
+  Design system = shared cheat-sheet tokens (Inter + JetBrains Mono, light theme). Content only.
+</footer>
+</body>
+</html>

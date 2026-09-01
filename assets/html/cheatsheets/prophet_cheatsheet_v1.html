@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prophet Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --data:#64748b;   --data-bg:#f1f3f6;
+    --core:#059669;   --core-bg:#ecf7f2;
+    --season:#d97706;  --season-bg:#fdf6ec;
+    --trend:#4f46e5;  --trend-bg:#eef0fd;
+    --extra:#9333ea;  --extra-bg:#f4ecfd;
+    --diag:#0891b2;   --diag-bg:#e6f4f9;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .p{font-family:var(--mono); color:var(--core)}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede code{font-family:var(--mono); font-size:.9em; background:var(--core-bg); padding:.05rem .3rem; border-radius:4px; color:#065f46}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.data{background:var(--data)} .dot.core{background:var(--core)}
+  .dot.season{background:var(--season)} .dot.trend{background:var(--trend)}
+  .dot.extra{background:var(--extra)} .dot.diag{background:var(--diag)}
+  .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+  .decomp{
+    max-width:1120px; margin:1.1rem auto 0; background:var(--ink); color:#e8e6e1;
+    border-radius:10px; padding:.9rem 1.2rem; font-family:var(--mono);
+    font-size:.86rem; display:flex; flex-wrap:wrap; align-items:center;
+    gap:.35rem .55rem; justify-content:center; text-align:center;
+  }
+  .decomp .y{color:#fff; font-weight:700}
+  .decomp .op{color:#64748b}
+  .decomp .g{color:#818cf8}   /* trend  */
+  .decomp .s{color:#fbbf24}   /* season */
+  .decomp .h{color:#c084fc}   /* holiday*/
+  .decomp .e{color:#94a3b8}   /* noise  */
+  .decomp small{color:#94a3b8; font-family:var(--mono); font-weight:400}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.data{border-left-color:var(--data)}
+  ul.cmds li.core{border-left-color:var(--core)}
+  ul.cmds li.season{border-left-color:var(--season)}
+  ul.cmds li.trend{border-left-color:var(--trend)}
+  ul.cmds li.extra{border-left-color:var(--extra)}
+  ul.cmds li.diag{border-left-color:var(--diag)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.45;
+  }
+  code.cmd .arg{color:var(--trend); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .mut{color:var(--muted); font-weight:400}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; color:#3f444f; background:#f4f2ee; padding:0 .25rem; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-note{
+    color:var(--diag); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner .v code{color:#93c5fd; font-family:var(--mono)}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:#3f444f}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · time-series forecasting · prophet 1.4</div>
+  <h1><span class="p">prophet</span> cheat sheet</h1>
+  <p class="lede">Prophet fits an <b>additive model</b>: a series is the sum of a <b>trend</b>, a set of <b>seasonalities</b>, <b>holiday</b> effects, and noise. Feed it a two-column frame — <code>ds</code> and <code>y</code> — and it follows the sklearn <code>fit</code>&nbsp;→&nbsp;<code>predict</code> rhythm. Learn the pipeline once and every knob hangs off one of the four components.</p>
+  <div class="legend">
+    <span><i class="dot data"></i>data / io</span>
+    <span><i class="dot core"></i>core pipeline</span>
+    <span><i class="dot season"></i>seasonality</span>
+    <span><i class="dot trend"></i>trend &amp; changepoints</span>
+    <span><i class="dot extra"></i>holidays &amp; regressors</span>
+    <span><i class="dot diag"></i>diagnostics &amp; tuning</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>facebook.github.io/prophet</b> · <b>github.com/facebook/prophet</b> · <b>Taylor &amp; Letham, "Forecasting at Scale" (2017)</b> · <b>CRAN prophet reference manual</b> · <b>pypi.org/project/prophet</b> · verified 2026-08-28 against <b>prophet 1.4.0</b> (15 Aug 2026; Python ≥ 3.10; project is in maintenance mode — bug/dependency fixes only)</p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The pipeline — from a two-column frame to a forecast with uncertainty</div>
+  <svg class="flow-svg" viewBox="0 0 1120 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Prophet pipeline: a dataframe with ds and y feeds a Prophet model, which is fit, extended into the future, and used to predict a forecast that is then plotted and validated.">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="arrowg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#059669"/>
+      </marker>
+    </defs>
+
+    <!-- boxes -->
+    <g>
+      <rect x="12"  y="96" width="168" height="108" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="96" y="126" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">DataFrame</text>
+      <text x="96" y="150" text-anchor="middle" font-size="12" fill="#334155">ds  ·  y</text>
+      <text x="96" y="176" text-anchor="middle" font-size="10.5" fill="#64748b">date + numeric</text>
+      <text x="96" y="191" text-anchor="middle" font-size="10.5" fill="#64748b">value only</text>
+    </g>
+
+    <g>
+      <rect x="238" y="96" width="188" height="108" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="332" y="124" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">Prophet(...)</text>
+      <text x="332" y="146" text-anchor="middle" font-size="10.5" fill="#059669">the model object</text>
+      <text x="332" y="172" text-anchor="middle" font-size="10" fill="#6b7280">+ add_seasonality</text>
+      <text x="332" y="187" text-anchor="middle" font-size="10" fill="#6b7280">+ add_country_holidays</text>
+    </g>
+
+    <g>
+      <rect x="484" y="96" width="150" height="108" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="559" y="124" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">.fit(df)</text>
+      <text x="559" y="146" text-anchor="middle" font-size="10.5" fill="#059669">learn components</text>
+      <text x="559" y="172" text-anchor="middle" font-size="10" fill="#6b7280">trend · season</text>
+      <text x="559" y="187" text-anchor="middle" font-size="10" fill="#6b7280">holidays · noise</text>
+    </g>
+
+    <g>
+      <rect x="692" y="96" width="176" height="108" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="780" y="122" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1d24">make_future_</text>
+      <text x="780" y="138" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1d24">dataframe()</text>
+      <text x="780" y="162" text-anchor="middle" font-size="10.5" fill="#4f46e5">extend N periods</text>
+      <text x="780" y="185" text-anchor="middle" font-size="10" fill="#6b7280">includes history</text>
+    </g>
+
+    <g>
+      <rect x="926" y="96" width="182" height="108" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="1017" y="122" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">.predict()</text>
+      <text x="1017" y="145" text-anchor="middle" font-size="10.5" fill="#059669">→ forecast</text>
+      <text x="1017" y="170" text-anchor="middle" font-size="10" fill="#6b7280">yhat</text>
+      <text x="1017" y="185" text-anchor="middle" font-size="10" fill="#6b7280">yhat_lower / upper</text>
+    </g>
+
+    <!-- forward arrows -->
+    <line x1="180" y1="150" x2="236" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="426" y1="150" x2="482" y2="150" stroke="#059669" stroke-width="2" marker-end="url(#arrowg)"/>
+    <line x1="634" y1="150" x2="690" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="868" y1="150" x2="924" y2="150" stroke="#059669" stroke-width="2" marker-end="url(#arrowg)"/>
+
+    <!-- outputs hanging below predict -->
+    <line x1="1017" y1="204" x2="1017" y2="238" stroke="#64748b" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+    <text x="1017" y="258" text-anchor="middle" font-size="10.5" fill="#334155">m.plot() · m.plot_components()</text>
+    <text x="1017" y="274" text-anchor="middle" font-size="10.5" fill="#0891b2">cross_validation()</text>
+
+    <!-- stage labels -->
+    <text x="96"  y="78" text-anchor="middle" font-size="9.5" letter-spacing="2" fill="#94a3b8">PREPARE</text>
+    <text x="445" y="78" text-anchor="middle" font-size="9.5" letter-spacing="2" fill="#059669">FIT</text>
+    <text x="898" y="78" text-anchor="middle" font-size="9.5" letter-spacing="2" fill="#4f46e5">FORECAST</text>
+  </svg>
+
+  <!-- decomposition banner -->
+  <div class="decomp">
+    <span class="y">y(t)</span><span class="op">=</span>
+    <span class="g">g(t)</span><small>trend</small><span class="op">+</span>
+    <span class="s">s(t)</span><small>seasonality</small><span class="op">+</span>
+    <span class="h">h(t)</span><small>holidays</small><span class="op">+</span>
+    <span class="e">&#949;(t)</span><small>noise</small>
+    <span class="op">&nbsp;·&nbsp; a generalized additive model — each piece is interpretable &amp; plotted separately</span>
+  </div>
+</section>
+
+<!-- ============ COMMAND CARDS ============ -->
+<main>
+
+  <!-- 01 INSTALL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; Import</span><span class="card-sub">once per env</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">pip install prophet</code><span class="star">★</span><div class="desc">PyPI name since v1.0 (was <code>fbprophet</code>).</div></li>
+      <li class="data"><code class="cmd">conda install <span class="flag">-c</span> conda-forge prophet</code><div class="desc">Often the smoothest install (bundles the compiler).</div></li>
+      <li class="core"><code class="cmd"><span class="mut">from</span> prophet <span class="mut">import</span> Prophet</code><span class="star">★</span><div class="desc">The estimator — sklearn-style <code>fit</code>/<code>predict</code>.</div></li>
+      <li class="extra"><code class="cmd"><span class="mut">from</span> prophet.plot <span class="mut">import</span> add_changepoints_to_plot</code><div class="desc">Plot helpers: also <code>plot_plotly</code>.</div></li>
+      <li class="diag"><code class="cmd"><span class="mut">from</span> prophet.diagnostics <span class="mut">import</span> cross_validation</code><div class="desc">And <code>performance_metrics</code> for evaluation.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 DATA CONTRACT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">The Data Contract</span><span class="card-sub">ds &amp; y, always</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">df.columns = <span class="arg">['ds', 'y']</span></code><span class="star">★</span><div class="desc">The only two columns Prophet requires.</div></li>
+      <li class="data"><code class="cmd">df<span class="arg">['ds']</span> = pd.to_datetime(df.ds)</code><span class="star">★</span><div class="desc"><code>ds</code> = date/timestamp; <code>YYYY-MM-DD</code> or with time.</div></li>
+      <li class="data"><code class="cmd"><span class="mut"># y must be numeric</span></code><div class="desc">The measurement to forecast (univariate).</div></li>
+      <li class="data"><code class="cmd">df.loc[outliers, <span class="arg">'y'</span>] = None</code><div class="desc">Set outliers to <code>NaN</code> — Prophet still fits.</div></li>
+      <li class="data"><code class="cmd">df<span class="arg">['y']</span> = np.log(df.y)</code><div class="desc">Log-transform tames exponential growth.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 CORE PIPELINE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Core Pipeline</span><span class="card-sub">the whole job</span></div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd">m = Prophet()</code><span class="star">★</span><div class="desc">Defaults auto-detect yearly/weekly seasonality.</div></li>
+      <li class="core"><code class="cmd">m.fit(df)</code><span class="star">★</span><div class="desc">Fit on history — takes a second or two.</div></li>
+      <li class="core"><code class="cmd">future = m.make_future_dataframe(<span class="flag">periods</span>=<span class="arg">365</span>)</code><span class="star">★</span><div class="desc">A <code>ds</code>-only frame extended N days ahead.</div></li>
+      <li class="core"><code class="cmd">m.make_future_dataframe(<span class="arg">24</span>, <span class="flag">freq</span>=<span class="arg">'MS'</span>)</code><div class="desc">Month-start / any pandas freq for non-daily data.</div></li>
+      <li class="core"><code class="cmd">forecast = m.predict(future)</code><span class="star">★</span><div class="desc">Fills <code>yhat</code> + interval for every row.</div></li>
+      <li class="core"><code class="cmd">Prophet().fit(df).predict(future)</code><div class="desc">Chainable — the sklearn one-liner.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 READ FORECAST -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Read the Forecast</span><span class="card-sub">forecast columns</span></div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd">forecast<span class="arg">['yhat']</span></code><span class="star">★</span><div class="desc">The point prediction.</div></li>
+      <li class="core"><code class="cmd">yhat_lower · yhat_upper</code><span class="star">★</span><div class="desc">Uncertainty interval (default 80%).</div></li>
+      <li class="trend"><code class="cmd">trend</code><div class="desc">The <code>g(t)</code> trend component.</div></li>
+      <li class="season"><code class="cmd">yearly · weekly · daily</code><div class="desc">Each seasonality's contribution.</div></li>
+      <li class="extra"><code class="cmd">holidays · &lt;<span class="arg">regressor</span>&gt;</code><div class="desc">Event &amp; regressor effects, per column.</div></li>
+      <li class="core"><code class="cmd">additive_terms · multiplicative_terms</code><div class="desc">Summed non-trend pieces.</div></li>
+      <li class="core"><code class="cmd">forecast<span class="arg">[['ds','yhat','yhat_lower','yhat_upper']]</span>.tail()</code><div class="desc">The slice you actually report.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 VISUALIZE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Visualize</span><span class="card-sub">see the fit</span></div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd">m.plot(forecast)</code><span class="star">★</span><div class="desc">History dots + forecast line + interval band.</div></li>
+      <li class="core"><code class="cmd">m.plot_components(forecast)</code><span class="star">★</span><div class="desc">Trend + each seasonality broken out.</div></li>
+      <li class="trend"><code class="cmd">add_changepoints_to_plot(fig.gca(), m, forecast)</code><div class="desc">Overlay where the trend bends.</div></li>
+      <li class="extra"><code class="cmd"><span class="mut">from</span> prophet.plot <span class="mut">import</span> plot_plotly</code><div class="desc">Interactive, zoomable version.</div></li>
+      <li class="season"><code class="cmd">plot_yearly(m) · plot_weekly(m)</code><div class="desc">Inspect one seasonality alone.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 SEASONALITY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Seasonality</span><span class="card-sub">s(t) · Fourier</span></div>
+    <ul class="cmds">
+      <li class="season"><code class="cmd">Prophet(<span class="flag">seasonality_mode</span>=<span class="arg">'multiplicative'</span>)</code><span class="star">★</span><div class="desc">When swings <b>grow with</b> the trend (default <code>additive</code>).</div></li>
+      <li class="season"><code class="cmd">Prophet(<span class="flag">yearly_seasonality</span>=<span class="arg">True</span>)</code><div class="desc"><code>'auto'</code> / <code>True</code> / <code>False</code> / int order.</div></li>
+      <li class="season"><code class="cmd">m.add_seasonality(<span class="flag">name</span>=<span class="arg">'monthly'</span>, <span class="flag">period</span>=<span class="arg">30.5</span>, <span class="flag">fourier_order</span>=<span class="arg">5</span>)</code><span class="star">★</span><div class="desc">Add a custom cycle (period in days).</div></li>
+      <li class="season"><code class="cmd">Prophet(<span class="flag">yearly_seasonality</span>=<span class="arg">20</span>)</code><div class="desc">Raise Fourier order (default 10 yearly / 3 weekly).</div></li>
+      <li class="season"><code class="cmd">Prophet(<span class="flag">seasonality_prior_scale</span>=<span class="arg">10</span>)</code><div class="desc">Flexibility — lower dampens / smooths.</div></li>
+      <li class="season"><code class="cmd">add_seasonality(..., <span class="flag">condition_name</span>=<span class="arg">'is_on'</span>)</code><div class="desc">Conditional season — needs a boolean column.</div></li>
+      <li class="danger"><code class="cmd"><span class="mut"># more Fourier terms = overfitting</span></code><span class="badge-danger">care</span><div class="desc">N terms ⇒ 2N variables per cycle.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 TREND & CHANGEPOINTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Trend &amp; Changepoints</span><span class="card-sub">g(t) · the #1 knob</span></div>
+    <ul class="cmds">
+      <li class="trend"><code class="cmd">Prophet(<span class="flag">changepoint_prior_scale</span>=<span class="arg">0.05</span>)</code><span class="star">★</span><div class="desc">↑ = flexible (overfit) · ↓ = smooth (underfit).</div></li>
+      <li class="trend"><code class="cmd">Prophet(<span class="flag">n_changepoints</span>=<span class="arg">25</span>)</code><div class="desc">Candidate points — rarely worth changing.</div></li>
+      <li class="trend"><code class="cmd">Prophet(<span class="flag">changepoint_range</span>=<span class="arg">0.8</span>)</code><div class="desc">Place them in the first 80% of history.</div></li>
+      <li class="trend"><code class="cmd">Prophet(<span class="flag">changepoints</span>=<span class="arg">['2020-03-01']</span>)</code><div class="desc">Specify bend dates by hand.</div></li>
+      <li class="trend"><code class="cmd">Prophet(<span class="flag">growth</span>=<span class="arg">'flat'</span>)</code><div class="desc">No trend at all — seasonality only.</div></li>
+      <li class="trend"><code class="cmd"><span class="mut"># sparse L1 prior</span></code><span class="badge-note">how</span><div class="desc">Many candidates, few actually used.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 SATURATING GROWTH -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Saturating Growth</span><span class="card-sub">logistic · cap/floor</span></div>
+    <ul class="cmds">
+      <li class="trend"><code class="cmd">Prophet(<span class="flag">growth</span>=<span class="arg">'logistic'</span>)</code><span class="star">★</span><div class="desc">S-curve toward a carrying capacity.</div></li>
+      <li class="trend"><code class="cmd">df<span class="arg">['cap']</span> = <span class="arg">8.5</span></code><span class="star">★</span><div class="desc">Required upper limit — can vary per row.</div></li>
+      <li class="trend"><code class="cmd">df<span class="arg">['floor']</span> = <span class="arg">0</span></code><div class="desc">Optional lower saturating bound.</div></li>
+      <li class="danger"><code class="cmd"><span class="mut"># cap on BOTH history &amp; future</span></code><span class="badge-danger">must</span><div class="desc">Missing <code>cap</code> with logistic ⇒ error.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 HOLIDAYS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Holidays &amp; Events</span><span class="card-sub">h(t)</span></div>
+    <ul class="cmds">
+      <li class="extra"><code class="cmd">m.add_country_holidays(<span class="flag">country_name</span>=<span class="arg">'IN'</span>)</code><span class="star">★</span><div class="desc">Built-in sets: <code>US</code>, <code>IN</code>, <code>UK</code>, <code>BR</code>…</div></li>
+      <li class="extra"><code class="cmd">pd.DataFrame({<span class="arg">'holiday'</span>:…, <span class="arg">'ds'</span>:…})</code><span class="star">★</span><div class="desc">Custom events need columns <code>holiday</code> + <code>ds</code>.</div></li>
+      <li class="extra"><code class="cmd">lower_window · upper_window</code><div class="desc">Spread the effect ±days around the date.</div></li>
+      <li class="extra"><code class="cmd">Prophet(<span class="flag">holidays</span>=holidays_df)</code><div class="desc">Pass your event frame at construction.</div></li>
+      <li class="extra"><code class="cmd"><span class="mut">from</span> prophet.make_holidays <span class="mut">import</span> make_holidays_df</code><div class="desc">Generate a frame per country / province.</div></li>
+      <li class="extra"><code class="cmd">Prophet(<span class="flag">holidays_prior_scale</span>=<span class="arg">10</span>)</code><div class="desc">Lower it if holiday spikes overfit.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 REGRESSORS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Extra Regressors</span><span class="card-sub">external drivers</span></div>
+    <ul class="cmds">
+      <li class="extra"><code class="cmd">m.add_regressor(<span class="arg">'temperature'</span>)</code><span class="star">★</span><div class="desc">Fold in a known external variable.</div></li>
+      <li class="danger"><code class="cmd"><span class="mut"># column in fit AND future df</span></code><span class="badge-danger">must</span><div class="desc">Prophet won't invent future regressor values.</div></li>
+      <li class="extra"><code class="cmd">add_regressor(<span class="arg">'x'</span>, <span class="flag">mode</span>=<span class="arg">'multiplicative'</span>)</code><div class="desc">Additive (default) or scales with trend.</div></li>
+      <li class="extra"><code class="cmd">add_regressor(<span class="arg">'x'</span>, <span class="flag">standardize</span>=<span class="arg">'auto'</span>)</code><div class="desc">Z-scores unless the column is binary.</div></li>
+      <li class="extra"><code class="cmd">add_regressor(<span class="arg">'x'</span>, <span class="flag">prior_scale</span>=<span class="arg">0.5</span>)</code><div class="desc">Regularize the coefficient.</div></li>
+      <li class="diag"><code class="cmd">regressor_coefficients(m)</code><div class="desc">Inspect the fitted betas.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 UNCERTAINTY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Uncertainty Intervals</span><span class="card-sub">the band</span></div>
+    <ul class="cmds">
+      <li class="diag"><code class="cmd">Prophet(<span class="flag">interval_width</span>=<span class="arg">0.80</span>)</code><span class="star">★</span><div class="desc">Default is <b>80%</b>, not 95% — widen if needed.</div></li>
+      <li class="diag"><code class="cmd">Prophet(<span class="flag">uncertainty_samples</span>=<span class="arg">1000</span>)</code><div class="desc">MC draws for the band; set <code>0</code> to skip &amp; speed up.</div></li>
+      <li class="diag"><code class="cmd">Prophet(<span class="flag">mcmc_samples</span>=<span class="arg">300</span>)</code><div class="desc">Full Bayes → uncertainty in seasonality too.</div></li>
+      <li class="diag"><code class="cmd"><span class="mut"># band = trend + noise</span></code><span class="badge-note">note</span><div class="desc">Seasonality is treated as certain unless MCMC.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 CROSS-VALIDATION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Cross-Validation</span><span class="card-sub">rolling origin</span></div>
+    <ul class="cmds">
+      <li class="diag"><code class="cmd">df_cv = cross_validation(m, <span class="flag">horizon</span>=<span class="arg">'365 days'</span>,</code><div class="desc"><span style="font-family:var(--mono);font-size:.8rem"><span class="flag">initial</span>=<span class="arg">'730 days'</span>, <span class="flag">period</span>=<span class="arg">'180 days'</span>)</span></div></li>
+      <li class="diag"><code class="cmd">performance_metrics(df_cv)</code><span class="star">★</span><div class="desc">rmse · mae · mape · mdape · smape · coverage.</div></li>
+      <li class="diag"><code class="cmd">plot_cross_validation_metric(df_cv, <span class="flag">metric</span>=<span class="arg">'mape'</span>)</code><div class="desc">Error vs. horizon, rolling-averaged.</div></li>
+      <li class="diag"><code class="cmd">cross_validation(m, ..., <span class="flag">parallel</span>=<span class="arg">'processes'</span>)</code><div class="desc">Fit each cutoff in parallel.</div></li>
+      <li class="danger"><code class="cmd"><span class="mut"># never k-fold a time series</span></code><span class="badge-danger">time</span><div class="desc">Cutoffs move forward — don't shuffle.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 TUNING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Hyperparameter Tuning</span><span class="card-sub">what to sweep</span></div>
+    <ul class="cmds">
+      <li class="diag"><code class="cmd">changepoint_prior_scale <span class="mut">∈</span> <span class="arg">[.001, .5]</span></code><span class="star">★</span><div class="desc">Most impactful — sweep on a log scale.</div></li>
+      <li class="diag"><code class="cmd">seasonality_prior_scale <span class="mut">∈</span> <span class="arg">[.01, 10]</span></code><div class="desc">How hard seasonality fits.</div></li>
+      <li class="diag"><code class="cmd">holidays_prior_scale <span class="mut">∈</span> <span class="arg">[.01, 10]</span></code><div class="desc">Magnitude of holiday effects.</div></li>
+      <li class="diag"><code class="cmd">seasonality_mode <span class="mut">∈</span> <span class="arg">{add, mult}</span></code><div class="desc">Try both when unsure.</div></li>
+      <li class="diag"><code class="cmd"><span class="mut"># grid → cross_validation → min RMSE</span></code><div class="desc">Loop params, evaluate, pick the winner.</div></li>
+      <li class="diag"><code class="cmd"><span class="mut"># usually NOT tuned</span></code><span class="badge-note">skip</span><div class="desc"><code>growth</code>, <code>changepoints</code>, <code>n_changepoints</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 SAVE / LOAD -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Save &amp; Load</span><span class="card-sub">persist a model</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd"><span class="mut">from</span> prophet.serialize <span class="mut">import</span> model_to_json</code><span class="star">★</span><div class="desc">Also <code>model_from_json</code>.</div></li>
+      <li class="data"><code class="cmd">json.dump(model_to_json(m), open(<span class="arg">'m.json'</span>,<span class="arg">'w'</span>))</code><div class="desc">Save the fitted model as JSON.</div></li>
+      <li class="data"><code class="cmd">m = model_from_json(open(<span class="arg">'m.json'</span>).read())</code><div class="desc">Reload without refitting.</div></li>
+      <li class="danger"><code class="cmd"><span class="mut"># don't pickle Prophet models</span></code><span class="badge-danger">avoid</span><div class="desc">Pickle breaks across versions — use JSON.</div></li>
+    </ul>
+  </article>
+
+  <!-- CONSTRUCTOR REFERENCE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">★</span><span class="card-title">Prophet() defaults</span><span class="card-sub">key params</span></div>
+    <ul class="cmds">
+      <li class="trend"><code class="cmd">growth=<span class="arg">'linear'</span></code><div class="desc"><code>linear</code> · <code>logistic</code> · <code>flat</code></div></li>
+      <li class="trend"><code class="cmd">changepoint_prior_scale=<span class="arg">0.05</span></code><div class="desc">Trend flexibility.</div></li>
+      <li class="trend"><code class="cmd">n_changepoints=<span class="arg">25</span> · changepoint_range=<span class="arg">0.8</span></code><div class="desc">Candidate count &amp; placement.</div></li>
+      <li class="season"><code class="cmd">yearly / weekly / daily_seasonality=<span class="arg">'auto'</span></code><div class="desc">Enabled by data span &amp; frequency.</div></li>
+      <li class="season"><code class="cmd">seasonality_mode=<span class="arg">'additive'</span></code><div class="desc"><code>additive</code> · <code>multiplicative</code></div></li>
+      <li class="season"><code class="cmd">seasonality_prior_scale=<span class="arg">10.0</span></code><div class="desc">Seasonal flexibility.</div></li>
+      <li class="extra"><code class="cmd">holidays_prior_scale=<span class="arg">10.0</span></code><div class="desc">Holiday magnitude.</div></li>
+      <li class="diag"><code class="cmd">interval_width=<span class="arg">0.80</span></code><div class="desc">Uncertainty coverage.</div></li>
+      <li class="diag"><code class="cmd">mcmc_samples=<span class="arg">0</span> · uncertainty_samples=<span class="arg">1000</span></code><div class="desc">MAP by default; &gt;0 ⇒ full Bayes.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>How Prophet thinks</h2>
+  <p class="sub">Four ideas do most of the work — the additive split, a bendable trend, Fourier seasonality, and rolling-origin validation. Diagrams follow the "Forecasting at Scale" paper &amp; the official docs.</p>
+  <div class="merge-grid">
+
+    <!-- DECOMPOSITION -->
+    <div class="merge-card">
+      <h3>y = trend + seasonality + holidays + noise</h3>
+      <p>The whole model. Prophet fits each piece separately, then adds them — which is why every component can be plotted on its own.</p>
+      <svg viewBox="0 0 400 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="An observed series decomposed into a rising trend, a repeating seasonal wave, sparse holiday spikes, and residual noise.">
+        <g font-family="JetBrains Mono, monospace" font-size="9">
+          <!-- observed -->
+          <text x="8" y="20" fill="#1a1d24" font-weight="700">y(t)</text>
+          <polyline fill="none" stroke="#1a1d24" stroke-width="1.8"
+            points="60,30 78,20 96,28 114,14 132,26 150,12 168,22 186,8 204,20 222,6 240,18 258,4 276,15 294,3 312,12"/>
+          <text x="330" y="20" fill="#6b7280">observed</text>
+
+          <!-- = -->
+          <text x="36" y="70" fill="#64748b" font-size="13">=</text>
+          <!-- trend -->
+          <line x1="60" y1="72" x2="312" y2="52" stroke="#4f46e5" stroke-width="2"/>
+          <text x="8" y="66" fill="#4f46e5" font-weight="700">g(t)</text>
+          <text x="330" y="64" fill="#4f46e5">trend</text>
+
+          <!-- + -->
+          <text x="36" y="110" fill="#64748b" font-size="13">+</text>
+          <!-- seasonality -->
+          <path d="M60,105 Q78,92 96,105 T132,105 T168,105 T204,105 T240,105 T276,105 T312,105" fill="none" stroke="#d97706" stroke-width="2"/>
+          <text x="8" y="108" fill="#d97706" font-weight="700">s(t)</text>
+          <text x="330" y="108" fill="#d97706">season</text>
+
+          <!-- + -->
+          <text x="36" y="150" fill="#64748b" font-size="13">+</text>
+          <!-- holidays -->
+          <line x1="60" y1="150" x2="312" y2="150" stroke="#c9c4ba" stroke-width="1"/>
+          <line x1="120" y1="150" x2="120" y2="132" stroke="#9333ea" stroke-width="2.5"/>
+          <line x1="210" y1="150" x2="210" y2="138" stroke="#9333ea" stroke-width="2.5"/>
+          <line x1="282" y1="150" x2="282" y2="128" stroke="#9333ea" stroke-width="2.5"/>
+          <text x="8" y="150" fill="#9333ea" font-weight="700">h(t)</text>
+          <text x="330" y="150" fill="#9333ea">holidays</text>
+
+          <!-- + noise -->
+          <text x="36" y="180" fill="#64748b" font-size="13">+</text>
+          <polyline fill="none" stroke="#94a3b8" stroke-width="1"
+            points="60,175 72,180 84,172 96,181 108,174 120,182 132,173 144,180 156,175 168,182 180,172 192,180 204,174 216,181 228,173 240,180 252,176 264,182 276,173 288,180 300,175 312,181"/>
+          <text x="8" y="180" fill="#94a3b8" font-weight="700">&#949;(t)</text>
+          <text x="330" y="180" fill="#94a3b8">noise</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- CHANGEPOINTS / TREND -->
+    <div class="merge-card">
+      <h3>Piecewise trend &amp; changepoints</h3>
+      <p>The trend is straight segments whose slope may change at a few automatically-chosen <b>changepoints</b>. Growth can also be logistic (toward a cap) or flat.</p>
+      <svg viewBox="0 0 400 170" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A piecewise-linear trend that changes slope at two vertical changepoint lines, with a logistic cap curve and a flat option shown for comparison.">
+        <g font-family="JetBrains Mono, monospace" font-size="9">
+          <!-- axes -->
+          <line x1="40" y1="140" x2="380" y2="140" stroke="#c9c4ba" stroke-width="1"/>
+          <!-- changepoint verticals -->
+          <line x1="150" y1="30" x2="150" y2="140" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 3"/>
+          <line x1="250" y1="30" x2="250" y2="140" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="150" y="24" fill="#dc2626" text-anchor="middle" font-size="8">cp</text>
+          <text x="250" y="24" fill="#dc2626" text-anchor="middle" font-size="8">cp</text>
+          <!-- piecewise linear trend -->
+          <polyline fill="none" stroke="#4f46e5" stroke-width="2.4" points="40,120 150,96 250,50 380,36"/>
+          <circle cx="150" cy="96" r="3.5" fill="#4f46e5"/>
+          <circle cx="250" cy="50" r="3.5" fill="#4f46e5"/>
+          <text x="52" y="112" fill="#4f46e5">linear (piecewise)</text>
+          <!-- logistic cap -->
+          <line x1="40" y1="44" x2="380" y2="44" stroke="#059669" stroke-width="1" stroke-dasharray="2 3"/>
+          <text x="330" y="40" fill="#059669" font-size="8">cap</text>
+          <path d="M40,132 C160,132 200,70 380,58" fill="none" stroke="#059669" stroke-width="1.8" stroke-dasharray="5 3"/>
+          <text x="300" y="118" fill="#059669" font-size="8">logistic</text>
+          <!-- flat -->
+          <line x1="40" y1="150" x2="380" y2="150" stroke="#64748b" stroke-width="1.4" stroke-dasharray="6 3"/>
+          <text x="44" y="163" fill="#64748b" font-size="8">flat — no growth</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- FOURIER ORDER -->
+    <div class="merge-card">
+      <h3>Fourier order = seasonal wiggle</h3>
+      <p>Each seasonality is a partial Fourier sum. A low order gives a smooth cycle; a high order fits fast changes — and overfits if pushed too far.</p>
+      <svg viewBox="0 0 400 160" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A smooth low-Fourier-order seasonal curve compared with a wigglier high-order curve over one period.">
+        <g font-family="JetBrains Mono, monospace" font-size="9">
+          <line x1="30" y1="80" x2="380" y2="80" stroke="#c9c4ba" stroke-width="1"/>
+          <!-- low order: smooth sine -->
+          <path d="M30,80 Q75,30 120,80 T210,80 T300,80 T390,80" fill="none" stroke="#059669" stroke-width="2.2"/>
+          <text x="250" y="42" fill="#059669" font-size="8.5">order 3 — smooth</text>
+          <!-- high order: wiggly -->
+          <path d="M30,80 C50,58 62,120 84,96 C104,74 116,132 140,104 C160,82 172,128 196,100 C216,80 228,126 252,102 C272,84 284,124 308,100 C328,82 340,120 364,98 C374,90 382,86 390,84"
+                fill="none" stroke="#d97706" stroke-width="1.6"/>
+          <text x="40" y="138" fill="#d97706" font-size="8.5">order 20 — fits fast changes, risks overfit</text>
+          <text x="30" y="20" fill="#6b7280" font-size="8">one period →</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- CROSS-VALIDATION -->
+    <div class="merge-card">
+      <h3>Cross-validation: rolling origin</h3>
+      <p>Fit up to a <b>cutoff</b>, forecast one <b>horizon</b> ahead, compare to truth — then slide the cutoff forward by <b>period</b> and repeat.</p>
+      <svg viewBox="0 0 400 170" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three stacked rolling-origin folds: each has an initial training block ending at a cutoff, followed by a horizon forecast block, with the cutoff moving forward each fold.">
+        <g font-family="JetBrains Mono, monospace" font-size="8.5">
+          <text x="10" y="16" fill="#6b7280">time &#8594;</text>
+          <!-- fold 1 -->
+          <rect x="20" y="30" width="150" height="18" rx="3" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/>
+          <rect x="170" y="30" width="70" height="18" rx="3" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.3"/>
+          <line x1="170" y1="26" x2="170" y2="52" stroke="#dc2626" stroke-width="1.4"/>
+          <text x="95" y="43" fill="#065f46" text-anchor="middle">initial train</text>
+          <text x="205" y="43" fill="#3730a3" text-anchor="middle">horizon</text>
+          <!-- fold 2 -->
+          <rect x="20" y="66" width="210" height="18" rx="3" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/>
+          <rect x="230" y="66" width="70" height="18" rx="3" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.3"/>
+          <line x1="230" y1="62" x2="230" y2="88" stroke="#dc2626" stroke-width="1.4"/>
+          <text x="265" y="79" fill="#3730a3" text-anchor="middle">horizon</text>
+          <!-- fold 3 -->
+          <rect x="20" y="102" width="270" height="18" rx="3" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/>
+          <rect x="290" y="102" width="70" height="18" rx="3" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.3"/>
+          <line x1="290" y1="98" x2="290" y2="124" stroke="#dc2626" stroke-width="1.4"/>
+          <text x="325" y="115" fill="#3730a3" text-anchor="middle">horizon</text>
+          <!-- period arrow -->
+          <line x1="170" y1="140" x2="230" y2="140" stroke="#64748b" stroke-width="1.2" marker-end="url(#cvarrow)"/>
+          <defs><marker id="cvarrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+          <text x="200" y="156" fill="#64748b" text-anchor="middle">period</text>
+          <text x="20" y="140" fill="#dc2626" font-size="8">| = cutoff</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">ds + y</span><span class="v">the only two columns ever required; <code>ds</code> must be datetime-parseable</span></div>
+    <div><span class="k">fit ≠ predict</span><span class="v"><code>predict</code> needs a frame from <code>make_future_dataframe</code></span></div>
+    <div><span class="k">changepoint_prior_scale</span><span class="v">the #1 knob — ↑ flexible, ↓ smooth; sweep log 0.001–0.5</span></div>
+    <div><span class="k">additive vs mult.</span><span class="v">multiplicative when swings grow with the trend</span></div>
+    <div><span class="k">logistic ⇒ cap</span><span class="v">needs a <code>cap</code> column in <b>both</b> history &amp; future df</span></div>
+    <div><span class="k">regressors</span><span class="v">the column must exist in the future df too</span></div>
+    <div><span class="k">CV = rolling origin</span><span class="v">move the cutoff forward — never shuffle / k-fold time</span></div>
+    <div><span class="k">interval_width</span><span class="v">default is <b>0.80</b>, not 0.95 — widen it if you report 95%</span></div>
+    <div><span class="k">band = trend + noise</span><span class="v">seasonality is "certain" unless <code>mcmc_samples&gt;0</code></span></div>
+    <div><span class="k">save as JSON</span><span class="v"><code>model_to_json</code> — never pickle a Prophet model</span></div>
+  </div>
+</section>
+
+<footer>
+  Prophet cheat sheet · synthesized from the official references of facebook.github.io/prophet, the facebook/prophet repository, the CRAN prophet reference manual, and Taylor &amp; Letham, "Forecasting at Scale" (2017).<br>
+  API shown for prophet 1.4.0 (current, re-verified 2026-08-28; Python ≥ 3.10, maintenance mode) · package imported as <code>from prophet import Prophet</code> (renamed from <code>fbprophet</code> at v1.0). Formula: <code>y(t) = g(t) + s(t) + h(t) + &#949;(t)</code>.
+</footer>
+
+</body>
+</html>

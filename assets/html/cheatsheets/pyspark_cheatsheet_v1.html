@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PySpark Cheat Sheet — Comprehensive Edition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --create:#2563eb;  --create-bg:#eff4fe;
+    --inspect:#64748b; --inspect-bg:#f1f3f6;
+    --select:#d97706;  --select-bg:#fdf6ec;
+    --shape:#7c3aed;   --shape-bg:#f5f0fd;
+    --clean:#059669;   --clean-bg:#ecf7f2;
+    --stats:#0891b2;   --stats-bg:#eafafd;
+    --ml:#db2777;      --ml-bg:#fdf0f7;
+    --stream:#0d9488;  --stream-bg:#e9f8f6;
+    --danger:#dc2626;  --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .ps{font-family:var(--mono); color:var(--create)}
+  h1 .v2{font-family:var(--mono); font-size:.4em; color:var(--ml); vertical-align:super; letter-spacing:0}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.create{background:var(--create)} .dot.inspect{background:var(--inspect)}
+  .dot.select{background:var(--select)} .dot.shape{background:var(--shape)}
+  .dot.clean{background:var(--clean)} .dot.stats{background:var(--stats)}
+  .dot.ml{background:var(--ml)} .dot.stream{background:var(--stream)}
+  .dot.danger{background:var(--danger)}
+
+  /* ---------- section band ---------- */
+  .band{
+    max-width:1500px; margin:0 auto; padding:1.4rem clamp(1rem,4vw,3rem) 0;
+  }
+  .band h2{
+    font-family:var(--mono); font-size:.82rem; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink); padding:.5rem 0 .1rem; border-top:2px solid var(--ink); display:flex; gap:.6rem; align-items:baseline;
+  }
+  .band h2 .tag{font-size:.66rem; color:var(--muted); letter-spacing:.05em; font-weight:400; text-transform:none}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1080px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:.6rem clamp(1rem,4vw,3rem) 1rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1240px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.73rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.create{border-left-color:var(--create)}
+  ul.cmds li.inspect{border-left-color:var(--inspect)}
+  ul.cmds li.select{border-left-color:var(--select)}
+  ul.cmds li.shape{border-left-color:var(--shape)}
+  ul.cmds li.clean{border-left-color:var(--clean)}
+  ul.cmds li.stats{border-left-color:var(--stats)}
+  ul.cmds li.ml{border-left-color:var(--ml)}
+  ul.cmds li.stream{border-left-color:var(--stream)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  ul.cmds li.note{border-left-color:var(--line); background:#faf9f6}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.78rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .arg{color:var(--create); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .num{color:var(--stats); font-weight:400}
+  li.danger code.cmd{color:var(--danger)}
+  li.note code.cmd{color:#525761; font-style:italic; font-weight:400}
+  .desc{font-size:.77rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.95em; background:#f1eee8; padding:.02rem .2rem; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-safe{
+    color:var(--clean); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Comprehensive Quick Reference &middot; distributed data processing in Python</div>
+  <h1><span class="ps">pyspark</span> cheat sheet <span class="v2">v2 &middot; all modules</span></h1>
+  <p class="lede">A single source of truth spanning the whole PySpark surface: the <b>DataFrame &amp; SQL</b> core, the <b>functions</b> library, <b>UDFs &amp; pandas function APIs</b>, <b>Structured Streaming</b>, <b>MLlib</b>, the <b>pandas-on-Spark</b> API, and the low-level <b>RDD</b> core. Everything still hinges on one split — <b>lazy transformations</b> build a plan, an <b>action</b> runs it across the cluster.</p>
+  <div class="legend">
+    <span><i class="dot create"></i>create / load</span>
+    <span><i class="dot inspect"></i>inspect / config</span>
+    <span><i class="dot select"></i>select &amp; filter</span>
+    <span><i class="dot shape"></i>shape &amp; combine</span>
+    <span><i class="dot clean"></i>clean &amp; transform</span>
+    <span><i class="dot stats"></i>aggregate / stats</span>
+    <span><i class="dot ml"></i>MLlib</span>
+    <span><i class="dot stream"></i>streaming</span>
+    <span><i class="dot danger"></i>handle with care</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Validated against the official <b>Apache Spark 4.x PySpark API reference</b> (spark.apache.org) — Spark SQL, Functions, UDF/UDTF, Structured Streaming, MLlib (DataFrame-based), Pandas-API-on-Spark &amp; Spark Core — cross-checked with DataCamp, kevinschaich/pyspark-cheatsheet, Palantir Foundry docs, AlmaBetter &amp; GeeksforGeeks. <b>v2 gap-analysis edition.</b></p>
+</header>
+
+<!-- ============ MODULE MAP DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The PySpark module map &mdash; what lives where</div>
+  <svg class="flow-svg" viewBox="0 0 1080 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Map of PySpark modules: the SparkSession is the entry point to Spark SQL (DataFrame, Column, functions, Window, Catalog), which the specialized modules build on: Structured Streaming, MLlib, and pandas-on-Spark. The lower-level SparkContext gives access to the RDD API.">
+    <defs>
+      <marker id="arrM" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+    </defs>
+
+    <!-- entry point -->
+    <rect x="420" y="15" width="240" height="52" rx="9" fill="#1a1d24"/>
+    <text x="540" y="39" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">SparkSession</text>
+    <text x="540" y="57" text-anchor="middle" font-size="10" fill="#facc15">the single entry point</text>
+
+    <!-- SQL core -->
+    <rect x="330" y="100" width="420" height="66" rx="9" fill="#eff4fe" stroke="#2563eb" stroke-width="1.6"/>
+    <text x="540" y="122" text-anchor="middle" font-size="12.5" font-weight="700" fill="#2563eb">pyspark.sql &mdash; the DataFrame &amp; SQL core</text>
+    <text x="540" y="140" text-anchor="middle" font-size="10" fill="#2563eb">DataFrame &middot; Column &middot; Row &middot; GroupedData &middot; Window</text>
+    <text x="540" y="156" text-anchor="middle" font-size="10" fill="#2563eb">functions (F.*) &middot; types (T.*) &middot; Catalog &middot; UDF / UDTF</text>
+    <line x1="540" y1="67" x2="540" y2="98" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrM)"/>
+
+    <!-- specialized modules built on SQL -->
+    <g font-size="11.5" font-weight="700">
+      <rect x="35"  y="205" width="230" height="70" rx="9" fill="#e9f8f6" stroke="#0d9488" stroke-width="1.6"/>
+      <text x="150" y="228" text-anchor="middle" fill="#0d9488">pyspark.sql.streaming</text>
+      <text x="150" y="246" text-anchor="middle" font-size="9.5" font-weight="400" fill="#0d9488">Structured Streaming</text>
+      <text x="150" y="262" text-anchor="middle" font-size="9.5" font-weight="400" fill="#0d9488">readStream / writeStream</text>
+
+      <rect x="295" y="205" width="230" height="70" rx="9" fill="#fdf0f7" stroke="#db2777" stroke-width="1.6"/>
+      <text x="410" y="228" text-anchor="middle" fill="#db2777">pyspark.ml</text>
+      <text x="410" y="246" text-anchor="middle" font-size="9.5" font-weight="400" fill="#db2777">MLlib (DataFrame-based)</text>
+      <text x="410" y="262" text-anchor="middle" font-size="9.5" font-weight="400" fill="#db2777">Pipeline / Estimator / Transformer</text>
+
+      <rect x="555" y="205" width="230" height="70" rx="9" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.6"/>
+      <text x="670" y="228" text-anchor="middle" fill="#7c3aed">pyspark.pandas</text>
+      <text x="670" y="246" text-anchor="middle" font-size="9.5" font-weight="400" fill="#7c3aed">pandas API on Spark</text>
+      <text x="670" y="262" text-anchor="middle" font-size="9.5" font-weight="400" fill="#7c3aed">import pyspark.pandas as ps</text>
+
+      <rect x="815" y="205" width="230" height="70" rx="9" fill="#f1f3f6" stroke="#64748b" stroke-width="1.6"/>
+      <text x="930" y="228" text-anchor="middle" fill="#64748b">pyspark (core)</text>
+      <text x="930" y="246" text-anchor="middle" font-size="9.5" font-weight="400" fill="#64748b">SparkContext &middot; RDD</text>
+      <text x="930" y="262" text-anchor="middle" font-size="9.5" font-weight="400" fill="#64748b">low-level, no Catalyst</text>
+    </g>
+    <line x1="430" y1="166" x2="180" y2="203" stroke="#64748b" stroke-width="1.4" marker-end="url(#arrM)"/>
+    <line x1="500" y1="166" x2="430" y2="203" stroke="#64748b" stroke-width="1.4" marker-end="url(#arrM)"/>
+    <line x1="580" y1="166" x2="650" y2="203" stroke="#64748b" stroke-width="1.4" marker-end="url(#arrM)"/>
+    <line x1="650" y1="166" x2="900" y2="203" stroke="#64748b" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arrM)"/>
+    <text x="880" y="190" font-size="9" fill="#94a3b8">sparkContext</text>
+  </svg>
+</section>
+
+<!-- ================= SECTION 1: CORE DATAFRAME & SQL ================= -->
+<section class="band"><h2>I &middot; Core DataFrame &amp; SQL <span class="tag">pyspark.sql — the everyday API</span></h2></section>
+
+<main>
+
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; SparkSession</span><span class="card-sub">create</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">from pyspark.sql <span class="flag">import</span> SparkSession</code><span class="star">&#9733;</span><div class="desc">Entry point for the DataFrame &amp; SQL API.</div></li>
+      <li class="create"><code class="cmd">from pyspark.sql <span class="flag">import</span> functions <span class="flag">as</span> F, types <span class="flag">as</span> T</code><span class="star">&#9733;</span><div class="desc">The two imports nearly every script needs.</div></li>
+      <li class="create"><code class="cmd">spark = SparkSession.builder.appName(<span class="arg">'app'</span>).getOrCreate()</code><span class="star">&#9733;</span><div class="desc">Create (or reuse) the active session.</div></li>
+      <li class="create"><code class="cmd">.master(<span class="arg">'local[*]'</span>).config(<span class="arg">'k','v'</span>)</code><div class="desc">Chain before <code>getOrCreate()</code> to tune the session.</div></li>
+      <li class="create"><code class="cmd">spark.sparkContext &nbsp;/ spark.version</code><div class="desc">Underlying SparkContext / installed version.</div></li>
+      <li class="create"><code class="cmd">spark.stop()</code><div class="desc">Release cluster resources when done.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 CONFIG & CATALOG -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Configuration &amp; Catalog</span><span class="card-sub">inspect / config</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">spark.conf.set(<span class="arg">'spark.sql.shuffle.partitions', 200</span>)</code><span class="star">&#9733;</span><div class="desc">Set a runtime SQL/shuffle config.</div></li>
+      <li class="inspect"><code class="cmd">spark.conf.get(<span class="arg">'spark.sql.adaptive.enabled'</span>)</code><div class="desc">Read a config value (AQE on by default in 3.2+).</div></li>
+      <li class="inspect"><code class="cmd">spark.catalog.listTables(<span class="arg">'db'</span>)</code><div class="desc">List tables/views registered in the catalog.</div></li>
+      <li class="inspect"><code class="cmd">spark.catalog.listDatabases()</code><div class="desc">List available databases.</div></li>
+      <li class="inspect"><code class="cmd">spark.catalog.dropTempView(<span class="arg">'t'</span>)</code><div class="desc">Remove a temp view.</div></li>
+      <li class="inspect"><code class="cmd">spark.catalog.clearCache()</code><div class="desc">Drop all cached tables from memory.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 READING DATA -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Reading Data</span><span class="card-sub">create</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">spark.read.csv(<span class="arg">path, header=True, inferSchema=True</span>)</code><span class="star">&#9733;</span><div class="desc">Read CSV; infer types or pass a schema.</div></li>
+      <li class="create"><code class="cmd">spark.read.parquet(<span class="arg">path</span>)</code><span class="star">&#9733;</span><div class="desc">Read columnar Parquet — the Spark-native default.</div></li>
+      <li class="create"><code class="cmd">spark.read.json(<span class="arg">path</span>)</code><div class="desc">Read line-delimited or multiline JSON.</div></li>
+      <li class="create"><code class="cmd">spark.read.schema(<span class="arg">schema</span>).csv(<span class="arg">path</span>)</code><span class="star">&#9733;</span><div class="desc">Explicit schema — faster &amp; safer than inferring.</div></li>
+      <li class="create"><code class="cmd">spark.read.format(<span class="arg">'jdbc'</span>).options(**o).load()</code><div class="desc">Read from a relational database.</div></li>
+      <li class="create"><code class="cmd">spark.read.load(<span class="arg">path, format='orc'</span>)</code><div class="desc">Generic loader (orc, delta, avro, text&#8230;).</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 WRITING DATA -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Writing Data</span><span class="card-sub">create</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">df.write.parquet(<span class="arg">path</span>)</code><span class="star">&#9733;</span><div class="desc">Write columnar Parquet — fast, typed, compressed.</div></li>
+      <li class="create"><code class="cmd">df.write.mode(<span class="arg">'overwrite'</span>).save(<span class="arg">path</span>)</code><span class="star">&#9733;</span><div class="desc"><code>mode</code>: overwrite, append, ignore, error.</div></li>
+      <li class="create"><code class="cmd">df.write.partitionBy(<span class="arg">'col'</span>).parquet(<span class="arg">path</span>)</code><span class="star">&#9733;</span><div class="desc">Hive-style partitioned directory tree.</div></li>
+      <li class="create"><code class="cmd">df.write.bucketBy(<span class="num">8</span>, <span class="arg">'id'</span>).saveAsTable(<span class="arg">'t'</span>)</code><div class="desc">Bucketed managed table (avoids join shuffles).</div></li>
+      <li class="create"><code class="cmd">df.write.format(<span class="arg">'jdbc'</span>).options(**o).save()</code><div class="desc">Write to a relational database.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 CREATE DF & SCHEMAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Creating DataFrames &amp; Schemas</span><span class="card-sub">create</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">spark.createDataFrame(<span class="arg">data, schema</span>)</code><span class="star">&#9733;</span><div class="desc">From a list of Rows/tuples, plus a schema.</div></li>
+      <li class="create"><code class="cmd">spark.createDataFrame(<span class="arg">pandas_df</span>)</code><span class="star">&#9733;</span><div class="desc">From a pandas DataFrame (needs pyarrow).</div></li>
+      <li class="create"><code class="cmd">spark.range(<span class="num">0, 100, 2</span>)</code><div class="desc">Single-column <code>id</code> DataFrame — handy for demos.</div></li>
+      <li class="create"><code class="cmd">T.StructType([T.StructField(<span class="arg">'n', T.StringType(), True</span>)])</code><span class="star">&#9733;</span><div class="desc">Explicit schema — column, type, nullable.</div></li>
+      <li class="create"><code class="cmd">schema = <span class="arg">'name STRING, age INT'</span></code><span class="star">&#9733;</span><div class="desc">DDL-string schema — concise alternative.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 INSPECT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Inspect &amp; Explore</span><span class="card-sub">inspect</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">df.show(<span class="num">n</span>, truncate=False)</code><span class="star">&#9733;</span><div class="desc">Print the first n rows (default 20).</div></li>
+      <li class="inspect"><code class="cmd">df.printSchema()</code><span class="star">&#9733;</span><div class="desc">Tree of column names, types &amp; nullability.</div></li>
+      <li class="inspect"><code class="cmd">df.columns &nbsp;df.dtypes &nbsp;df.schema</code><div class="desc">Names / (name,type) pairs / full StructType.</div></li>
+      <li class="inspect"><code class="cmd">df.count()</code><span class="star">&#9733;</span><div class="desc">Row count — an <b>action</b>, triggers a full pass.</div></li>
+      <li class="inspect"><code class="cmd">df.describe() &nbsp;/ df.summary()</code><div class="desc">Summary stats; <code>summary</code> adds percentiles.</div></li>
+      <li class="inspect"><code class="cmd">df.explain(<span class="arg">'formatted'</span>)</code><span class="star">&#9733;</span><div class="desc">Logical &amp; physical plan — read shuffles/scans.</div></li>
+      <li class="inspect"><code class="cmd">df.isEmpty() &nbsp;df.rdd.getNumPartitions()</code><div class="desc">Emptiness check / partition count.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 SELECT & FILTER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Selecting &amp; Filtering</span><span class="card-sub">select &amp; filter</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">df.select(<span class="arg">'a', 'b'</span>)</code><span class="star">&#9733;</span><div class="desc">Project a subset of columns.</div></li>
+      <li class="select"><code class="cmd">df.select(F.col(<span class="arg">'a'</span>).alias(<span class="arg">'x'</span>), F.expr(<span class="arg">'b+1'</span>))</code><div class="desc">Expressions, renaming &amp; SQL strings.</div></li>
+      <li class="select"><code class="cmd">df.selectExpr(<span class="arg">'a', 'b * 2 as b2'</span>)</code><div class="desc">Select using pure SQL expressions.</div></li>
+      <li class="select"><code class="cmd">df.filter(df.age &gt; <span class="num">24</span>) &nbsp;/ df.where(...)</code><span class="star">&#9733;</span><div class="desc"><code>filter</code> and <code>where</code> are exact aliases.</div></li>
+      <li class="select"><code class="cmd">df.filter((df.a&gt;1)&amp;(df.b&lt;9))</code><div class="desc">Combine with <code>&amp; | ~</code>, in parens.</div></li>
+      <li class="select"><code class="cmd">df.filter(df.name.isin(<span class="arg">'Bob','Mike'</span>))</code><span class="star">&#9733;</span><div class="desc">Match any value in a list.</div></li>
+      <li class="select"><code class="cmd">df.filter(df.name.like(<span class="arg">'Al%'</span>) | df.n.rlike(<span class="arg">'^A'</span>))</code><div class="desc">SQL wildcard / regex match.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 COLUMN OPS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Column Operations &amp; Conditionals</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">df.withColumn(<span class="arg">'new'</span>, expr)</code><span class="star">&#9733;</span><div class="desc">Add or replace a column (returns new DataFrame).</div></li>
+      <li class="shape"><code class="cmd">df.withColumns({<span class="arg">'a': e1, 'b': e2</span>})</code><div class="desc">Add several columns in one call (3.3+).</div></li>
+      <li class="shape"><code class="cmd">df.withColumnRenamed(<span class="arg">'old', 'new'</span>)</code><span class="star">&#9733;</span><div class="desc">Rename a single column.</div></li>
+      <li class="shape"><code class="cmd">df.drop(<span class="arg">'c1', 'c2'</span>)</code><span class="star">&#9733;</span><div class="desc">Remove one or more columns.</div></li>
+      <li class="shape"><code class="cmd">df.withColumn(<span class="arg">'p'</span>, df.p.cast(<span class="arg">'double'</span>))</code><span class="star">&#9733;</span><div class="desc">Cast a column to a new type.</div></li>
+      <li class="shape"><code class="cmd">F.when(c1, v1).when(c2, v2).otherwise(d)</code><span class="star">&#9733;</span><div class="desc">Vectorized if/elif/else across rows.</div></li>
+      <li class="shape"><code class="cmd">F.coalesce(c1, c2, F.lit(<span class="arg">'N/A'</span>))</code><div class="desc">First non-null value across columns.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 MISSING & DUPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Missing Values &amp; Duplicates</span><span class="card-sub">clean · df.na</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">df.na.fill(<span class="arg">0</span>) &nbsp;/ df.fillna({'age': 0})</code><span class="star">&#9733;</span><div class="desc">Replace nulls — scalar or per-column dict.</div></li>
+      <li class="clean"><code class="cmd">df.na.drop(<span class="arg">how='any', subset=['a']</span>)</code><span class="star">&#9733;</span><div class="desc">Drop rows with nulls (any/all, subset).</div></li>
+      <li class="clean"><code class="cmd">df.na.replace([<span class="arg">'', 'NA'</span>], None)</code><div class="desc">Swap specific values for null.</div></li>
+      <li class="clean"><code class="cmd">df.filter(df.c.isNull()) / .isNotNull()</code><span class="star">&#9733;</span><div class="desc">Boolean null checks.</div></li>
+      <li class="clean"><code class="cmd">F.isnan(col) &nbsp;F.nanvl(col, alt)</code><div class="desc">NaN test / replace NaN (distinct from null).</div></li>
+      <li class="clean"><code class="cmd">df.dropDuplicates([<span class="arg">'a','b'</span>]) / df.distinct()</code><span class="star">&#9733;</span><div class="desc">De-duplicate on a subset / whole row.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ================= SECTION 2: FUNCTIONS LIBRARY ================= -->
+<section class="band"><h2>II &middot; The Functions Library <span class="tag">pyspark.sql.functions as F — column expressions</span></h2></section>
+
+<main>
+
+  <!-- 10 STRING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">String Functions</span><span class="card-sub">clean &amp; transform</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">F.concat_ws(<span class="arg">'-', 'a', 'b'</span>)</code><span class="star">&#9733;</span><div class="desc">Join columns with a separator.</div></li>
+      <li class="clean"><code class="cmd">F.upper(c) &nbsp;F.lower(c) &nbsp;F.initcap(c)</code><span class="star">&#9733;</span><div class="desc">Case conversion.</div></li>
+      <li class="clean"><code class="cmd">F.trim(c) &nbsp;F.lpad(c, n, '0')</code><div class="desc">Strip / pad strings.</div></li>
+      <li class="clean"><code class="cmd">F.substring(c, pos, len) &nbsp;F.length(c)</code><div class="desc">Substring / character length.</div></li>
+      <li class="clean"><code class="cmd">F.regexp_replace(c, pat, repl)</code><span class="star">&#9733;</span><div class="desc">Regex find-and-replace.</div></li>
+      <li class="clean"><code class="cmd">F.regexp_extract(c, pat, idx)</code><div class="desc">Pull out a regex capture group.</div></li>
+      <li class="clean"><code class="cmd">F.split(c, pat) &nbsp;F.instr(c, sub)</code><div class="desc">Split to array / index of a substring.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 DATE/TIME -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Date &amp; Timestamp Functions</span><span class="card-sub">clean &amp; transform</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">F.current_date() &nbsp;F.current_timestamp()</code><div class="desc">Today's date / the current instant.</div></li>
+      <li class="clean"><code class="cmd">F.to_date(c, <span class="arg">'yyyy-MM-dd'</span>) &nbsp;F.to_timestamp(c)</code><span class="star">&#9733;</span><div class="desc">Parse strings into date / timestamp.</div></li>
+      <li class="clean"><code class="cmd">F.year(c) F.month(c) F.dayofweek(c) F.hour(c)</code><span class="star">&#9733;</span><div class="desc">Extract calendar parts.</div></li>
+      <li class="clean"><code class="cmd">F.date_add(c, n) &nbsp;F.date_sub(c, n)</code><div class="desc">Shift a date forward / backward n days.</div></li>
+      <li class="clean"><code class="cmd">F.datediff(end, start) &nbsp;F.months_between(a,b)</code><div class="desc">Day / month gaps between dates.</div></li>
+      <li class="clean"><code class="cmd">F.date_format(c, <span class="arg">'yyyy-MM'</span>) &nbsp;F.date_trunc('month', c)</code><div class="desc">Format / truncate a timestamp.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 NUMERIC/MATH -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Numeric, Math &amp; Hashing</span><span class="card-sub">clean &amp; transform</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">F.round(c, n) &nbsp;F.floor(c) &nbsp;F.ceil(c)</code><div class="desc">Rounding functions.</div></li>
+      <li class="clean"><code class="cmd">F.abs(c) &nbsp;F.sqrt(c) &nbsp;F.exp(c) &nbsp;F.log(c)</code><div class="desc">Elementwise math.</div></li>
+      <li class="clean"><code class="cmd">F.least(*cols) &nbsp;F.greatest(*cols)</code><div class="desc">Min / max across columns (row-wise).</div></li>
+      <li class="clean"><code class="cmd">F.lit(<span class="num">1</span>) &nbsp;F.col(<span class="arg">'x'</span>) &nbsp;F.expr(<span class="arg">'a+b'</span>)</code><span class="star">&#9733;</span><div class="desc">Literal / column ref / SQL expression.</div></li>
+      <li class="clean"><code class="cmd">F.monotonically_increasing_id()</code><div class="desc">Unique (non-sequential) row id.</div></li>
+      <li class="clean"><code class="cmd">F.hash(*cols) &nbsp;F.md5(c) &nbsp;F.sha2(c, 256)</code><div class="desc">Hashing for keys / anonymization.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 ARRAY / HIGHER-ORDER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Array, Map &amp; Higher-Order</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">F.explode(c) &nbsp;/ F.posexplode(c)</code><span class="star">&#9733;</span><div class="desc">One row per element (+ index variant).</div></li>
+      <li class="shape"><code class="cmd">F.array(*c) &nbsp;F.size(c) &nbsp;F.array_contains(c, v)</code><div class="desc">Build array / length / membership.</div></li>
+      <li class="shape"><code class="cmd">F.array_distinct(c) &nbsp;F.sort_array(c) &nbsp;F.arrays_zip(a,b)</code><div class="desc">Dedup / sort / zip arrays.</div></li>
+      <li class="shape"><code class="cmd">F.transform(c, <span class="arg">lambda x: x+1</span>)</code><span class="star">&#9733;</span><div class="desc">Higher-order map over an array column.</div></li>
+      <li class="shape"><code class="cmd">F.filter(c, <span class="arg">lambda x: x&gt;0</span>) &nbsp;F.aggregate(...)</code><div class="desc">Higher-order filter / fold over an array.</div></li>
+      <li class="shape"><code class="cmd">F.from_json(c, schema) &nbsp;F.to_json(c)</code><span class="star">&#9733;</span><div class="desc">Parse / serialize JSON string columns.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ================= SECTION 3: RESHAPE, JOIN, AGGREGATE ================= -->
+<section class="band"><h2>III &middot; Reshape, Combine &amp; Aggregate <span class="tag">joins · groupBy · window · reshape</span></h2></section>
+
+<main>
+
+  <!-- 14 JOINS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Joins</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">df.join(other, <span class="arg">'id'</span>, <span class="arg">'inner'</span>)</code><span class="star">&#9733;</span><div class="desc">Join on a shared column name.</div></li>
+      <li class="shape"><code class="cmd">df.join(other, df.id==other.pid, <span class="arg">'left'</span>)</code><span class="star">&#9733;</span><div class="desc">Join on an explicit condition.</div></li>
+      <li class="shape"><code class="cmd">df.join(other, [<span class="arg">'k1','k2'</span>], <span class="arg">'outer'</span>)</code><div class="desc">Join on multiple key columns.</div></li>
+      <li class="shape"><code class="cmd">df.join(F.broadcast(small), <span class="arg">'id'</span>)</code><span class="star">&#9733;</span><div class="desc">Broadcast hint — avoids shuffling the big side.</div></li>
+      <li class="shape"><code class="cmd">df.crossJoin(other)</code><div class="desc">Cartesian product — every row with every row.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 SET-LIKE OPS + UNION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Union &amp; Set Operations</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">df.unionByName(df2)</code><span class="star">&#9733;</span><div class="desc">Stack rows, matching columns by <b>name</b> — safer.</div></li>
+      <li class="shape"><code class="cmd">df.union(df2)</code><div class="desc">Stack rows, matching columns by <b>position</b>.</div></li>
+      <li class="shape"><code class="cmd">df.unionByName(df2, allowMissingColumns=True)</code><div class="desc">Union frames with differing columns.</div></li>
+      <li class="shape"><code class="cmd">df.subtract(df2) &nbsp;/ df.exceptAll(df2)</code><span class="star">&#9733;</span><div class="desc">Rows in df not in df2 (distinct / keep dupes).</div></li>
+      <li class="shape"><code class="cmd">df.intersect(df2) &nbsp;/ df.intersectAll(df2)</code><div class="desc">Rows common to both frames.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 GROUPBY / AGG / PIVOT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">GroupBy, Aggregation &amp; Pivot</span><span class="card-sub">aggregate / stats</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">df.groupBy(<span class="arg">'c'</span>).count()</code><span class="star">&#9733;</span><div class="desc">Row count per group.</div></li>
+      <li class="stats"><code class="cmd">df.groupBy(<span class="arg">'c'</span>).agg(F.mean(<span class="arg">'x'</span>), F.sum(<span class="arg">'y'</span>))</code><span class="star">&#9733;</span><div class="desc">Multiple aggregates per group.</div></li>
+      <li class="stats"><code class="cmd">F.countDistinct(c) &nbsp;F.approx_count_distinct(c)</code><span class="star">&#9733;</span><div class="desc">Exact / fast-approximate distinct counts.</div></li>
+      <li class="stats"><code class="cmd">F.collect_list(c) &nbsp;F.collect_set(c)</code><div class="desc">Gather group values into an array / set.</div></li>
+      <li class="stats"><code class="cmd">F.first(c) &nbsp;F.last(c) &nbsp;F.stddev(c)</code><div class="desc">Positional &amp; spread aggregates.</div></li>
+      <li class="stats"><code class="cmd">df.groupBy(<span class="arg">'c'</span>).pivot(<span class="arg">'k'</span>).agg(F.sum(<span class="arg">'v'</span>))</code><span class="star">&#9733;</span><div class="desc">Long &#8594; wide, one column per key value.</div></li>
+      <li class="stats"><code class="cmd">df.rollup(<span class="arg">'a','b'</span>) &nbsp;df.cube(<span class="arg">'a','b'</span>)</code><div class="desc">Subtotal / all-combination aggregations.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 WINDOW -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Window Functions</span><span class="card-sub">aggregate / stats</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">from pyspark.sql <span class="flag">import</span> Window</code><span class="star">&#9733;</span><div class="desc">Import the window-spec builder.</div></li>
+      <li class="stats"><code class="cmd">w = Window.partitionBy(<span class="arg">'c'</span>).orderBy(F.desc(<span class="arg">'d'</span>))</code><span class="star">&#9733;</span><div class="desc">Partitions + ordering for a window.</div></li>
+      <li class="stats"><code class="cmd">F.row_number().over(w)</code><span class="star">&#9733;</span><div class="desc">1,2,3... within each partition — no ties.</div></li>
+      <li class="stats"><code class="cmd">F.rank().over(w) &nbsp;/ F.dense_rank().over(w)</code><div class="desc">Ranked position — with / without gaps.</div></li>
+      <li class="stats"><code class="cmd">F.lag(c,1).over(w) &nbsp;/ F.lead(c,1).over(w)</code><div class="desc">Previous / next row's value.</div></li>
+      <li class="stats"><code class="cmd">w.rowsBetween(Window.unboundedPreceding, 0)</code><div class="desc">Frame bounds for running aggregates.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 RESHAPE / STAT SUB-API -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Reshape, Sample &amp; df.stat</span><span class="card-sub">shape · df.stat</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">df.orderBy(F.desc(<span class="arg">'c'</span>)) &nbsp;df.limit(<span class="num">n</span>)</code><span class="star">&#9733;</span><div class="desc">Sort / take first n rows.</div></li>
+      <li class="shape"><code class="cmd">F.explode(...) &nbsp;+ pivot</code><div class="desc">Unpivot pattern: stack then pivot (no native melt).</div></li>
+      <li class="shape"><code class="cmd">df.sample(<span class="arg">0.1, seed=42</span>) &nbsp;df.randomSplit([0.8,0.2])</code><span class="star">&#9733;</span><div class="desc">Random sample / train-test split.</div></li>
+      <li class="stats"><code class="cmd">df.stat.approxQuantile(<span class="arg">'c', [.25,.5,.75], 0.01</span>)</code><div class="desc">Approximate percentiles.</div></li>
+      <li class="stats"><code class="cmd">df.stat.corr(<span class="arg">'a','b'</span>) &nbsp;df.stat.crosstab(<span class="arg">'a','b'</span>)</code><div class="desc">Correlation / contingency table.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ================= SECTION 4: SQL, UDFs & PANDAS FUNCTION APIs ================= -->
+<section class="band"><h2>IV &middot; SQL, UDFs &amp; pandas Function APIs <span class="tag">custom logic — from slow to vectorized</span></h2></section>
+
+<main>
+
+  <!-- 19 SPARK SQL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Running SQL Queries</span><span class="card-sub">select &amp; filter</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">df.createOrReplaceTempView(<span class="arg">'t'</span>)</code><span class="star">&#9733;</span><div class="desc">Register a DataFrame as a SQL-queryable view.</div></li>
+      <li class="select"><code class="cmd">spark.sql(<span class="arg">'SELECT * FROM t WHERE age &gt; 24'</span>)</code><span class="star">&#9733;</span><div class="desc">Query with SQL — returns a DataFrame.</div></li>
+      <li class="select"><code class="cmd">spark.sql(<span class="arg">'... {df}'</span>, df=df)</code><div class="desc">Parameterized SQL with DataFrame refs (3.4+).</div></li>
+      <li class="select"><code class="cmd">df.createGlobalTempView(<span class="arg">'t'</span>)</code><div class="desc">Cross-session view — prefix <code>global_temp.</code></div></li>
+    </ul>
+  </article>
+
+  <!-- 20 PYTHON UDFs -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">20</span><span class="card-title">Python UDFs</span><span class="card-sub">handle with care</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">@F.udf(T.IntegerType())<br>def double(x): return x*2</code><div class="desc">Row-at-a-time UDF via decorator.</div></li>
+      <li class="danger"><code class="cmd">my_udf = F.udf(<span class="arg">lambda x: x*2, 'int'</span>)</code><div class="desc">Inline form with a DDL return type.</div></li>
+      <li class="danger"><code class="cmd">df.withColumn(<span class="arg">'c'</span>, my_udf(df.c))</code><div class="desc">Apply like any column expression.</div></li>
+      <li class="clean"><code class="cmd">prefer built-in F.* functions</code><span class="badge-safe">faster</span><div class="desc">Plain UDFs run in Python row-by-row — 10&#215;+ slower.</div></li>
+    </ul>
+  </article>
+
+  <!-- 21 PANDAS UDFs -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">21</span><span class="card-title">Pandas UDFs — vectorized</span><span class="card-sub">Arrow-accelerated</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">@F.pandas_udf(<span class="arg">'double'</span>)<br>def z(s: pd.Series) -&gt; pd.Series: ...</code><span class="star">&#9733;</span><div class="desc"><b>Series&#8594;Series</b> scalar UDF — one row out per row in.</div></li>
+      <li class="clean"><code class="cmd">@F.pandas_udf('long') # Iterator[Series]</code><div class="desc">Iterator variant — reuse expensive setup per batch.</div></li>
+      <li class="clean"><code class="cmd">@F.pandas_udf('double') # GROUPED_AGG</code><div class="desc">Series&#8594;scalar — use inside <code>groupBy().agg()</code>.</div></li>
+      <li class="note"><code class="cmd">needs pyarrow; type hints drive the kind</code><div class="desc">Vectorized via Arrow — far faster than plain UDFs.</div></li>
+    </ul>
+  </article>
+
+  <!-- 22 PANDAS FUNCTION APIs -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">22</span><span class="card-title">Pandas Function APIs</span><span class="card-sub">split-apply-combine</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">df.groupby(<span class="arg">'id'</span>).applyInPandas(fn, schema)</code><span class="star">&#9733;</span><div class="desc"><b>Grouped map</b>: fn(pdf)&#8594;pdf per group.</div></li>
+      <li class="clean"><code class="cmd">df.mapInPandas(fn, schema)</code><span class="star">&#9733;</span><div class="desc"><b>Map</b>: iterator of pdf&#8594;iterator of pdf, any row count.</div></li>
+      <li class="clean"><code class="cmd">df1.groupby('k').cogroup(df2.groupby('k'))<br>&nbsp;&nbsp;.applyInPandas(fn, schema)</code><div class="desc"><b>Cogrouped map</b> — e.g. a pandas asof-join.</div></li>
+      <li class="clean"><code class="cmd">df.mapInArrow(fn, schema)</code><div class="desc">Arrow-batch variant — no pandas conversion.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ================= SECTION 5: STRUCTURED STREAMING ================= -->
+<section class="band"><h2>V &middot; Structured Streaming <span class="tag">pyspark.sql.streaming — same DataFrame API, unbounded input</span></h2></section>
+
+<main>
+
+  <!-- 23 STREAM SOURCES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">23</span><span class="card-title">Streaming Sources</span><span class="card-sub">stream</span></div>
+    <ul class="cmds">
+      <li class="stream"><code class="cmd">spark.readStream.format(<span class="arg">'kafka'</span>).option(...).load()</code><span class="star">&#9733;</span><div class="desc">Read an unbounded stream (Kafka, socket&#8230;).</div></li>
+      <li class="stream"><code class="cmd">spark.readStream.schema(s).json(<span class="arg">path</span>)</code><span class="star">&#9733;</span><div class="desc">File-source stream — schema is required.</div></li>
+      <li class="stream"><code class="cmd">spark.readStream.format(<span class="arg">'rate'</span>).load()</code><div class="desc">Synthetic rate source — great for testing.</div></li>
+      <li class="stream"><code class="cmd">df.isStreaming</code><div class="desc">True if this DataFrame is a streaming one.</div></li>
+    </ul>
+  </article>
+
+  <!-- 24 STREAM TRANSFORM -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">24</span><span class="card-title">Streaming Transforms &amp; Windows</span><span class="card-sub">stream</span></div>
+    <ul class="cmds">
+      <li class="stream"><code class="cmd">select / filter / withColumn / groupBy</code><span class="star">&#9733;</span><div class="desc">The same DataFrame ops work on streams.</div></li>
+      <li class="stream"><code class="cmd">F.window(<span class="arg">'ts', '10 minutes', '5 minutes'</span>)</code><span class="star">&#9733;</span><div class="desc">Tumbling / sliding event-time windows.</div></li>
+      <li class="stream"><code class="cmd">df.withWatermark(<span class="arg">'ts', '10 minutes'</span>)</code><span class="star">&#9733;</span><div class="desc">Bound state &amp; handle late data.</div></li>
+      <li class="danger"><code class="cmd">no sort / limit / distinct on raw streams</code><span class="badge-danger">unsupported</span><div class="desc">Some batch ops aren't allowed on streams.</div></li>
+    </ul>
+  </article>
+
+  <!-- 25 STREAM SINKS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">25</span><span class="card-title">Streaming Sinks &amp; Queries</span><span class="card-sub">stream</span></div>
+    <ul class="cmds">
+      <li class="stream"><code class="cmd">df.writeStream.outputMode(<span class="arg">'append'</span>)</code><span class="star">&#9733;</span><div class="desc">Mode: <code>append</code> / <code>update</code> / <code>complete</code>.</div></li>
+      <li class="stream"><code class="cmd">.format(<span class="arg">'console'</span>).start()</code><span class="star">&#9733;</span><div class="desc">Start the query; sinks: console/kafka/parquet.</div></li>
+      <li class="stream"><code class="cmd">.trigger(<span class="arg">availableNow=True</span>)</code><span class="star">&#9733;</span><div class="desc">Trigger: processingTime / availableNow / once.</div></li>
+      <li class="stream"><code class="cmd">.option(<span class="arg">'checkpointLocation', path</span>)</code><span class="star">&#9733;</span><div class="desc">Required for fault-tolerant recovery.</div></li>
+      <li class="stream"><code class="cmd">.foreachBatch(<span class="arg">fn</span>).start()</code><div class="desc">Run arbitrary batch logic per micro-batch.</div></li>
+      <li class="stream"><code class="cmd">query.awaitTermination() &nbsp;spark.streams.active</code><div class="desc">Block until done / list running queries.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ================= SECTION 6: MLlib ================= -->
+<section class="band"><h2>VI &middot; MLlib — Machine Learning <span class="tag">pyspark.ml — DataFrame-based, Pipeline-oriented</span></h2></section>
+
+<main>
+
+  <!-- 26 ML FEATURES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">26</span><span class="card-title">Feature Engineering</span><span class="card-sub">ml · pyspark.ml.feature</span></div>
+    <ul class="cmds">
+      <li class="ml"><code class="cmd">VectorAssembler(inputCols=[...], outputCol='features')</code><span class="star">&#9733;</span><div class="desc">Bundle columns into one <code>features</code> vector — required first step.</div></li>
+      <li class="ml"><code class="cmd">StringIndexer(inputCol='cat', outputCol='idx')</code><span class="star">&#9733;</span><div class="desc">Encode a categorical string as numeric indices.</div></li>
+      <li class="ml"><code class="cmd">OneHotEncoder(inputCol='idx', outputCol='ohe')</code><div class="desc">Expand indices into sparse one-hot vectors.</div></li>
+      <li class="ml"><code class="cmd">StandardScaler(inputCol='features', outputCol='scaled')</code><span class="star">&#9733;</span><div class="desc">Standardize features to zero mean / unit variance.</div></li>
+      <li class="ml"><code class="cmd">Tokenizer &nbsp;StopWordsRemover &nbsp;HashingTF &nbsp;IDF</code><div class="desc">Text-feature building blocks.</div></li>
+    </ul>
+  </article>
+
+  <!-- 27 ML PIPELINE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">27</span><span class="card-title">Pipeline: fit &amp; transform</span><span class="card-sub">ml · Estimator/Transformer</span></div>
+    <ul class="cmds">
+      <li class="ml"><code class="cmd">from pyspark.ml <span class="flag">import</span> Pipeline</code><span class="star">&#9733;</span><div class="desc">Chain stages into one reproducible flow.</div></li>
+      <li class="ml"><code class="cmd">pipe = Pipeline(stages=[idx, asm, lr])</code><span class="star">&#9733;</span><div class="desc">Stages run in order; last is usually the model.</div></li>
+      <li class="ml"><code class="cmd">model = pipe.fit(<span class="arg">train_df</span>)</code><span class="star">&#9733;</span><div class="desc"><b>Estimator</b> — <code>.fit()</code> learns and returns a model.</div></li>
+      <li class="ml"><code class="cmd">preds = model.transform(<span class="arg">test_df</span>)</code><span class="star">&#9733;</span><div class="desc"><b>Transformer</b> — <code>.transform()</code> adds a prediction column.</div></li>
+      <li class="ml"><code class="cmd">model.write().overwrite().save(<span class="arg">path</span>)</code><div class="desc">Persist / reload a fitted pipeline model.</div></li>
+    </ul>
+  </article>
+
+  <!-- 28 ML ALGORITHMS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">28</span><span class="card-title">Algorithms</span><span class="card-sub">ml · classification/regression/clustering</span></div>
+    <ul class="cmds">
+      <li class="ml"><code class="cmd">LogisticRegression(featuresCol='features', labelCol='y')</code><span class="star">&#9733;</span><div class="desc">Classification baseline.</div></li>
+      <li class="ml"><code class="cmd">RandomForestClassifier &nbsp;GBTClassifier</code><div class="desc">Tree ensembles for classification.</div></li>
+      <li class="ml"><code class="cmd">LinearRegression &nbsp;GBTRegressor</code><span class="star">&#9733;</span><div class="desc">Regression estimators.</div></li>
+      <li class="ml"><code class="cmd">KMeans(k=3, featuresCol='features')</code><div class="desc">Unsupervised clustering.</div></li>
+      <li class="ml"><code class="cmd">ALS(userCol, itemCol, ratingCol)</code><div class="desc">Collaborative-filtering recommender.</div></li>
+    </ul>
+  </article>
+
+  <!-- 29 ML TUNING/EVAL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">29</span><span class="card-title">Evaluation &amp; Tuning</span><span class="card-sub">ml · tuning/evaluation</span></div>
+    <ul class="cmds">
+      <li class="ml"><code class="cmd">BinaryClassificationEvaluator(labelCol='y')</code><span class="star">&#9733;</span><div class="desc">AUC / PR for binary models.</div></li>
+      <li class="ml"><code class="cmd">MulticlassClassificationEvaluator(metricName='f1')</code><div class="desc">Accuracy / F1 for multiclass.</div></li>
+      <li class="ml"><code class="cmd">RegressionEvaluator(metricName='rmse')</code><div class="desc">RMSE / MAE / R&sup2; for regression.</div></li>
+      <li class="ml"><code class="cmd">ParamGridBuilder().addGrid(lr.regParam,[.01,.1]).build()</code><span class="star">&#9733;</span><div class="desc">Hyperparameter grid.</div></li>
+      <li class="ml"><code class="cmd">CrossValidator(estimator, grid, evaluator, numFolds=3)</code><span class="star">&#9733;</span><div class="desc">K-fold CV (or <code>TrainValidationSplit</code>).</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ================= SECTION 7: PANDAS-ON-SPARK, RDD & PERFORMANCE ================= -->
+<section class="band"><h2>VII &middot; pandas-on-Spark, RDD Core &amp; Performance <span class="tag">migration path · low-level · tuning</span></h2></section>
+
+<main>
+
+  <!-- 30 PANDAS-ON-SPARK -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">30</span><span class="card-title">Pandas API on Spark</span><span class="card-sub">pyspark.pandas as ps</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">import pyspark.pandas <span class="flag">as</span> <span class="arg">ps</span></code><span class="star">&#9733;</span><div class="desc">pandas syntax, distributed on Spark (ex-Koalas).</div></li>
+      <li class="shape"><code class="cmd">psdf = ps.read_parquet(<span class="arg">path</span>)</code><div class="desc">Familiar readers return a pandas-on-Spark frame.</div></li>
+      <li class="shape"><code class="cmd">psdf.groupby('c').agg('mean') &nbsp;psdf['x'].fillna(0)</code><span class="star">&#9733;</span><div class="desc">Write pandas code; Spark runs it at scale.</div></li>
+      <li class="shape"><code class="cmd">psdf.to_spark() &nbsp;/ df.pandas_api()</code><span class="star">&#9733;</span><div class="desc">Convert to/from a native Spark DataFrame.</div></li>
+      <li class="note"><code class="cmd">good migration bridge from pandas</code><div class="desc">Not 100% of pandas is covered — check the docs.</div></li>
+    </ul>
+  </article>
+
+  <!-- 31 RDD CORE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">31</span><span class="card-title">RDD &amp; Spark Core</span><span class="card-sub">low-level · sparkContext</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">sc = spark.sparkContext</code><span class="star">&#9733;</span><div class="desc">The lower-level Spark Core entry point.</div></li>
+      <li class="inspect"><code class="cmd">rdd = sc.parallelize([1,2,3]) &nbsp;sc.textFile(path)</code><div class="desc">Create an RDD from a list / text files.</div></li>
+      <li class="inspect"><code class="cmd">rdd.map(fn) &nbsp;rdd.flatMap(fn) &nbsp;rdd.filter(fn)</code><div class="desc">Lazy RDD transformations.</div></li>
+      <li class="inspect"><code class="cmd">rdd.reduceByKey(add) &nbsp;rdd.groupByKey()</code><div class="desc">Key-value shuffles (prefer <code>reduceByKey</code>).</div></li>
+      <li class="inspect"><code class="cmd">rdd.collect() &nbsp;rdd.take(n) &nbsp;rdd.count()</code><div class="desc">RDD actions that trigger execution.</div></li>
+      <li class="note"><code class="cmd">prefer DataFrames</code><div class="desc">RDDs skip Catalyst — no automatic optimization.</div></li>
+    </ul>
+  </article>
+
+  <!-- 32 SHARED VARS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">32</span><span class="card-title">Broadcast &amp; Accumulators</span><span class="card-sub">low-level · shared state</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">bc = sc.broadcast(<span class="arg">lookup_dict</span>)</code><span class="star">&#9733;</span><div class="desc">Ship a read-only value to every executor once.</div></li>
+      <li class="inspect"><code class="cmd">bc.value</code><div class="desc">Access the broadcast payload inside tasks.</div></li>
+      <li class="inspect"><code class="cmd">acc = sc.accumulator(<span class="num">0</span>)</code><div class="desc">Write-only counter aggregated on the driver.</div></li>
+      <li class="note"><code class="cmd">F.broadcast(df) &ne; sc.broadcast(x)</code><div class="desc">One hints a join; the other ships a Python value.</div></li>
+    </ul>
+  </article>
+
+  <!-- 33 PERSISTENCE / PERF -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">33</span><span class="card-title">Repartition, Cache &amp; Performance</span><span class="card-sub">handle with care</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">df.repartition(<span class="num">n</span>, <span class="arg">'key'</span>)</code><span class="badge-danger">full shuffle</span><div class="desc">Shuffle to n partitions (up or down).</div></li>
+      <li class="clean"><code class="cmd">df.coalesce(<span class="num">n</span>)</code><span class="star">&#9733;</span><span class="badge-safe">cheaper</span><div class="desc">Merge partitions, no full shuffle — decrease only.</div></li>
+      <li class="clean"><code class="cmd">df.cache() &nbsp;/ df.persist(StorageLevel.MEMORY_AND_DISK)</code><span class="star">&#9733;</span><div class="desc">Reuse a DataFrame across actions.</div></li>
+      <li class="clean"><code class="cmd">df.unpersist()</code><div class="desc">Free cached data when done.</div></li>
+      <li class="clean"><code class="cmd">spark.conf.set('spark.sql.adaptive.enabled', True)</code><div class="desc">AQE: runtime shuffle &amp; skew optimization.</div></li>
+    </ul>
+  </article>
+
+  <!-- 34 COLLECT / DEPLOY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">34</span><span class="card-title">Collect Output &amp; Deploy</span><span class="card-sub">inspect · CLI</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">df.collect()</code><span class="star">&#9733;</span><span class="badge-danger">memory</span><div class="desc">Pull all rows to the driver — use with care.</div></li>
+      <li class="inspect"><code class="cmd">df.take(n) &nbsp;df.head(n) &nbsp;df.first()</code><div class="desc">Pull just a few rows to the driver.</div></li>
+      <li class="inspect"><code class="cmd">df.toPandas()</code><span class="star">&#9733;</span><span class="badge-danger">memory</span><div class="desc">Convert to pandas — driver-memory bound.</div></li>
+      <li class="inspect"><code class="cmd">df.foreach(fn) &nbsp;df.toLocalIterator()</code><div class="desc">Per-row side effects / stream rows to driver.</div></li>
+      <li class="inspect"><code class="cmd">spark-submit --packages ... app.py</code><div class="desc">Submit a job; <code>--packages</code> pulls JARs (Kafka, Delta).</div></li>
+    </ul>
+  </article>
+
+  <!-- STAR: DATA TYPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Common Data Types</span><span class="card-sub">pyspark.sql.types as T</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">T.StringType() &nbsp;T.IntegerType() &nbsp;T.LongType()</code><span class="star">&#9733;</span><div class="desc">Text and whole-number types.</div></li>
+      <li class="inspect"><code class="cmd">T.DoubleType() &nbsp;T.FloatType() &nbsp;T.DecimalType()</code><div class="desc">Floating-point &amp; exact-decimal numerics.</div></li>
+      <li class="inspect"><code class="cmd">T.BooleanType()</code><div class="desc">True / False values.</div></li>
+      <li class="inspect"><code class="cmd">T.DateType() &nbsp;T.TimestampType()</code><span class="star">&#9733;</span><div class="desc">Calendar date / date + time.</div></li>
+      <li class="inspect"><code class="cmd">T.ArrayType(t) &nbsp;T.MapType(k,v)</code><div class="desc">Collection column types.</div></li>
+      <li class="inspect"><code class="cmd">T.StructType / T.StructField</code><div class="desc">Nested, schema-defined record columns.</div></li>
+    </ul>
+  </article>
+
+  <!-- STAR: JOIN HOW -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Join how= Quick-Read</span><span class="card-sub">df.join(..., how=)</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">'inner'</code><span class="star">&#9733;</span><div class="desc">Only keys present in both DataFrames.</div></li>
+      <li class="select"><code class="cmd">'left' / 'right' / 'outer'</code><span class="star">&#9733;</span><div class="desc">Keep all rows from left / right / both sides.</div></li>
+      <li class="select"><code class="cmd">'left_semi'</code><div class="desc">Left rows that have a match — right cols dropped.</div></li>
+      <li class="select"><code class="cmd">'left_anti'</code><span class="star">&#9733;</span><div class="desc">Left rows with <b>no</b> match — great for exclusions.</div></li>
+      <li class="select"><code class="cmd">'cross'</code><div class="desc">Cartesian product, no key needed.</div></li>
+    </ul>
+  </article>
+
+  <!-- STAR: ACTIONS VS TRANSFORMS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Transformations vs Actions</span><span class="card-sub">the lazy/eager split</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">select filter withColumn join groupBy orderBy</code><span class="badge-safe">lazy</span><div class="desc"><b>Transformations</b> — build the plan, run nothing.</div></li>
+      <li class="inspect"><code class="cmd">show collect count take write toPandas foreach</code><span class="badge-danger">eager</span><div class="desc"><b>Actions</b> — trigger the whole plan to execute.</div></li>
+      <li class="note"><code class="cmd">narrow: map/filter &nbsp;·&nbsp; wide: join/groupBy/distinct</code><div class="desc">Wide ops shuffle across the network; narrow don't.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Custom-logic decision map &amp; the ML pipeline</h2>
+  <p class="sub">Two things trip up newcomers most: choosing the right way to run Python logic on Spark, and the estimator/transformer split in MLlib. Based on the official PySpark UDF &amp; MLlib guides.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>Which custom-function API? &#9733;</h3>
+      <p>Pick by input&#8594;output shape. Native <code>F.*</code> is always fastest; drop to pandas/Python only when you must.</p>
+      <svg viewBox="0 0 390 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="decision tree: one row out per row uses a pandas UDF; grouped input uses applyInPandas; many rows out uses mapInPandas; otherwise prefer native functions">
+        <defs><marker id="arrD" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+        <rect x="120" y="8" width="150" height="34" rx="6" fill="#1a1d24"/><text x="195" y="30" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#fff">need custom logic?</text>
+        <line x1="195" y1="42" x2="195" y2="58" stroke="#64748b" stroke-width="1.4" marker-end="url(#arrD)"/>
+        <rect x="95" y="58" width="200" height="30" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/><text x="195" y="77" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="#059669">can a built-in F.* do it? &#8594; use it</text>
+        <line x1="195" y1="88" x2="195" y2="102" stroke="#64748b" stroke-width="1.4" marker-end="url(#arrD)"/>
+        <g font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">
+          <rect x="10" y="104" width="118" height="44" rx="6" fill="#e9f8f6" stroke="#0d9488" stroke-width="1.4"/><text x="69" y="120" fill="#0d9488" font-weight="700">1 row &#8594; 1 row</text><text x="69" y="134" fill="#0d9488">pandas_udf</text><text x="69" y="144" fill="#0d9488">(Series&#8594;Series)</text>
+          <rect x="136" y="104" width="118" height="44" rx="6" fill="#e9f8f6" stroke="#0d9488" stroke-width="1.4"/><text x="195" y="120" fill="#0d9488" font-weight="700">grouped input</text><text x="195" y="134" fill="#0d9488">applyInPandas</text><text x="195" y="144" fill="#0d9488">(per-group pdf)</text>
+          <rect x="262" y="104" width="118" height="44" rx="6" fill="#e9f8f6" stroke="#0d9488" stroke-width="1.4"/><text x="321" y="120" fill="#0d9488" font-weight="700">many rows out</text><text x="321" y="134" fill="#0d9488">mapInPandas</text><text x="321" y="144" fill="#0d9488">(iter pdf&#8594;iter pdf)</text>
+        </g>
+        <rect x="95" y="166" width="200" height="34" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.4"/><text x="195" y="182" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#dc2626">last resort: plain Python @F.udf</text><text x="195" y="194" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#dc2626" font-weight="700">row-at-a-time, ~10&#215; slower</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>The MLlib pipeline &#9733;</h3>
+      <p>Estimators <code>.fit()</code> to become models; transformers <code>.transform()</code> to add columns. A Pipeline chains both.</p>
+      <svg viewBox="0 0 390 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ml pipeline: raw dataframe flows through indexer and assembler transformers then a classifier estimator; fit produces a pipeline model; transform on test data yields predictions">
+        <defs><marker id="arrML" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#db2777"/></marker></defs>
+        <g font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">
+          <rect x="15" y="15" width="70" height="30" rx="5" fill="#f1f3f6" stroke="#64748b" stroke-width="1.4"/><text x="50" y="34" fill="#64748b">train_df</text>
+          <rect x="110" y="12" width="90" height="36" rx="5" fill="#fdf0f7" stroke="#db2777" stroke-width="1.4"/><text x="155" y="27" fill="#db2777" font-weight="700">StringIndexer</text><text x="155" y="40" fill="#db2777">+ Assembler</text>
+          <rect x="225" y="12" width="90" height="36" rx="5" fill="#fdf0f7" stroke="#db2777" stroke-width="1.4"/><text x="270" y="27" fill="#db2777" font-weight="700">Classifier</text><text x="270" y="40" fill="#db2777">(estimator)</text>
+        </g>
+        <line x1="85" y1="30" x2="108" y2="30" stroke="#db2777" stroke-width="1.4" marker-end="url(#arrML)"/>
+        <line x1="200" y1="30" x2="223" y2="30" stroke="#db2777" stroke-width="1.4" marker-end="url(#arrML)"/>
+        <text x="345" y="33" font-family="JetBrains Mono, monospace" font-size="9" fill="#db2777" font-weight="700">Pipeline</text>
+
+        <line x1="195" y1="52" x2="195" y2="74" stroke="#db2777" stroke-width="1.6" marker-end="url(#arrML)"/>
+        <rect x="120" y="76" width="150" height="30" rx="6" fill="#1a1d24"/><text x="195" y="95" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700" fill="#fff">pipe.fit(train_df)</text>
+
+        <line x1="195" y1="106" x2="195" y2="128" stroke="#db2777" stroke-width="1.6" marker-end="url(#arrML)"/>
+        <rect x="115" y="130" width="160" height="30" rx="6" fill="#fdf0f7" stroke="#db2777" stroke-width="1.8"/><text x="195" y="149" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700" fill="#db2777">PipelineModel</text>
+
+        <line x1="195" y1="160" x2="195" y2="178" stroke="#db2777" stroke-width="1.6" marker-end="url(#arrML)"/>
+        <rect x="95" y="180" width="200" height="26" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/><text x="195" y="197" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="#059669">model.transform(test_df) &#8594; predictions</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">transformations vs actions</span><span class="v">nothing runs until an action — show/collect/count/write</span></div>
+    <div><span class="k">wide vs narrow</span><span class="v">groupBy/join/distinct shuffle; select/filter/withColumn don't</span></div>
+    <div><span class="k">F.* &gt; pandas_udf &gt; udf</span><span class="v">always prefer native functions; UDFs are the slow fallback</span></div>
+    <div><span class="k">fit vs transform</span><span class="v">estimators learn (fit&#8594;model); transformers add columns (transform)</span></div>
+    <div><span class="k">streaming needs a checkpoint</span><span class="v">no <code>checkpointLocation</code> = no fault tolerance</span></div>
+    <div><span class="k">watermark bounds state</span><span class="v">without it, streaming aggregations grow state forever</span></div>
+    <div><span class="k">collect()/toPandas() on driver</span><span class="v">pulls the whole result into driver memory — can crash it</span></div>
+    <div><span class="k">repartition vs coalesce</span><span class="v">repartition always shuffles; coalesce is cheaper but only shrinks</span></div>
+    <div><span class="k">cache reused frames</span><span class="v">else Spark recomputes the full lineage every action</span></div>
+    <div><span class="k">AQE is your friend</span><span class="v"><code>spark.sql.adaptive.enabled</code> fixes skew &amp; partition counts at runtime</span></div>
+    <div><span class="k">pandas-on-Spark</span><span class="v"><code>import pyspark.pandas as ps</code> — pandas syntax, Spark scale</span></div>
+    <div><span class="k">DataFrames &gt; RDDs</span><span class="v">RDDs skip Catalyst; you lose automatic optimization</span></div>
+  </div>
+</section>
+
+<footer>
+  PySpark cheat sheet &middot; comprehensive v2 &middot; gap-analysis edition &mdash; validated against the official Apache Spark 4.x PySpark API reference (spark.apache.org): Spark SQL, Functions, UDF/UDTF, Structured Streaming, MLlib (DataFrame-based), Pandas-API-on-Spark &amp; Spark Core; cross-checked with DataCamp, kevinschaich/pyspark-cheatsheet, Palantir Foundry, AlmaBetter &amp; GeeksforGeeks.<br>
+  Covers the DataFrame &amp; SQL core plus the specialized modules &amp; extensions &middot; DataFrames are recommended over RDDs for automatic Catalyst optimization &middot; Spark Streaming (DStream) is legacy — use Structured Streaming.
+</footer>
+
+</body>
+</html>

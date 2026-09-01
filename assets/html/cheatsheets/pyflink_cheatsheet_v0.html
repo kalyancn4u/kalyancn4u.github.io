@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PyFlink Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Apache Flink Python API &middot; stateful stream &amp; batch processing &middot; verified against PyFlink 2.x (2026)</div>
+  <h1><span class="mono">PyFlink</span> cheat sheet</h1>
+  <p class="lede"><b>PyFlink</b> is the Python API for <b>Apache Flink</b>, the engine for real-time, stateful stream processing (and unified batch). Two layers: the high-level <b>Table API / SQL</b> (relational, declarative &mdash; use this for most pipelines) and the lower-level <b>DataStream API</b> (fine-grained control over state, time &amp; timers). Flink's superpowers are <b>event-time</b> processing with <b>watermarks</b> and fault-tolerant <b>state</b>. This sheet targets <b>PyFlink 2.x</b> (Flink 2.x).</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>setup &amp; two APIs</span>
+    <span><i class="dot c2"></i>Table API / SQL</span>
+    <span><i class="dot c3"></i>windows &amp; time</span>
+    <span><i class="dot c4"></i>DataStream API</span>
+    <span><i class="dot c5"></i>interop &amp; run</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-08-24 against the official docs at <b>nightlies.apache.org/flink</b> (PyFlink 2.x) and <b>pyflink.readthedocs.io</b>. A Java/Flink runtime executes the job; PyFlink builds the dataflow. Needs Java.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub">Pick the API: Table/SQL for declarative ETL &amp; analytics, DataStream for custom stateful logic. Both build a lazy dataflow that runs on <code>execute</code>.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Start</h3>
+      <ol class="toc-list">
+        <li><a href="#setup">1 &middot; Install &amp; two APIs</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">Table / SQL</h3>
+      <ol class="toc-list">
+        <li><a href="#tableenv">2 &middot; TableEnvironment &amp; DDL</a></li>
+        <li><a href="#tableops">3 &middot; Query &amp; sink</a></li>
+        <li><a href="#windows">4 &middot; Time, watermarks, windows</a></li>
+        <li><a href="#udf">5 &middot; UDFs</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>DataStream</h3>
+      <ol class="toc-list">
+        <li><a href="#datastream">6 &middot; Environment &amp; transforms</a></li>
+        <li><a href="#state">7 &middot; Keyed state &amp; process fns</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Operate</h3>
+      <ol class="toc-list">
+        <li><a href="#interop">8 &middot; Interop &amp; submit</a></li>
+        <li><a href="#gotchas">9 &middot; Gotchas</a></li>
+        <li><a href="#worth">Worth memorizing</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-start"><h2 style="color:var(--c1)">Start</h2><p class="sub">Install and choose your abstraction level.</p></div>
+<main>
+  <article class="card" id="setup">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Install &amp; two APIs</span><span class="card-sub">2.x</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">pip install apache-flink</code><span class="star">&#9733;</span><div class="desc">Bundles the Flink runtime jars. Requires a compatible <b>Java</b> (JDK 11/17). Runs locally out of the box.</div></li>
+      <li class="c1"><code class="cmd"><span class="cm"># Table API / SQL: declarative, most pipelines, best perf</span>
+<span class="cm"># DataStream API: custom state/time/timers, event-driven apps</span></code><span class="star">&#9733;</span><div class="desc"><b>Prefer Table/SQL</b> unless you need low-level state or complex event logic &mdash; it's simpler and heavily optimized.</div></li>
+      <li class="c1"><code class="cmd"><span class="cm"># both are LAZY: nothing runs until execute()/execute_insert()</span></code><div class="desc">You build a job graph, then submit it. Forgetting the final <code>execute</code> is the classic "nothing happened".</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-table"><h2 style="color:var(--c2)">Table API / SQL</h2><p class="sub">Declarative pipelines over tables &mdash; the recommended path.</p></div>
+<main>
+  <article class="card" id="tableenv">
+    <div class="card-head"><span class="card-num n2">2</span><span class="card-title">TableEnvironment &amp; DDL</span><span class="card-sub">connect to sources</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd"><span class="kw">from</span> pyflink.table <span class="kw">import</span> EnvironmentSettings, TableEnvironment
+t_env = TableEnvironment.create(EnvironmentSettings.in_streaming_mode())</code><span class="star">&#9733;</span><div class="desc">The entry point. <code>in_batch_mode()</code> for bounded/batch &mdash; the same API, unified.</div></li>
+      <li class="c2"><code class="cmd">t_env.execute_sql(<span class="str">"""
+CREATE TABLE orders (id BIGINT, amount DOUBLE, ts TIMESTAMP(3),
+    WATERMARK FOR ts AS ts - INTERVAL '5' SECOND)
+WITH ('connector'='kafka', 'topic'='orders', 'format'='json', ...)"""</span>)</code><span class="star">&#9733;</span><div class="desc"><b>Define sources/sinks as tables via SQL DDL.</b> The <code>WITH</code> clause picks a connector (kafka, filesystem, jdbc); <code>WATERMARK</code> enables event-time.</div></li>
+      <li class="c2"><code class="cmd">t_env.execute_sql(<span class="str">"CREATE TABLE sink (...) WITH ('connector'='print')"</span>)</code><div class="desc">The <code>print</code> connector is great for local debugging.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="tableops">
+    <div class="card-head"><span class="card-num n2">3</span><span class="card-title">Query &amp; sink</span><span class="card-sub">transform &amp; write</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">result = t_env.sql_query(<span class="str">"SELECT id, SUM(amount) FROM orders GROUP BY id"</span>)</code><span class="star">&#9733;</span><div class="desc">Full streaming SQL &mdash; joins, aggregations, windows. Returns a <code>Table</code>.</div></li>
+      <li class="c2"><code class="cmd">t = t_env.from_path(<span class="str">"orders"</span>)
+t.filter(col(<span class="str">"amount"</span>) &gt; 100).group_by(col(<span class="str">"id"</span>)).select(...)</code><div class="desc">Or the fluent Table API (<code>select</code>/<code>filter</code>/<code>group_by</code>/<code>join</code>) instead of SQL strings.</div></li>
+      <li class="c2"><code class="cmd">result.execute_insert(<span class="str">"sink"</span>)</code><span class="star">&#9733;</span><div class="desc"><b>Writes to a sink AND triggers the job.</b> For a streaming query this runs continuously. <code>t_env.execute_sql("INSERT INTO sink SELECT ...")</code> is the pure-SQL equivalent.</div></li>
+      <li class="c2"><code class="cmd">t_env.sql_query(<span class="str">"SELECT ..."</span>).execute().print() <span class="cm"># inspect results</span></code><div class="desc">Print a bounded result to the console for debugging.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="windows">
+    <div class="card-head"><span class="card-num n3">4</span><span class="card-title">Time, watermarks, windows</span><span class="card-sub">the streaming core</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">WATERMARK FOR ts AS ts - INTERVAL '5' SECOND</code><span class="star">&#9733;</span><div class="desc"><b>Event-time</b> processing: watermarks tell Flink "no events older than this are coming", allowing bounded lateness before closing windows. Defined in the table DDL.</div></li>
+      <li class="c3"><code class="cmd"><span class="cm"># Tumbling window aggregation in SQL:</span>
+SELECT window_start, SUM(amount)
+FROM TABLE(TUMBLE(TABLE orders, DESCRIPTOR(ts), INTERVAL '1' MINUTE))
+GROUP BY window_start, window_end</code><span class="star">&#9733;</span><div class="desc">Windowing TVFs: <code>TUMBLE</code> (fixed), <code>HOP</code> (sliding), <code>CUMULATE</code>, <code>SESSION</code> &mdash; the standard way to aggregate over time.</div></li>
+      <li class="c3"><code class="cmd">processing-time vs event-time</code><div class="desc">Event-time (with watermarks) gives correct, replayable results despite out-of-order data; processing-time is simpler but non-deterministic.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="udf">
+    <div class="card-head"><span class="card-num n2">5</span><span class="card-title">UDFs</span><span class="card-sub">custom Python logic</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd"><span class="kw">from</span> pyflink.table.udf <span class="kw">import</span> udf
+<span class="fn">@udf</span>(result_type=<span class="str">"BIGINT"</span>)
+<span class="kw">def</span> add_one(x): <span class="kw">return</span> x + 1</code><span class="star">&#9733;</span><div class="desc">Scalar UDF. Register (<code>t_env.create_temporary_function</code>) or use inline. Also <code>@udtf</code> (table), <code>@udaf</code> (aggregate).</div></li>
+      <li class="c2"><code class="cmd"><span class="fn">@udf</span>(result_type=..., func_type=<span class="str">"pandas"</span>)</code><span class="star">&#9733;</span><div class="desc"><b>Vectorized (pandas) UDFs</b> process batches as pandas Series &mdash; far faster than row-at-a-time Python.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-ds"><h2 style="color:var(--c4)">DataStream API</h2><p class="sub">Low-level control when SQL isn't enough.</p></div>
+<main>
+  <article class="card" id="datastream">
+    <div class="card-head"><span class="card-num n4">6</span><span class="card-title">Environment &amp; transforms</span><span class="card-sub">explicit dataflow</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="kw">from</span> pyflink.datastream <span class="kw">import</span> StreamExecutionEnvironment
+env = StreamExecutionEnvironment.get_execution_environment()</code><span class="star">&#9733;</span><div class="desc">The DataStream entry point. Add sources (<code>from_collection</code>, Kafka connector) to get a <code>DataStream</code>.</div></li>
+      <li class="c4"><code class="cmd">ds.map(<span class="kw">lambda</span> x: (x[0], 1)) &middot; ds.filter(...) &middot; ds.flat_map(...)</code><span class="star">&#9733;</span><div class="desc">Stateless per-element transforms &mdash; like an RDD/Stream. Provide <code>output_type=</code> (Types) for correct serialization.</div></li>
+      <li class="c4"><code class="cmd">ds.key_by(<span class="kw">lambda</span> x: x[0]).reduce(<span class="kw">lambda</span> a, b: (a[0], a[1]+b[1]))</code><span class="star">&#9733;</span><div class="desc"><b><code>key_by</code> partitions the stream by key</b> &mdash; required before any keyed operation (reduce, window, keyed state). Like a streaming GROUP BY.</div></li>
+      <li class="c4"><code class="cmd">env.execute(<span class="str">"my-job"</span>)</code><span class="star">&#9733;</span><div class="desc">Submits &amp; runs the DataStream job (the required final call).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="state">
+    <div class="card-head"><span class="card-num n4">7</span><span class="card-title">Keyed state &amp; process fns</span><span class="card-sub">stateful streaming</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="kw">class</span> Counter(KeyedProcessFunction):
+    <span class="kw">def</span> open(self, ctx):
+        self.count = ctx.get_state(ValueStateDescriptor(<span class="str">"c"</span>, Types.LONG()))</code><span class="star">&#9733;</span><div class="desc"><b>Keyed state</b> (per-key, fault-tolerant): <code>ValueState</code>, <code>ListState</code>, <code>MapState</code>. Declared in <code>open()</code>, scoped to the current key.</div></li>
+      <li class="c4"><code class="cmd">    <span class="kw">def</span> process_element(self, value, ctx):
+        self.count.update((self.count.value() <span class="kw">or</span> 0) + 1)</code><div class="desc">Read/update state per event. <code>ctx.timer_service().register_event_time_timer(...)</code> for timers (timeouts, windows).</div></li>
+      <li class="c4"><code class="cmd">ds.key_by(...).process(Counter())</code><div class="desc">Attach the process function to a keyed stream. This is the general-purpose stateful primitive.</div></li>
+      <li class="c4"><code class="cmd">env.enable_checkpointing(60000) <span class="cm"># exactly-once fault tolerance</span></code><span class="star">&#9733;</span><div class="desc"><b>Checkpointing</b> snapshots state periodically for exactly-once recovery &mdash; essential for production stateful jobs.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-op"><h2 style="color:var(--c5)">Operate</h2><p class="sub">Bridge the APIs and submit to a cluster.</p></div>
+<main>
+  <article class="card" id="interop">
+    <div class="card-head"><span class="card-num n5">8</span><span class="card-title">Interop &amp; submit</span><span class="card-sub">run it</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd">table = t_env.from_data_stream(ds)
+ds2 = t_env.to_data_stream(table)</code><span class="star">&#9733;</span><div class="desc"><b>Convert between the two APIs</b> &mdash; do the heavy relational work in SQL, drop to DataStream for the custom bit.</div></li>
+      <li class="c5"><code class="cmd">flink run -py job.py &middot; flink run -pym module -pyfs deps/</code><span class="star">&#9733;</span><div class="desc">Submit to a real cluster with the <code>flink</code> CLI; ship Python deps/files with <code>-pyfs</code>/<code>-pyreq</code>.</div></li>
+      <li class="c5"><code class="cmd">t_env.get_config().set(<span class="str">"parallelism.default"</span>, <span class="str">"4"</span>)</code><div class="desc">Configure parallelism, state backend, checkpoint dir via the environment config.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="gotchas">
+    <div class="card-head"><span class="card-num">!</span><span class="card-title">Common gotchas</span><span class="card-sub">read before shipping</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">nothing runs without execute()</code><div class="desc">The dataflow is lazy. Table jobs run on <code>execute_insert</code>/<code>execute_sql(INSERT)</code>; DataStream on <code>env.execute()</code>.</div></li>
+      <li class="danger"><code class="cmd">watermarks or windows never fire</code><div class="desc">Event-time windows only emit once watermarks advance past them. Idle sources / a too-large delay = windows that seem stuck. Define watermarks correctly.</div></li>
+      <li class="danger"><code class="cmd">key_by before keyed ops</code><div class="desc">Windows, reduce, and keyed state require a <code>key_by</code> first &mdash; and the key must be deterministic &amp; hashable.</div></li>
+      <li class="danger"><code class="cmd">specify types</code><div class="desc">Python lambdas lose type info; pass <code>output_type=Types.XXX()</code> or serialization defaults to slow pickling.</div></li>
+      <li class="danger"><code class="cmd">checkpointing for stateful prod</code><div class="desc">Without <code>enable_checkpointing</code>, a failure loses all state. Turn it on (with a durable state backend) for anything real.</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs" id="worth">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">Table/SQL for most, DataStream for control</span><span class="v">both unified stream+batch; both lazy</span></div>
+    <div><span class="k">tables via SQL DDL + connector</span><span class="v">WITH ('connector'='kafka'...); WATERMARK for event-time</span></div>
+    <div><span class="k">execute_insert triggers the job</span><span class="v">Table; env.execute() for DataStream</span></div>
+    <div><span class="k">windowing TVFs</span><span class="v">TUMBLE / HOP / CUMULATE / SESSION over an event-time column</span></div>
+    <div><span class="k">pandas UDFs are fast</span><span class="v">vectorized vs row-at-a-time Python</span></div>
+    <div><span class="k">key_by before keyed ops</span><span class="v">required for windows/reduce/keyed state</span></div>
+    <div><span class="k">keyed state in process functions</span><span class="v">ValueState/ListState/MapState, per key</span></div>
+    <div><span class="k">enable_checkpointing for exactly-once</span><span class="v">or a failure loses state</span></div>
+    <div><span class="k">from/to_data_stream to bridge</span><span class="v">SQL for relational work, DataStream for custom logic</span></div>
+  </div>
+</section>
+
+<footer>
+  PyFlink cheat sheet (pyflink_cheatsheet v0).<br>
+  Verified 2026-08-24 against <b>nightlies.apache.org/flink</b> (PyFlink 2.x) and pyflink.readthedocs.io. Python API for Apache Flink: Table API/SQL (declarative, recommended) and DataStream API (stateful, event-driven), unified stream+batch, with event-time watermarks and fault-tolerant checkpointed state. Requires a Java runtime. Connectors (Kafka/filesystem/JDBC) &amp; SQL features evolve across Flink versions &mdash; check the docs.<br>
+  Design system = shared cheat-sheet tokens (Inter + JetBrains Mono, light theme). Content only.
+</footer>
+</body>
+</html>

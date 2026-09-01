@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nsepython Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b;   --setup-bg:#f1f3f6;
+    --price:#d97706;   --price-bg:#fdf6ec;
+    --action:#0d9488;  --action-bg:#e9faf6;
+    --info:#059669;    --info-bg:#ecf7f2;
+    --analysis:#4f46e5;--analysis-bg:#eef0fd;
+    --adv:#7c3aed;     --adv-bg:#f3eefe;
+    --danger:#dc2626;  --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --nse:#1e40af;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .nse{font-family:var(--mono); color:var(--nse)}
+  h1 .rest{font-family:var(--mono); color:var(--ink)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)} .dot.price{background:var(--price)}
+  .dot.action{background:var(--action)} .dot.info{background:var(--info)}
+  .dot.analysis{background:var(--analysis)} .dot.adv{background:var(--adv)}
+  .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- quickstart ---------- */
+  .quick{
+    max-width:1120px; margin:1.4rem auto 0; background:var(--ink);
+    border-radius:10px; overflow:hidden;
+  }
+  .quick-bar{
+    display:flex; align-items:center; gap:.5rem; padding:.5rem .9rem;
+    border-bottom:1px solid #2c3038; font-family:var(--mono); font-size:.7rem;
+    color:#94a3b8; letter-spacing:.05em;
+  }
+  .quick-bar i{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .quick pre{
+    margin:0; padding:.9rem 1.1rem; overflow-x:auto;
+    font-family:var(--mono); font-size:.8rem; line-height:1.65; white-space:pre;
+    color:#e8e6e1; tab-size:2;
+  }
+  .quick .c{color:#8b93a1}    /* comment */
+  .quick .m{color:#93b4ff}    /* module */
+  .quick .f{color:#8ec9ff}    /* function */
+  .quick .s{color:#9fe0a6}    /* string */
+  .quick .n{color:#f0b95a}    /* number */
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  @media(min-width:1640px){ main{column-count:4} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.price{border-left-color:var(--price)}
+  ul.cmds li.action{border-left-color:var(--action)}
+  ul.cmds li.info{border-left-color:var(--info)}
+  ul.cmds li.analysis{border-left-color:var(--analysis)}
+  ul.cmds li.adv{border-left-color:var(--adv)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .mod{color:var(--nse)}
+  code.cmd .fn{color:var(--analysis)}
+  code.cmd .arg{color:var(--action); font-weight:400}
+  code.cmd .str{color:var(--info)}
+  code.cmd .kw{color:var(--star)}
+  code.cmd .num{color:var(--price)}
+  code.cmd .op{color:var(--muted)}
+  li.danger code.cmd{color:var(--danger)}
+  li.danger code.cmd .mod,li.danger code.cmd .fn,li.danger code.cmd .arg{color:var(--danger)}
+  .desc{font-size:.77rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.72rem; background:#f4f1ea; padding:.03rem .28rem; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.63rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-new{
+    color:var(--adv); font-size:.63rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:var(--mono)}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.8rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{background:#2a2e37; padding:.02rem .3rem; border-radius:3px; color:#e8e6e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{background:#f4f1ea; padding:.02rem .3rem; border-radius:3px}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Quick Reference · NSE India REST APIs in Python</div>
+  <h1><span class="nse">nse</span><span class="rest">python</span> cheat sheet</h1>
+  <p class="lede">One idea unlocks the whole library: <b>nsepython talks straight to NSE's own REST APIs</b> — the very JSON endpoints <code style="font-family:var(--mono)">nseindia.com</code> and NIFTY Indices call in your browser. Under everything sits <b><code style="font-family:var(--mono)">nsefetch(url)</code></b>: it primes cookies, GETs a payload URL, and hands back raw <b>JSON</b>. Higher-level helpers wrap specific endpoints and return a <b>dict</b> or a tidy pandas <b>DataFrame</b>. The one thing to pick: <b>edition</b> — <code style="font-family:var(--mono)">nsepython</code> (local) vs <code style="font-family:var(--mono)">nsepythonserver</code> (cloud).</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>setup &amp; mode</span>
+    <span><i class="dot price"></i>live quotes ★core</span>
+    <span><i class="dot action"></i>options &amp; OI</span>
+    <span><i class="dot info"></i>history</span>
+    <span><i class="dot analysis"></i>indices &amp; movers</span>
+    <span><i class="dot adv"></i>deals · FII · corporate</span>
+    <span><i class="dot danger"></i>gotcha / caveat</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>unofficed.com/nse-python</b> (official docs) · <b>forum.unofficed.com</b> (docs thread 376) · <b>PyPI</b> · <b>github.com/aeron7/nsepython</b> — verified live against installed <b>nsepython 2.97</b> (66 functions introspected).</p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The mental model — nsefetch is the engine; dict or DataFrame comes back</div>
+  <svg class="flow-svg" viewBox="0 0 1120 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram: nsepython functions call nsefetch, which primes cookies and GETs an NSE REST endpoint, returning raw JSON that surfaces as a dict or a pandas DataFrame; a local and a server edition both reach NSE.">
+    <defs>
+      <marker id="nsearrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="nsearrowb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1e40af"/>
+      </marker>
+    </defs>
+
+    <!-- lane labels -->
+    <text x="150" y="30" text-anchor="middle" font-size="10" letter-spacing="2.5" fill="#64748b">YOUR CALL</text>
+    <text x="410" y="30" text-anchor="middle" font-size="10" letter-spacing="2.5" fill="#0d9488">THE ENGINE</text>
+    <text x="700" y="30" text-anchor="middle" font-size="10" letter-spacing="2.5" fill="#1e40af">NSE · PUBLIC REST API</text>
+    <text x="985" y="30" text-anchor="middle" font-size="10" letter-spacing="2.5" fill="#d97706">BACK IN PYTHON</text>
+
+    <!-- call chip -->
+    <g>
+      <rect x="24" y="66" width="176" height="100" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="112" y="90" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">a helper call</text>
+      <line x1="42" y1="100" x2="182" y2="100" stroke="#f0dcc0" stroke-width="1"/>
+      <text x="112" y="120" text-anchor="middle" font-size="10.5" fill="#b45309">nse_eq("SBIN")</text>
+      <text x="112" y="137" text-anchor="middle" font-size="10.5" fill="#b45309">option_chain("NIFTY")</text>
+      <text x="112" y="154" text-anchor="middle" font-size="10.5" fill="#b45309">equity_history(…)</text>
+    </g>
+
+    <!-- nsefetch engine -->
+    <line x1="200" y1="112" x2="292" y2="112" stroke="#1a1d24" stroke-width="2" marker-end="url(#nsearrow)"/>
+    <g>
+      <rect x="296" y="64" width="196" height="104" rx="12" fill="#e9faf6" stroke="#0d9488" stroke-width="2"/>
+      <text x="394" y="90" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">nsefetch(url)</text>
+      <text x="394" y="109" text-anchor="middle" font-size="9.5" fill="#0b7268">1 · prime cookies @ nseindia</text>
+      <text x="394" y="124" text-anchor="middle" font-size="9.5" fill="#0b7268">2 · GET the payload URL</text>
+      <text x="394" y="139" text-anchor="middle" font-size="9.5" fill="#0b7268">3 · return .json()</text>
+      <text x="394" y="157" text-anchor="middle" font-size="9" fill="#6b7280">the primitive under everything</text>
+    </g>
+
+    <!-- arrow to cloud -->
+    <line x1="492" y1="112" x2="586" y2="112" stroke="#1a1d24" stroke-width="2" marker-end="url(#nsearrow)"/>
+
+    <!-- cloud -->
+    <g>
+      <rect x="590" y="62" width="204" height="108" rx="14" fill="#eef2fd" stroke="#1e40af" stroke-width="2" stroke-dasharray="6 4"/>
+      <text x="692" y="88" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">NSE / NIFTY Indices</text>
+      <text x="692" y="106" text-anchor="middle" font-size="9" fill="#1e40af">nseindia.com/api/…</text>
+      <text x="692" y="119" text-anchor="middle" font-size="9" fill="#1e40af">niftyindices.com JSON</text>
+      <rect x="614" y="132" width="156" height="26" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="1"/>
+      <text x="692" y="149" text-anchor="middle" font-size="8.5" fill="#dc2626">datacenter IPs blocked →</text>
+    </g>
+
+    <!-- arrows to outputs -->
+    <line x1="794" y1="98" x2="878" y2="82" stroke="#1a1d24" stroke-width="2" marker-end="url(#nsearrow)"/>
+    <line x1="794" y1="128" x2="878" y2="146" stroke="#1a1d24" stroke-width="2" marker-end="url(#nsearrow)"/>
+
+    <!-- output chips -->
+    <g>
+      <rect x="882" y="58" width="212" height="48" rx="10" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="988" y="79" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">raw dict (JSON)</text>
+      <text x="988" y="95" text-anchor="middle" font-size="8.5" fill="#475569">nse_eq · nse_fno · option_chain</text>
+
+      <rect x="882" y="122" width="212" height="48" rx="10" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="988" y="143" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">pandas DataFrame</text>
+      <text x="988" y="159" text-anchor="middle" font-size="8.5" fill="#8a5a12">history · movers · fiidii</text>
+    </g>
+
+    <!-- ===== lower band: local vs server ===== -->
+    <line x1="24" y1="206" x2="1094" y2="206" stroke="#e7e3db" stroke-width="1"/>
+    <text x="24" y="234" font-size="10.5" letter-spacing="2" fill="#64748b">SAME FUNCTION NAMES — PICK THE EDITION THAT MATCHES YOUR ENVIRONMENT</text>
+
+    <g>
+      <rect x="120" y="256" width="380" height="120" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="310" y="284" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">nsepython</text>
+      <text x="310" y="304" text-anchor="middle" font-size="10.5" fill="#475569">LOCAL · laptops, Windows, Jupyter</text>
+      <text x="310" y="322" text-anchor="middle" font-size="10.5" fill="#475569">uses Python <tspan font-weight="700">requests</tspan></text>
+      <text x="310" y="344" text-anchor="middle" font-size="10.5" fill="#475569">works from an Indian residential / VPN IP</text>
+      <text x="310" y="364" text-anchor="middle" font-size="9.5" fill="#dc2626">✗ won't run on AWS / GCP / web servers</text>
+
+      <rect x="620" y="256" width="380" height="120" rx="12" fill="#eef2fd" stroke="#1e40af" stroke-width="2"/>
+      <text x="810" y="284" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">nsepythonserver</text>
+      <text x="810" y="304" text-anchor="middle" font-size="10.5" fill="#3651a8">SERVER · AWS, Colab, DigitalOcean</text>
+      <text x="810" y="322" text-anchor="middle" font-size="10.5" fill="#3651a8">uses the <tspan font-weight="700">curl</tspan> method</text>
+      <text x="810" y="344" text-anchor="middle" font-size="10.5" fill="#3651a8">must run from an Indian server IP</text>
+      <text x="810" y="364" text-anchor="middle" font-size="9.5" fill="#dc2626">✗ some countries fully blocked</text>
+    </g>
+    <line x1="500" y1="316" x2="618" y2="316" stroke="#c7ccd6" stroke-width="1.4"/>
+    <text x="559" y="309" text-anchor="middle" font-size="10" fill="#6b7280">or</text>
+  </svg>
+
+  <!-- quickstart -->
+  <div class="quick">
+    <div class="quick-bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span style="margin-left:.4rem">quickstart.py</span></div>
+    <pre><span class="c"># pip install nsepython   (laptops)   ·   pip install nsepythonserver   (cloud)</span>
+<span class="m">from</span> nsepython <span class="m">import</span> *          <span class="c"># same names in both editions</span>
+
+<span class="c"># 1 · live quotes — helpers return raw NSE JSON as a dict</span>
+q   = <span class="f">nse_eq</span>(<span class="s">"SBIN"</span>)                 <span class="c"># full equity quote (dict)</span>
+ltp = <span class="f">nse_quote_ltp</span>(<span class="s">"RELIANCE"</span>)        <span class="c"># just last-traded price</span>
+
+<span class="c"># 2 · option chain + OI in one shot</span>
+oc, spot, ts = <span class="f">oi_chain_builder</span>(<span class="s">"NIFTY"</span>, <span class="s">"latest"</span>, <span class="s">"full"</span>)   <span class="c"># (DataFrame, LTP, time)</span>
+ratio = <span class="f">pcr</span>(<span class="f">nse_optionchain_scrapper</span>(<span class="s">"NIFTY"</span>))          <span class="c"># put/call ratio</span>
+
+<span class="c"># 3 · history — dd-mm-YYYY strings; auto-chunked in 40-day loops</span>
+df  = <span class="f">equity_history</span>(<span class="s">"SBIN"</span>, <span class="s">"EQ"</span>, <span class="s">"01-01-2024"</span>, <span class="s">"31-03-2024"</span>)
+
+<span class="c"># 4 · everything is built on one primitive — call any NSE endpoint yourself</span>
+raw = <span class="f">nsefetch</span>(<span class="s">"https://www.nseindia.com/api/marketStatus"</span>)</pre>
+  </div>
+</section>
+
+<!-- ============ MAIN CARDS ============ -->
+<main>
+
+  <!-- 01 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; the two editions</span><span class="card-sub">get going</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="op">$</span> pip install nsepython</code><span class="star">★ LOCAL</span><div class="desc">The laptop/Windows/Jupyter edition — uses Python <code>requests</code>. Works from an Indian residential or VPN IP.</div></li>
+      <li class="setup"><code class="cmd"><span class="op">$</span> pip install nsepythonserver</code><div class="desc">The cloud edition (AWS, Colab, DigitalOcean) — uses the <code>curl</code> method. Same function names; import <code>nsepythonserver</code> instead.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">from</span> nsepython <span class="mod">import</span> <span class="op">*</span></code><span class="star">★</span><div class="desc">Flat namespace — every helper is top-level. Docs use <code>nsepython</code> even for server code for simplicity.</div></li>
+      <li class="setup"><code class="cmd"><span class="fn">nsesymbolpurify</span>(<span class="str">"M&amp;M"</span>)</code><div class="desc">Cleans a symbol for NSE's URL encoding (e.g. ampersands) before you pass it on.</div></li>
+      <li class="danger"><code class="cmd">NSE blocks datacenter IPs</code><span class="star">★</span><div class="desc">NSE's robots.txt blocks all web servers. The <b>local</b> edition can't run on cloud hosts — use <b>nsepythonserver</b> on an Indian server.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">The shape of nsepython</span><span class="card-sub">how it thinks</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="fn">helper</span>(<span class="op">…</span>) <span class="op">→</span> <span class="fn">nsefetch</span>(url) <span class="op">→</span> JSON</code><span class="star">★ MODEL</span><div class="desc">Every helper wraps a specific NSE/NIFTY endpoint; all of them go through the one <code>nsefetch</code> primitive.</div></li>
+      <li class="setup"><code class="cmd">returns dict <span class="op">|</span> DataFrame</code><span class="star">★</span><div class="desc">Live quotes &amp; chains come back as <b>raw dicts</b>; history, movers &amp; FII/DII come back as <b>DataFrames</b>. Watch which you're getting.</div></li>
+      <li class="setup"><code class="cmd"><span class="fn">nse_marketStatus</span>()</code><div class="desc">Full market-status payload (all segments) as JSON.</div></li>
+      <li class="setup"><code class="cmd"><span class="fn">is_market_open</span>(<span class="arg">segment</span>=<span class="str">"FO"</span>)</code><div class="desc">Boolean — is that segment open right now.</div></li>
+      <li class="setup"><code class="cmd"><span class="fn">running_status</span>()</code><div class="desc">Cheap clock check: <code>True</code> between 09:15 and 15:30 IST (doesn't hit the network).</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Live equity quote</span><span class="card-sub">raw JSON dicts</span></div>
+    <ul class="cmds">
+      <li class="price"><code class="cmd"><span class="fn">nse_eq</span>(<span class="str">"SBIN"</span>)</code><span class="star">★ MOST USED</span><div class="desc">The full equity quote payload — price, OHLC, 52wk, delivery, industry, everything NSE shows on the quote page.</div></li>
+      <li class="price"><code class="cmd"><span class="fn">nse_quote_ltp</span>(<span class="str">"RELIANCE"</span>)</code><span class="star">★</span><div class="desc">Just the last-traded price as a number — the lightweight call for a live LTP.</div></li>
+      <li class="price"><code class="cmd"><span class="fn">nse_quote</span>(<span class="str">"SBIN"</span>, <span class="arg">section</span>=<span class="str">"trade_info"</span>)</code><div class="desc">Lower-level quote fetch; pass <code>section</code> to target a sub-block of the payload.</div></li>
+      <li class="price"><code class="cmd"><span class="fn">quote_equity</span>(<span class="str">"SBIN"</span>) · <span class="fn">nsetools_get_quote</span>(<span class="str">"SBIN"</span>)</code><div class="desc">NSEpy-/NSETools-compatible aliases (their function names were migrated here).</div></li>
+      <li class="price"><code class="cmd"><span class="fn">nse_eq_symbols</span>()</code><div class="desc">List of all equity symbols on NSE — your master lookup.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Live F&amp;O quote</span><span class="card-sub">derivatives</span></div>
+    <ul class="cmds">
+      <li class="price"><code class="cmd"><span class="fn">nse_fno</span>(<span class="str">"BANKNIFTY"</span>)</code><span class="star">★</span><div class="desc">Full derivatives quote payload for an underlying — futures &amp; options data as JSON.</div></li>
+      <li class="price"><code class="cmd"><span class="fn">quote_derivative</span>(<span class="str">"SBIN"</span>)</code><div class="desc">Derivative quote alias (migrated NSEpy name).</div></li>
+      <li class="price"><code class="cmd"><span class="fn">nse_expirydetails_by_symbol</span>(<span class="str">"NIFTY"</span>, <span class="arg">meta</span>=<span class="str">"Futures"</span>)</code><div class="desc">Expiry details for a symbol; <code>meta</code> = <code>"Futures"</code>/<code>"Options"</code>.</div></li>
+      <li class="price"><code class="cmd"><span class="fn">nse_custom_function_secfno</span>(<span class="str">"SBIN"</span>, <span class="arg">attribute</span>=<span class="str">"lastPrice"</span>)</code><div class="desc">Pull one named field straight out of a security's F&amp;O payload.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Option chain</span><span class="card-sub">the raw chain</span></div>
+    <ul class="cmds">
+      <li class="action"><code class="cmd"><span class="fn">nse_optionchain_scrapper</span>(<span class="str">"NIFTY"</span>)</code><span class="star">★</span><div class="desc">The full raw option-chain JSON (records + filtered) — the source every other option helper parses.</div></li>
+      <li class="action"><code class="cmd"><span class="fn">option_chain</span>(<span class="str">"RELIANCE"</span>)</code><div class="desc">Convenience alias for the scrapper — same raw chain payload.</div></li>
+      <li class="action"><code class="cmd"><span class="fn">nse_optionchain_ltp</span>(payload, <span class="arg">strikePrice</span>, <span class="arg">optionType</span>, inp=<span class="num">0</span>)</code><div class="desc">Pluck the LTP for one strike/type out of an already-fetched chain payload.</div></li>
+      <li class="action"><code class="cmd">indices <span class="op">vs</span> equities</code><div class="desc">NIFTY/BANKNIFTY hit the index option-chain endpoint; stock symbols hit the equities one — the helper picks for you.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">OI chain builder &amp; PCR</span><span class="card-sub">the workhorse</span></div>
+    <ul class="cmds">
+      <li class="action"><code class="cmd">oi, spot, ts <span class="op">=</span> <span class="fn">oi_chain_builder</span>(<span class="str">"NIFTY"</span>, <span class="arg">expiry</span>=<span class="str">"latest"</span>, <span class="arg">oi_mode</span>=<span class="str">"full"</span>)</code><span class="star">★ MOST USED</span><div class="desc">Returns a <b>tuple</b>: OI <b>DataFrame</b>, underlying <b>LTP</b>, and the <b>timestamp</b>. <code>oi_mode</code> = <code>"full"</code>/<code>"compact"</code>.</div></li>
+      <li class="action"><code class="cmd"><span class="fn">pcr</span>(<span class="fn">nse_optionchain_scrapper</span>(<span class="str">"NIFTY"</span>))</code><span class="star">★</span><div class="desc">Put-Call Ratio = total put OI ÷ total call OI, straight from a chain payload.</div></li>
+      <li class="action"><code class="cmd">ATM <span class="op">≈</span> round(spot)</code><div class="desc">Use the returned <code>spot</code> from <code>oi_chain_builder</code> to find the at-the-money strike (nearest step).</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Option Greeks — Black-Scholes</span><span class="card-sub">pure math, no fetch</span></div>
+    <ul class="cmds">
+      <li class="action"><code class="cmd"><span class="fn">black_scholes_dexter</span>(<span class="arg">S0</span>, <span class="arg">X</span>, <span class="arg">t</span>, σ, <span class="arg">r</span>=<span class="num">10</span>, <span class="arg">q</span>=<span class="num">0.0</span>, <span class="arg">td</span>=<span class="num">365</span>)</code><span class="star">★</span><div class="desc">Spot, strike, days-to-expiry, volatility → a <b>10-tuple</b>: call/put theta, call/put premium, call/put delta, gamma, vega, call/put rho.</div></li>
+      <li class="action"><code class="cmd">σ <span class="op">=</span> implied volatility</code><div class="desc"><code>r</code> is the rate (%), <code>q</code> the dividend yield, <code>td</code> the day-count basis. No network call — this is local maths.</div></li>
+      <li class="action"><code class="cmd"><span class="fn">norm</span>(<span class="op">…</span>)</code><div class="desc">The standard-normal helper used inside the Black-Scholes computation.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Equity history</span><span class="card-sub">DataFrames · dd-mm-YYYY</span></div>
+    <ul class="cmds">
+      <li class="info"><code class="cmd"><span class="fn">equity_history</span>(<span class="str">"SBIN"</span>, <span class="str">"EQ"</span>, <span class="str">"01-01-2024"</span>, <span class="str">"31-03-2024"</span>)</code><span class="star">★ MOST USED</span><div class="desc">Clean OHLCV history DataFrame. Args: <code>symbol</code>, <code>series</code> (usually <code>"EQ"</code>), <code>start_date</code>, <code>end_date</code> — dates are <code>dd-mm-YYYY</code>.</div></li>
+      <li class="info"><code class="cmd"><span class="fn">equity_history_virgin</span>(<span class="str">"SBIN"</span>, <span class="str">"EQ"</span>, <span class="str">"…"</span>, <span class="str">"…"</span>)</code><div class="desc">Same call, but the raw un-processed frame (the "virgin" variant) if you want NSE's original columns.</div></li>
+      <li class="info"><code class="cmd"><span class="fn">security_wise_archive</span>(<span class="str">"01-01-2024"</span>, <span class="str">"31-03-2024"</span>, <span class="str">"SBIN"</span>, series=<span class="str">"ALL"</span>)</code><div class="desc">Security-wise price/volume archive over a range, from the bhavcopy archive endpoint.</div></li>
+      <li class="info"><code class="cmd">auto 40-day chunking</code><span class="star">★</span><div class="desc">NSE caps history at ~40 days/request — the library loops and stitches the range for you automatically.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Derivative &amp; index history</span><span class="card-sub">DataFrames</span></div>
+    <ul class="cmds">
+      <li class="info"><code class="cmd"><span class="fn">derivative_history</span>(<span class="str">"NIFTY"</span>, <span class="str">"01-01-2024"</span>, <span class="str">"31-03-2024"</span>, <span class="str">"FUTIDX"</span>, <span class="str">"28-03-2024"</span>)</code><span class="star">★</span><div class="desc">F&amp;O history. Args: symbol, start, end, <code>instrumentType</code>, <code>expiry_date</code>, then <code>strikePrice</code>+<code>optionType</code> for options.</div></li>
+      <li class="info"><code class="cmd"><span class="fn">index_history</span>(<span class="str">"NIFTY 50"</span>, <span class="str">"01-01-2024"</span>, <span class="str">"31-03-2024"</span>)</code><span class="star">★</span><div class="desc">Historical index OHLC (from the NIFTY Indices endpoint). Use the index display name.</div></li>
+      <li class="info"><code class="cmd"><span class="fn">expiry_list</span>(<span class="str">"NIFTY"</span>, type=<span class="str">"list"</span>)</code><div class="desc">Available expiry dates for a symbol.</div></li>
+      <li class="info"><code class="cmd"><span class="fn">expiry_history</span>(<span class="str">"NIFTY"</span>, type=<span class="str">"options"</span>)</code><div class="desc">Historical expiry-wise data; <code>type</code> = <code>"options"</code>/<code>"futures"</code>.</div></li>
+    </ul>
+  </article>
+<!--PART2-->
+
+  <!-- 10 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Indices &amp; VIX</span><span class="card-sub">NIFTY Indices data</span></div>
+    <ul class="cmds">
+      <li class="analysis"><code class="cmd"><span class="fn">nse_get_index_quote</span>(<span class="str">"NIFTY 50"</span>)</code><span class="star">★</span><div class="desc">Live quote for one index — last, change, %chg, OHLC.</div></li>
+      <li class="analysis"><code class="cmd"><span class="fn">nse_get_index_list</span>() · <span class="fn">nse_index</span>()</code><div class="desc">All index names; <code>nse_index()</code> returns the full live all-indices snapshot.</div></li>
+      <li class="analysis"><code class="cmd"><span class="fn">index_pe_pb_div</span>(<span class="str">"NIFTY 50"</span>, <span class="str">"01-01-2024"</span>, <span class="str">"31-03-2024"</span>)</code><div class="desc">Historical PE, PB &amp; dividend-yield series for an index.</div></li>
+      <li class="analysis"><code class="cmd"><span class="fn">index_total_returns</span>(<span class="str">"NIFTY 50"</span>, <span class="str">"…"</span>, <span class="str">"…"</span>) · <span class="fn">index_info</span>(<span class="str">"NIFTY 50"</span>)</code><div class="desc">Total-return index history; static index metadata.</div></li>
+      <li class="analysis"><code class="cmd"><span class="fn">indiavix</span>()</code><div class="desc">Current India VIX value — the market's volatility gauge.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Market movers &amp; pre-open</span><span class="card-sub">live session</span></div>
+    <ul class="cmds">
+      <li class="analysis"><code class="cmd"><span class="fn">nse_get_top_gainers</span>() · <span class="fn">nse_get_top_losers</span>()</code><span class="star">★</span><div class="desc">Top gainers / losers as DataFrames — no typo traps here, unlike some sibling libraries.</div></li>
+      <li class="analysis"><code class="cmd"><span class="fn">nse_most_active</span>(<span class="arg">type</span>=<span class="str">"securities"</span>, <span class="arg">sort</span>=<span class="str">"value"</span>)</code><div class="desc">Most active by <code>"value"</code>/<code>"volume"</code>; <code>type</code> = <code>"securities"</code>/<code>"etf"</code>/<code>"sme"</code>.</div></li>
+      <li class="analysis"><code class="cmd"><span class="fn">nse_get_advances_declines</span>(<span class="arg">mode</span>=<span class="str">"pandas"</span>)</code><div class="desc">Market breadth — advances vs declines across indices.</div></li>
+      <li class="analysis"><code class="cmd"><span class="fn">nse_preopen</span>(<span class="arg">key</span>=<span class="str">"NIFTY"</span>, <span class="arg">type</span>=<span class="str">"pandas"</span>)</code><div class="desc">Pre-open session book for a segment key (<code>"NIFTY"</code>, <code>"FO"</code>, <code>"BANKNIFTY"</code> …).</div></li>
+      <li class="analysis"><code class="cmd"><span class="fn">nse_preopen_movers</span>(<span class="arg">key</span>=<span class="str">"FO"</span>, <span class="arg">filter</span>=<span class="num">1.5</span>)</code><div class="desc">Pre-open gainers/losers past a %-move threshold. Also <code>nse_price_band_hitters(bandtype, view)</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">F&amp;O universe &amp; participants</span><span class="card-sub">derivatives structure</span></div>
+    <ul class="cmds">
+      <li class="action"><code class="cmd"><span class="fn">fnolist</span>()</code><span class="star">★</span><div class="desc">List of all F&amp;O-eligible symbols.</div></li>
+      <li class="action"><code class="cmd"><span class="fn">nse_get_fno_lot_sizes</span>(<span class="arg">symbol</span>=<span class="str">"all"</span>, <span class="arg">mode</span>=<span class="str">"list"</span>)</code><div class="desc">Current lot sizes; pass a symbol for one, or <code>mode="pandas"</code> for a frame.</div></li>
+      <li class="action"><code class="cmd"><span class="fn">get_fao_participant_oi</span>(<span class="str">"28-03-2024"</span>)</code><div class="desc">Participant-wise open interest (Client / DII / FII / Pro) for a date.</div></li>
+      <li class="action"><code class="cmd"><span class="fn">nse_expirydetails</span>(payload, i=<span class="num">0</span>)</code><div class="desc">Extract the i-th expiry from an F&amp;O payload.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Deals</span><span class="card-sub">bulk · block · large</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd"><span class="fn">get_bulkdeals</span>() · <span class="fn">get_blockdeals</span>()</code><span class="star">★</span><div class="desc">Today's bulk &amp; block deals as DataFrames.</div></li>
+      <li class="adv"><code class="cmd"><span class="fn">nse_largedeals</span>(<span class="arg">mode</span>=<span class="str">"bulk_deals"</span>)</code><div class="desc">Unified large-deals feed; <code>mode</code> = <code>"bulk_deals"</code>/<code>"block_deals"</code>/<code>"short_deals"</code>.</div></li>
+      <li class="adv"><code class="cmd"><span class="fn">nse_largedeals_historical</span>(<span class="str">"01-01-2024"</span>, <span class="str">"31-03-2024"</span>, <span class="arg">mode</span>=<span class="str">"bulk_deals"</span>)</code><div class="desc">Historical large deals over a date range.</div></li>
+      <li class="adv"><code class="cmd"><span class="fn">nse_blockdeal</span>()</code><div class="desc">Legacy block-deal fetch (migrated name).</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">FII/DII &amp; corporate</span><span class="card-sub">flows &amp; filings</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd"><span class="fn">nse_fiidii</span>(<span class="arg">mode</span>=<span class="str">"pandas"</span>)</code><span class="star">★</span><div class="desc">Daily FII &amp; DII cash-segment buy/sell figures.</div></li>
+      <li class="adv"><code class="cmd"><span class="fn">nse_results</span>(<span class="arg">index</span>=<span class="str">"equities"</span>, <span class="arg">period</span>=<span class="str">"Quarterly"</span>)</code><div class="desc">Financial results feed; <code>period</code> = <code>"Quarterly"</code>/<code>"Annual"</code>.</div></li>
+      <li class="adv"><code class="cmd"><span class="fn">nse_past_results</span>(<span class="str">"SBIN"</span>)</code><div class="desc">A single company's historical results.</div></li>
+      <li class="adv"><code class="cmd"><span class="fn">nse_events</span>()</code><div class="desc">Corporate event calendar (board meetings, dividends, etc.).</div></li>
+      <li class="adv"><code class="cmd"><span class="fn">nse_circular</span>(<span class="arg">mode</span>=<span class="str">"latest"</span>)</code><div class="desc">NSE circulars feed.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Bhavcopy · holidays · status</span><span class="card-sub">daily files &amp; calendar</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd"><span class="fn">get_bhavcopy</span>(<span class="str">"28-03-2024"</span>)</code><span class="star">★</span><div class="desc">Full end-of-day bhavcopy for one trading session as a DataFrame.</div></li>
+      <li class="adv"><code class="cmd"><span class="fn">nse_holidays</span>(<span class="arg">type</span>=<span class="str">"trading"</span>)</code><div class="desc">Holiday list; <code>type</code> = <code>"trading"</code>/<code>"clearing"</code>. <code>holiday_master()</code> gives the full master.</div></li>
+      <li class="adv"><code class="cmd"><span class="fn">is_market_open</span>(<span class="arg">segment</span>=<span class="str">"FO"</span>)</code><div class="desc">Live open/closed check for a segment — pair with the holiday list before scheduling jobs.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Beta &amp; analysis</span><span class="card-sub">derived metrics</span></div>
+    <ul class="cmds">
+      <li class="adv"><code class="cmd"><span class="fn">get_beta</span>(<span class="str">"SBIN"</span>, <span class="arg">days</span>=<span class="num">365</span>, <span class="arg">symbol2</span>=<span class="str">"NIFTY 50"</span>)</code><div class="desc">Beta of a stock vs a benchmark over N days. <code>getbeta</code> is the shorthand alias.</div></li>
+      <li class="adv"><code class="cmd"><span class="fn">get_beta_df_maker</span>(<span class="str">"SBIN"</span>, <span class="num">365</span>)</code><div class="desc">Builds the daily-returns DataFrame that the beta calc runs on — handy for custom stats.</div></li>
+      <li class="adv"><code class="cmd"><span class="fn">whoistheboss</span>()</code><div class="desc">A fun/utility helper bundled with the library.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">The nsefetch escape hatch</span><span class="card-sub">call any endpoint</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="fn">nsefetch</span>(<span class="str">"https://www.nseindia.com/api/marketStatus"</span>)</code><span class="star">★</span><div class="desc">The primitive: primes cookies, GETs any NSE API URL, returns parsed JSON. If no helper exists, build the URL and call this.</div></li>
+      <li class="setup"><code class="cmd">headers · niftyindices_headers</code><div class="desc">The pre-built header dicts nsefetch uses — reuse them for your own requests to the NSE / NIFTY Indices hosts.</div></li>
+      <li class="setup"><code class="cmd">logging.basicConfig(level=logging.<span class="kw">DEBUG</span>)</code><div class="desc">The library logs via the stdlib <code>logging</code> module — flip to DEBUG to see the URLs and chunk loops.</div></li>
+      <li class="setup"><code class="cmd">migrated: NSEpy <span class="op">+</span> NSETools</code><div class="desc">Those two unmaintained libraries' function names were absorbed here, so old snippets often just work.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Gotchas &amp; production notes</span><span class="card-sub">read before you ship</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">local won't run on cloud</code><span class="star">★</span><div class="desc">NSE blocks datacenter IPs. On AWS/GCP/Colab use <code>nsepythonserver</code>, and it must be an <b>Indian</b> server IP.</div></li>
+      <li class="danger"><code class="cmd">dict vs DataFrame</code><span class="star">★</span><div class="desc">Quotes/chains return <b>raw dicts</b> (index into the JSON yourself); history/movers return <b>DataFrames</b>. Mixing them up is the #1 bug.</div></li>
+      <li class="danger"><code class="cmd">history dates = <span class="str">dd-mm-YYYY</span></code><span class="star">★</span><div class="desc">Strings like <code>"01-06-2024"</code>, not ISO. <code>equity_history</code> also needs a <code>series</code> (<code>"EQ"</code>).</div></li>
+      <li class="danger"><code class="cmd">oi_chain_builder returns a tuple</code><div class="desc"><code>(oi_df, spot_ltp, timestamp)</code> — unpack all three; don't treat it as a single frame.</div></li>
+      <li class="danger"><code class="cmd">live = market hours only</code><div class="desc">Quotes, option chain &amp; movers are empty/stale outside 09:15–15:30 IST and on holidays.</div></li>
+      <li class="danger"><code class="cmd">rate-limit &amp; cookies</code><div class="desc">NSE throttles bursts; nsefetch re-primes cookies each call. Add sleeps/retries, don't hammer in tight loops.</div></li>
+      <li class="danger"><code class="cmd">unofficial · pin your version</code><div class="desc">Scrapes NSE's public JSON APIs; endpoints shift often. Pin the version, expect breakage, personal research only.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four ideas worth a picture</h2>
+  <p class="sub">How a call resolves, the two editions, the options toolkit, and the history-call shape.</p>
+  <div class="merge-grid">
+
+    <!-- D1 -->
+    <div class="merge-card">
+      <h3>1 · How a call resolves</h3>
+      <p>One primitive underneath — the return shape is all that differs.</p>
+      <svg class="bsvg" viewBox="0 0 520 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="nse_eq and equity_history both call nsefetch, which primes cookies and GETs the NSE endpoint; nse_eq returns a dict, equity_history returns a DataFrame.">
+        <rect x="12" y="24" width="150" height="40" rx="8" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+        <text x="87" y="49" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">nse_eq("SBIN")</text>
+        <rect x="12" y="180" width="150" height="40" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+        <text x="87" y="205" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a1d24">equity_history(…)</text>
+
+        <rect x="196" y="96" width="128" height="52" rx="9" fill="#e9faf6" stroke="#0d9488" stroke-width="2"/>
+        <text x="260" y="118" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">nsefetch(url)</text>
+        <text x="260" y="134" text-anchor="middle" font-size="8.5" fill="#0b7268">cookies → GET → json</text>
+
+        <line x1="162" y1="44"  x2="228" y2="94"  stroke="#c7ccd6" stroke-width="1.5" marker-end="url(#nsearrow)"/>
+        <line x1="162" y1="200" x2="228" y2="150" stroke="#c7ccd6" stroke-width="1.5" marker-end="url(#nsearrow)"/>
+
+        <rect x="358" y="96" width="150" height="52" rx="9" fill="#eef2fd" stroke="#1e40af" stroke-width="2" stroke-dasharray="5 3"/>
+        <text x="433" y="118" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">NSE endpoint</text>
+        <text x="433" y="134" text-anchor="middle" font-size="8.5" fill="#1e40af">/api/… returns JSON</text>
+        <line x1="324" y1="122" x2="356" y2="122" stroke="#1a1d24" stroke-width="2" marker-end="url(#nsearrow)"/>
+
+        <!-- returns -->
+        <line x1="260" y1="148" x2="260" y2="30" stroke="none"/>
+        <rect x="196" y="24" width="128" height="34" rx="8" fill="#f1f3f6" stroke="#64748b" stroke-width="1.5"/>
+        <text x="260" y="46" text-anchor="middle" font-size="10.5" font-weight="700" fill="#475569">dict</text>
+        <rect x="196" y="186" width="128" height="34" rx="8" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/>
+        <text x="260" y="208" text-anchor="middle" font-size="10.5" font-weight="700" fill="#8a5a12">DataFrame</text>
+        <line x1="260" y1="94" x2="260" y2="60" stroke="#64748b" stroke-width="1.4" marker-end="url(#nsearrow)"/>
+        <line x1="260" y1="150" x2="260" y2="184" stroke="#d97706" stroke-width="1.4" marker-end="url(#nsearrow)"/>
+      </svg>
+    </div>
+
+    <!-- D2 -->
+    <div class="merge-card">
+      <h3>2 · Two editions, one API</h3>
+      <p>Same function names — the package you install depends on where it runs.</p>
+      <svg class="bsvg" viewBox="0 0 520 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="nsepython local uses requests on laptops; nsepythonserver uses curl on servers; both reach NSE, which blocks datacenter and foreign IPs.">
+        <rect x="14" y="28" width="228" height="92" rx="10" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+        <text x="128" y="50" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">nsepython</text>
+        <text x="128" y="68" text-anchor="middle" font-size="9.5" fill="#475569">laptop · Windows · Jupyter</text>
+        <text x="128" y="83" text-anchor="middle" font-size="9.5" fill="#475569">Python requests</text>
+        <text x="128" y="102" text-anchor="middle" font-size="9" fill="#1e7d5a">✓ Indian residential / VPN IP</text>
+
+        <rect x="278" y="28" width="228" height="92" rx="10" fill="#eef2fd" stroke="#1e40af" stroke-width="2"/>
+        <text x="392" y="50" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">nsepythonserver</text>
+        <text x="392" y="68" text-anchor="middle" font-size="9.5" fill="#3651a8">AWS · Colab · DigitalOcean</text>
+        <text x="392" y="83" text-anchor="middle" font-size="9.5" fill="#3651a8">curl method</text>
+        <text x="392" y="102" text-anchor="middle" font-size="9" fill="#1e7d5a">✓ Indian server IP</text>
+
+        <line x1="128" y1="120" x2="235" y2="176" stroke="#c7ccd6" stroke-width="1.5" marker-end="url(#nsearrowb)"/>
+        <line x1="392" y1="120" x2="285" y2="176" stroke="#c7ccd6" stroke-width="1.5" marker-end="url(#nsearrowb)"/>
+
+        <rect x="176" y="180" width="168" height="44" rx="10" fill="#eef2fd" stroke="#1e40af" stroke-width="2" stroke-dasharray="5 3"/>
+        <text x="260" y="201" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">NSE REST APIs</text>
+        <text x="260" y="217" text-anchor="middle" font-size="8.5" fill="#dc2626">datacenter / foreign IPs blocked</text>
+      </svg>
+    </div>
+
+    <!-- D3 -->
+    <div class="merge-card">
+      <h3>3 · The options toolkit</h3>
+      <p>From one symbol to a chain, OI, a ratio, and the Greeks.</p>
+      <svg class="bsvg" viewBox="0 0 520 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="From a symbol: nse_optionchain_scrapper gives the raw chain; oi_chain_builder gives OI DataFrame plus LTP plus timestamp; pcr gives put-call ratio; black_scholes_dexter gives Greeks.">
+        <rect x="176" y="16" width="168" height="34" rx="8" fill="#fff" stroke="#0d9488" stroke-width="2"/>
+        <text x="260" y="38" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">symbol "NIFTY"</text>
+        <line x1="260" y1="50" x2="260" y2="66" stroke="#0d9488" stroke-width="1.5" marker-end="url(#nsearrow)"/>
+
+        <rect x="146" y="68" width="228" height="40" rx="8" fill="#e9faf6" stroke="#0d9488" stroke-width="2"/>
+        <text x="260" y="85" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a1d24">nse_optionchain_scrapper()</text>
+        <text x="260" y="100" text-anchor="middle" font-size="8.5" fill="#0b7268">raw chain JSON</text>
+
+        <line x1="200" y1="108" x2="140" y2="150" stroke="#c7ccd6" stroke-width="1.5" marker-end="url(#nsearrow)"/>
+        <line x1="320" y1="108" x2="392" y2="150" stroke="#c7ccd6" stroke-width="1.5" marker-end="url(#nsearrow)"/>
+
+        <rect x="24" y="152" width="216" height="44" rx="8" fill="#e9faf6" stroke="#0d9488" stroke-width="2"/>
+        <text x="132" y="170" text-anchor="middle" font-size="10" font-weight="700" fill="#1a1d24">oi_chain_builder()</text>
+        <text x="132" y="187" text-anchor="middle" font-size="8" fill="#0b7268">→ (OI df, spot LTP, timestamp)</text>
+
+        <rect x="280" y="152" width="216" height="44" rx="8" fill="#e9faf6" stroke="#0d9488" stroke-width="2"/>
+        <text x="388" y="170" text-anchor="middle" font-size="10" font-weight="700" fill="#1a1d24">pcr()  ·  black_scholes_dexter()</text>
+        <text x="388" y="187" text-anchor="middle" font-size="8" fill="#0b7268">put/call ratio · 10 Greeks</text>
+
+        <text x="260" y="228" text-anchor="middle" font-size="9" fill="#6b7280">oi_mode = "full" · "compact"   ·   expiry = "latest" or a date</text>
+      </svg>
+    </div>
+
+    <!-- D4 -->
+    <div class="merge-card">
+      <h3>4 · The history-call shape</h3>
+      <p>Every history helper reads: what, over which dates, in what form.</p>
+      <svg class="bsvg" viewBox="0 0 520 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="derivative_history takes symbol, start and end dd-mm-YYYY dates, instrumentType FUTIDX FUTSTK OPTIDX OPTSTK, expiry_date, and strikePrice plus optionType for options.">
+        <text x="16" y="34" font-size="12" font-weight="700" fill="#059669">derivative_history</text>
+        <text x="150" y="34" font-size="11" fill="#6b7280">(</text>
+        <text x="160" y="34" font-size="10.5" fill="#0d9488">symbol, start, end, instrumentType, expiry …</text>
+        <text x="505" y="34" font-size="11" fill="#6b7280">)</text>
+
+        <rect x="16" y="52" width="150" height="46" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+        <text x="91" y="72" text-anchor="middle" font-size="10" font-weight="700" fill="#1a1d24">dates</text>
+        <text x="91" y="88" text-anchor="middle" font-size="9" fill="#0d7a5f">dd-mm-YYYY strings</text>
+
+        <rect x="182" y="52" width="150" height="46" rx="8" fill="#e9faf6" stroke="#0d9488" stroke-width="1.6"/>
+        <text x="257" y="72" text-anchor="middle" font-size="10" font-weight="700" fill="#1a1d24">instrumentType</text>
+        <text x="257" y="88" text-anchor="middle" font-size="8" fill="#0b7268">FUTIDX FUTSTK OPTIDX OPTSTK</text>
+
+        <rect x="348" y="52" width="156" height="46" rx="8" fill="#f3eefe" stroke="#7c3aed" stroke-width="1.6"/>
+        <text x="426" y="72" text-anchor="middle" font-size="10" font-weight="700" fill="#1a1d24">for OPTIONS add</text>
+        <text x="426" y="88" text-anchor="middle" font-size="8.5" fill="#6d28d9">strikePrice + optionType</text>
+
+        <line x1="260" y1="112" x2="260" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#nsearrow)"/>
+        <rect x="150" y="154" width="220" height="42" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+        <text x="260" y="175" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">pandas DataFrame</text>
+        <text x="260" y="190" text-anchor="middle" font-size="8" fill="#0d7a5f">OHLC · OI · volume · turnover</text>
+
+        <text x="260" y="224" text-anchor="middle" font-size="9" fill="#6b7280">equity_history needs series="EQ" · index_history takes just symbol + dates</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WORTH MEMORIZING ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">two editions</span><span class="v"><code>nsepython</code> (local) vs <code>nsepythonserver</code> (cloud) — same names</span></div>
+    <div><span class="k">IP rule</span><span class="v">NSE blocks datacenter IPs; server edition needs an Indian server</span></div>
+    <div><span class="k">the engine</span><span class="v"><code>nsefetch(url)</code> primes cookies &#8594; GETs &#8594; returns JSON</span></div>
+    <div><span class="k">return type</span><span class="v">quotes/chains = <code>dict</code>; history/movers = <code>DataFrame</code></span></div>
+    <div><span class="k">history dates</span><span class="v"><code>dd-mm-YYYY</code> strings; auto-looped in 40-day chunks</span></div>
+    <div><span class="k">equity_history</span><span class="v">also needs a <code>series</code> arg — usually <code>"EQ"</code></span></div>
+    <div><span class="k">oi_chain_builder</span><span class="v">returns a <b>tuple</b>: <code>(oi_df, spot, timestamp)</code></span></div>
+    <div><span class="k">instrumentType</span><span class="v"><code>FUTIDX FUTSTK OPTIDX OPTSTK</code>; options add strike+type</span></div>
+    <div><span class="k">pcr</span><span class="v">put OI &#247; call OI; <code>black_scholes_dexter</code> &#8594; 10 Greeks</span></div>
+    <div><span class="k">live hours</span><span class="v">quotes / chain / movers: 09:15&#8211;15:30 IST only</span></div>
+    <div><span class="k">heritage</span><span class="v">absorbed NSEpy + NSETools function names</span></div>
+    <div><span class="k">debug</span><span class="v"><code>logging.basicConfig(level=logging.DEBUG)</code> to see URLs</span></div>
+  </div>
+</section>
+
+<footer>
+  <b>nsepython cheat sheet</b> — quick reference for the aeron7/nsepython library (NSE India &amp; NIFTY Indices REST APIs). Verified against installed <code>nsepython&nbsp;2.97</code>.<br>
+  Sources: <b>unofficed.com/nse-python</b> (official docs) · <b>forum.unofficed.com</b> (documentation thread 376) · <b>pypi.org/project/nsepython</b> · <b>github.com/aeron7/nsepython</b>. Function signatures, the local/server split &amp; the <code>oi_chain_builder</code> tuple return were confirmed by live introspection.<br>
+  nsepython is an unofficial, community-maintained library that reads NSE's publicly available JSON APIs; it is <b>not affiliated with or endorsed by NSE India</b>. Endpoints change frequently &amp; are IP-gated — pin your version, prefer the correct edition for your host, and re-check after upgrades. For personal research and analysis, <b>not</b> investment advice or production trading infrastructure.
+</footer>
+
+</body>
+</html>

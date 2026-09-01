@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ollama Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Run LLMs locally &middot; CLI &middot; REST API &middot; Python &middot; OpenAI-compatible &middot; verified against Ollama 0.32.x (2026)</div>
+  <h1><span class="mono">Ollama</span> cheat sheet</h1>
+  <p class="lede"><b>Ollama</b> runs open LLMs on your own machine with one command. <code>ollama run llama3.2</code> pulls the model and drops you into a chat; a background server on <b>:11434</b> exposes a REST API for apps. Package custom models with a <b>Modelfile</b>, call it from the <b>Python</b>/JS libraries, or point any <b>OpenAI</b> client at it unchanged. GGUF quantization keeps models small enough for laptops. Targets <b>Ollama 0.32.x</b> (server + CLI) and the <code>ollama</code> Python library.</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>CLI basics</span>
+    <span><i class="dot c2"></i>models &amp; Modelfile</span>
+    <span><i class="dot c3"></i>REST API</span>
+    <span><i class="dot c4"></i>Python library</span>
+    <span><i class="dot c5"></i>config &amp; ecosystem</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-08-31 against the official docs/GitHub at <b>ollama.com</b> &amp; <b>github.com/ollama/ollama</b> (server 0.32.x) and <b>github.com/ollama/ollama-python</b>. The server listens on <code>localhost:11434</code>; the same REST API backs the CLI, libraries, and OpenAI-compatible endpoints.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub">Start at the CLI, learn model management + the Modelfile, then drive the same server from the REST API, the Python library, or an OpenAI client.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>CLI</h3>
+      <ol class="toc-list">
+        <li><span class="rk">1</span><a href="#install">Install &amp; first run</a></li>
+        <li><span class="rk">2</span><a href="#cli">Core CLI commands</a></li>
+        <li><span class="rk">3</span><a href="#models">Model management</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">Custom models</h3>
+      <ol class="toc-list">
+        <li><span class="rk">4</span><a href="#modelfile">Modelfile</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>REST API</h3>
+      <ol class="toc-list">
+        <li><span class="rk">5</span><a href="#api">/api/generate &amp; /api/chat</a></li>
+        <li><span class="rk">6</span><a href="#embed">Embeddings</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">Python library</h3>
+      <ol class="toc-list">
+        <li><span class="rk">7</span><a href="#python">chat / generate</a></li>
+        <li><span class="rk">8</span><a href="#stream">Streaming &amp; options</a></li>
+        <li><span class="rk">9</span><a href="#tools">Tools &amp; structured output</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Config &amp; ecosystem</h3>
+      <ol class="toc-list">
+        <li><span class="rk">10</span><a href="#openai">OpenAI compatibility</a></li>
+        <li><span class="rk">11</span><a href="#config">Server config &amp; env vars</a></li>
+        <li><span class="rk">12</span><a href="#ecosystem">Ecosystem</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-cli"><h2 style="color:var(--c1)">Command Line</h2><p class="sub">Install, then run and manage models entirely from the terminal.</p></div>
+<main>
+  <article class="card" id="install">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Install &amp; first run</span><span class="card-sub">one command</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">curl -fsSL https://ollama.com/install.sh | sh   <span class="cm"># Linux</span></code><span class="star">&#9733;</span><div class="desc">macOS &amp; Windows have native installers on ollama.com. Installing starts the background server automatically.</div></li>
+      <li class="c1"><code class="cmd">ollama run <span class="arg">llama3.2</span></code><span class="star">&#9733;</span><div class="desc">Pulls the model on first use, then opens an interactive chat. Type a message; <code>/bye</code> to exit, <code>/?</code> for in-chat commands.</div></li>
+      <li class="c1"><code class="cmd">ollama run llama3.2 <span class="str">"Explain PagedAttention in one line"</span></code><div class="desc">Pass a prompt inline for a one-shot answer (great for scripts / pipes).</div></li>
+      <li class="c1"><code class="cmd">echo <span class="str">"summarize this"</span> | ollama run llama3.2</code><div class="desc">Reads stdin &mdash; compose it with other shell tools.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="cli">
+    <div class="card-head"><span class="card-num n1">2</span><span class="card-title">Core CLI commands</span><span class="card-sub">daily driver</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">ollama list        <span class="cm"># alias: ollama ls</span></code><span class="star">&#9733;</span><div class="desc">Show downloaded models with size + last-modified.</div></li>
+      <li class="c1"><code class="cmd">ollama ps</code><span class="star">&#9733;</span><div class="desc">Show models currently loaded in memory and their VRAM/CPU split.</div></li>
+      <li class="c1"><code class="cmd">ollama stop llama3.2   &middot;   ollama rm llama3.2</code><div class="desc"><code>stop</code> unloads a running model; <code>rm</code> deletes it from disk.</div></li>
+      <li class="c1"><code class="cmd">ollama serve</code><div class="desc">Run the server in the foreground (normally it's already running). Reads config from environment variables (card 11).</div></li>
+      <li class="c1"><code class="cmd">ollama --version   &middot;   ollama show llama3.2</code><div class="desc"><code>show</code> prints a model's parameters, template, license, and Modelfile.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="models">
+    <div class="card-head"><span class="card-num n1">3</span><span class="card-title">Model management</span><span class="card-sub">pull &amp; share</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">ollama pull llama3.2:3b   <span class="cm"># tag = size/variant</span></code><span class="star">&#9733;</span><div class="desc">Tags select size/quant: <code>llama3.2:1b</code>, <code>:3b</code>, <code>qwen3:8b</code>, <code>:latest</code>. Browse at ollama.com/library.</div></li>
+      <li class="c1"><code class="cmd">ollama run hf.co/&lt;user&gt;/&lt;repo&gt;-GGUF:Q4_K_M</code><div class="desc">Run any GGUF model straight from Hugging Face by prefixing <code>hf.co/</code> and picking a quantization tag.</div></li>
+      <li class="c1"><code class="cmd">ollama cp llama3.2 my-llama   &middot;   ollama push user/model</code><div class="desc"><code>cp</code> clones a model locally; <code>push</code> uploads to your ollama.com namespace (after <code>ollama signin</code>).</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># a 70B model needs ~40GB+ RAM/VRAM even quantized</span></code><span class="badge-warn">gotcha</span><div class="desc">Pick a size your hardware can hold, or Ollama offloads to CPU and slows down. <code>ollama ps</code> shows the split.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-custom"><h2 style="color:var(--c2)">Custom Models</h2><p class="sub">A Modelfile bakes a base model + system prompt + parameters into a reusable model.</p></div>
+<main>
+  <article class="card" id="modelfile">
+    <div class="card-head"><span class="card-num n2">4</span><span class="card-title">Modelfile</span><span class="card-sub">bake your own</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd"><span class="kw">FROM</span> llama3.2
+<span class="kw">SYSTEM</span> <span class="str">"You are a terse Rust expert."</span>
+<span class="kw">PARAMETER</span> temperature 0.3</code><span class="star">&#9733;</span><div class="desc">A <code>Modelfile</code> is a small recipe: base model + system prompt + default parameters. Like a Dockerfile for models.</div></li>
+      <li class="c2"><code class="cmd">ollama create rusty -f Modelfile
+ollama run rusty</code><span class="star">&#9733;</span><div class="desc">Register it as a named model, then run it like any other. Share via <code>ollama push</code>.</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">PARAMETER</span> num_ctx 8192
+<span class="kw">PARAMETER</span> stop <span class="str">"&lt;/s&gt;"</span></code><div class="desc">Set context window, stop tokens, <code>top_p</code>, <code>repeat_penalty</code>, etc. as model defaults.</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">FROM</span> ./model.gguf        <span class="cm"># import a local GGUF file</span>
+<span class="kw">TEMPLATE</span> <span class="str">"..."</span>  &middot;  <span class="kw">ADAPTER</span> ./lora</code><div class="desc">Import raw GGUF weights, override the prompt <code>TEMPLATE</code>, or attach a LoRA <code>ADAPTER</code>.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-api"><h2 style="color:var(--c3)">REST API</h2><p class="sub">The server on :11434 backs everything &mdash; call it directly over HTTP.</p></div>
+<main>
+  <article class="card" id="api">
+    <div class="card-head"><span class="card-num n3">5</span><span class="card-title">/api/generate &amp; /api/chat</span><span class="card-sub">localhost:11434</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">curl localhost:11434/api/chat -d <span class="str">'{
+  "model":"llama3.2",
+  "messages":[{"role":"user","content":"Hi"}]
+}'</span></code><span class="star">&#9733;</span><div class="desc"><code>/api/chat</code> = multi-turn with message history. The response's <code>message.content</code> holds the reply.</div></li>
+      <li class="c3"><code class="cmd">curl localhost:11434/api/generate -d <span class="str">'{
+  "model":"llama3.2","prompt":"Why is the sky blue?"
+}'</span></code><span class="star">&#9733;</span><div class="desc"><code>/api/generate</code> = single-turn completion from a raw prompt.</div></li>
+      <li class="c3"><code class="cmd"><span class="str">"stream": false</span></code><span class="badge-warn">note</span><div class="desc">Both endpoints <b>stream by default</b> (NDJSON, one JSON object per token). Set <code>"stream": false</code> for a single response object.</div></li>
+      <li class="c3"><code class="cmd"><span class="str">"options"</span>: {<span class="str">"temperature"</span>: 0.2, <span class="str">"num_ctx"</span>: 4096}</code><div class="desc">Per-request overrides go in <code>options</code>. Other endpoints: <code>/api/tags</code> (list), <code>/api/ps</code>, <code>/api/pull</code>, <code>/api/show</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="embed">
+    <div class="card-head"><span class="card-num n3">6</span><span class="card-title">Embeddings</span><span class="card-sub">vectors</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">curl localhost:11434/api/embed -d <span class="str">'{
+  "model":"nomic-embed-text","input":"hello"
+}'</span></code><span class="star">&#9733;</span><div class="desc"><code>/api/embed</code> returns embeddings under <code>embeddings</code>. <code>input</code> accepts a string or an array for batching.</div></li>
+      <li class="c3"><code class="cmd">ollama pull nomic-embed-text   <span class="cm"># or mxbai-embed-large, bge-*</span></code><div class="desc">Dedicated embedding models are small &amp; fast &mdash; ideal for local RAG.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-python"><h2 style="color:var(--c4)">Python Library</h2><p class="sub"><code>pip install ollama</code> &mdash; a thin, typed wrapper over the REST API.</p></div>
+<main>
+  <article class="card" id="python">
+    <div class="card-head"><span class="card-num n4">7</span><span class="card-title">chat / generate</span><span class="card-sub">pip install ollama</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="kw">from</span> ollama <span class="kw">import</span> chat
+r = chat(model=<span class="str">"llama3.2"</span>,
+    messages=[{<span class="str">"role"</span>:<span class="str">"user"</span>,<span class="str">"content"</span>:<span class="str">"Why is the sky blue?"</span>}])
+print(r.message.content)</code><span class="star">&#9733;</span><div class="desc">The main entry point. Returns a typed <code>ChatResponse</code>; the reply is <code>r.message.content</code>.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">import</span> ollama
+ollama.generate(model=<span class="str">"llama3.2"</span>, prompt=<span class="str">"..."</span>)</code><div class="desc">Single-turn completion. Module-level functions use a default client at <code>localhost:11434</code>.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">from</span> ollama <span class="kw">import</span> Client
+client = Client(host=<span class="str">"http://remote:11434"</span>)
+client.chat(model=<span class="str">"llama3.2"</span>, messages=[...])</code><span class="star">&#9733;</span><div class="desc">Use <code>Client</code> to target a non-default host or pass custom headers/timeouts.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">from</span> ollama <span class="kw">import</span> AsyncClient
+<span class="kw">await</span> AsyncClient().chat(model=<span class="str">"llama3.2"</span>, messages=[...])</code><div class="desc">Async twin. Also <code>ollama.list()</code>, <code>pull()</code>, <code>show()</code>, <code>create()</code>, <code>delete()</code>, <code>ps()</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="stream">
+    <div class="card-head"><span class="card-num n4">8</span><span class="card-title">Streaming &amp; options</span><span class="card-sub">token by token</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">stream = chat(model=<span class="str">"llama3.2"</span>, messages=[...], stream=<span class="kw">True</span>)
+<span class="kw">for</span> chunk <span class="kw">in</span> stream:
+    print(chunk.message.content, end=<span class="str">""</span>, flush=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc"><code>stream=True</code> yields partial <code>ChatResponse</code> chunks &mdash; concatenate <code>chunk.message.content</code>.</div></li>
+      <li class="c4"><code class="cmd">chat(model=<span class="str">"llama3.2"</span>, messages=[...],
+    options={<span class="str">"temperature"</span>:0.2, <span class="str">"num_ctx"</span>:8192, <span class="str">"seed"</span>:0})</code><span class="star">&#9733;</span><div class="desc">Decoding knobs go in <code>options</code> (mirrors the REST <code>options</code>): <code>temperature</code>, <code>top_p</code>, <code>top_k</code>, <code>num_predict</code>, <code>stop</code>, <code>seed</code>.</div></li>
+      <li class="c4"><code class="cmd">msg = {<span class="str">"role"</span>:<span class="str">"user"</span>,<span class="str">"content"</span>:<span class="str">"describe"</span>, <span class="str">"images"</span>:[<span class="str">"cat.png"</span>]}</code><div class="desc">Multimodal: attach image paths/bytes via <code>images</code> for vision models (e.g. <code>llama3.2-vision</code>, <code>llava</code>).</div></li>
+      <li class="c4"><code class="cmd">r.total_duration  &middot;  r.eval_count  &middot;  r.prompt_eval_count</code><div class="desc">Timing/token stats come back on the response for benchmarking.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="tools">
+    <div class="card-head"><span class="card-num n4">9</span><span class="card-title">Tools &amp; structured output</span><span class="card-sub">function calling</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="kw">def</span> add(a: int, b: int) -> int:
+    <span class="str">"""Add two numbers."""</span>
+    <span class="kw">return</span> a + b
+
+r = chat(<span class="str">"llama3.2"</span>, messages=[...], tools=[add])</code><span class="star">&#9733;</span><div class="desc">Pass Python functions directly as <code>tools</code>; the library builds the schema. Read requested calls from <code>r.message.tool_calls</code>.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">for</span> tc <span class="kw">in</span> r.message.tool_calls <span class="kw">or</span> []:
+    result = fns[tc.function.name](**tc.function.arguments)</code><div class="desc">You execute the tool, then send the result back as a <code>{"role":"tool"}</code> message for the model to continue.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+chat(<span class="str">"llama3.2"</span>, messages=[...], format=Country.model_json_schema())</code><span class="star">&#9733;</span><div class="desc"><b>Structured output</b>: pass a JSON schema (or <code>format="json"</code>) to force valid JSON; parse with <code>Model.model_validate_json(r.message.content)</code>.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-eco"><h2 style="color:var(--c5)">Config &amp; Ecosystem</h2><p class="sub">Speak OpenAI, tune the server, and connect to the wider tooling.</p></div>
+<main>
+  <article class="card" id="openai">
+    <div class="card-head"><span class="card-num n5">10</span><span class="card-title">OpenAI compatibility</span><span class="card-sub">drop-in</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+client = OpenAI(base_url=<span class="str">"http://localhost:11434/v1"</span>, api_key=<span class="str">"ollama"</span>)</code><span class="star">&#9733;</span><div class="desc">Ollama exposes an OpenAI-compatible surface at <code>/v1</code>. Point the OpenAI SDK at it; <code>api_key</code> is required but ignored.</div></li>
+      <li class="c5"><code class="cmd">client.chat.completions.create(model=<span class="str">"llama3.2"</span>,
+    messages=[{<span class="str">"role"</span>:<span class="str">"user"</span>,<span class="str">"content"</span>:<span class="str">"Hi"</span>}])</code><span class="star">&#9733;</span><div class="desc">Works with <code>chat.completions</code>, <code>completions</code>, and <code>embeddings</code> &mdash; so any OpenAI-targeting framework runs on Ollama by changing the base URL.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># LangChain: ChatOllama / OllamaEmbeddings (langchain-ollama)</span></code><div class="desc">First-class integrations exist too &mdash; e.g. <code>from langchain_ollama import ChatOllama</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="config">
+    <div class="card-head"><span class="card-num n5">11</span><span class="card-title">Server config &amp; env vars</span><span class="card-sub">tuning</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="kw">export</span> OLLAMA_HOST=0.0.0.0:11434</code><span class="star">&#9733;</span><div class="desc">Bind to all interfaces to serve other machines (default is localhost-only). Restart the server after changing env vars.</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">export</span> OLLAMA_MODELS=/data/models</code><div class="desc">Move the model store off the system drive (models are large).</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">export</span> OLLAMA_KEEP_ALIVE=30m</code><span class="star">&#9733;</span><div class="desc">How long a model stays loaded in memory after use (default 5m). <code>-1</code> = keep forever; <code>0</code> = unload immediately.</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">export</span> OLLAMA_NUM_PARALLEL=4   &middot;   OLLAMA_MAX_LOADED_MODELS=2</code><div class="desc">Concurrency: parallel requests per model and how many models load at once. <code>OLLAMA_FLASH_ATTENTION=1</code> to enable flash attention.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="ecosystem">
+    <div class="card-head"><span class="card-num n5">12</span><span class="card-title">Ecosystem</span><span class="card-sub">the wider stack</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="cm"># GUIs: Ollama desktop app, Open WebUI, Enchanted, LM-friendly IDEs</span></code><div class="desc">A native desktop app plus many community front-ends talk to the same <code>:11434</code> server.</div></li>
+      <li class="c5"><code class="cmd">docker run -d -p 11434:11434 ollama/ollama</code><div class="desc">Official Docker image. Add <code>--gpus all</code> for NVIDIA GPU acceleration inside the container.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># libraries: ollama-python, ollama-js + dozens of community SDKs</span></code><div class="desc">Official Python &amp; JavaScript clients; the OpenAI compatibility layer covers the rest.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># works with LangChain, LlamaIndex, Continue, Aider, and more</span></code><div class="desc">Because it's local + OpenAI-compatible, Ollama is a common default backend for privacy-sensitive or offline apps.</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">ollama run MODEL</span><span class="v">pull (if needed) + interactive chat</span></div>
+    <div><span class="k">ollama pull/list/ps/rm</span><span class="v">manage models &amp; memory</span></div>
+    <div><span class="k">:11434</span><span class="v">the server behind CLI/API/libraries</span></div>
+    <div><span class="k">Modelfile</span><span class="v">FROM + SYSTEM + PARAMETER -&gt; ollama create</span></div>
+    <div><span class="k">/api/chat</span><span class="v">multi-turn; /api/generate = single-turn</span></div>
+    <div><span class="k">stream default</span><span class="v">REST streams NDJSON unless stream:false</span></div>
+    <div><span class="k">from ollama import chat</span><span class="v">r.message.content</span></div>
+    <div><span class="k">options={}</span><span class="v">temperature / num_ctx / num_predict / seed</span></div>
+    <div><span class="k">tools= / format=</span><span class="v">function calling &amp; JSON-schema output</span></div>
+    <div><span class="k">/v1</span><span class="v">OpenAI-compatible; api_key ignored</span></div>
+    <div><span class="k">OLLAMA_HOST</span><span class="v">expose beyond localhost</span></div>
+    <div><span class="k">OLLAMA_KEEP_ALIVE</span><span class="v">how long a model stays loaded</span></div>
+  </div>
+</section>
+
+<footer>
+  <b>Ollama cheat sheet</b> &middot; v0 &middot; content verified 2026-08-31 against ollama.com, github.com/ollama/ollama (server 0.32.x) &amp; github.com/ollama/ollama-python.<br>
+  One local server on <code>localhost:11434</code> backs the CLI, the REST API (<code>/api/chat</code>, <code>/api/generate</code>, <code>/api/embed</code>), the official Python/JS libraries, and an OpenAI-compatible <code>/v1</code> surface. Modelfiles package custom models; GGUF quantization keeps them laptop-sized.<br>
+  Star (&#9733;) marks the most common operations. Model tags &amp; available options evolve &mdash; confirm against <code>ollama --help</code> and the current docs before shipping.
+</footer>
+</body>
+</html>

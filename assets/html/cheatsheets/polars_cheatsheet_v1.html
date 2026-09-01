@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polars Cheat Sheet — Comprehensive Edition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --create:#2563eb;  --create-bg:#eff4fe;
+    --inspect:#64748b; --inspect-bg:#f1f3f6;
+    --select:#d97706;  --select-bg:#fdf6ec;
+    --shape:#7c3aed;   --shape-bg:#f5f0fd;
+    --clean:#059669;   --clean-bg:#ecf7f2;
+    --stats:#0891b2;   --stats-bg:#eafafd;
+    --sql:#db2777;     --sql-bg:#fdf0f7;
+    --lazy:#0d9488;    --lazy-bg:#e9f8f6;
+    --danger:#dc2626;  --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .pl{font-family:var(--mono); color:var(--create)}
+  h1 .v2{font-family:var(--mono); font-size:.4em; color:var(--sql); vertical-align:super; letter-spacing:0}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.create{background:var(--create)} .dot.inspect{background:var(--inspect)}
+  .dot.select{background:var(--select)} .dot.shape{background:var(--shape)}
+  .dot.clean{background:var(--clean)} .dot.stats{background:var(--stats)}
+  .dot.sql{background:var(--sql)} .dot.lazy{background:var(--lazy)}
+  .dot.danger{background:var(--danger)}
+
+  .band{ max-width:1500px; margin:0 auto; padding:1.4rem clamp(1rem,4vw,3rem) 0; }
+  .band h2{
+    font-family:var(--mono); font-size:.82rem; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink); padding:.5rem 0 .1rem; border-top:2px solid var(--ink); display:flex; gap:.6rem; align-items:baseline;
+  }
+  .band h2 .tag{font-size:.66rem; color:var(--muted); letter-spacing:.05em; font-weight:400; text-transform:none}
+
+  .flow-wrap{ max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem; }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1080px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  main{
+    max-width:1500px; margin:0 auto; padding:.6rem clamp(1rem,4vw,3rem) 1rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1240px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.73rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.create{border-left-color:var(--create)}
+  ul.cmds li.inspect{border-left-color:var(--inspect)}
+  ul.cmds li.select{border-left-color:var(--select)}
+  ul.cmds li.shape{border-left-color:var(--shape)}
+  ul.cmds li.clean{border-left-color:var(--clean)}
+  ul.cmds li.stats{border-left-color:var(--stats)}
+  ul.cmds li.sql{border-left-color:var(--sql)}
+  ul.cmds li.lazy{border-left-color:var(--lazy)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  ul.cmds li.note{border-left-color:var(--line); background:#faf9f6}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.78rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .arg{color:var(--create); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .num{color:var(--stats); font-weight:400}
+  li.danger code.cmd{color:var(--danger)}
+  li.note code.cmd{color:#525761; font-style:italic; font-weight:400}
+  .desc{font-size:.77rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.95em; background:#f1eee8; padding:.02rem .2rem; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-safe{
+    color:var(--clean); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  .diagrams{ max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem; }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  .refs{ max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem; }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Comprehensive Quick Reference &middot; fast, multi-threaded DataFrames in Python</div>
+  <h1><span class="pl">polars</span> cheat sheet <span class="v2">v2 &middot; all namespaces</span></h1>
+  <p class="lede">A single source of truth across the whole Polars surface: the <b>DataFrame</b>/<b>LazyFrame</b>/<b>Series</b> objects, the full <b>expression</b> API with its <b>.str / .dt / .list / .struct / .cat / .name</b> namespaces, <b>selectors</b>, <b>horizontal</b> &amp; window functions, the <b>SQL</b> interface, streaming <b>sinks</b>, config, interop &amp; the extension API. It all rests on one idea: <b>expressions</b> plug into <b>contexts</b>, and you choose <b>eager</b> or a lazy, query-optimized run.</p>
+  <div class="legend">
+    <span><i class="dot create"></i>create / load</span>
+    <span><i class="dot inspect"></i>inspect / config</span>
+    <span><i class="dot select"></i>select &amp; filter</span>
+    <span><i class="dot shape"></i>shape &amp; combine</span>
+    <span><i class="dot clean"></i>expr namespaces</span>
+    <span><i class="dot stats"></i>aggregate / stats</span>
+    <span><i class="dot sql"></i>SQL / extend</span>
+    <span><i class="dot lazy"></i>lazy / streaming</span>
+    <span><i class="dot danger"></i>handle with care</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Validated against the official <b>Polars Python API reference</b> (docs.pola.rs) — DataFrame, LazyFrame, Series, Expressions &amp; their namespaces, Selectors, SQL, Config, I/O, the extension API &amp; testing; cross-checked with the franzdiebold PDF sheet, rhosignal (tested pandas&#8594;polars), Real Python &amp; dailydoseofds. <b>v2 gap-analysis edition.</b></p>
+</header>
+
+<!-- ============ MODULE MAP DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The Polars surface &mdash; expressions, their namespaces &amp; the wider API</div>
+  <svg class="flow-svg" viewBox="0 0 1080 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Map of Polars: three frame types (DataFrame, LazyFrame, Series) run expressions; expressions carry namespaces str, dt, list, struct, cat, name; and the wider API adds selectors, SQL, config and the extension API.">
+    <defs>
+      <marker id="arrM" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+    </defs>
+    <!-- frame types -->
+    <g font-size="11" font-weight="700" text-anchor="middle">
+      <rect x="70"  y="16" width="150" height="44" rx="8" fill="#1a1d24"/><text x="145" y="35" fill="#fff">DataFrame</text><text x="145" y="50" font-size="8.5" font-weight="400" fill="#facc15">eager</text>
+      <rect x="240" y="16" width="150" height="44" rx="8" fill="#1a1d24"/><text x="315" y="35" fill="#fff">LazyFrame</text><text x="315" y="50" font-size="8.5" font-weight="400" fill="#facc15">optimized plan</text>
+      <rect x="410" y="16" width="150" height="44" rx="8" fill="#1a1d24"/><text x="485" y="35" fill="#fff">Series</text><text x="485" y="50" font-size="8.5" font-weight="400" fill="#facc15">one column</text>
+    </g>
+
+    <!-- expression core -->
+    <rect x="180" y="104" width="330" height="52" rx="9" fill="#f5f0fd" stroke="#7c3aed" stroke-width="1.6"/>
+    <text x="345" y="126" text-anchor="middle" font-size="13" font-weight="700" fill="#7c3aed">Expression (pl.col / pl.lit / pl.when)</text>
+    <text x="345" y="144" text-anchor="middle" font-size="9.5" fill="#7c3aed">runs inside select / with_columns / filter / group_by.agg</text>
+    <line x1="145" y1="60" x2="250" y2="102" stroke="#64748b" stroke-width="1.3" marker-end="url(#arrM)"/>
+    <line x1="315" y1="60" x2="345" y2="102" stroke="#64748b" stroke-width="1.3" marker-end="url(#arrM)"/>
+    <line x1="485" y1="60" x2="440" y2="102" stroke="#64748b" stroke-width="1.3" marker-end="url(#arrM)"/>
+
+    <!-- expression namespaces -->
+    <text x="345" y="182" text-anchor="middle" font-size="10.5" font-weight="700" fill="#059669">expression namespaces (typed sub-APIs)</text>
+    <g font-size="10" text-anchor="middle" font-weight="700">
+      <rect x="20"  y="192" width="72" height="28" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/><text x="56"  y="210" fill="#059669">.str</text>
+      <rect x="98"  y="192" width="66" height="28" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/><text x="131" y="210" fill="#059669">.dt</text>
+      <rect x="170" y="192" width="72" height="28" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/><text x="206" y="210" fill="#059669">.list</text>
+      <rect x="248" y="192" width="82" height="28" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/><text x="289" y="210" fill="#059669">.struct</text>
+      <rect x="336" y="192" width="66" height="28" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/><text x="369" y="210" fill="#059669">.cat</text>
+      <rect x="408" y="192" width="72" height="28" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.3"/><text x="444" y="210" fill="#059669">.name</text>
+    </g>
+    <line x1="345" y1="156" x2="345" y2="188" stroke="#64748b" stroke-width="1.2" marker-end="url(#arrM)"/>
+
+    <!-- wider API -->
+    <text x="800" y="96" text-anchor="middle" font-size="10.5" font-weight="700" fill="#db2777">the wider API</text>
+    <g font-size="9.5" text-anchor="middle" font-weight="700">
+      <rect x="600" y="106" width="180" height="40" rx="7" fill="#fdf0f7" stroke="#db2777" stroke-width="1.4"/><text x="690" y="124" fill="#db2777">selectors (cs.*)</text><text x="690" y="138" font-size="8" font-weight="400" fill="#db2777">cs.numeric() · cs.string()</text>
+      <rect x="790" y="106" width="180" height="40" rx="7" fill="#fdf0f7" stroke="#db2777" stroke-width="1.4"/><text x="880" y="124" fill="#db2777">SQL</text><text x="880" y="138" font-size="8" font-weight="400" fill="#db2777">pl.sql · SQLContext</text>
+      <rect x="600" y="152" width="180" height="40" rx="7" fill="#e9f8f6" stroke="#0d9488" stroke-width="1.4"/><text x="690" y="170" fill="#0d9488">lazy / streaming</text><text x="690" y="184" font-size="8" font-weight="400" fill="#0d9488">scan_* · sink_* · collect</text>
+      <rect x="790" y="152" width="180" height="40" rx="7" fill="#f1f3f6" stroke="#64748b" stroke-width="1.4"/><text x="880" y="170" fill="#64748b">Config · api · testing</text><text x="880" y="184" font-size="8" font-weight="400" fill="#64748b">register_*_namespace</text>
+    </g>
+    <line x1="510" y1="130" x2="598" y2="128" stroke="#64748b" stroke-width="1.2" marker-end="url(#arrM)"/>
+
+    <!-- foundation -->
+    <rect x="330" y="248" width="420" height="36" rx="8" fill="#eff4fe" stroke="#2563eb" stroke-width="1.4"/>
+    <text x="540" y="266" text-anchor="middle" font-size="10" font-weight="700" fill="#2563eb">Apache Arrow columnar memory &mdash; zero-copy interop with pandas / numpy / pyarrow</text>
+    <line x1="345" y1="220" x2="440" y2="246" stroke="#64748b" stroke-width="1.1" stroke-dasharray="3 2" marker-end="url(#arrM)"/>
+  </svg>
+</section>
+
+<!-- ================= SECTION 1: CORE ================= -->
+<section class="band"><h2>I &middot; Core: Load, Create &amp; Inspect <span class="tag">I/O · constructors · config · interop</span></h2></section>
+
+<main>
+
+  <!-- 01 SETUP & CONFIG -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Config</span><span class="card-sub">create · inspect</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">import polars <span class="flag">as</span> <span class="arg">pl</span></code><span class="star">&#9733;</span><div class="desc">Universal alias — always <code>pl</code>.</div></li>
+      <li class="create"><code class="cmd">import polars.selectors <span class="flag">as</span> <span class="arg">cs</span></code><span class="star">&#9733;</span><div class="desc">Dtype- and name-based column selectors.</div></li>
+      <li class="inspect"><code class="cmd">pl.Config.set_tbl_rows(<span class="num">50</span>)</code><span class="star">&#9733;</span><div class="desc">Show more rows; also <code>set_tbl_cols</code>, <code>set_fmt_str_lengths</code>.</div></li>
+      <li class="inspect"><code class="cmd">with pl.Config(tbl_rows=100): ...</code><div class="desc">Scoped config as a context manager.</div></li>
+      <li class="create"><code class="cmd">pl.__version__ &nbsp;pl.show_versions()</code><div class="desc">Version / full environment report.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 READING (eager) -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Reading Data (eager)</span><span class="card-sub">create · pl.read_*</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">pl.read_csv(<span class="arg">'f.csv'</span>)</code><span class="star">&#9733;</span><div class="desc">Read CSV eagerly into memory.</div></li>
+      <li class="create"><code class="cmd">pl.read_parquet(<span class="arg">'f.parquet'</span>)</code><span class="star">&#9733;</span><div class="desc">Columnar Parquet — Polars-native default.</div></li>
+      <li class="create"><code class="cmd">pl.read_json &nbsp;pl.read_ndjson &nbsp;pl.read_ipc</code><div class="desc">JSON / line-delimited JSON / Arrow IPC.</div></li>
+      <li class="create"><code class="cmd">pl.read_excel(<span class="arg">'f.xlsx', sheet_name='S1'</span>)</code><div class="desc">Read an Excel/ODS sheet.</div></li>
+      <li class="create"><code class="cmd">pl.read_database(<span class="arg">query, connection</span>)</code><div class="desc">Read a SQL query result.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 SCANNING (lazy) -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Scanning Data (lazy)</span><span class="card-sub">lazy · pl.scan_*</span></div>
+    <ul class="cmds">
+      <li class="lazy"><code class="cmd">pl.scan_csv(<span class="arg">'f.csv'</span>)</code><span class="star">&#9733;</span><div class="desc">Lazy CSV — nothing read until <code>.collect()</code>.</div></li>
+      <li class="lazy"><code class="cmd">pl.scan_parquet(<span class="arg">'f.parquet'</span>)</code><span class="star">&#9733;</span><div class="desc">Enables predicate &amp; projection pushdown.</div></li>
+      <li class="lazy"><code class="cmd">pl.scan_ndjson &nbsp;pl.scan_ipc &nbsp;pl.scan_delta</code><div class="desc">Lazy readers for other formats.</div></li>
+      <li class="lazy"><code class="cmd">pl.scan_parquet(<span class="arg">'s3://bucket/*.parquet'</span>)</code><span class="star">&#9733;</span><div class="desc">Glob &amp; cloud paths supported.</div></li>
+      <li class="note"><code class="cmd">scan_* &#8594; LazyFrame; read_* &#8594; DataFrame</code><div class="desc">Prefer scan for big data.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 WRITING & SINKS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Writing &amp; Streaming Sinks</span><span class="card-sub">create · lazy</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">df.write_parquet(<span class="arg">'f.parquet'</span>)</code><span class="star">&#9733;</span><div class="desc">Eager write (also <code>write_csv</code>, <code>write_ipc</code>).</div></li>
+      <li class="lazy"><code class="cmd">lf.sink_parquet(<span class="arg">'f.parquet'</span>)</code><span class="star">&#9733;</span><div class="desc">Stream a lazy query to disk — never fully materialized.</div></li>
+      <li class="lazy"><code class="cmd">lf.sink_csv / sink_ipc / sink_ndjson</code><div class="desc">Streaming writers for other formats.</div></li>
+      <li class="create"><code class="cmd">df.write_database(<span class="arg">'table', connection</span>)</code><div class="desc">Write to a relational database.</div></li>
+      <li class="create"><code class="cmd">df.write_excel(<span class="arg">'f.xlsx'</span>)</code><div class="desc">Write a formatted Excel sheet.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 CREATE & INTEROP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Creating &amp; Interop</span><span class="card-sub">create</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">pl.DataFrame({<span class="arg">'a': [1,2,3]</span>})</code><span class="star">&#9733;</span><div class="desc">Dict keys → columns, values → rows.</div></li>
+      <li class="create"><code class="cmd">pl.DataFrame(data, schema={<span class="arg">'a': pl.Int64</span>})</code><div class="desc">Explicit schema (name → dtype).</div></li>
+      <li class="create"><code class="cmd">pl.Series(<span class="arg">'a', [1,2,3]</span>)</code><span class="star">&#9733;</span><div class="desc">One named, typed 1D array.</div></li>
+      <li class="create"><code class="cmd">pl.from_pandas(pdf) &nbsp;pl.from_arrow(tbl)</code><span class="star">&#9733;</span><div class="desc">Zero-copy-ish bridges in.</div></li>
+      <li class="create"><code class="cmd">df.to_pandas() &nbsp;df.to_numpy() &nbsp;df.to_arrow()</code><span class="star">&#9733;</span><div class="desc">Bridges out; also <code>to_dicts()</code>.</div></li>
+      <li class="create"><code class="cmd">df.lazy() &nbsp;lf.collect()</code><span class="star">&#9733;</span><div class="desc">Switch between eager &amp; lazy.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 INSPECT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Inspect &amp; Explore</span><span class="card-sub">inspect</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">df.head(<span class="num">n</span>) &nbsp;df.tail(<span class="num">n</span>) &nbsp;df.glimpse()</code><span class="star">&#9733;</span><div class="desc">Preview; <code>glimpse</code> is transposed, great for wide frames.</div></li>
+      <li class="inspect"><code class="cmd">df.shape &nbsp;df.schema &nbsp;df.dtypes &nbsp;df.columns</code><span class="star">&#9733;</span><div class="desc">Dimensions / name→type map / types / names.</div></li>
+      <li class="inspect"><code class="cmd">df.describe()</code><span class="star">&#9733;</span><div class="desc">Summary stats for every column.</div></li>
+      <li class="inspect"><code class="cmd">df.null_count() &nbsp;df.estimated_size()</code><div class="desc">Nulls per column / memory footprint.</div></li>
+      <li class="inspect"><code class="cmd">df.get_column('a') &nbsp;df.to_series(0)</code><div class="desc">Pull a column out as a Series.</div></li>
+      <li class="inspect"><code class="cmd">df.row(0) &nbsp;df.rows() &nbsp;df.iter_rows()</code><div class="desc">Materialize rows as tuples (use sparingly).</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ================= SECTION 2: SELECT, FILTER, SELECTORS ================= -->
+<section class="band"><h2>II &middot; Select, Filter &amp; Selectors <span class="tag">[] · expressions · cs.* selectors</span></h2></section>
+
+<main>
+
+  <!-- 07 SELECTING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Selecting Columns &amp; Rows</span><span class="card-sub">select &amp; filter</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">df.select(<span class="arg">'a', 'b'</span>)</code><span class="star">&#9733;</span><div class="desc">Project a subset of columns.</div></li>
+      <li class="select"><code class="cmd">df.select(pl.col(<span class="arg">'a'</span>), pl.col(<span class="arg">'b'</span>) * 2)</code><span class="star">&#9733;</span><div class="desc">Select with expressions.</div></li>
+      <li class="select"><code class="cmd">df[<span class="num">1, 1</span>] &nbsp;df[<span class="num">1:3</span>] &nbsp;df[:, <span class="num">1:</span>]</code><div class="desc">Positional <code>[]</code> — like pandas' <code>.iloc</code>.</div></li>
+      <li class="select"><code class="cmd">df.select(pl.col(<span class="arg">'^col_.*$'</span>))</code><div class="desc">Regex column selection.</div></li>
+      <li class="select"><code class="cmd">df.select(pl.exclude(<span class="arg">'a'</span>)) &nbsp;pl.all()</code><span class="star">&#9733;</span><div class="desc">All columns except / every column.</div></li>
+      <li class="select"><code class="cmd">df.with_row_index(<span class="arg">'idx'</span>)</code><span class="star">&#9733;</span><div class="desc">Add a 0..n row-index column.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 SELECTORS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Selectors</span><span class="card-sub">select · cs.*</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">df.select(cs.numeric())</code><span class="star">&#9733;</span><div class="desc">All numeric columns by dtype.</div></li>
+      <li class="select"><code class="cmd">cs.string() &nbsp;cs.temporal() &nbsp;cs.boolean()</code><span class="star">&#9733;</span><div class="desc">Select whole dtype families.</div></li>
+      <li class="select"><code class="cmd">cs.starts_with('x') &nbsp;cs.ends_with('_id')</code><span class="star">&#9733;</span><div class="desc">Name-pattern selectors.</div></li>
+      <li class="select"><code class="cmd">cs.numeric() - cs.first()</code><div class="desc">Set-ops on selectors: <code>| &amp; ~ -</code>.</div></li>
+      <li class="select"><code class="cmd">df.with_columns(cs.numeric().fill_null(0))</code><span class="star">&#9733;</span><div class="desc">Broadcast one expression over selected columns.</div></li>
+      <li class="select"><code class="cmd">cs.by_dtype(pl.Float64) &nbsp;cs.matches('regex')</code><div class="desc">By explicit dtype / regex.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 FILTERING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Filtering &amp; Boolean Logic</span><span class="card-sub">select &amp; filter</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">df.filter(pl.col(<span class="arg">'age'</span>) &gt; <span class="num">24</span>)</code><span class="star">&#9733;</span><div class="desc">Keep rows matching a boolean expression.</div></li>
+      <li class="select"><code class="cmd">df.filter(pl.col('a')&gt;1, pl.col('b')&lt;9)</code><span class="star">&#9733;</span><div class="desc">Comma-separated = implicit AND.</div></li>
+      <li class="select"><code class="cmd">df.filter((pl.col('a')&gt;1) | (pl.col('b')&lt;9))</code><div class="desc">Explicit <code>&amp; | ~</code> in parens.</div></li>
+      <li class="select"><code class="cmd">pl.col('a').is_in([...]) &nbsp;.is_between(2,4)</code><span class="star">&#9733;</span><div class="desc">Membership / inclusive range.</div></li>
+      <li class="select"><code class="cmd">pl.col('a').is_null() &nbsp;.is_not_null() &nbsp;.is_nan()</code><div class="desc">Null / NaN masks (they're distinct).</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ================= SECTION 3: EXPRESSIONS & TRANSFORM ================= -->
+<section class="band"><h2>III &middot; Expressions &amp; Transformation <span class="tag">with_columns · when/then · missing · UDFs</span></h2></section>
+
+<main>
+
+  <!-- 10 COLUMN EXPRESSIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Column Expressions &amp; Casting</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">df.with_columns(pl.col('a') * 2)</code><span class="star">&#9733;</span><div class="desc">Add / replace a column (returns new frame).</div></li>
+      <li class="shape"><code class="cmd">df.with_columns(new = pl.col('a') + pl.col('b'))</code><span class="star">&#9733;</span><div class="desc">Keyword form names the output column.</div></li>
+      <li class="shape"><code class="cmd">pl.col('a').cast(pl.Float64)</code><span class="star">&#9733;</span><div class="desc">Cast a column to a new dtype.</div></li>
+      <li class="shape"><code class="cmd">pl.col('a').alias('b') &nbsp;.name.suffix('_x')</code><span class="star">&#9733;</span><div class="desc">Rename one column / bulk-rename via <code>.name</code>.</div></li>
+      <li class="shape"><code class="cmd">df.rename({'old':'new'}) &nbsp;df.drop('a','b')</code><span class="star">&#9733;</span><div class="desc">Rename / drop columns.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 CONDITIONAL & HORIZONTAL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Conditionals &amp; Horizontal Ops</span><span class="card-sub">select &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">pl.when(c1).then(v1).when(c2).then(v2).otherwise(d)</code><span class="star">&#9733;</span><div class="desc">Vectorized if/elif/else — chain more <code>.when()</code>.</div></li>
+      <li class="select"><code class="cmd">pl.coalesce('a', 'b', pl.lit(0))</code><span class="star">&#9733;</span><div class="desc">First non-null value across columns.</div></li>
+      <li class="stats"><code class="cmd">pl.sum_horizontal('a','b') &nbsp;pl.mean_horizontal(...)</code><span class="star">&#9733;</span><div class="desc">Row-wise aggregate across columns.</div></li>
+      <li class="stats"><code class="cmd">pl.min_horizontal(...) &nbsp;pl.max_horizontal(...)</code><div class="desc">Row-wise min / max.</div></li>
+      <li class="shape"><code class="cmd">pl.concat_list(['a','b']) &nbsp;pl.concat_str([...], separator='-')</code><div class="desc">Combine columns into a list / joined string.</div></li>
+      <li class="stats"><code class="cmd">pl.fold(acc, fn, exprs)</code><div class="desc">General horizontal reduction.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 MISSING & DUPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Missing Values &amp; Duplicates</span><span class="card-sub">clean</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">df.fill_null(0) &nbsp;.fill_null(strategy='forward')</code><span class="star">&#9733;</span><div class="desc">Replace nulls — value or strategy.</div></li>
+      <li class="clean"><code class="cmd">df.drop_nulls(subset=['a'])</code><span class="star">&#9733;</span><div class="desc">Drop rows with nulls.</div></li>
+      <li class="clean"><code class="cmd">df.fill_nan(0)</code><div class="desc">Fill NaN — separate from null in Polars.</div></li>
+      <li class="clean"><code class="cmd">pl.col('a').interpolate()</code><div class="desc">Fill gaps by interpolation.</div></li>
+      <li class="clean"><code class="cmd">df.unique(subset=['a','b'], keep='first')</code><span class="star">&#9733;</span><div class="desc">De-duplicate rows.</div></li>
+      <li class="clean"><code class="cmd">df.is_duplicated() &nbsp;df.is_unique()</code><div class="desc">Row-level duplicate masks.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 UDFs -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">UDFs &amp; Custom Logic</span><span class="card-sub">handle with care</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">pl.col('a').map_elements(fn, return_dtype=pl.Int64)</code><span class="badge-danger">slow</span><div class="desc">Per-element Python UDF — last resort.</div></li>
+      <li class="clean"><code class="cmd">pl.col('a').map_batches(fn)</code><span class="star">&#9733;</span><div class="desc">Whole-Series UDF — faster than per-element.</div></li>
+      <li class="clean"><code class="cmd">df.map_rows(fn)</code><div class="desc">Frame-level row UDF (loses column names).</div></li>
+      <li class="clean"><code class="cmd">prefer native expressions</code><span class="badge-safe">faster</span><div class="desc">Native exprs run in Rust, parallelize &amp; optimize; UDFs don't.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ================= SECTION 4: EXPRESSION NAMESPACES ================= -->
+<section class="band"><h2>IV &middot; Expression Namespaces <span class="tag">.str · .dt · .list · .struct · .cat</span></h2></section>
+
+<main>
+
+  <!-- 14 STRING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">String Expressions</span><span class="card-sub">.str namespace</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">pl.col('c').str.to_uppercase() / to_lowercase()</code><span class="star">&#9733;</span><div class="desc">Case conversion.</div></li>
+      <li class="clean"><code class="cmd">.str.contains('pat') &nbsp;.str.starts_with('x')</code><span class="star">&#9733;</span><div class="desc">Boolean substring / prefix / regex match.</div></li>
+      <li class="clean"><code class="cmd">.str.replace('a','b') &nbsp;.str.replace_all(...)</code><span class="star">&#9733;</span><div class="desc">Replace first / all matches.</div></li>
+      <li class="clean"><code class="cmd">.str.extract(r'(\d+)', 1) &nbsp;.str.extract_all(...)</code><div class="desc">Pull out regex capture groups.</div></li>
+      <li class="clean"><code class="cmd">.str.split('-') &nbsp;.str.slice(0, 3) &nbsp;.str.strip_chars()</code><span class="star">&#9733;</span><div class="desc">Split / substring / trim.</div></li>
+      <li class="clean"><code class="cmd">.str.to_datetime('%Y-%m-%d') &nbsp;.str.json_decode()</code><div class="desc">Parse strings into dates / structs.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 DATE/TIME -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Date &amp; Time Expressions</span><span class="card-sub">.dt namespace</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">pl.col('d').dt.year() / .month() / .day()</code><span class="star">&#9733;</span><div class="desc">Extract date components.</div></li>
+      <li class="clean"><code class="cmd">.dt.weekday() &nbsp;.dt.hour() &nbsp;.dt.ordinal_day()</code><div class="desc">More calendar parts.</div></li>
+      <li class="clean"><code class="cmd">.dt.truncate('1mo') &nbsp;.dt.round('1h')</code><span class="star">&#9733;</span><div class="desc">Snap timestamps to a grid.</div></li>
+      <li class="clean"><code class="cmd">.dt.offset_by('1d') &nbsp;+ pl.duration(days=1)</code><div class="desc">Date arithmetic.</div></li>
+      <li class="clean"><code class="cmd">.dt.convert_time_zone('Asia/Kolkata')</code><div class="desc">Shift timezone (also <code>replace_time_zone</code>).</div></li>
+      <li class="clean"><code class="cmd">.dt.strftime('%b %Y') &nbsp;.dt.to_string()</code><div class="desc">Format as string.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 LIST/ARRAY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">List &amp; Array Expressions</span><span class="card-sub">.list / .arr namespace</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">pl.col('l').list.len() &nbsp;.list.get(0)</code><span class="star">&#9733;</span><div class="desc">Length / element by index.</div></li>
+      <li class="clean"><code class="cmd">.list.sum() &nbsp;.list.mean() &nbsp;.list.max()</code><span class="star">&#9733;</span><div class="desc">Aggregate within each list.</div></li>
+      <li class="clean"><code class="cmd">.list.eval(pl.element() * 2)</code><span class="star">&#9733;</span><div class="desc">Run an expression over each list's elements.</div></li>
+      <li class="clean"><code class="cmd">.list.contains(x) &nbsp;.list.unique() &nbsp;.list.sort()</code><div class="desc">Membership / dedup / sort per list.</div></li>
+      <li class="clean"><code class="cmd">.list.gather([0,2]) &nbsp;.list.slice(0,2)</code><div class="desc">Pick / slice elements.</div></li>
+      <li class="clean"><code class="cmd">.arr.* (fixed-size Array dtype)</code><div class="desc">Parallel namespace for the fixed-width Array type.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 STRUCT / CAT / NAME -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Struct, Categorical &amp; Name</span><span class="card-sub">.struct / .cat / .name</span></div>
+    <ul class="cmds">
+      <li class="clean"><code class="cmd">pl.struct(['a','b']).alias('s')</code><span class="star">&#9733;</span><div class="desc">Bundle columns into a struct.</div></li>
+      <li class="clean"><code class="cmd">pl.col('s').struct.field('a')</code><span class="star">&#9733;</span><div class="desc">Pull one field out of a struct.</div></li>
+      <li class="clean"><code class="cmd">df.unnest('s') &nbsp;.struct.rename_fields([...])</code><span class="star">&#9733;</span><div class="desc">Explode a struct back into flat columns.</div></li>
+      <li class="clean"><code class="cmd">pl.col('c').cast(pl.Categorical)</code><span class="star">&#9733;</span><div class="desc">Encode repeated strings — big memory win.</div></li>
+      <li class="clean"><code class="cmd">.cat.get_categories() &nbsp;.cat.set_ordering(...)</code><div class="desc">Inspect / order categories.</div></li>
+      <li class="clean"><code class="cmd">.name.prefix('x_') &nbsp;.name.to_lowercase()</code><div class="desc">Programmatic column renaming.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ================= SECTION 5: RESHAPE, COMBINE, AGGREGATE ================= -->
+<section class="band"><h2>V &middot; Reshape, Combine &amp; Aggregate <span class="tag">joins · concat · group_by · window · pivot</span></h2></section>
+
+<main>
+
+  <!-- 18 SORTING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Sorting, Rank &amp; Top-N</span><span class="card-sub">select &amp; filter</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">df.sort('a', descending=True)</code><span class="star">&#9733;</span><div class="desc">Sort by one or more columns.</div></li>
+      <li class="select"><code class="cmd">df.sort(['a','b'], descending=[False,True])</code><div class="desc">Mixed sort direction per column.</div></li>
+      <li class="select"><code class="cmd">df.top_k(n, by='a') &nbsp;df.bottom_k(n, by='a')</code><span class="star">&#9733;</span><div class="desc">Top / bottom n rows by a column.</div></li>
+      <li class="select"><code class="cmd">pl.col('a').rank() &nbsp;.arg_sort() &nbsp;.sort_by('b')</code><span class="star">&#9733;</span><div class="desc">Rank / sorting-index / sort by another column.</div></li>
+      <li class="select"><code class="cmd">pl.col('a').search_sorted(x)</code><div class="desc">Insertion point in a sorted column.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 JOINS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Joins</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">df1.join(df2, on='key', how='inner')</code><span class="star">&#9733;</span><div class="desc">Join on a shared column.</div></li>
+      <li class="shape"><code class="cmd">df1.join(df2, on='key', how='left')</code><span class="star">&#9733;</span><div class="desc">Keep every row of <code>df1</code>.</div></li>
+      <li class="shape"><code class="cmd">df1.join(df2, left_on='a', right_on='b')</code><div class="desc">Join on differently-named keys.</div></li>
+      <li class="shape"><code class="cmd">df1.join(df2, on='k', how='anti')</code><span class="star">&#9733;</span><div class="desc">Rows of <code>df1</code> with NO match — great for exclusions.</div></li>
+      <li class="shape"><code class="cmd">df1.join_asof(df2, on='date', by='id')</code><span class="star">&#9733;</span><div class="desc">Nearest-match join — for time series.</div></li>
+      <li class="shape"><code class="cmd">df1.join_where(df2, pl.col('a') &gt; pl.col('b'))</code><div class="desc">Inequality / non-equi join.</div></li>
+    </ul>
+  </article>
+
+  <!-- 20 CONCAT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">20</span><span class="card-title">Combining: Concatenate</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">pl.concat([df1, df2])</code><span class="star">&#9733;</span><div class="desc">Stack rows (default: vertical).</div></li>
+      <li class="shape"><code class="cmd">pl.concat([df1, df2], how='diagonal')</code><span class="star">&#9733;</span><div class="desc">Align by name, fill missing with null.</div></li>
+      <li class="shape"><code class="cmd">pl.concat([df1, df2], how='horizontal')</code><div class="desc">Stack columns side by side.</div></li>
+      <li class="shape"><code class="cmd">df1.vstack(df2) &nbsp;df1.hstack(df2)</code><div class="desc">Append rows / columns in place.</div></li>
+      <li class="shape"><code class="cmd">df1.extend(df2)</code><div class="desc">Append rows, reusing memory where possible.</div></li>
+    </ul>
+  </article>
+
+  <!-- 21 GROUPBY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">21</span><span class="card-title">GroupBy &amp; Aggregation</span><span class="card-sub">aggregate / stats</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">df.group_by('g').agg(pl.col('x').mean())</code><span class="star">&#9733;</span><div class="desc">Per-group aggregate.</div></li>
+      <li class="stats"><code class="cmd">.agg(m=pl.col('x').mean(), s=pl.col('y').sum())</code><span class="star">&#9733;</span><div class="desc">Multiple named aggregates.</div></li>
+      <li class="stats"><code class="cmd">.agg(pl.col('x').sum(), pl.len(), pl.first('y'))</code><span class="star">&#9733;</span><div class="desc"><code>pl.len</code> / <code>first</code> / <code>n_unique</code> / <code>quantile</code> in agg.</div></li>
+      <li class="stats"><code class="cmd">.agg(pl.all().sum()) &nbsp;.agg(cs.numeric().mean())</code><div class="desc">Aggregate every / selected column at once.</div></li>
+      <li class="stats"><code class="cmd">df.group_by('g', maintain_order=True)</code><span class="star">&#9733;</span><div class="desc">Preserve group order (else unordered &amp; faster).</div></li>
+    </ul>
+  </article>
+
+  <!-- 22 WINDOW / DYNAMIC -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">22</span><span class="card-title">Window &amp; Time-Grouped Ops</span><span class="card-sub">aggregate / stats</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">pl.col('x').sum().over('g')</code><span class="star">&#9733;</span><div class="desc">Group aggregate broadcast back to every row.</div></li>
+      <li class="stats"><code class="cmd">pl.col('x').rank().over('g') &nbsp;.cum_sum().over('g')</code><span class="star">&#9733;</span><div class="desc">Per-group rank / running total.</div></li>
+      <li class="stats"><code class="cmd">pl.col('x').shift(1).over('g')</code><div class="desc">Per-group lag / lead.</div></li>
+      <li class="stats"><code class="cmd">pl.col('x').rolling_mean(window_size=3)</code><span class="star">&#9733;</span><div class="desc">Moving-window aggregate.</div></li>
+      <li class="stats"><code class="cmd">df.group_by_dynamic('t', every='1mo').agg(...)</code><span class="star">&#9733;</span><div class="desc">Time-bucketed grouping (like resample).</div></li>
+      <li class="stats"><code class="cmd">df.rolling(index_column='t', period='7d').agg(...)</code><div class="desc">Rolling time-window groups.</div></li>
+    </ul>
+  </article>
+
+  <!-- 23 RESHAPE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">23</span><span class="card-title">Reshaping: Pivot &amp; Unpivot</span><span class="card-sub">shape &amp; combine</span></div>
+    <ul class="cmds">
+      <li class="shape"><code class="cmd">df.pivot(index='g', on='k', values='v', aggregate_function='sum')</code><span class="star">&#9733;</span><div class="desc">Long → wide (<code>on</code> replaces pandas' <code>columns=</code>).</div></li>
+      <li class="shape"><code class="cmd">df.unpivot(index='g')</code><span class="star">&#9733;</span><div class="desc">Wide → long (Polars' name for <code>melt</code>).</div></li>
+      <li class="shape"><code class="cmd">df.explode('list_col')</code><span class="star">&#9733;</span><div class="desc">One row per list element.</div></li>
+      <li class="shape"><code class="cmd">df.transpose(include_header=True)</code><div class="desc">Flip rows and columns.</div></li>
+      <li class="shape"><code class="cmd">df.partition_by('g')</code><div class="desc">Split into a list of frames, one per group.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ================= SECTION 6: LAZY, SQL, EXTEND ================= -->
+<section class="band"><h2>VI &middot; Lazy, Streaming, SQL &amp; Extend <span class="tag">optimizer · engine · SQLContext · api</span></h2></section>
+
+<main>
+
+  <!-- 24 LAZY EXECUTION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">24</span><span class="card-title">Lazy Execution &amp; Optimization</span><span class="card-sub">lazy</span></div>
+    <ul class="cmds">
+      <li class="lazy"><code class="cmd">df.lazy() ... .collect()</code><span class="star">&#9733;</span><div class="desc">Build a plan, optimize, then run once.</div></li>
+      <li class="lazy"><code class="cmd">lf.explain() &nbsp;lf.show_graph()</code><span class="star">&#9733;</span><div class="desc">Print / visualize the (optimized) query plan.</div></li>
+      <li class="lazy"><code class="cmd">lf.collect(engine='streaming')</code><span class="star">&#9733;</span><div class="desc">Batch execution for larger-than-RAM data.</div></li>
+      <li class="lazy"><code class="cmd">pl.collect_all([q1, q2])</code><span class="star">&#9733;</span><div class="desc">Run several plans together — shares common subplans (CSE).</div></li>
+      <li class="lazy"><code class="cmd">lf.profile()</code><div class="desc">Collect + per-node timing breakdown.</div></li>
+    </ul>
+  </article>
+
+  <!-- 25 SQL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">25</span><span class="card-title">SQL Interface</span><span class="card-sub">sql</span></div>
+    <ul class="cmds">
+      <li class="sql"><code class="cmd">df.sql(<span class="arg">"SELECT a, b*2 FROM self WHERE a &gt; 1"</span>)</code><span class="star">&#9733;</span><div class="desc">Query a frame directly — refer to it as <code>self</code>.</div></li>
+      <li class="sql"><code class="cmd">pl.sql(<span class="arg">"SELECT * FROM df1 JOIN df2 USING(a)"</span>)</code><span class="star">&#9733;</span><div class="desc">Query frames in the global namespace.</div></li>
+      <li class="sql"><code class="cmd">ctx = pl.SQLContext(frame=lf)</code><div class="desc">Managed context — register &amp; query named tables.</div></li>
+      <li class="sql"><code class="cmd">ctx.execute(<span class="arg">"SELECT ..."</span>).collect()</code><div class="desc">Run a query inside a context.</div></li>
+      <li class="sql"><code class="cmd">pl.sql_expr(<span class="arg">"a * 2 AS d"</span>)</code><div class="desc">Turn a SQL fragment into a native expression.</div></li>
+    </ul>
+  </article>
+
+  <!-- 26 EXTEND -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">26</span><span class="card-title">Extension API &amp; Testing</span><span class="card-sub">sql · pl.api / testing</span></div>
+    <ul class="cmds">
+      <li class="sql"><code class="cmd">@pl.api.register_expr_namespace('my')</code><span class="star">&#9733;</span><div class="desc">Attach custom <code>pl.col(...).my.*</code> methods.</div></li>
+      <li class="sql"><code class="cmd">@pl.api.register_dataframe_namespace('my')</code><div class="desc">Attach custom <code>df.my.*</code> methods.</div></li>
+      <li class="inspect"><code class="cmd">from polars.testing import assert_frame_equal</code><span class="star">&#9733;</span><div class="desc">Equality assert for tests (also <code>assert_series_equal</code>).</div></li>
+      <li class="inspect"><code class="cmd">pl.col('a').meta.output_name()</code><div class="desc"><code>.meta</code> — introspect an expression itself.</div></li>
+      <li class="inspect"><code class="cmd">with pl.StringCache(): ...</code><div class="desc">Share categorical encodings across frames.</div></li>
+    </ul>
+  </article>
+
+  <!-- 27 STATS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">27</span><span class="card-title">Descriptive Statistics</span><span class="card-sub">aggregate / stats</span></div>
+    <ul class="cmds">
+      <li class="stats"><code class="cmd">df.mean() &nbsp;df.sum() &nbsp;df.median() &nbsp;df.std()</code><span class="star">&#9733;</span><div class="desc">Whole-frame column aggregates.</div></li>
+      <li class="stats"><code class="cmd">pl.col('a').quantile(0.9) &nbsp;.mode()</code><div class="desc">Percentile / most-frequent value.</div></li>
+      <li class="stats"><code class="cmd">pl.col('a').n_unique() &nbsp;.value_counts()</code><span class="star">&#9733;</span><div class="desc">Distinct count / frequency table.</div></li>
+      <li class="stats"><code class="cmd">df.select(pl.corr('a','b')) &nbsp;pl.cov('a','b')</code><div class="desc">Correlation / covariance.</div></li>
+      <li class="stats"><code class="cmd">pl.col('a').cum_sum() &nbsp;.diff() &nbsp;.pct_change()</code><span class="star">&#9733;</span><div class="desc">Cumulative / period-over-period.</div></li>
+    </ul>
+  </article>
+
+  <!-- 28 RANGES / LITERALS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">28</span><span class="card-title">Ranges, Literals &amp; Helpers</span><span class="card-sub">top-level pl.*</span></div>
+    <ul class="cmds">
+      <li class="create"><code class="cmd">pl.int_range(0, 10) &nbsp;pl.arange(0, 10, 2)</code><span class="star">&#9733;</span><div class="desc">Integer ranges as expressions.</div></li>
+      <li class="create"><code class="cmd">pl.date_range(start, end, interval='1d')</code><span class="star">&#9733;</span><div class="desc">Range of dates.</div></li>
+      <li class="create"><code class="cmd">pl.lit(5) &nbsp;pl.lit([1,2,3])</code><span class="star">&#9733;</span><div class="desc">Wrap a Python value as an expression.</div></li>
+      <li class="create"><code class="cmd">pl.select(pl.int_range(0, 5))</code><div class="desc">Run expressions with no source frame.</div></li>
+      <li class="create"><code class="cmd">pl.element() &nbsp;pl.first() &nbsp;pl.last()</code><div class="desc">Context tokens used inside <code>.list.eval</code> / agg.</div></li>
+    </ul>
+  </article>
+
+  <!-- 29 PERF / GOTCHAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">29</span><span class="card-title">Performance &amp; Gotchas</span><span class="card-sub">handle with care</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">map_elements Python UDFs</code><span class="badge-danger">slow</span><div class="desc">Break parallelism &amp; optimization — avoid in hot paths.</div></li>
+      <li class="clean"><code class="cmd">scan_* + collect over read_*</code><span class="badge-safe">lean</span><div class="desc">Pushdown means fewer bytes read from disk.</div></li>
+      <li class="danger"><code class="cmd">no inplace methods</code><div class="desc">Every method returns a new frame — always reassign.</div></li>
+      <li class="danger"><code class="cmd">null &ne; NaN</code><div class="desc">Two distinct concepts — <code>fill_null</code> vs <code>fill_nan</code>.</div></li>
+      <li class="clean"><code class="cmd">Categorical + StringCache</code><span class="badge-safe">lean</span><div class="desc">Cut memory on repeated strings across frames.</div></li>
+    </ul>
+  </article>
+
+  <!-- STAR: DTYPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Common Data Types</span><span class="card-sub">anywhere you see dtype:</span></div>
+    <ul class="cmds">
+      <li class="inspect"><code class="cmd">pl.Int8/16/32/64 &nbsp;pl.UInt8..64</code><span class="star">&#9733;</span><div class="desc">Signed / unsigned integers.</div></li>
+      <li class="inspect"><code class="cmd">pl.Float32 &nbsp;pl.Float64</code><div class="desc">Floating-point numerics.</div></li>
+      <li class="inspect"><code class="cmd">pl.String &nbsp;pl.Boolean</code><span class="star">&#9733;</span><div class="desc">Text (alias <code>Utf8</code>) / boolean.</div></li>
+      <li class="inspect"><code class="cmd">pl.Date &nbsp;pl.Datetime &nbsp;pl.Duration &nbsp;pl.Time</code><span class="star">&#9733;</span><div class="desc">Temporal types.</div></li>
+      <li class="inspect"><code class="cmd">pl.List(inner) &nbsp;pl.Array(inner, n) &nbsp;pl.Struct</code><div class="desc">Nested — variable list / fixed array / record.</div></li>
+      <li class="inspect"><code class="cmd">pl.Categorical &nbsp;pl.Enum([...]) &nbsp;pl.Decimal</code><div class="desc">Encoded strings / fixed set / exact decimal.</div></li>
+    </ul>
+  </article>
+
+  <!-- STAR: JOIN HOW -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Join how= Quick-Read</span><span class="card-sub">df.join(..., how=)</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">'inner'</code><span class="star">&#9733;</span><div class="desc">Only keys present in both frames.</div></li>
+      <li class="select"><code class="cmd">'left'</code><span class="star">&#9733;</span><div class="desc">All rows from the left frame.</div></li>
+      <li class="select"><code class="cmd">'full'</code><div class="desc">Every key from both — Polars' name for outer.</div></li>
+      <li class="select"><code class="cmd">'semi'</code><div class="desc">Left rows that have a match — right cols dropped.</div></li>
+      <li class="select"><code class="cmd">'anti'</code><span class="star">&#9733;</span><div class="desc">Left rows with <b>no</b> match — great for exclusions.</div></li>
+      <li class="select"><code class="cmd">'cross'</code><div class="desc">Cartesian product, no key needed.</div></li>
+    </ul>
+  </article>
+
+  <!-- STAR: EXPR VS CONTEXT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">&#9733;</span><span class="card-title">Expression Contexts</span><span class="card-sub">where expressions run</span></div>
+    <ul class="cmds">
+      <li class="select"><code class="cmd">df.select(expr)</code><span class="star">&#9733;</span><div class="desc">Keep only the produced columns.</div></li>
+      <li class="shape"><code class="cmd">df.with_columns(expr)</code><span class="star">&#9733;</span><div class="desc">Add produced columns to the existing frame.</div></li>
+      <li class="select"><code class="cmd">df.filter(expr)</code><span class="star">&#9733;</span><div class="desc">Keep rows where a boolean expression is true.</div></li>
+      <li class="stats"><code class="cmd">df.group_by('g').agg(expr)</code><span class="star">&#9733;</span><div class="desc">Reduce each group with the expression.</div></li>
+      <li class="note"><code class="cmd">same expr syntax in all four</code><div class="desc">Learn the expression once, reuse everywhere.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Expressions into contexts &amp; the lazy optimizer</h2>
+  <p class="sub">Two ideas carry most of Polars: one expression works in every context, and the lazy engine rewrites your whole plan before running it. Based on the official Polars user-guide diagrams.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>One expression, four contexts &#9733;</h3>
+      <p>The same <code>pl.col('x').sum()</code> works in <code>select</code>, <code>with_columns</code>, <code>filter</code> (as a predicate) and <code>group_by().agg()</code> — no per-operation API to relearn.</p>
+      <svg viewBox="0 0 390 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a single expression in the center fans out to four contexts: select, with_columns, filter, and group_by agg">
+        <defs><marker id="arrE" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0891b2"/></marker></defs>
+        <rect x="130" y="80" width="130" height="34" rx="8" fill="#7c3aed"/><text x="195" y="101" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#fff">pl.col('x')...</text>
+        <g font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" font-weight="700">
+          <rect x="20" y="12" width="130" height="28" rx="6" fill="#eafafd" stroke="#0891b2" stroke-width="1.4"/><text x="85" y="30" fill="#0891b2">.select(expr)</text>
+          <rect x="240" y="12" width="140" height="28" rx="6" fill="#eafafd" stroke="#0891b2" stroke-width="1.4"/><text x="310" y="30" fill="#0891b2">.with_columns(expr)</text>
+          <rect x="20" y="150" width="130" height="28" rx="6" fill="#eafafd" stroke="#0891b2" stroke-width="1.4"/><text x="85" y="168" fill="#0891b2">.filter(expr)</text>
+          <rect x="235" y="150" width="150" height="28" rx="6" fill="#eafafd" stroke="#0891b2" stroke-width="1.4"/><text x="310" y="168" fill="#0891b2">.group_by().agg(expr)</text>
+        </g>
+        <line x1="150" y1="88" x2="120" y2="40" stroke="#0891b2" stroke-width="1.3" marker-end="url(#arrE)"/>
+        <line x1="240" y1="88" x2="285" y2="40" stroke="#0891b2" stroke-width="1.3" marker-end="url(#arrE)"/>
+        <line x1="150" y1="106" x2="120" y2="150" stroke="#0891b2" stroke-width="1.3" marker-end="url(#arrE)"/>
+        <line x1="240" y1="106" x2="285" y2="150" stroke="#0891b2" stroke-width="1.3" marker-end="url(#arrE)"/>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Lazy pushdown optimization &#9733;</h3>
+      <p>The optimizer pushes <code>filter</code> and column selection down into the <code>scan</code>, so unneeded rows &amp; columns are never read from disk.</p>
+      <svg viewBox="0 0 390 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="naive plan reads all data then filters and selects; optimized plan pushes the filter and projection into the scan so far fewer bytes are read">
+        <defs><marker id="arrN" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrO" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker></defs>
+        <text x="10" y="20" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#dc2626">naive</text>
+        <g font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">
+          <rect x="10" y="26" width="115" height="28" rx="5" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.3"/><text x="67" y="44" fill="#dc2626">scan: ALL rows/cols</text>
+          <rect x="145" y="26" width="80" height="28" rx="5" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.3"/><text x="185" y="44" fill="#dc2626">filter</text>
+          <rect x="245" y="26" width="90" height="28" rx="5" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.3"/><text x="290" y="44" fill="#dc2626">select 2 cols</text>
+        </g>
+        <line x1="125" y1="40" x2="143" y2="40" stroke="#dc2626" stroke-width="1.3" marker-end="url(#arrN)"/>
+        <line x1="225" y1="40" x2="243" y2="40" stroke="#dc2626" stroke-width="1.3" marker-end="url(#arrN)"/>
+
+        <text x="195" y="86" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#64748b">&#8595; optimizer</text>
+
+        <text x="10" y="118" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#059669">optimized</text>
+        <g font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">
+          <rect x="30" y="124" width="200" height="34" rx="5" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/><text x="130" y="141" fill="#059669" font-weight="700">scan: only 2 cols + matched rows</text><text x="130" y="153" fill="#059669">predicate &amp; projection pushdown</text>
+          <rect x="255" y="127" width="90" height="28" rx="5" fill="#ecf7f2" stroke="#059669" stroke-width="1.4"/><text x="300" y="145" fill="#059669" font-weight="700">result</text>
+        </g>
+        <line x1="230" y1="141" x2="253" y2="141" stroke="#059669" stroke-width="1.3" marker-end="url(#arrO)"/>
+        <text x="195" y="182" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#059669">far fewer bytes read from disk / Parquet</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">expressions are reusable</span><span class="v">the same <code>pl.col(...)</code> works in select/with_columns/filter/agg</span></div>
+    <div><span class="k">eager vs lazy</span><span class="v"><code>scan_*...collect()</code> lets the optimizer rewrite the plan first</span></div>
+    <div><span class="k">selectors</span><span class="v"><code>cs.numeric()</code> etc. select whole column families &amp; support set-ops</span></div>
+    <div><span class="k">no inplace</span><span class="v">every method returns a new object — always reassign</span></div>
+    <div><span class="k">null vs NaN</span><span class="v">distinct — <code>fill_null</code> handles missing, <code>fill_nan</code> handles float NaN</span></div>
+    <div><span class="k">sink_* streams to disk</span><span class="v">lazy write that never fully materializes the frame</span></div>
+    <div><span class="k">map_elements is the slow path</span><span class="v">native expressions run in Rust, parallelize &amp; optimize; UDFs don't</span></div>
+    <div><span class="k">group_by is unordered</span><span class="v">pass <code>maintain_order=True</code> if you need stable group order</span></div>
+    <div><span class="k">outer &#8594; full, melt &#8594; unpivot</span><span class="v">Polars renamed several pandas concepts</span></div>
+    <div><span class="k">SQL on frames</span><span class="v"><code>df.sql("... FROM self")</code> or <code>pl.sql()</code> over the whole engine</span></div>
+    <div><span class="k">.list.eval + pl.element()</span><span class="v">run an expression across the elements inside each list cell</span></div>
+    <div><span class="k">collect_all shares work</span><span class="v">CSE runs common subplans of multiple queries only once</span></div>
+  </div>
+</section>
+
+<footer>
+  Polars cheat sheet &middot; comprehensive v2 &middot; gap-analysis edition &mdash; validated against the official Polars Python API reference (docs.pola.rs): DataFrame, LazyFrame, Series, Expressions &amp; their .str/.dt/.list/.struct/.cat/.name namespaces, Selectors, SQL, Config, I/O, the extension API &amp; testing; cross-checked with the franzdiebold PDF sheet, rhosignal's tested pandas&#8594;polars guide, Real Python &amp; dailydoseofds.<br>
+  Covers the frame/expression core plus the specialized namespaces &amp; extensions &middot; examples target Polars 1.x — syntax has moved quickly (<code>apply&#8594;map_elements</code>, <code>collect(streaming=True)&#8594;collect(engine='streaming')</code>, <code>melt&#8594;unpivot</code>) — always cross-check docs.pola.rs for your installed version.
+</footer>
+
+</body>
+</html>
