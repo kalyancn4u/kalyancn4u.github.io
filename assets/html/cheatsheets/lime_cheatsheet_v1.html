@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIME Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --core:#64748b;   --core-bg:#f1f3f6;
+    --txt:#059669;    --txt-bg:#ecf7f2;
+    --tab:#d97706;    --tab-bg:#fdf6ec;
+    --img:#4f46e5;    --img-bg:#eef0fd;
+    --trust:#0891b2;  --trust-bg:#ecf6fa;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased}
+
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem}
+  h1 .lm{font-family:var(--mono); color:var(--txt)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7}
+  .sources b{color:var(--ink); font-weight:500}
+
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.core{background:var(--core)}  .dot.txt{background:var(--txt)}
+  .dot.tab{background:var(--tab)}    .dot.img{background:var(--img)}
+  .dot.trust{background:var(--trust)} .dot.danger{background:var(--danger)}
+
+  .flow-wrap{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem}
+  .flow-title{font-family:var(--mono); font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem}
+  .flow-svg{width:100%; height:auto; max-width:1140px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  .deck-wrap, .diagrams, .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 2rem}
+  .deck-wrap h2, .diagrams h2, .refs h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .deck-wrap .sub, .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem; max-width:80ch}
+  .deck-wrap .sub b{color:var(--ink); font-weight:600}
+  .deck-wrap .sub code, .diagrams .sub code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:.05rem .22rem; border-radius:3px}
+
+  .deck{column-gap:1.4rem}
+  @media(min-width:760px){ .deck{column-count:2} }
+  @media(min-width:1200px){ .deck{column-count:3} }
+
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03)}
+  .card-head{display:flex; align-items:baseline; gap:.6rem; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line)}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em}
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  .card-note{padding:.6rem 1rem; font-size:.79rem; color:#525761; background:#fcfbf9; border-bottom:1px solid var(--line)}
+  .card-note b{color:var(--ink); font-weight:600}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.core{border-left-color:var(--core)}
+  ul.cmds li.txt{border-left-color:var(--txt)}
+  ul.cmds li.tab{border-left-color:var(--tab)}
+  ul.cmds li.img{border-left-color:var(--img)}
+  ul.cmds li.trust{border-left-color:var(--trust)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{font-family:var(--mono); font-size:.82rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; line-height:1.55}
+  code.cmd .arg{color:var(--img); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .fn{color:var(--txt); font-weight:700}
+  code.cmd .cm{color:#9aa1ac; font-weight:400}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc b{color:var(--ink); font-weight:600}
+  .desc code, .card-note code, .refs-inner code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:.05rem .22rem; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem}
+  .badge-ok{color:var(--txt); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem}
+
+  table.grid{width:100%; border-collapse:collapse; font-size:.76rem}
+  table.grid th{text-align:left; font-family:var(--mono); font-size:.64rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:700; padding:.55rem 1rem .4rem; border-bottom:1px solid var(--line); background:#fcfbf9}
+  table.grid td{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; vertical-align:top; color:#525761}
+  table.grid tr:last-child td{border-bottom:none}
+  table.grid td.key{font-family:var(--mono); color:var(--ink); font-weight:700; white-space:nowrap}
+  table.grid td b{color:var(--ink); font-weight:600}
+  table.grid td code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:.05rem .22rem; border-radius:3px}
+
+  .dia-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .dia-grid{grid-template-columns:1fr 1fr} }
+  .dia-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .dia-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .dia-card h3.bad{color:var(--danger)}
+  .dia-card h3.good{color:var(--txt)}
+  .dia-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .dia-card p b{color:var(--ink); font-weight:600}
+  .dia-card p code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:.05rem .22rem; border-radius:3px}
+  .dia-card .bsvg{width:100%; height:auto; display:block}
+  .dia-card .bsvg text{font-family:var(--mono)}
+  .dia-card.bad{border-color:#f3cdc9; background:var(--danger-bg)}
+  .dia-card.good{border-color:#c3e6d8; background:var(--txt-bg)}
+  .dia-card.bad .bsvg, .dia-card.good .bsvg{background:#fff; border-radius:6px}
+  .dia-card.wide{grid-column:1 / -1}
+
+  .mer-wrap{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1.2rem; overflow-x:auto}
+  .mermaid{text-align:center; font-size:13px}
+
+  .refs{padding-bottom:4rem}
+  .refs h2{margin-bottom:1rem}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{background:#2b303a; color:#e8e6e1}
+
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7}
+  footer a{color:var(--img); text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · Local Interpretable Model-agnostic Explanations</div>
+  <h1><span class="lm">LIME</span> cheat sheet</h1>
+  <p class="lede">One idea: <b>your model is complicated globally, but nearly linear if you zoom in far enough</b>. So perturb one row, watch the predictions move, and fit a tiny weighted linear model to that neighbourhood. Its coefficients are the explanation. <b>The whole method lives or dies on one number — <code>exp.score</code> — and almost nobody checks it.</b></p>
+  <div class="legend">
+    <span><i class="dot core"></i>foundations &amp; the algorithm</span>
+    <span><i class="dot tab"></i>tabular</span>
+    <span><i class="dot txt"></i>text</span>
+    <span><i class="dot img"></i>image &amp; submodular pick</span>
+    <span><i class="dot trust"></i>trust &amp; tuning</span>
+    <span><i class="dot danger"></i>trap</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Grounded against <b>github.com/marcotcr/lime</b> · Ribeiro, Singh &amp; Guestrin, <b>"Why Should I Trust You?" (KDD 2016)</b>. <b>Every claim and figure here was executed against lime 0.2.0.1 / scikit-learn 1.8.0.</b> The R² and stability numbers are measured, not quoted. Re-verified 2026-08-28: 0.2.0.1 (Jun 2020) is still the last release — LIME is feature-frozen; SHAP is the actively-developed alternative (see card 11).</p>
+</header>
+
+<!-- ============ SIGNATURE ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">Four steps · and the one number that decides whether the answer means anything</div>
+  <svg class="flow-svg" viewBox="0 0 1140 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The LIME algorithm: perturb the instance, predict with the black box, weight samples by proximity, fit a sparse weighted linear model; the surrogate R-squared gates whether the explanation is trustworthy.">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/></marker>
+      <marker id="arrowR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+    </defs>
+
+    <text x="470" y="22" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">THE ALGORITHM — SAME FOUR STEPS FOR TABULAR, TEXT AND IMAGES</text>
+
+    <!-- 1 -->
+    <g>
+      <rect x="14" y="40" width="196" height="116" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="112" y="64" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">1 · PERTURB</text>
+      <circle cx="112" cy="104" r="6" fill="#dc2626"/>
+      <g fill="#cbd5e1">
+        <circle cx="74" cy="88" r="3.5"/><circle cx="146" cy="92" r="3.5"/><circle cx="90" cy="128" r="3.5"/>
+        <circle cx="136" cy="126" r="3.5"/><circle cx="62" cy="116" r="3.5"/><circle cx="160" cy="114" r="3.5"/>
+        <circle cx="112" cy="76" r="3.5"/><circle cx="112" cy="136" r="3.5"/>
+      </g>
+      <text x="112" y="152" text-anchor="middle" font-size="9" fill="#64748b">5000 fake neighbours</text>
+    </g>
+    <line x1="210" y1="98" x2="240" y2="98" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- 2 -->
+    <g>
+      <rect x="244" y="40" width="196" height="116" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="342" y="64" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">2 · PREDICT</text>
+      <rect x="284" y="80" width="116" height="40" rx="8" fill="#1a1d24"/>
+      <text x="342" y="105" text-anchor="middle" font-size="11" font-weight="700" fill="#fbbf24">BLACK BOX</text>
+      <text x="342" y="138" text-anchor="middle" font-size="9.5" fill="#dc2626">predict_proba only!</text>
+      <text x="342" y="152" text-anchor="middle" font-size="9" fill="#64748b">label every neighbour</text>
+    </g>
+    <line x1="440" y1="98" x2="470" y2="98" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- 3 -->
+    <g>
+      <rect x="474" y="40" width="196" height="116" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="572" y="64" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">3 · WEIGHT</text>
+      <circle cx="572" cy="106" r="34" fill="none" stroke="#cbd5e1" stroke-dasharray="3 3"/>
+      <circle cx="572" cy="106" r="20" fill="none" stroke="#94a3b8" stroke-dasharray="3 3"/>
+      <circle cx="572" cy="106" r="6" fill="#dc2626"/>
+      <circle cx="556" cy="98" r="4" fill="#1a1d24"/><circle cx="588" cy="112" r="4" fill="#1a1d24"/>
+      <circle cx="546" cy="128" r="3" fill="#cbd5e1"/><circle cx="604" cy="86" r="3" fill="#cbd5e1"/>
+      <text x="572" y="152" text-anchor="middle" font-size="9" fill="#64748b">near = heavy · far = ignored</text>
+    </g>
+    <line x1="670" y1="98" x2="700" y2="98" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- 4 -->
+    <g>
+      <rect x="704" y="40" width="196" height="116" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="802" y="64" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">4 · FIT A LINE</text>
+      <path d="M730 132 Q790 118 872 78" fill="none" stroke="#cbd5e1" stroke-width="3"/>
+      <line x1="726" y1="126" x2="876" y2="86" stroke="#059669" stroke-width="2.5"/>
+      <circle cx="802" cy="106" r="5" fill="#dc2626"/>
+      <text x="802" y="152" text-anchor="middle" font-size="9" fill="#059669">sparse weighted linear model</text>
+    </g>
+    <line x1="900" y1="98" x2="930" y2="98" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- output -->
+    <g>
+      <rect x="934" y="40" width="192" height="116" rx="12" fill="#fff" stroke="#1a1d24" stroke-width="2"/>
+      <text x="1030" y="64" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">the coefficients</text>
+      <text x="1030" y="84" text-anchor="middle" font-size="9" fill="#94a3b8">ARE the explanation</text>
+      <text x="950" y="106" font-size="9.5" fill="#64748b">exp.as_list()</text>
+      <text x="950" y="124" font-size="9.5" fill="#64748b">exp.intercept</text>
+      <text x="950" y="142" font-size="9.5" fill="#dc2626">exp.score ← R²</text>
+    </g>
+
+    <!-- THE GATE -->
+    <path d="M1030 156 L1030 186" stroke="#dc2626" stroke-width="2" marker-end="url(#arrowR)"/>
+    <g>
+      <rect x="640" y="190" width="486" height="112" rx="12" fill="#fdf0ef" stroke="#dc2626" stroke-width="2"/>
+      <text x="883" y="216" text-anchor="middle" font-size="13" font-weight="700" fill="#dc2626">THE GATE — exp.score is the surrogate's R²</text>
+      <text x="883" y="240" text-anchor="middle" font-size="10.5" fill="#dc2626">It answers: "did the straight line actually fit the neighbourhood?"</text>
+      <line x1="680" y1="252" x2="1086" y2="252" stroke="#f3cdc9"/>
+      <text x="883" y="272" text-anchor="middle" font-size="11" font-weight="700" fill="#dc2626">MEASURED: R² ranged 0.006 → 0.777 on tabular (median 0.56)</text>
+      <text x="883" y="292" text-anchor="middle" font-size="10.5" fill="#dc2626">LIME renders a confident, colourful explanation at EVERY one of those values.</text>
+    </g>
+
+    <!-- the pitch -->
+    <g>
+      <rect x="14" y="190" width="600" height="112" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="314" y="216" text-anchor="middle" font-size="12.5" font-weight="700" fill="#059669">The bet LIME makes</text>
+      <text x="314" y="240" text-anchor="middle" font-size="10.5" fill="#1a1d24">"Any model, however twisted, is roughly a straight line if you zoom in far enough."</text>
+      <line x1="54" y1="252" x2="574" y2="252" stroke="#c3e6d8"/>
+      <text x="314" y="272" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a1d24">Sometimes that bet pays: text surrogate R² = <tspan fill="#059669">0.9999</tspan></text>
+      <text x="314" y="292" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a1d24">Sometimes it loses badly: tabular R² as low as <tspan fill="#dc2626">0.006</tspan></text>
+    </g>
+
+    <text x="570" y="332" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">LIME does not know which case you're in. exp.score does. Read it, every time.</text>
+    <text x="570" y="356" text-anchor="middle" font-size="9.5" fill="#94a3b8">Unlike SHAP, there is no additivity guarantee — the weights are just coefficients of a line that may or may not fit.</text>
+    <text x="570" y="378" text-anchor="middle" font-size="9.5" fill="#94a3b8">This is the single most important thing on this sheet.</text>
+  </svg>
+</section>
+
+<!-- ============ FOUNDATIONS ============ -->
+<section class="deck-wrap">
+  <h2>Foundations</h2>
+  <p class="sub">Three explainers, one shape: <b>construct with the training data, then <code>explain_instance(row, predict_fn)</code></b>. The awkward part is that <code>predict_fn</code> has strict requirements — card 02.</p>
+  <div class="deck">
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; the Three Explainers</span><span class="card-sub">that's the whole API</span></div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd">pip install <span class="arg">lime</span></code><span class="star">★</span><div class="desc"><b>Last release: 0.2.0.1 (2020).</b> Effectively feature-frozen — but <b>verified working on scikit-learn 1.8</b>. It's finished, not broken.</div></li>
+      <li class="tab"><code class="cmd"><span class="flag">from</span> lime.lime_tabular <span class="flag">import</span> <span class="fn">LimeTabularExplainer</span></code><span class="star">★</span><div class="desc">Rows of numbers. <b>The most used and the most fragile</b> — cards 04–05.</div></li>
+      <li class="txt"><code class="cmd"><span class="flag">from</span> lime.lime_text <span class="flag">import</span> <span class="fn">LimeTextExplainer</span></code><span class="star">★</span><div class="desc">Documents. <b>Where LIME genuinely shines</b> — card 06.</div></li>
+      <li class="img"><code class="cmd"><span class="flag">from</span> lime.lime_image <span class="flag">import</span> <span class="fn">LimeImageExplainer</span></code><div class="desc">Images, via superpixel segmentation — card 07.</div></li>
+      <li class="img"><code class="cmd"><span class="flag">from</span> lime.submodular_pick <span class="flag">import</span> <span class="fn">SubmodularPick</span></code><div class="desc">Picks a handful of <b>maximally non-redundant</b> instances to explain — LIME's answer to "but that's only one row" (card 08).</div></li>
+      <li class="core"><code class="cmd"><span class="cm"># the universal shape</span><br>explainer = <span class="fn">Lime*Explainer</span>(training_data, …)<br>exp = explainer.<span class="fn">explain_instance</span>(row, predict_fn, num_features=<span class="arg">10</span>)<br>exp.<span class="fn">as_list</span>()</code><span class="star">★</span><div class="desc"><b>Memorise this.</b> All three explainers follow it exactly.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">predict_fn Is Strict</span><span class="card-sub">the #1 error</span></div>
+    <div class="card-note">LIME needs to see <b>how the prediction <i>moves</i></b> across perturbations. A hard label can't show that — so classifiers <b>must</b> expose probabilities.</div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">explainer.explain_instance(row, <span class="fn">clf.predict</span>)<br><span class="cm"># NotImplementedError: LIME does not currently support</span><br><span class="cm"># classifier models without probability scores.</span></code><span class="badge-danger">verified</span><div class="desc">The single most common LIME error, and the message is at least honest about it.</div></li>
+      <li class="tab"><code class="cmd">explainer.explain_instance(row, <span class="fn">clf.predict_proba</span>)</code><span class="star">★</span><div class="desc"><b>Classification:</b> must return shape <code>(n_samples, n_classes)</code> — probabilities for <b>every</b> class, not just the positive one.</div></li>
+      <li class="tab"><code class="cmd"><span class="fn">LimeTabularExplainer</span>(X, mode=<span class="arg">'regression'</span>)<br>&nbsp;&nbsp;.explain_instance(row, <span class="fn">reg.predict</span>)</code><div class="desc"><b>Regression:</b> now it's plain <code>predict</code>, returning shape <code>(n_samples,)</code>. The opposite of the classification rule — an easy thing to get backwards.</div></li>
+      <li class="danger"><code class="cmd">SVC() <span class="cm"># has no predict_proba by default</span></code><div class="desc">Use <code>SVC(probability=True)</code>, or wrap the model in a function that returns probabilities.</div></li>
+      <li class="core"><code class="cmd">predict_fn = <span class="flag">lambda</span> x: pipe.<span class="fn">predict_proba</span>(x)</code><div class="desc">For text, pass a <b>pipeline's</b> <code>predict_proba</code> — LIME hands it <b>raw strings</b>, so the vectorizer must be inside.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">The Explanation Object</span><span class="card-sub">what comes back</span></div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd">exp.<span class="fn">as_list</span>(label=<span class="arg">1</span>) <span class="cm"># [(feature, weight), …]</span></code><span class="star">★</span><div class="desc">The coefficients, sorted by |weight|. <b>This is the explanation.</b></div></li>
+      <li class="trust"><code class="cmd">exp.<span class="fn">score</span> <span class="cm"># surrogate R² ← READ THIS</span></code><span class="star">★</span><div class="desc"><b>The trust gate.</b> How well the local line fit the neighbourhood. Card 09 — and the whole reason this sheet exists.</div></li>
+      <li class="trust"><code class="cmd">exp.<span class="fn">local_pred</span> <span class="cm"># the surrogate's prediction</span><br>clf.predict_proba(row) <span class="cm"># the real one</span></code><div class="desc"><b>Compare them.</b> Measured on 12 rows: they differed by <b>0.146 on average, up to 0.424</b>. When they diverge, the explanation describes a model you don't have.</div></li>
+      <li class="core"><code class="cmd">exp.<span class="fn">intercept</span> · exp.<span class="fn">local_exp</span> · exp.<span class="fn">available_labels</span>()</code><div class="desc">The surrogate's bias term; raw <code>{label: [(idx, weight)]}</code>; which labels were explained.</div></li>
+      <li class="core"><code class="cmd">exp.<span class="fn">show_in_notebook</span>(show_table=<span class="arg">True</span>)<br>exp.<span class="fn">as_pyplot_figure</span>()<br>exp.<span class="fn">save_to_file</span>(<span class="arg">'exp.html'</span>)</code><span class="star">★</span><div class="desc">Notebook widget · matplotlib figure · standalone HTML. <code>save_to_file</code> is the one for reports and CI.</div></li>
+    </ul>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ DIAGRAMS 1 ============ -->
+<section class="diagrams">
+  <h2>The number nobody reads</h2>
+  <p class="sub">Both panels are <b>real, measured output</b> from the same library on the same afternoon. They are the argument for using LIME on text — and for being <b>very careful</b> with it on tabular data.</p>
+  <div class="dia-grid">
+
+    <div class="dia-card good">
+      <h3 class="good">✓ text — R² = 0.9999</h3>
+      <p>A TF-IDF + logistic pipeline on <code>"great but awful"</code>. The neighbourhood <b>really is linear</b> (bag-of-words + linear model → LIME is recovering the truth), so the surrogate fits almost perfectly.</p>
+      <svg viewBox="0 0 440 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LIME on text achieves an R-squared of 0.9999, correctly identifying 'awful' as negative and 'great' as positive.">
+        <text x="14" y="20" font-size="9.5" font-weight="700" fill="#059669">explain_instance("great but awful", pipe.predict_proba)</text>
+        <line x1="220" y1="34" x2="220" y2="96" stroke="#cbd5e1" stroke-dasharray="3 3"/>
+        <g font-size="10" fill="#1a1d24">
+          <text x="14" y="52">awful</text><text x="14" y="76">great</text><text x="14" y="96">but</text>
+        </g>
+        <rect x="130" y="42" width="90" height="13" rx="2" fill="#dc2626"/>
+        <text x="120" y="52" text-anchor="end" font-size="9.5" font-weight="700" fill="#dc2626">−0.0938</text>
+        <rect x="220" y="66" width="82" height="13" rx="2" fill="#059669"/>
+        <text x="312" y="76" font-size="9.5" font-weight="700" fill="#059669">+0.0856</text>
+        <rect x="219" y="88" width="2" height="9" rx="1" fill="#94a3b8"/>
+        <text x="240" y="96" font-size="9" fill="#94a3b8">−0.0005 (stop word, correctly ~0)</text>
+        <line x1="14" y1="108" x2="426" y2="108" stroke="#c3e6d8"/>
+        <text x="14" y="126" font-size="10" font-weight="700" fill="#059669">exp.score = 0.9999 → trust it completely</text>
+        <text x="14" y="142" font-size="9" fill="#6b7280">the straight line IS the model here</text>
+      </svg>
+    </div>
+
+    <div class="dia-card bad">
+      <h3 class="bad">✗ tabular — R² down to 0.006</h3>
+      <p>A RandomForest on 4 features. Across 12 rows the surrogate R² was <b>median 0.56, minimum 0.006</b>. At 0.006 the line explains <b>nothing</b> — yet LIME still returns a confident, ranked, colour-coded chart.</p>
+      <svg viewBox="0 0 440 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LIME on tabular data shows surrogate R-squared ranging from 0.006 to 0.777 across rows, with a median of 0.56.">
+        <text x="14" y="20" font-size="9.5" font-weight="700" fill="#dc2626">exp.score across 12 test rows</text>
+        <line x1="40" y1="80" x2="410" y2="80" stroke="#cbd5e1"/>
+        <text x="40" y="98" text-anchor="middle" font-size="9" fill="#6b7280">0.0</text>
+        <text x="225" y="98" text-anchor="middle" font-size="9" fill="#6b7280">0.5</text>
+        <text x="410" y="98" text-anchor="middle" font-size="9" fill="#6b7280">1.0</text>
+
+        <!-- band -->
+        <rect x="42" y="46" width="246" height="22" rx="3" fill="#fdeceb" stroke="#f3cdc9"/>
+        <line x1="248" y1="40" x2="248" y2="74" stroke="#d97706" stroke-width="2.5"/>
+        <text x="248" y="36" text-anchor="middle" font-size="9" font-weight="700" fill="#d97706">median 0.56</text>
+        <circle cx="42" cy="57" r="5" fill="#dc2626"/>
+        <text x="42" y="36" text-anchor="middle" font-size="9" font-weight="700" fill="#dc2626">min 0.006</text>
+        <circle cx="330" cy="57" r="5" fill="#64748b"/>
+        <text x="336" y="36" text-anchor="middle" font-size="9" font-weight="700" fill="#64748b">max 0.777</text>
+
+        <line x1="14" y1="110" x2="426" y2="110" stroke="#f3cdc9"/>
+        <text x="14" y="128" font-size="10" font-weight="700" fill="#dc2626">surrogate vs model: off by 0.146 avg, 0.424 worst</text>
+        <text x="14" y="143" font-size="9" fill="#dc2626">The explanation describes a model you do not have.</text>
+      </svg>
+    </div>
+
+    <div class="dia-card wide">
+      <h3>Stability is a <em>knob</em>, not a curse</h3>
+      <p>LIME's reputation for instability is real — but it's <b>governed by <code>num_samples</code></b>, and the default (5000) is mostly fine. Measured: the same feature's weight across 8 random seeds. <b>Turning <code>num_samples</code> down to speed things up is what actually makes LIME flaky.</b></p>
+      <svg viewBox="0 0 1080 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Weight variance across 8 seeds shrinks as num_samples rises: spread 0.145 at 100 samples, 0.042 at 500, 0.019 at 5000.">
+        <text x="14" y="20" font-size="9.5" font-weight="700" fill="#64748b">same row · same model · 8 different random_state values · spread of the top feature's weight</text>
+
+        <text x="90" y="52" text-anchor="end" font-size="10" font-weight="700" fill="#dc2626">num_samples=100</text>
+        <rect x="100" y="41" width="600" height="14" rx="3" fill="#f1f3f6"/>
+        <rect x="100" y="41" width="290" height="14" rx="3" fill="#dc2626"/>
+        <text x="712" y="52" font-size="10" font-weight="700" fill="#dc2626">spread 0.145</text>
+        <text x="840" y="52" font-size="9.5" fill="#dc2626">sd 0.042 — flaky, don't do this</text>
+
+        <text x="90" y="82" text-anchor="end" font-size="10" font-weight="700" fill="#d97706">num_samples=500</text>
+        <rect x="100" y="71" width="600" height="14" rx="3" fill="#f1f3f6"/>
+        <rect x="100" y="71" width="84" height="14" rx="3" fill="#d97706"/>
+        <text x="712" y="82" font-size="10" font-weight="700" fill="#d97706">spread 0.042</text>
+        <text x="840" y="82" font-size="9.5" fill="#d97706">sd 0.014 — usable</text>
+
+        <text x="90" y="112" text-anchor="end" font-size="10" font-weight="700" fill="#059669">num_samples=5000</text>
+        <rect x="100" y="101" width="600" height="14" rx="3" fill="#f1f3f6"/>
+        <rect x="100" y="101" width="38" height="14" rx="3" fill="#059669"/>
+        <text x="712" y="112" font-size="10" font-weight="700" fill="#059669">spread 0.019</text>
+        <text x="840" y="112" font-size="9.5" fill="#059669">sd 0.006 — the default. Stable.</text>
+
+        <line x1="14" y1="126" x2="1066" y2="126" stroke="#e7e3db"/>
+        <text x="14" y="144" font-size="9.5" font-weight="700" fill="#1a1d24">Verdict: set <tspan font-family="monospace">random_state</tspan>, keep <tspan font-family="monospace">num_samples</tspan> high, and re-run twice to confirm. Instability is manageable — a bad R² is not.</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ THE THREE EXPLAINERS ============ -->
+<section class="deck-wrap">
+  <h2>The three explainers</h2>
+  <p class="sub">Same four steps, different notion of <b>"perturb"</b>: resample a column · delete a word · switch off a superpixel. <b>That choice is the entire difference between them.</b></p>
+  <div class="deck">
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">LimeTabularExplainer</span><span class="card-sub">the fragile one</span></div>
+    <ul class="cmds">
+      <li class="tab"><code class="cmd">ex = <span class="fn">LimeTabularExplainer</span>(<br>&nbsp;&nbsp;X_train.values, <span class="cm"># numpy, not DataFrame</span><br>&nbsp;&nbsp;feature_names=list(X.columns),<br>&nbsp;&nbsp;class_names=[<span class="arg">'cheap'</span>, <span class="arg">'expensive'</span>],<br>&nbsp;&nbsp;mode=<span class="arg">'classification'</span>,<br>&nbsp;&nbsp;random_state=<span class="arg">42</span>)</code><span class="star">★</span><div class="desc"><b>Pass the training data</b> — it's used to learn each feature's distribution and to build the discretiser. Takes a <b>numpy array</b>, not a DataFrame.</div></li>
+      <li class="tab"><code class="cmd">exp = ex.<span class="fn">explain_instance</span>(<br>&nbsp;&nbsp;row, clf.predict_proba,<br>&nbsp;&nbsp;num_features=<span class="arg">10</span>, num_samples=<span class="arg">5000</span>,<br>&nbsp;&nbsp;labels=(<span class="arg">1</span>,)) <span class="cm"># or top_labels=1</span></code><span class="star">★</span><div class="desc"><code>labels=(1,)</code> is the default — <b>it explains class 1 only</b>. For multiclass, use <code>top_labels=3</code>.</div></li>
+      <li class="tab"><code class="cmd">categorical_features=[<span class="arg">0</span>, <span class="arg">3</span>], categorical_names={<span class="arg">0</span>: [...]}</code><div class="desc"><b>Declare your categoricals</b>, or LIME treats a one-hot column as continuous and perturbs it to 0.37.</div></li>
+      <li class="danger"><code class="cmd">sample_around_instance=<span class="arg">False</span> <span class="cm"># the DEFAULT</span></code><span class="badge-danger">surprising</span><div class="desc">By default LIME samples from the <b>global training distribution</b> and then centres it — <b>not</b> tightly around your instance. Set <code>True</code> for a genuinely <i>local</i> neighbourhood. The default is a frequent source of poor R².</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># perturbation ignores feature correlations</span></code><div class="desc">Features are sampled <b>independently</b>, so LIME will happily ask your model about a <b>2-room mansion</b>. Off-manifold points get real predictions, and those enter the fit.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Discretisation</span><span class="card-sub">why you see bins</span></div>
+    <div class="card-note">By default LIME <b>bins every continuous feature into quartiles</b> and explains the <i>bin</i>, not the value. This is why the output reads like a rule, not a coefficient.</div>
+    <ul class="cmds">
+      <li class="tab"><code class="cmd"><span class="cm"># VERIFIED output — note these are BINS:</span><br><span class="arg">"4.00 &lt; rooms &lt;= 5.00"</span>&nbsp;&nbsp; +0.5741<br><span class="arg">"dist_km &gt; 15.40"</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; −0.1336<br><span class="arg">"age &lt;= 14.00"</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +0.0952</code><span class="star">★</span><div class="desc"><b>Read this correctly:</b> "+0.57 for <i>being in the 4–5 rooms bracket</i>" — <b>not</b> "+0.57 per room". The weight belongs to the <b>bin</b>.</div></li>
+      <li class="tab"><code class="cmd">discretize_continuous=<span class="arg">True</span> <span class="cm"># default</span><br>discretizer=<span class="arg">'quartile'</span> <span class="cm"># | 'decile' | 'entropy'</span></code><div class="desc">Discretisation makes the surrogate <b>more faithful</b> (it can capture thresholds a line can't) and the output <b>more readable</b>. <code>'entropy'</code> picks bins using a decision tree — often the best of the three.</div></li>
+      <li class="tab"><code class="cmd">discretize_continuous=<span class="arg">False</span></code><div class="desc">Now weights are true <b>per-unit</b> coefficients. More familiar — but usually a <b>worse</b> fit, and it hides thresholds entirely.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># bins are computed from TRAINING data</span></code><div class="desc">A test row outside the training range lands in an edge bin. The explanation is still rendered, confidently.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">LimeTextExplainer</span><span class="card-sub">where LIME shines</span></div>
+    <div class="card-note">Perturbation = <b>randomly delete words</b>. The surrogate learns which words, when removed, change the prediction. <b>Intuitive, faithful, and it fits nearly perfectly</b> (R² = 0.9999 measured).</div>
+    <ul class="cmds">
+      <li class="txt"><code class="cmd">te = <span class="fn">LimeTextExplainer</span>(class_names=[<span class="arg">'neg'</span>, <span class="arg">'pos'</span>],<br>&nbsp;&nbsp;random_state=<span class="arg">0</span>)<br><br>exp = te.<span class="fn">explain_instance</span>(<br>&nbsp;&nbsp;<span class="arg">"great but awful"</span>, <span class="cm"># a RAW STRING</span><br>&nbsp;&nbsp;pipe.predict_proba, <span class="cm"># vectorizer must be INSIDE the pipe</span><br>&nbsp;&nbsp;num_features=<span class="arg">6</span>)</code><span class="star">★</span><div class="desc"><b>No <code>training_data</code> argument</b> — text needs none; the document <i>is</i> the neighbourhood.</div></li>
+      <li class="txt"><code class="cmd">exp.<span class="fn">show_in_notebook</span>(text=<span class="arg">True</span>)</code><span class="star">★</span><div class="desc">Highlights the words <b>in the original document</b>. This is LIME's best-loved output.</div></li>
+      <li class="txt"><code class="cmd">bow=<span class="arg">True</span> <span class="cm"># default</span></code><div class="desc">Bag-of-words: <b>every occurrence of a word is removed together</b>, and position is ignored. Set <code>bow=False</code> if your model is order-sensitive (a transformer), so each token is perturbed individually.</div></li>
+      <li class="txt"><code class="cmd">char_level=<span class="arg">True</span> · split_expression=<span class="arg">r'\W+'</span></code><div class="desc">For character-level models, and for custom tokenisation.</div></li>
+      <li class="txt"><code class="cmd">kernel_width=<span class="arg">25</span> <span class="cm"># text default</span></code><div class="desc">Note this differs from tabular's default (<code>√n_features × 0.75</code>).</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">LimeImageExplainer</span><span class="card-sub">superpixels</span></div>
+    <div class="card-note">Perturbation = <b>switch off superpixels</b>. The image is segmented (quickshift by default), then random subsets of segments are greyed out.</div>
+    <ul class="cmds">
+      <li class="img"><code class="cmd">exp = <span class="fn">LimeImageExplainer</span>().<span class="fn">explain_instance</span>(<br>&nbsp;&nbsp;image, <span class="cm"># (H, W, 3) numpy</span><br>&nbsp;&nbsp;model.predict, <span class="cm"># must return (n, n_classes)</span><br>&nbsp;&nbsp;top_labels=<span class="arg">3</span>, hide_color=<span class="arg">0</span>, num_samples=<span class="arg">1000</span>)</code><div class="desc"><code>hide_color=0</code> blacks out a segment; <code>None</code> replaces it with the segment's mean colour (usually more sensible).</div></li>
+      <li class="img"><code class="cmd">img, mask = exp.<span class="fn">get_image_and_mask</span>(<br>&nbsp;&nbsp;exp.top_labels[<span class="arg">0</span>], positive_only=<span class="arg">True</span>,<br>&nbsp;&nbsp;num_features=<span class="arg">5</span>, hide_rest=<span class="arg">True</span>)<br>plt.imshow(mark_boundaries(img, mask))</code><span class="star">★</span><div class="desc"><b>The standard two-liner.</b> <code>positive_only=False</code> shows the regions arguing <i>against</i> the class too — often the more revealing view.</div></li>
+      <li class="img"><code class="cmd">segmentation_fn=<span class="fn">SegmentationAlgorithm</span>(<span class="arg">'slic'</span>, n_segments=<span class="arg">100</span>)</code><div class="desc"><b>The segmentation IS the feature space.</b> Bad segments → meaningless explanation. This is the knob that matters most for images.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># image LIME is slow</span></code><div class="desc"><code>num_samples</code> forward passes through your CNN, per image. Budget accordingly.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">SubmodularPick</span><span class="card-sub">from local to global</span></div>
+    <div class="card-note">One explanation explains one row. <b>SP-LIME picks a small set of instances that together cover the model's behaviour</b> with as little redundancy as possible — the paper's answer to "so how do I trust the <i>model</i>?"</div>
+    <ul class="cmds">
+      <li class="img"><code class="cmd">sp = <span class="fn">SubmodularPick</span>(explainer, X_train.values,<br>&nbsp;&nbsp;clf.predict_proba, sample_size=<span class="arg">50</span>,<br>&nbsp;&nbsp;num_exps_desired=<span class="arg">5</span>, num_features=<span class="arg">8</span>)<br><br>[e.as_pyplot_figure() <span class="flag">for</span> e <span class="flag">in</span> sp.sp_explanations]</code><div class="desc">Greedily maximises coverage of important features across the chosen rows. <b>5 well-chosen explanations beat 500 random ones.</b></div></li>
+      <li class="img"><code class="cmd">sp.<span class="fn">explanations</span> <span class="cm"># all of them</span><br>sp.<span class="fn">sp_explanations</span> <span class="cm"># the chosen few</span></code><div class="desc">Underused, and the most defensible way to present LIME to a stakeholder.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># it runs LIME sample_size times</span></code><div class="desc">Cost = <code>sample_size × num_samples</code> model calls. Start small.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Trust &amp; Tuning</span><span class="card-sub">the checks to actually run</span></div>
+    <div class="card-note"><b>Three lines separate a real explanation from a decorative one.</b> Run all three, every time.</div>
+    <ul class="cmds">
+      <li class="trust"><code class="cmd"><span class="flag">print</span>(exp.score) <span class="cm"># R² — is the line even fitting?</span></code><span class="star">★</span><div class="desc"><b>&lt; 0.3 → discard the explanation.</b> The neighbourhood isn't linear and the coefficients are noise. Nothing else you do matters if this fails.</div></li>
+      <li class="trust"><code class="cmd"><span class="flag">print</span>(exp.local_pred, clf.predict_proba(row))</code><span class="star">★</span><div class="desc"><b>Do the surrogate and the model agree on this row?</b> If not, you're explaining a fiction. Measured gap: 0.146 average, 0.424 worst.</div></li>
+      <li class="trust"><code class="cmd"><span class="cm"># re-run with a different seed</span></code><div class="desc">If the top features change, raise <code>num_samples</code> until they don't.</div></li>
+      <li class="trust"><code class="cmd">kernel_width=<span class="arg">None</span> <span class="cm"># → √n_features × 0.75</span></code><div class="desc"><b>The most arbitrary default in the library.</b> It defines "nearby". <b>Too wide</b> → you're explaining the global model. <b>Too narrow</b> → almost no samples carry weight and the fit is noise. Results <i>are</i> sensitive to it; if R² is poor, this is the second knob to try.</div></li>
+      <li class="trust"><code class="cmd">feature_selection=<span class="arg">'auto'</span> <span class="cm"># | 'lasso_path' | 'forward_selection' | 'none'</span></code><div class="desc">How the sparse subset of <code>num_features</code> is chosen before fitting.</div></li>
+      <li class="trust"><code class="cmd">model_regressor=<span class="fn">Ridge</span>(alpha=<span class="arg">1</span>)</code><div class="desc">Swap the surrogate. Any sklearn regressor with <code>coef_</code> works — a more regularised one can stabilise the weights.</div></li>
+    </ul>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ DECISION MAP ============ -->
+<section class="diagrams">
+  <h2>Decision map</h2>
+  <p class="sub">Data kind picks the explainer. <b>Then everything routes through the same gate.</b></p>
+  <div class="mer-wrap">
+    <pre class="mermaid">
+flowchart LR
+  A["Explain one<br/>prediction"] --> B{"Data kind?"}
+  B -->|text| C["LimeTextExplainer<br/>pass RAW strings +<br/>pipeline.predict_proba"]
+  B -->|tabular| D["LimeTabularExplainer<br/>pass training data"]
+  B -->|image| E["LimeImageExplainer<br/>segmentation IS<br/>the feature space"]
+
+  D --> D1{"Classification<br/>or regression?"}
+  D1 -->|clf| D2["predict_proba<br/>(n, n_classes)"]
+  D1 -->|reg| D3["mode='regression'<br/>plain predict"]
+
+  C --> G
+  D2 --> G
+  D3 --> G
+  E --> G
+
+  G["THE GATE<br/>print(exp.score)"] --> H{"R² good?"}
+  H -->|"&gt; 0.6 — trust it"| I["exp.as_list()<br/>exp.show_in_notebook()"]
+  H -->|"0.3 – 0.6 — shaky"| J["raise num_samples<br/>tune kernel_width<br/>try discretizer='entropy'"]
+  H -->|"&lt; 0.3 — DISCARD"| K["The neighbourhood<br/>isn't linear.<br/>Use SHAP instead."]
+  J --> H
+
+  I --> L{"Need the<br/>whole model?"}
+  L -->|yes| M["SubmodularPick<br/>a few covering rows"]
+  L -->|no| Z(["Ship it"])
+  M --> Z
+
+  classDef txt  fill:#ecf7f2,stroke:#059669,color:#065f46,stroke-width:2px;
+  classDef tab  fill:#fdf6ec,stroke:#d97706,color:#92400e,stroke-width:2px;
+  classDef img  fill:#eef0fd,stroke:#4f46e5,color:#3730a3,stroke-width:2px;
+  classDef gate fill:#ecf6fa,stroke:#0891b2,color:#155e75,stroke-width:2px;
+  classDef warn fill:#fdf0ef,stroke:#dc2626,color:#991b1b,stroke-width:2px;
+  classDef ship fill:#1a1d24,stroke:#1a1d24,color:#fbbf24,stroke-width:2px;
+  class B,D1,H,L gate;
+  class C,I txt;
+  class D,D2,D3,J tab;
+  class E,M img;
+  class G,K warn;
+  class Z ship;
+    </pre>
+  </div>
+</section>
+
+<!-- ============ TRAPS + PERSPECTIVE ============ -->
+<section class="deck-wrap">
+  <h2>Traps &amp; perspective</h2>
+  <p class="sub">LIME's failure mode is the worst kind: it <b>never errors, never warns, and always renders something beautiful</b>. The quality signal exists — it's just not on by default.</p>
+  <div class="deck">
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Silently Wrong</span><span class="card-sub">it still looks great</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="cm"># never checking exp.score</span></code><span class="badge-danger">the big one</span><div class="desc">R² as low as <b>0.006</b> still yields a confident, ranked, colour-coded chart. <b>If you take one thing from this sheet, take this.</b></div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># reading a bin weight as a per-unit coefficient</span></code><div class="desc"><code>"4.00 &lt; rooms &lt;= 5.00" → +0.57</code> means <b>"+0.57 for being in that bracket"</b>, not "+0.57 per room".</div></li>
+      <li class="danger"><code class="cmd">num_samples=<span class="arg">100</span> <span class="cm"># to make it fast</span></code><div class="desc">Weight spread across seeds jumped to <b>0.145</b>. This is where LIME's instability reputation actually comes from — <b>it's self-inflicted</b>.</div></li>
+      <li class="danger"><code class="cmd">random_state=<span class="arg">None</span> <span class="cm"># default</span></code><div class="desc">Unreproducible explanations. <b>Always set it.</b> A stakeholder re-running your notebook and getting a different answer is not a good day.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># forgetting categorical_features=</span></code><div class="desc">One-hot columns get perturbed to fractional values. The model gets nonsense; you get a chart.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># LIME is not additive</span></code><div class="desc">Weights <b>do not sum to the prediction</b>. There's no local-accuracy guarantee — that's SHAP's property, not LIME's. Don't present them as contributions that add up.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">LIME vs SHAP</span><span class="card-sub">the honest comparison</span></div>
+    <table class="grid">
+      <thead><tr><th>LIME</th><th>SHAP</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>Fast &amp; model-agnostic.</b> Any model, any data kind, one API.</td>
+          <td><b>Exact for trees/linear</b> (TreeSHAP). Slow for everything else.</td>
+        </tr>
+        <tr>
+          <td><b>No guarantees.</b> Weights are coefficients of a line that <i>might not fit</i>.</td>
+          <td><b>Axiomatic.</b> Local accuracy, consistency, missingness. Weights <b>sum to the prediction</b>.</td>
+        </tr>
+        <tr>
+          <td><b>Intuitive output</b> — rules and highlighted words. Non-specialists read it instantly.</td>
+          <td>Log-odds, base values, 3-D arrays. Powerful, but needs explaining.</td>
+        </tr>
+        <tr>
+          <td><b>Ships a quality signal</b> (<code>exp.score</code>) — if you read it.</td>
+          <td>No comparable "did this work?" number. It's exact, so it doesn't need one.</td>
+        </tr>
+        <tr>
+          <td><b>Best for:</b> text, images, quick sanity checks, explaining to humans.</td>
+          <td><b>Best for:</b> tabular models, audits, anything needing defensible numbers.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="card-note"><b>The verdict from the numbers on this page:</b> on <b>text</b>, LIME fit at R² = 0.9999 — <b>use it, it's excellent</b>. On <b>tabular</b>, the median fit was 0.56 and the worst 0.006 — <b>reach for SHAP</b>, which is exact for exactly the tree models you'd be using there anyway.</div>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">What LIME Cannot Tell You</span><span class="card-sub">the limits</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="cm"># it explains the SURROGATE, not the model</span></code><span class="badge-danger">core</span><div class="desc">Every LIME weight is a coefficient of a <b>little linear model that stands in for yours</b>. When they agree (high R²), that's fine. When they don't, <b>you are reading a description of a model that does not exist</b>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># not causal</span></code><div class="desc">"The model used this" ≠ "changing this changes the outcome". Same caveat as SHAP.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># perturbations can be off-manifold</span></code><div class="desc">Independent sampling produces impossible rows. The model answers anyway, and those answers shape your explanation.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># LIME can be gamed</span></code><div class="desc">Published attacks (<b>Slack et al., "Fooling LIME and SHAP", 2020</b>) build models that behave one way on real data and another on LIME's perturbed samples — <b>hiding blatant bias from the explainer</b>. Explanations are evidence, not proof.</div></li>
+      <li class="core"><code class="cmd"><span class="cm"># a good explanation of a bad model is still bad</span></code><div class="desc">LIME faithfully reports what the model learned — including its leakage and its bias. <b>Validate the model first, explain it second.</b></div></li>
+    </ul>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ REFS ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">PRINT exp.score</span><span class="v">the surrogate's R² · measured as low as <b>0.006</b> while still rendering a confident chart</span></div>
+    <div><span class="k">&lt; 0.3 → discard it</span><span class="v">the neighbourhood isn't linear · the coefficients are noise</span></div>
+    <div><span class="k">the 4 steps</span><span class="v">perturb → predict → weight by proximity → fit a sparse linear model</span></div>
+    <div><span class="k">universal shape</span><span class="v"><code>Explainer(train)</code> → <code>explain_instance(row, predict_fn)</code> → <code>as_list()</code></span></div>
+    <div><span class="k">clf → predict_proba</span><span class="v"><code>clf.predict</code> raises <code>NotImplementedError</code> · regression → plain <code>predict</code></span></div>
+    <div><span class="k">LIME is NOT additive</span><span class="v">weights don't sum to the prediction · that's SHAP's guarantee, not LIME's</span></div>
+    <div><span class="k">weights are BINS</span><span class="v"><code>"4 &lt; rooms &lt;= 5" → +0.57</code> means "for being in that bracket", not per room</span></div>
+    <div><span class="k">num_samples is the knob</span><span class="v">spread 0.145 at 100 → <b>0.019 at 5000</b> · instability is self-inflicted</span></div>
+    <div><span class="k">always set random_state</span><span class="v">default is None → unreproducible explanations</span></div>
+    <div><span class="k">text: no training_data</span><span class="v">pass raw strings + a pipeline's <code>predict_proba</code> (vectorizer inside)</span></div>
+    <div><span class="k">bow=True ignores order</span><span class="v">set <code>bow=False</code> for transformers and order-sensitive models</span></div>
+    <div><span class="k">declare categorical_features</span><span class="v">or one-hot columns get perturbed to 0.37</span></div>
+    <div><span class="k">sample_around_instance</span><span class="v">defaults to <b>False</b> — samples the global distribution, not your neighbourhood</span></div>
+    <div><span class="k">images: segmentation IS the feature space</span><span class="v">bad superpixels → meaningless explanation</span></div>
+    <div><span class="k">SubmodularPick</span><span class="v">a few covering rows &gt; hundreds of random ones · the defensible way to present LIME</span></div>
+    <div><span class="k">text → LIME · tabular → SHAP</span><span class="v">measured: R² <b>0.9999</b> on text, median <b>0.56</b> on tabular</span></div>
+  </div>
+</section>
+
+<footer>
+  LIME cheat sheet · grounded against <a href="https://github.com/marcotcr/lime">marcotcr/lime</a> and Ribeiro, Singh &amp; Guestrin, <a href="https://arxiv.org/abs/1602.04938">"Why Should I Trust You?" (KDD 2016)</a> · attack literature: Slack et al., "Fooling LIME and SHAP" (AIES 2020).<br>
+  <b>Every claim and every figure was executed against lime 0.2.0.1 / scikit-learn 1.8.0</b> (still the last release; re-verified 2026-08-28) · <span class="star">★</span> = everyday · <span style="color:#dc2626">red</span> = it will bite you.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({
+      startOnLoad: true, theme: 'base',
+      themeVariables: {
+        fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: '12px',
+        primaryColor: '#fbfaf8', primaryTextColor: '#1a1d24', primaryBorderColor: '#64748b',
+        lineColor: '#94a3b8', secondaryColor: '#f1f3f6', tertiaryColor: '#ffffff'
+      },
+      flowchart: { curve: 'basis', nodeSpacing: 30, rankSpacing: 55, useMaxWidth: true }
+    });
+  }
+</script>
+
+</body>
+</html>

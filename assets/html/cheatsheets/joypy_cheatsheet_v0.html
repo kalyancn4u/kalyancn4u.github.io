@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>joypy Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --imp:#64748b;    --imp-bg:#f1f3f6;    /* import / setup          */
+    --data:#4f46e5;   --data-bg:#eef0fd;   /* data · grouping         */
+    --dens:#059669;   --dens-bg:#ecf7f2;   /* density (kde/hist)      */
+    --layout:#d97706; --layout-bg:#fdf6ec; /* overlap · range         */
+    --color:#7c3aed;  --color-bg:#f4effe;  /* colour · fill           */
+    --out:#0d9488;    --out-bg:#e9f6f4;    /* labels · legend · output*/
+    --danger:#dc2626; --danger-bg:#fdf0ef; /* gotcha                  */
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .wm{font-family:var(--mono); letter-spacing:-.03em}
+  /* magma gradient across the wordmark — the colormap joypy tutorials love */
+  h1 .wm .c0{color:#451077} h1 .wm .c1{color:#721f81} h1 .wm .c2{color:#cd4071}
+  h1 .wm .c3{color:#f1605d} h1 .wm .c4{color:#fd9567}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.imp{background:var(--imp)} .dot.data{background:var(--data)}
+  .dot.dens{background:var(--dens)} .dot.layout{background:var(--layout)}
+  .dot.color{background:var(--color)} .dot.out{background:var(--out)}
+  .dot.danger{background:var(--danger)}
+  .legend .st{color:var(--star); font-weight:700}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- quickstart panel ---------- */
+  .qs{max-width:1500px; margin:0 auto; padding:1.4rem clamp(1rem,4vw,3rem) .5rem}
+  .qs-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.9rem;
+  }
+  .code-block{
+    background:var(--ink); border-radius:10px; padding:1.1rem 1.3rem;
+    overflow-x:auto; font-family:var(--mono); font-size:.82rem; line-height:1.75;
+    color:#e8e6e1;
+  }
+  .code-block .l{display:block; white-space:pre}
+  .code-block .note{color:#fbbf24; font-weight:700}
+  .kw{color:#c792ea} .fn{color:#82aaff} .mod{color:#5ccf9e}
+  .arg{color:#f78c6c} .str{color:#c3e88d} .num{color:#f5a623}
+  .cm{color:#7684a0; font-style:italic}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.imp{border-left-color:var(--imp)}
+  ul.cmds li.data{border-left-color:var(--data)}
+  ul.cmds li.dens{border-left-color:var(--dens)}
+  ul.cmds li.layout{border-left-color:var(--layout)}
+  ul.cmds li.color{border-left-color:var(--color)}
+  ul.cmds li.out{border-left-color:var(--out)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  li.plain{border-left-color:#cbd0d8}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.5;
+  }
+  code.cmd .a{color:var(--data); font-weight:400}   /* argument   */
+  code.cmd .s{color:var(--dens)}                    /* string     */
+  code.cmd .m{color:var(--out)}                     /* method/fn  */
+  code.cmd .n{color:var(--layout)}                  /* number     */
+  code.cmd .p{color:var(--muted)}                   /* punctuation/comment */
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.77rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f1eee8; padding:0 .25em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem; max-width:72ch}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#82aaff; font-size:.95em}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:var(--ink)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · stacked density ridgelines</div>
+  <h1><span class="wm"><span class="c0">j</span><span class="c1">o</span><span class="c2">y</span><span class="c3">p</span><span class="c4">y</span></span> cheat sheet</h1>
+  <p class="lede">One function, one job. <code>joypy.joyplot(df)</code> takes a DataFrame, estimates a <b>density</b> (KDE) for each numeric column — or each group via <code>by=</code> — and stacks them into overlapping <b>ridgelines</b>. It returns a plain Matplotlib <code>(fig, axes)</code>, so everything you know about saving and styling still applies. Named after Joy Division's <em>Unknown Pleasures</em> cover.</p>
+  <div class="legend">
+    <span><i class="dot imp"></i>import / setup</span>
+    <span><i class="dot data"></i>data &amp; grouping</span>
+    <span><i class="dot dens"></i>density (KDE / hist)</span>
+    <span><i class="dot layout"></i>overlap &amp; range</span>
+    <span><i class="dot color"></i>colour &amp; fill</span>
+    <span><i class="dot out"></i>labels &amp; output</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="st">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against the joypy source (no formal docs exist): <b>github.com/leotac/joypy</b> (joyplot.py + README + Joyplot.ipynb) · <b>python-charts.com</b> · <b>python-graph-gallery.com</b> · <b>blanchardjulien.com</b> · <b>Wikipedia: ridgeline plot</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">One call — DataFrame in, stacked ridgelines out</div>
+  <svg class="flow-svg" viewBox="0 0 1120 356" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram: a DataFrame's numeric columns or groups each get a density estimate (KDE by default, or a histogram), which are stacked vertically with an overlap, and joyplot returns a Matplotlib figure and a list of n+1 axes — the last being a global background axis.">
+    <defs>
+      <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <text x="20" y="30" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">THE ENTIRE PIPELINE</text>
+
+    <!-- 4 stage boxes -->
+    <g>
+      <rect x="14"  y="44" width="230" height="96" rx="11" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="129" y="74" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">1 · DataFrame</text>
+      <text x="129" y="97" text-anchor="middle" font-size="9.5" fill="#4f46e5">numeric columns</text>
+      <text x="129" y="113" text-anchor="middle" font-size="9.5" fill="#4f46e5">or groups via by=</text>
+    </g>
+    <g>
+      <rect x="288" y="44" width="230" height="96" rx="11" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="403" y="74" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">2 · Density each</text>
+      <text x="403" y="97" text-anchor="middle" font-size="9.5" fill="#059669">KDE (scipy) by default</text>
+      <text x="403" y="113" text-anchor="middle" font-size="9.5" fill="#059669">or hist=True</text>
+    </g>
+    <g>
+      <rect x="562" y="44" width="230" height="96" rx="11" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="677" y="74" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">3 · Stack</text>
+      <text x="677" y="97" text-anchor="middle" font-size="9.5" fill="#b45309">one row per column/group</text>
+      <text x="677" y="113" text-anchor="middle" font-size="9.5" fill="#b45309">offset by overlap</text>
+    </g>
+    <g>
+      <rect x="836" y="44" width="270" height="96" rx="11" fill="#e9f6f4" stroke="#0d9488" stroke-width="2"/>
+      <text x="971" y="74" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">4 · (fig, axes)</text>
+      <text x="971" y="97" text-anchor="middle" font-size="9.5" fill="#0d9488">a Matplotlib figure</text>
+      <text x="971" y="113" text-anchor="middle" font-size="9.5" fill="#0d9488">+ n+1 axes back</text>
+    </g>
+    <line x1="244" y1="92" x2="286" y2="92" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+    <line x1="518" y1="92" x2="560" y2="92" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+    <line x1="792" y1="92" x2="834" y2="92" stroke="#1a1d24" stroke-width="2" marker-end="url(#arw)"/>
+
+    <!-- axes anatomy band -->
+    <text x="20" y="192" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">WHAT COMES BACK — n ROWS + 1 GLOBAL AXIS</text>
+    <g font-family="JetBrains Mono, monospace">
+      <!-- mini stacked ridges -->
+      <g transform="translate(30,210)">
+        <path d="M0,34 C24,34 30,6 56,6 C82,6 88,34 112,34 Z" fill="#f1605d" fill-opacity="0.55" stroke="#cd4071" stroke-width="1.3"/>
+        <path d="M0,54 C20,54 34,22 56,22 C78,22 92,54 112,54 Z" fill="#fd9567" fill-opacity="0.55" stroke="#f1605d" stroke-width="1.3"/>
+        <path d="M0,74 C28,74 30,44 56,44 C82,44 84,74 112,74 Z" fill="#feca8d" fill-opacity="0.6" stroke="#fd9567" stroke-width="1.3"/>
+      </g>
+      <text x="152" y="228" font-size="10.5" fill="#0d9488">axes[0]</text><text x="220" y="228" font-size="9.5" fill="#6b7280">&#8594; the top ridge's own axis</text>
+      <text x="152" y="252" font-size="10.5" fill="#0d9488">axes[1] &#8230; axes[n-1]</text><text x="300" y="252" font-size="9.5" fill="#6b7280">&#8594; each subsequent row</text>
+      <text x="152" y="276" font-size="10.5" fill="#4f46e5">axes[-1]</text><text x="220" y="276" font-size="9.5" fill="#6b7280">&#8594; the global / background axis (style the whole figure here)</text>
+      <text x="152" y="300" font-size="9.5" fill="#94a3b8">len(axes) == number_of_rows + 1</text>
+    </g>
+  </svg>
+</section>
+
+<!-- ============ QUICKSTART ============ -->
+<section class="qs">
+  <div class="qs-title">The minimal call, then the usual dressing-up</div>
+  <div class="code-block"><code><span class="l"><span class="kw">import</span> joypy</span><span class="l"><span class="kw">import</span> pandas <span class="kw">as</span> pd</span><span class="l"><span class="kw">from</span> matplotlib <span class="kw">import</span> cm</span><span class="l"></span><span class="l">iris = pd.<span class="fn">read_csv</span>(<span class="str">"iris.csv"</span>)</span><span class="l"></span><span class="l">fig, axes = joypy.<span class="fn">joyplot</span>(iris)                       <span class="note"># one ridge per numeric column</span></span><span class="l"></span><span class="l">fig, axes = joypy.<span class="fn">joyplot</span>(iris, by=<span class="str">"Name"</span>, column=<span class="str">"SepalLength"</span>,  <span class="note"># one ridge per group</span></span><span class="l">                          colormap=cm.viridis, overlap=<span class="num">2</span>, fade=<span class="kw">True</span>)</span><span class="l"></span><span class="l">fig.<span class="fn">savefig</span>(<span class="str">"joy.png"</span>, dpi=<span class="num">300</span>, bbox_inches=<span class="str">"tight"</span>)   <span class="note"># it's just Matplotlib</span></span></code></div>
+</section>
+
+<!-- ============ COMMAND CARDS ============ -->
+<main>
+
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Import</span><span class="card-sub">once per project</span></div>
+    <ul class="cmds">
+      <li class="imp"><code class="cmd"><span class="p">$</span> pip install joypy</code><div class="desc">Pulls in <code>matplotlib</code>, <code>pandas</code>, <code>scipy</code>, <code>numpy</code>.</div></li>
+      <li class="imp"><code class="cmd">import joypy</code><span class="star">&#9733;</span><div class="desc">The whole library — one function inside.</div></li>
+      <li class="imp"><code class="cmd">import pandas as pd</code><div class="desc">joypy is built around DataFrames.</div></li>
+      <li class="imp"><code class="cmd">from matplotlib import cm</code><div class="desc">For colormaps like <code>cm.viridis</code>, <code>cm.magma</code>.</div></li>
+      <li class="imp"><code class="cmd">import matplotlib.pyplot as plt</code><div class="desc">To save / show the returned figure.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 ONE FUNCTION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">The One Function</span><span class="card-sub">the entire API</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">fig, axes = joypy.joyplot<span class="p">(</span>df<span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">That's the whole thing — everything else is optional.</div></li>
+      <li class="data"><code class="cmd"><span class="p"># returns (fig, axes)</span></code><div class="desc">A Matplotlib figure and a list of axes.</div></li>
+      <li class="data"><code class="cmd"><span class="p"># one ridge per numeric column</span></code><div class="desc">Non-numeric columns are quietly skipped.</div></li>
+      <li class="danger"><code class="cmd">len<span class="p">(</span>axes<span class="p">)</span> == n + <span class="n">1</span></code><span class="badge-danger">note</span><div class="desc">n rows + 1 global axis (<code>axes[-1]</code>).</div></li>
+      <li class="plain"><code class="cmd"><span class="p"># density via scipy gaussian_kde</span></code><div class="desc">Smooth curves out of the box.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 DATA MODES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Data Input Modes</span><span class="card-sub">what it accepts</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">joyplot<span class="p">(</span>df<span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">A DataFrame &#8594; one ridge per numeric column.</div></li>
+      <li class="data"><code class="cmd">joyplot<span class="p">(</span>series<span class="p">)</span></code><div class="desc">A single pandas Series.</div></li>
+      <li class="data"><code class="cmd">joyplot<span class="p">(</span>{<span class="s">"a"</span>: arr1, <span class="s">"b"</span>: arr2}<span class="p">)</span></code><div class="desc">A dict of arrays (keys become labels).</div></li>
+      <li class="data"><code class="cmd">joyplot<span class="p">(</span>[arr1, arr2]<span class="p">)</span></code><div class="desc">A plain list of arrays.</div></li>
+      <li class="data"><code class="cmd">joyplot<span class="p">(</span>df.groupby<span class="p">(</span><span class="s">"g"</span><span class="p">))</span></code><div class="desc">A pandas GroupBy object.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 GROUPING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Grouping: by &amp; column</span><span class="card-sub">rows vs values</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">joyplot<span class="p">(</span>df, by=<span class="s">"group"</span><span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">One ridge per group value.</div></li>
+      <li class="data"><code class="cmd">joyplot<span class="p">(</span>df, column=<span class="s">"value"</span><span class="p">)</span></code><div class="desc">Restrict to one variable.</div></li>
+      <li class="data"><code class="cmd">joyplot<span class="p">(</span>df, by=<span class="s">"g"</span>, column=<span class="s">"v"</span><span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Group &#215; one variable — the classic form.</div></li>
+      <li class="data"><code class="cmd">joyplot<span class="p">(</span>df, by=<span class="s">"g"</span>, column=[<span class="s">"v1"</span>,<span class="s">"v2"</span>]<span class="p">)</span></code><div class="desc">Several densities overlaid per group.</div></li>
+      <li class="plain"><code class="cmd"><span class="p"># by = groups rows · column = picks values</span></code><div class="desc">Two independent axes of splitting.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 KDE vs HIST -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Density: KDE vs Histogram</span><span class="card-sub">how the curve is made</span></div>
+    <ul class="cmds">
+      <li class="dens"><code class="cmd">joyplot<span class="p">(</span>df<span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Smooth KDE curves (the default).</div></li>
+      <li class="dens"><code class="cmd">joyplot<span class="p">(</span>df, hist=True<span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Stepped histograms instead of KDE.</div></li>
+      <li class="dens"><code class="cmd">bins=<span class="n">20</span></code><div class="desc">Histogram bin count (default 10).</div></li>
+      <li class="dens"><code class="cmd">joyplot<span class="p">(</span>df, hist=True, bins=<span class="n">30</span><span class="p">)</span></code><div class="desc">Finer histograms.</div></li>
+      <li class="plain"><code class="cmd"><span class="p"># KDE uses scipy.stats.gaussian_kde</span></code><div class="desc">Great for continuous data.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 KIND and BW -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Density Kind &amp; Bandwidth</span><span class="card-sub">finer control</span></div>
+    <ul class="cmds">
+      <li class="dens"><code class="cmd">kind=<span class="s">"kde"</span></code><div class="desc">Default smooth density.</div></li>
+      <li class="dens"><code class="cmd">kind=<span class="s">"counts"</span></code><div class="desc">Raw histogram counts.</div></li>
+      <li class="dens"><code class="cmd">kind=<span class="s">"normalized_counts"</span></code><div class="desc">Counts &#247; n.</div></li>
+      <li class="dens"><code class="cmd">kind=<span class="s">"values"</span></code><div class="desc">Plot raw values — set <code>x_range</code> too.</div></li>
+      <li class="dens"><code class="cmd">bw_method=<span class="n">0.2</span></code><div class="desc">KDE smoothing bandwidth (passed to scipy).</div></li>
+      <li class="dens"><code class="cmd">normalize=True</code><div class="desc">Normalise each density (default).</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 OVERLAP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Overlap &amp; Stacking</span><span class="card-sub">the signature knob</span></div>
+    <ul class="cmds">
+      <li class="layout"><code class="cmd">overlap=<span class="n">1</span></code><span class="star">&#9733;</span><div class="desc">How much rows overlap (default 1).</div></li>
+      <li class="layout"><code class="cmd">overlap=<span class="n">0</span></code><div class="desc">Rows fully separated — no overlap.</div></li>
+      <li class="layout"><code class="cmd">overlap=<span class="n">2</span></code><div class="desc">Heavy overlap — the dramatic look.</div></li>
+      <li class="layout"><code class="cmd">ylim=<span class="s">"max"</span></code><span class="star">&#9733;</span><div class="desc">All rows share one y-scale (default).</div></li>
+      <li class="layout"><code class="cmd">ylim=<span class="s">"own"</span></code><div class="desc">Each row scales to its own peak.</div></li>
+      <li class="layout"><code class="cmd">figsize=<span class="p">(</span><span class="n">8</span>, <span class="n">6</span><span class="p">)</span></code><div class="desc">Figure size in inches.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 RANGE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Range &amp; x-axis</span><span class="card-sub">where curves live</span></div>
+    <ul class="cmds">
+      <li class="layout"><code class="cmd">range_style=<span class="s">"all"</span></code><div class="desc">Every row shares the x-range (default).</div></li>
+      <li class="layout"><code class="cmd">range_style=<span class="s">"own"</span></code><div class="desc">Each row uses its own data range.</div></li>
+      <li class="layout"><code class="cmd">range_style=<span class="s">"group"</span></code><div class="desc">Range spans the whole group.</div></li>
+      <li class="layout"><code class="cmd">x_range=np.linspace<span class="p">(</span><span class="n">0</span>, <span class="n">100</span>, <span class="n">200</span><span class="p">)</span></code><div class="desc">Explicit x positions for the density.</div></li>
+      <li class="layout"><code class="cmd">tails=<span class="n">0.2</span></code><div class="desc">Extra padding beyond the data on each side.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 COLOR -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Colour &amp; Colormap</span><span class="card-sub">the palette</span></div>
+    <ul class="cmds">
+      <li class="color"><code class="cmd">colormap=cm.viridis</code><span class="star">&#9733;</span><div class="desc">Colour rows along a colormap.</div></li>
+      <li class="color"><code class="cmd">colormap=cm.magma · cm.Blues</code><div class="desc">Any Matplotlib colormap object.</div></li>
+      <li class="color"><code class="cmd">color=<span class="s">"steelblue"</span></code><div class="desc">One flat colour for every row.</div></li>
+      <li class="color"><code class="cmd">color=[<span class="s">"r"</span>, <span class="s">"g"</span>, <span class="s">"b"</span>]</code><div class="desc">An explicit per-row list.</div></li>
+      <li class="color"><code class="cmd">fade=True</code><span class="star">&#9733;</span><div class="desc">Fade opacity down the stack.</div></li>
+      <li class="danger"><code class="cmd"><span class="p"># colormap wants an object, not a name</span></code><span class="badge-danger">note</span><div class="desc"><code>cm.viridis</code>, not <code>"viridis"</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 FILL and LINES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Fill, Lines &amp; Background</span><span class="card-sub">curve styling</span></div>
+    <ul class="cmds">
+      <li class="color"><code class="cmd">fill=True</code><span class="star">&#9733;</span><div class="desc">Fill under each curve (default).</div></li>
+      <li class="color"><code class="cmd">fill=False</code><div class="desc">Outlines only — pure ridgelines.</div></li>
+      <li class="color"><code class="cmd">linecolor=<span class="s">"k"</span></code><div class="desc">Curve outline colour (auto black when filled).</div></li>
+      <li class="color"><code class="cmd">background=<span class="s">"black"</span></code><div class="desc">Figure background — the <em>Unknown Pleasures</em> look.</div></li>
+      <li class="color"><code class="cmd">alpha=<span class="n">0.6</span> · linewidth=<span class="n">2</span></code><div class="desc">Passed straight through to Matplotlib.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 LABELS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Labels &amp; Title</span><span class="card-sub">annotate</span></div>
+    <ul class="cmds">
+      <li class="out"><code class="cmd">labels=[<span class="s">"A"</span>, <span class="s">"B"</span>, <span class="s">"C"</span>]</code><div class="desc">Custom per-row labels.</div></li>
+      <li class="out"><code class="cmd">ylabels=False</code><div class="desc">Hide the row labels entirely.</div></li>
+      <li class="out"><code class="cmd">xlabels=True</code><div class="desc">Show the shared x tick labels (default).</div></li>
+      <li class="out"><code class="cmd">title=<span class="s">"Distributions by year"</span></code><div class="desc">Figure title.</div></li>
+      <li class="out"><code class="cmd">xlabelsize=<span class="n">10</span> · ylabelsize=<span class="n">12</span></code><div class="desc">Tick / label font sizes.</div></li>
+      <li class="out"><code class="cmd">xrot=<span class="n">45</span> · yrot=<span class="n">0</span></code><div class="desc">Rotate tick labels.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 LEGEND and GRID -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Legend &amp; Grid</span><span class="card-sub">extras</span></div>
+    <ul class="cmds">
+      <li class="out"><code class="cmd">legend=True</code><div class="desc">Show a legend (needs sub-labels).</div></li>
+      <li class="out"><code class="cmd">loc=<span class="s">"upper right"</span></code><div class="desc">Legend position.</div></li>
+      <li class="out"><code class="cmd">grid=True</code><div class="desc">Turn on gridlines.</div></li>
+      <li class="out"><code class="cmd">grid=<span class="s">"y"</span> · <span class="s">"x"</span> · <span class="s">"both"</span></code><div class="desc">Grid on a specific axis.</div></li>
+      <li class="plain"><code class="cmd"><span class="p"># legend appears with by= + multiple columns</span></code><div class="desc">Sub-labels drive the legend entries.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 OUTPUT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Output &amp; the Axes</span><span class="card-sub">save &amp; tweak</span></div>
+    <ul class="cmds">
+      <li class="out"><code class="cmd">fig, axes = joypy.joyplot<span class="p">(</span>df<span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Capture both to save or post-edit.</div></li>
+      <li class="out"><code class="cmd">fig.savefig<span class="p">(</span><span class="s">"joy.png"</span>, dpi=<span class="n">300</span><span class="p">)</span></code><span class="star">&#9733;</span><div class="desc">Save the figure.</div></li>
+      <li class="out"><code class="cmd">plt.savefig<span class="p">(</span><span class="s">"joy.png"</span>, bbox_inches=<span class="s">"tight"</span><span class="p">)</span></code><div class="desc">Trim surrounding whitespace.</div></li>
+      <li class="out"><code class="cmd">axes[-<span class="n">1</span>]</code><div class="desc">The global axis — style the whole figure here.</div></li>
+      <li class="out"><code class="cmd">axes[i].set_xlim<span class="p">(</span><span class="a">..</span><span class="p">)</span></code><div class="desc">Reach into any single ridge's axis.</div></li>
+      <li class="out"><code class="cmd">plt.show<span class="p">()</span></code><div class="desc">Display interactively.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 RECIPES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Recipes</span><span class="card-sub">copy &amp; adapt</span></div>
+    <ul class="cmds">
+      <li class="dens"><code class="cmd"><span class="p">basic:</span> joyplot<span class="p">(</span>df<span class="p">)</span></code><div class="desc">One ridge per numeric column.</div></li>
+      <li class="dens"><code class="cmd"><span class="p">grouped:</span> joyplot<span class="p">(</span>df, by=<span class="s">"g"</span>, column=<span class="s">"v"</span><span class="p">)</span></code><div class="desc">Compare a variable across groups.</div></li>
+      <li class="dens"><code class="cmd"><span class="p">over time:</span> joyplot<span class="p">(</span>df, by=<span class="s">"month"</span>, column=<span class="s">"temp"</span><span class="p">)</span></code><div class="desc">Distribution shifts across a dimension.</div></li>
+      <li class="dens"><code class="cmd"><span class="p">histogram:</span> joyplot<span class="p">(</span>df, hist=True, bins=<span class="n">20</span><span class="p">)</span></code><div class="desc">Binned instead of smoothed.</div></li>
+      <li class="dens"><code class="cmd"><span class="p">unknown pleasures:</span> colormap=cm.magma, background=<span class="s">"k"</span>, overlap=<span class="n">2</span></code><div class="desc">The album-cover aesthetic.</div></li>
+      <li class="dens"><code class="cmd"><span class="p">airy:</span> joyplot<span class="p">(</span>df, fade=True, overlap=<span class="n">3</span>, fill=False<span class="p">)</span></code><div class="desc">Faded, overlapping outlines.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four ideas that explain the plot</h2>
+  <p class="sub">What a joyplot actually is, the three ways to feed data in, how the one signature knob reshapes the stack, and the KDE-vs-histogram choice behind every curve. Based on the joypy source &amp; example notebook.</p>
+  <div class="merge-grid">
+
+    <!-- 1: anatomy -->
+    <div class="merge-card">
+      <h3>anatomy of a joyplot</h3>
+      <p>Each row is one distribution's density, drawn on its own axis and stacked so neighbours overlap — the ridgeline.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Five overlapping density curves stacked vertically, each labelled as one distribution, with a shared baseline and overlap between rows.">
+        <g>
+          <path d="M40,52 C90,52 96,20 150,20 C196,20 210,44 250,40 C300,34 320,18 360,44 L360,52 Z" fill="#feca8d" fill-opacity="0.7" stroke="#fd9567" stroke-width="1.4"/>
+          <path d="M40,72 C86,72 100,42 150,42 C188,42 196,64 240,60 C290,55 320,40 360,64 L360,72 Z" fill="#fd9567" fill-opacity="0.7" stroke="#f1605d" stroke-width="1.4"/>
+          <path d="M40,92 C80,92 104,60 148,60 C200,60 208,84 250,80 C296,76 322,66 360,84 L360,92 Z" fill="#f1605d" fill-opacity="0.7" stroke="#cd4071" stroke-width="1.4"/>
+          <path d="M40,112 C96,112 96,82 150,82 C194,82 210,104 252,100 C300,96 318,88 360,104 L360,112 Z" fill="#cd4071" fill-opacity="0.7" stroke="#9f2f7f" stroke-width="1.4"/>
+          <path d="M40,132 C84,132 108,104 150,104 C202,104 206,126 250,122 C298,118 326,110 360,124 L360,132 Z" fill="#9f2f7f" fill-opacity="0.7" stroke="#721f81" stroke-width="1.4"/>
+        </g>
+        <g font-family="JetBrains Mono, monospace" font-size="8.5" fill="#525761">
+          <text x="6" y="24">2019</text><text x="6" y="64">2020</text><text x="6" y="104">2021</text>
+          <text x="150" y="146" text-anchor="middle" fill="#94a3b8">shared x-axis · each row = one density · rows overlap</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- 2: three input modes -->
+    <div class="merge-card">
+      <h3>three ways to feed it</h3>
+      <p>Ridges can come from columns, from groups, or from both at once — same function, different arguments.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three modes: a wide DataFrame gives one ridge per column; by='g' gives one ridge per group; by plus a column list gives multiple overlaid densities per group.">
+        <g font-family="JetBrains Mono, monospace" font-size="8">
+          <!-- mode a -->
+          <text x="66" y="18" text-anchor="middle" fill="#4f46e5" font-weight="700">joyplot(df)</text>
+          <text x="66" y="30" text-anchor="middle" fill="#6b7280">per column</text>
+          <path d="M20,58 C40,58 44,40 66,40 C88,40 92,58 112,58 Z" fill="#4f46e5" fill-opacity="0.3" stroke="#4f46e5" stroke-width="1.1"/>
+          <path d="M20,74 C42,74 46,56 66,56 C86,56 90,74 112,74 Z" fill="#4f46e5" fill-opacity="0.3" stroke="#4f46e5" stroke-width="1.1"/>
+          <path d="M20,90 C38,90 48,72 66,72 C84,72 94,90 112,90 Z" fill="#4f46e5" fill-opacity="0.3" stroke="#4f46e5" stroke-width="1.1"/>
+          <text x="18" y="52" fill="#94a3b8">A</text><text x="18" y="68" fill="#94a3b8">B</text><text x="18" y="84" fill="#94a3b8">C</text>
+          <!-- mode b -->
+          <text x="200" y="18" text-anchor="middle" fill="#059669" font-weight="700">by="g"</text>
+          <text x="200" y="30" text-anchor="middle" fill="#6b7280">per group</text>
+          <path d="M156,58 C176,58 180,40 200,40 C220,40 224,58 244,58 Z" fill="#059669" fill-opacity="0.3" stroke="#059669" stroke-width="1.1"/>
+          <path d="M156,74 C178,74 182,56 200,56 C218,56 222,74 244,74 Z" fill="#059669" fill-opacity="0.3" stroke="#059669" stroke-width="1.1"/>
+          <path d="M156,90 C174,90 184,72 200,72 C216,72 226,90 244,90 Z" fill="#059669" fill-opacity="0.3" stroke="#059669" stroke-width="1.1"/>
+          <text x="150" y="52" fill="#94a3b8">g1</text><text x="150" y="68" fill="#94a3b8">g2</text><text x="150" y="84" fill="#94a3b8">g3</text>
+          <!-- mode c -->
+          <text x="334" y="18" text-anchor="middle" fill="#d97706" font-weight="700">by + column=[..]</text>
+          <text x="334" y="30" text-anchor="middle" fill="#6b7280">groups &#215; vars</text>
+          <path d="M290,58 C310,58 314,42 334,42 C354,42 358,58 378,58 Z" fill="#d97706" fill-opacity="0.28" stroke="#d97706" stroke-width="1"/>
+          <path d="M300,58 C316,58 322,46 340,46 C360,46 362,58 384,58 Z" fill="#7c3aed" fill-opacity="0.28" stroke="#7c3aed" stroke-width="1"/>
+          <path d="M290,78 C310,78 314,62 334,62 C354,62 358,78 378,78 Z" fill="#d97706" fill-opacity="0.28" stroke="#d97706" stroke-width="1"/>
+          <path d="M300,78 C316,78 322,66 340,66 C360,66 362,78 384,78 Z" fill="#7c3aed" fill-opacity="0.28" stroke="#7c3aed" stroke-width="1"/>
+          <path d="M290,98 C310,98 314,82 334,82 C354,82 358,98 378,98 Z" fill="#d97706" fill-opacity="0.28" stroke="#d97706" stroke-width="1"/>
+          <path d="M300,98 C316,98 322,86 340,86 C360,86 362,98 384,98 Z" fill="#7c3aed" fill-opacity="0.28" stroke="#7c3aed" stroke-width="1"/>
+        </g>
+        <text x="200" y="126" text-anchor="middle" font-size="8.5" font-family="JetBrains Mono, monospace" fill="#94a3b8">one function &#8594; three shapes of comparison</text>
+      </svg>
+    </div>
+
+    <!-- 3: overlap -->
+    <div class="merge-card">
+      <h3>overlap = the signature knob</h3>
+      <p>One number sets how far each row rides up into the one above — from tidy separation to the classic dense stack.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three stacks showing overlap=0 with clear gaps, overlap=1 the default with slight overlap, and overlap=2 with heavy overlap.">
+        <g font-family="JetBrains Mono, monospace" text-anchor="middle">
+          <!-- overlap 0 -->
+          <text x="66" y="128" font-size="9" fill="#d97706" font-weight="700">overlap=0</text>
+          <path d="M22,44 C42,44 46,28 66,28 C86,28 90,44 110,44 Z" fill="#f1605d" fill-opacity="0.55" stroke="#cd4071" stroke-width="1.2"/>
+          <path d="M22,72 C42,72 46,56 66,56 C86,56 90,72 110,72 Z" fill="#fd9567" fill-opacity="0.55" stroke="#f1605d" stroke-width="1.2"/>
+          <path d="M22,100 C42,100 46,84 66,84 C86,84 90,100 110,100 Z" fill="#feca8d" fill-opacity="0.6" stroke="#fd9567" stroke-width="1.2"/>
+          <!-- overlap 1 -->
+          <text x="200" y="128" font-size="9" fill="#d97706" font-weight="700">overlap=1</text>
+          <path d="M156,50 C176,50 180,28 200,28 C220,28 224,50 244,50 Z" fill="#f1605d" fill-opacity="0.55" stroke="#cd4071" stroke-width="1.2"/>
+          <path d="M156,72 C176,72 180,50 200,50 C220,50 224,72 244,72 Z" fill="#fd9567" fill-opacity="0.55" stroke="#f1605d" stroke-width="1.2"/>
+          <path d="M156,94 C176,94 180,72 200,72 C220,72 224,94 244,94 Z" fill="#feca8d" fill-opacity="0.6" stroke="#fd9567" stroke-width="1.2"/>
+          <!-- overlap 2 -->
+          <text x="334" y="128" font-size="9" fill="#d97706" font-weight="700">overlap=2</text>
+          <path d="M290,56 C310,56 314,28 334,28 C354,28 358,56 378,56 Z" fill="#f1605d" fill-opacity="0.5" stroke="#cd4071" stroke-width="1.2"/>
+          <path d="M290,70 C310,70 314,42 334,42 C354,42 358,70 378,70 Z" fill="#fd9567" fill-opacity="0.5" stroke="#f1605d" stroke-width="1.2"/>
+          <path d="M290,84 C310,84 314,56 334,56 C354,56 358,84 378,84 Z" fill="#feca8d" fill-opacity="0.55" stroke="#fd9567" stroke-width="1.2"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- 4: kde vs hist -->
+    <div class="merge-card">
+      <h3>KDE vs histogram</h3>
+      <p>The same data, two estimators: a smooth kernel density (default) or discrete bars with <code>hist=True</code>.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Left: a smooth KDE curve. Right: a stepped histogram of the same data with hist=True.">
+        <g font-family="JetBrains Mono, monospace" text-anchor="middle">
+          <!-- kde -->
+          <text x="100" y="24" font-size="9.5" fill="#059669" font-weight="700">default &#183; KDE</text>
+          <line x1="24" y1="112" x2="176" y2="112" stroke="#cbd0d8" stroke-width="1"/>
+          <path d="M28,112 C70,112 74,44 100,44 C126,44 130,112 172,112 Z" fill="#059669" fill-opacity="0.4" stroke="#059669" stroke-width="1.8"/>
+          <text x="100" y="132" font-size="8" fill="#94a3b8">smooth curve</text>
+          <!-- hist -->
+          <text x="300" y="24" font-size="9.5" fill="#059669" font-weight="700">hist=True</text>
+          <line x1="224" y1="112" x2="376" y2="112" stroke="#cbd0d8" stroke-width="1"/>
+          <g fill="#059669" fill-opacity="0.4" stroke="#059669" stroke-width="1.2">
+            <rect x="232" y="96" width="16" height="16"/>
+            <rect x="248" y="80" width="16" height="32"/>
+            <rect x="264" y="58" width="16" height="54"/>
+            <rect x="280" y="48" width="16" height="64"/>
+            <rect x="296" y="66" width="16" height="46"/>
+            <rect x="312" y="84" width="16" height="28"/>
+            <rect x="328" y="98" width="16" height="14"/>
+          </g>
+          <text x="300" y="132" font-size="8" fill="#94a3b8">binned bars</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">returns (fig, axes)</span><span class="v">it's a Matplotlib wrapper — save/style as usual</span></div>
+    <div><span class="k">len(axes) == n+1</span><span class="v">n rows plus a global axis at <code>axes[-1]</code></span></div>
+    <div><span class="k">KDE by default</span><span class="v">scipy <code>gaussian_kde</code>; pass <code>hist=True</code> for bars</span></div>
+    <div><span class="k">numeric only</span><span class="v">non-numeric columns are silently skipped</span></div>
+    <div><span class="k">by vs column</span><span class="v"><code>by=</code> groups rows · <code>column=</code> selects values</span></div>
+    <div><span class="k">overlap is the knob</span><span class="v"><code>0</code> separated · <code>1</code> default · <code>&gt;1</code> denser stack</span></div>
+    <div><span class="k">ylim="max" vs "own"</span><span class="v">shared scale across rows, or each self-scales</span></div>
+    <div><span class="k">colormap needs an object</span><span class="v"><code>cm.viridis</code>, not the string <code>"viridis"</code></span></div>
+    <div><span class="k">colormap vs color</span><span class="v"><code>colormap=</code> gradients rows · <code>color=</code> is flat / a list</span></div>
+    <div><span class="k">fill forces linecolor</span><span class="v"><code>fill=True</code> sets <code>linecolor="k"</code> unless you override</span></div>
+    <div><span class="k">range_style</span><span class="v"><code>"all"</code> · <code>"own"</code> · <code>"group"</code> control each row's x-range</span></div>
+    <div><span class="k">no formal docs</span><span class="v">the README notebook &amp; <code>joyplot.py</code> source are the reference</span></div>
+  </div>
+</section>
+
+<footer>
+  joypy cheat sheet · synthesized from the joypy source of truth (github.com/leotac/joypy — <code>joyplot.py</code>, README &amp; the Joyplot.ipynb example notebook), since the package ships no formal documentation.<br>
+  joypy is a one-function Matplotlib + pandas + scipy wrapper: <code>joypy.joyplot(data, by=, column=, hist=, overlap=, colormap=, &#8230;)</code> &#8594; <code>(fig, axes)</code> · a joyplot is a.k.a. a ridgeline plot · the name comes from Joy Division's <em>Unknown Pleasures</em>.
+</footer>
+
+</body>
+</html>

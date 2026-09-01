@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Go Cheat Sheet &#183; up to 1.26</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b;  --setup-bg:#f1f3f6;
+    --types:#d97706;  --types-bg:#fdf6ec;
+    --fn:#059669;     --fn-bg:#ecf7f2;
+    --comp:#4f46e5;   --comp-bg:#eef0fd;
+    --conc:#0d9488;   --conc-bg:#e9faf8;
+    --new:#7c3aed;    --new-bg:#f5f0fe;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --go:#007d9c; --go-bright:#00add8; --go-bg:#e6f7fb;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;}
+
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem; display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap;}
+  h1 .go{font-family:var(--mono); color:var(--go-bright);}
+  h1 .vtag{font-family:var(--mono); font-size:.9rem; font-weight:700; color:#fff;
+    background:var(--go); border-radius:6px; padding:.18rem .5rem; letter-spacing:.01em;}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)} .dot.types{background:var(--types)}
+  .dot.fn{background:var(--fn)} .dot.comp{background:var(--comp)}
+  .dot.conc{background:var(--conc)} .dot.new{background:var(--new)}
+  .dot.danger{background:var(--danger)} .dot.star{background:var(--star)}
+
+  .flow-wrap{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;}
+  .flow-title{font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;}
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+  .flow-cap{max-width:1120px; margin:.5rem auto 0; font-size:.82rem; color:#525761; text-align:center}
+
+  /* quickstart */
+  .quick{max-width:1120px; margin:1.6rem auto 0; background:var(--ink); border-radius:12px;
+    overflow:hidden; box-shadow:0 2px 8px rgba(20,20,30,.14)}
+  .quick-bar{display:flex; align-items:center; gap:.5rem; padding:.55rem .9rem;
+    border-bottom:1px solid #2c3038; font-family:var(--mono); font-size:.72rem; color:#9aa3b2}
+  .quick-bar i{width:11px;height:11px;border-radius:50%;display:inline-block}
+  .quick pre{margin:0; padding:1rem 1.15rem; overflow-x:auto; tab-size:4}
+  .quick code{font-family:var(--mono); font-size:.82rem; line-height:1.65; color:#e8e6e1; white-space:pre}
+  .quick .t-kw{color:#c792ea} .quick .t-ty{color:#7fd8ec} .quick .t-str{color:#9ece6a}
+  .quick .t-num{color:#e5b567} .quick .t-cm{color:#6b7280; font-style:italic}
+  .quick .t-fn{color:#82aaff} .quick .t-bi{color:#f78c6c} .quick .t-co{color:#f78c6c}
+
+  /* spotlight */
+  .spot{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem;}
+  .spot h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin-bottom:.25rem;
+    padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .spot h2 .em{color:var(--new)}
+  .spot .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.1rem}
+  .timeline{display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:1.3rem; font-family:var(--mono)}
+  .rel{font-size:.72rem; border:1px solid var(--line); border-radius:20px; padding:.28rem .7rem;
+    color:var(--muted); background:#fff; white-space:nowrap}
+  .rel b{color:var(--ink)}
+  .rel.hot{border-color:var(--new); background:var(--new-bg); color:var(--new)}
+  .rel.hot b{color:var(--new)}
+  .spot-grid{display:grid; gap:1rem; grid-template-columns:minmax(0,1fr)}
+  @media(min-width:680px){ .spot-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} }
+  @media(min-width:1080px){ .spot-grid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+  .spanel{border:1px solid var(--line); border-left:3px solid var(--new); border-radius:10px;
+    background:#fff; padding:.85rem .95rem; min-width:0}
+  .spanel pre{max-width:100%}
+  .spanel h3{font-size:.9rem; font-family:var(--mono); margin-bottom:.5rem; display:flex;
+    align-items:center; gap:.45rem; flex-wrap:wrap}
+  .spanel pre{margin:.2rem 0 .5rem; background:#fbfaf8; border:1px solid var(--line);
+    border-radius:7px; padding:.5rem .6rem; overflow-x:auto}
+  .spanel code{font-family:var(--mono); font-size:.76rem; white-space:pre; color:var(--ink)}
+  .spanel p{font-size:.77rem; color:#525761}
+
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  @media(min-width:1620px){ main{column-count:4} }
+  .part-head{max-width:1500px; margin:1.2rem auto .2rem; padding:0 clamp(1rem,4vw,3rem);
+    display:flex; align-items:center; gap:.7rem;}
+  .part-head .pt{font-family:var(--mono); font-size:.7rem; font-weight:700; letter-spacing:.08em;
+    text-transform:uppercase; color:#fff; background:var(--ink); border-radius:5px; padding:.24rem .55rem;}
+  .part-head .lbl{font-size:1.05rem; font-weight:700; letter-spacing:-.01em; color:var(--ink);}
+  .part-head .rule{flex:1; height:1px; background:var(--line);}
+  main.p2{padding-top:.6rem}
+
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.6rem; padding:.85rem 1rem .7rem;
+    border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff;
+    background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.types{border-left-color:var(--types)}
+  ul.cmds li.fn{border-left-color:var(--fn)}
+  ul.cmds li.comp{border-left-color:var(--comp)}
+  ul.cmds li.conc{border-left-color:var(--conc)}
+  ul.cmds li.new{border-left-color:var(--new); background:var(--new-bg)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink);
+    display:block; word-break:break-word; line-height:1.5}
+  code.cmd .t-kw{color:#a626a4; font-weight:600} code.cmd .t-ty{color:var(--go)}
+  code.cmd .t-str{color:var(--fn)} code.cmd .t-num{color:var(--types)}
+  code.cmd .t-cm{color:var(--muted); font-style:italic} code.cmd .t-fn{color:var(--comp)}
+  code.cmd .t-bi{color:#c2410c; font-weight:600} code.cmd .t-co{color:#c2410c}
+  li.danger code.cmd .t-kw, li.danger code.cmd{color:inherit}
+  .desc{font-size:.77rem; color:#525761; margin-top:.2rem}
+  .desc code{font-family:var(--mono); font-size:.9em; background:#f1eee8; padding:.02rem .25rem; border-radius:3px}
+  .star{color:var(--star); font-size:.72rem; margin-left:.35rem}
+  .vchip{color:var(--new); font-size:.64rem; font-weight:700; font-family:var(--mono);
+    background:var(--new-bg); border:1px solid #dcd0f7; border-radius:4px; padding:.03rem .3rem;
+    margin-left:.35rem; letter-spacing:.02em; white-space:nowrap}
+  .badge-danger,.badge-avoid{color:var(--danger); font-size:.62rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.04em; margin-left:.35rem;
+    border:1px solid #f3c9c6; border-radius:4px; padding:.03rem .28rem}
+  .badge-tip{color:var(--go); font-size:.62rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.04em; margin-left:.35rem;
+    border:1px solid #b6e3ef; border-radius:4px; padding:.03rem .28rem}
+
+  .diagrams{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;}
+  .diagrams h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin-bottom:.3rem;
+    padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .dgrid{display:grid; gap:1.2rem; grid-template-columns:minmax(0,1fr)}
+  @media(min-width:780px){ .dgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} }
+  .dcard{border:1px solid var(--line); min-width:0; border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .dcard h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .dcard p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .dcard .bsvg{width:100%; height:auto; display:block}
+  .dcard .bsvg text{font-family:var(--mono)}
+
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem;
+    font-family:var(--mono); font-size:.8rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  @media(min-width:1200px){ .refs-inner{grid-template-columns:1fr 1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#7fd8ec; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;}
+  footer code{color:#3f444f}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference &#183; a small, fast, statically-typed language</div>
+  <h1><span class="go">go</span> cheat sheet <span class="vtag">up to 1.26</span></h1>
+  <p class="lede">Go keeps a <b>tiny</b> surface: one loop, no classes, no exceptions, no generics-soup. Errors are values, concurrency is built in, and everything compiles to a single self-contained binary. Learn the handful of models below &mdash; then Part II is the standard library you reach for daily.</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>setup &amp; tooling</span>
+    <span><i class="dot types"></i>types &amp; syntax</span>
+    <span><i class="dot fn"></i>functions &amp; errors</span>
+    <span><i class="dot comp"></i>composites &amp; interfaces</span>
+    <span><i class="dot conc"></i>concurrency</span>
+    <span><i class="dot new"></i>new in 1.22&ndash;1.26</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked across: <b>go.dev/ref/spec</b> &#183; <b>go.dev/doc/effective_go</b> &#183; <b>go.dev/tour</b> &#183; <b>go.dev release notes 1.21&ndash;1.26</b> &#183; <b>pkg.go.dev</b> &#183; <b>gobyexample.com</b> &#183; <b>antonz.org</b> &#183; verified 2026-08-28 against <b>Go 1.26.6</b> (current stable)</p>
+</header>
+
+<section class="flow-wrap">
+  <div class="flow-title">Two mental models that carry most of Go</div>
+  <svg class="flow-svg" viewBox="0 0 1120 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two mental models of Go: source compiles to a single static binary, and goroutines are multiplexed by the scheduler onto OS threads.">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+    </marker>
+    <marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"/>
+    </marker>
+  </defs>
+
+  <!-- ===== BAND A : build pipeline ===== -->
+  <text x="24" y="30" font-size="12" font-weight="700" fill="#6b7280" letter-spacing="1.5">1 &#183; BUILD &#8212; SOURCE COMPILES TO ONE STATIC BINARY</text>
+
+  <g>
+    <rect x="24" y="48" width="176" height="86" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+    <text x="112" y="78" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">.go source</text>
+    <text x="112" y="98" text-anchor="middle" font-size="10.5" fill="#64748b">packages + imports</text>
+    <text x="112" y="116" text-anchor="middle" font-size="10.5" fill="#64748b">gofmt-clean</text>
+  </g>
+  <line x1="200" y1="91" x2="286" y2="91" stroke="#1a1d24" stroke-width="2" marker-end="url(#ah)"/>
+  <text x="243" y="83" text-anchor="middle" font-size="11" font-weight="700" fill="#d97706">go build</text>
+
+  <g>
+    <rect x="288" y="48" width="176" height="86" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+    <text x="376" y="78" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">gc compiler</text>
+    <text x="376" y="98" text-anchor="middle" font-size="10.5" fill="#b45309">+ linker</text>
+    <text x="376" y="116" text-anchor="middle" font-size="10.5" fill="#b45309">static analysis, no VM</text>
+  </g>
+  <line x1="464" y1="91" x2="550" y2="91" stroke="#1a1d24" stroke-width="2" marker-end="url(#ah)"/>
+  <text x="507" y="83" text-anchor="middle" font-size="11" font-weight="700" fill="#059669">links</text>
+
+  <g>
+    <rect x="552" y="48" width="196" height="86" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <text x="650" y="78" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">single binary</text>
+    <text x="650" y="98" text-anchor="middle" font-size="10.5" fill="#059669">no runtime to install</text>
+    <text x="650" y="116" text-anchor="middle" font-size="10.5" fill="#059669">no deps &#183; just copy &amp; run</text>
+  </g>
+  <line x1="748" y1="91" x2="834" y2="91" stroke="#1a1d24" stroke-width="2" marker-end="url(#ah)"/>
+  <text x="791" y="83" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a1d24">runs on</text>
+
+  <g font-size="11" fill="#1a1d24">
+    <rect x="836" y="50" width="260" height="26" rx="6" fill="#1a1d24"/><text x="966" y="67" text-anchor="middle" font-size="11" fill="#fff">linux &#183; amd64 / arm64</text>
+    <rect x="836" y="80" width="260" height="26" rx="6" fill="#1a1d24"/><text x="966" y="97" text-anchor="middle" font-size="11" fill="#fff">darwin &#183; windows</text>
+    <rect x="836" y="110" width="260" height="24" rx="6" fill="#e6f7fb" stroke="#00add8"/><text x="966" y="126" text-anchor="middle" font-size="10.5" fill="#007d9c">cross-compile: GOOS / GOARCH</text>
+  </g>
+
+  <line x1="24" y1="156" x2="1096" y2="156" stroke="#e7e3db" stroke-width="1"/>
+
+  <!-- ===== BAND B : concurrency ===== -->
+  <text x="24" y="184" font-size="12" font-weight="700" fill="#6b7280" letter-spacing="1.5">2 &#183; RUN &#8212; GOROUTINES SHARE BY COMMUNICATING</text>
+
+  <!-- goroutines -->
+  <g>
+    <rect x="24" y="206" width="150" height="150" rx="12" fill="#e9faf8" stroke="#0d9488" stroke-width="2"/>
+    <text x="99" y="228" text-anchor="middle" font-size="12" font-weight="700" fill="#0f766e">goroutines</text>
+    <circle cx="55"  cy="256" r="12" fill="#0d9488"/><text x="55"  y="260" text-anchor="middle" font-size="9" fill="#fff">G</text>
+    <circle cx="99"  cy="256" r="12" fill="#0d9488"/><text x="99"  y="260" text-anchor="middle" font-size="9" fill="#fff">G</text>
+    <circle cx="143" cy="256" r="12" fill="#0d9488"/><text x="143" y="260" text-anchor="middle" font-size="9" fill="#fff">G</text>
+    <circle cx="55"  cy="292" r="12" fill="#5eead4"/><text x="55"  y="296" text-anchor="middle" font-size="9" fill="#134e4a">G</text>
+    <circle cx="99"  cy="292" r="12" fill="#5eead4"/><text x="99"  y="296" text-anchor="middle" font-size="9" fill="#134e4a">G</text>
+    <circle cx="143" cy="292" r="12" fill="#5eead4"/><text x="143" y="296" text-anchor="middle" font-size="9" fill="#134e4a">G</text>
+    <text x="99" y="330" text-anchor="middle" font-size="10" fill="#0f766e">go f()  &#183; cheap (KBs)</text>
+    <text x="99" y="345" text-anchor="middle" font-size="10" fill="#0f766e">thousands at a time</text>
+  </g>
+
+  <!-- channel -->
+  <line x1="174" y1="274" x2="292" y2="274" stroke="#0d9488" stroke-width="2" marker-end="url(#ahc)"/>
+  <text x="233" y="266" text-anchor="middle" font-size="11" font-weight="700" fill="#0d9488">ch &#8592;&#8594;</text>
+  <text x="233" y="292" text-anchor="middle" font-size="9.5" fill="#0f766e">channel</text>
+
+  <g>
+    <rect x="294" y="216" width="150" height="120" rx="12" fill="#e9faf8" stroke="#0d9488" stroke-width="2"/>
+    <text x="369" y="244" text-anchor="middle" font-size="12" font-weight="700" fill="#0f766e">select</text>
+    <text x="369" y="268" text-anchor="middle" font-size="10" fill="#0f766e">wait on many</text>
+    <text x="369" y="284" text-anchor="middle" font-size="10" fill="#0f766e">channels at once</text>
+    <text x="369" y="308" text-anchor="middle" font-size="10" fill="#0f766e">+ ctx.Done()</text>
+    <text x="369" y="324" text-anchor="middle" font-size="10" fill="#0f766e">to cancel</text>
+  </g>
+
+  <line x1="444" y1="276" x2="530" y2="276" stroke="#1a1d24" stroke-width="2" marker-end="url(#ah)"/>
+  <text x="487" y="268" text-anchor="middle" font-size="10" fill="#1a1d24">scheduled by</text>
+
+  <!-- scheduler G-P-M -->
+  <g>
+    <rect x="532" y="206" width="320" height="150" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+    <text x="692" y="230" text-anchor="middle" font-size="12" font-weight="700" fill="#b45309">Go scheduler &#183; G&#8211;P&#8211;M</text>
+    <text x="620" y="262" text-anchor="middle" font-size="10.5" fill="#92400e">P (logical procs)</text>
+    <rect x="556" y="272" width="40" height="24" rx="5" fill="#fbbf24"/><text x="576" y="288" text-anchor="middle" font-size="9" fill="#1a1d24">P</text>
+    <rect x="606" y="272" width="40" height="24" rx="5" fill="#fbbf24"/><text x="626" y="288" text-anchor="middle" font-size="9" fill="#1a1d24">P</text>
+    <text x="700" y="322" text-anchor="middle" font-size="10.5" fill="#92400e">= GOMAXPROCS (container-aware)</text>
+    <text x="770" y="262" text-anchor="middle" font-size="10.5" fill="#92400e">M (OS threads)</text>
+    <rect x="736" y="272" width="40" height="24" rx="5" fill="#1a1d24"/><text x="756" y="288" text-anchor="middle" font-size="9" fill="#fff">M</text>
+    <rect x="786" y="272" width="40" height="24" rx="5" fill="#1a1d24"/><text x="806" y="288" text-anchor="middle" font-size="9" fill="#fff">M</text>
+  </g>
+
+  <line x1="852" y1="276" x2="938" y2="276" stroke="#1a1d24" stroke-width="2" marker-end="url(#ah)"/>
+  <g>
+    <rect x="940" y="230" width="156" height="92" rx="12" fill="#1a1d24"/>
+    <text x="1018" y="262" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">CPU cores</text>
+    <text x="1018" y="284" text-anchor="middle" font-size="10" fill="#9aa3b2">many G onto</text>
+    <text x="1018" y="300" text-anchor="middle" font-size="10" fill="#9aa3b2">few threads</text>
+  </g>
+</svg>
+  <p class="flow-cap">Two ideas carry most of Go. <b>Left/top:</b> source compiles fast to a single self-contained native binary &mdash; no VM, no interpreter, nothing to install on the target. <b>Bottom:</b> a <code>go</code> statement spawns a cheap goroutine; goroutines <i>share by communicating</i> over channels, and the runtime scheduler multiplexes thousands of them onto a handful of OS threads.</p>
+  <div class="quick">
+    <div class="quick-bar"><i style="background:#ff5f56"></i><i style="background:#ffbd2e"></i><i style="background:#27c93f"></i><span style="margin-left:.4rem">main.go &#8212; the whole language in one screen</span></div>
+    <pre><code><span class='t-kw'>package</span> main
+
+<span class='t-kw'>import</span> (
+    <span class='t-str'>"errors"</span>
+    <span class='t-str'>"fmt"</span>
+)
+
+<span class='t-kw'>func</span> <span class='t-fn'>div</span>(a, b <span class='t-ty'>int</span>) (<span class='t-ty'>int</span>, <span class='t-ty'>error</span>) {      <span class='t-cm'>// multi-return: value + error</span>
+    <span class='t-kw'>if</span> b == <span class='t-num'>0</span> {
+        <span class='t-kw'>return</span> <span class='t-num'>0</span>, errors.<span class='t-fn'>New</span>(<span class='t-str'>"divide by zero"</span>)
+    }
+    <span class='t-kw'>return</span> a / b, <span class='t-co'>nil</span>
+}
+
+<span class='t-kw'>func</span> <span class='t-fn'>main</span>() {
+    ch := <span class='t-bi'>make</span>(<span class='t-kw'>chan</span> <span class='t-ty'>int</span>)               <span class='t-cm'>// an unbuffered channel</span>
+    <span class='t-kw'>go</span> <span class='t-kw'>func</span>() { ch &lt;- <span class='t-num'>42</span> }()           <span class='t-cm'>// a goroutine sends</span>
+    fmt.<span class='t-fn'>Println</span>(&lt;-ch)                  <span class='t-cm'>// main receives -&gt; 42</span>
+
+    <span class='t-kw'>if</span> q, err := <span class='t-fn'>div</span>(<span class='t-num'>10</span>, <span class='t-num'>2</span>); err != <span class='t-co'>nil</span> {
+        fmt.<span class='t-fn'>Println</span>(<span class='t-str'>"error:"</span>, err)     <span class='t-cm'>// the idiomatic error check</span>
+    } <span class='t-kw'>else</span> {
+        fmt.<span class='t-fn'>Println</span>(<span class='t-str'>"result:"</span>, q)      <span class='t-cm'>// 5</span>
+    }
+}</code></pre>
+  </div>
+</section>
+
+<section class="spot">
+  <h2>Modern Go <span class="em">&#183; 1.18 &rarr; 1.26</span></h2>
+  <p class="sub">The language stayed small but sharpened fast. The releases that matter, and the headline additions &mdash; the violet <span class="vchip">1.N</span> chips throughout the cards mark where each feature landed.</p>
+    <div class="timeline">
+      <span class="rel"><b>1.18</b> generics</span>
+      <span class="rel"><b>1.21</b> min/max/clear &#183; slices/maps</span>
+      <span class="rel hot"><b>1.22</b> loop var fix &#183; range int</span>
+      <span class="rel hot"><b>1.23</b> range-over-func iterators</span>
+      <span class="rel hot"><b>1.24</b> generic aliases &#183; os.Root</span>
+      <span class="rel hot"><b>1.25</b> synctest &#183; container GOMAXPROCS</span>
+      <span class="rel hot"><b>1.26</b> new(expr) &#183; Green Tea GC</span>
+    </div>
+  <div class="spot-grid">
+    <div class="spanel">
+      <h3>Generics <span class="vchip">1.18</span></h3>
+      <pre><code><span class='t-kw'>func</span> Keys[K <span class='t-ty'>comparable</span>, V <span class='t-ty'>any</span>](m <span class='t-kw'>map</span>[K]V) []K {
+    r := <span class='t-bi'>make</span>([]K, <span class='t-num'>0</span>, <span class='t-bi'>len</span>(m))
+    <span class='t-kw'>for</span> k := <span class='t-kw'>range</span> m { r = <span class='t-bi'>append</span>(r, k) }
+    <span class='t-kw'>return</span> r
+}</code></pre>
+      <p>Type parameters in <code>[ ]</code> brought type-safe containers and algorithms to Go &mdash; no more <code>interface{}</code> casts.</p>
+    </div>
+    <div class="spanel">
+      <h3>Iterators <span class="vchip">1.23</span></h3>
+      <pre><code><span class='t-kw'>func</span> <span class='t-fn'>Count</span>(n <span class='t-ty'>int</span>) iter.Seq[<span class='t-ty'>int</span>] {
+    <span class='t-kw'>return</span> <span class='t-kw'>func</span>(yield <span class='t-kw'>func</span>(<span class='t-ty'>int</span>) <span class='t-ty'>bool</span>) {
+        <span class='t-kw'>for</span> i := <span class='t-kw'>range</span> n { <span class='t-kw'>if</span> !<span class='t-fn'>yield</span>(i) { <span class='t-kw'>return</span> } }
+    }
+}
+<span class='t-kw'>for</span> v := <span class='t-kw'>range</span> <span class='t-fn'>Count</span>(<span class='t-num'>3</span>) { <span class='t-fn'>use</span>(v) }</code></pre>
+      <p>A function of the right shape is now rangeable &mdash; custom iteration with plain <code>for range</code>.</p>
+    </div>
+    <div class="spanel">
+      <h3>Loop variable fix <span class="vchip">1.22</span></h3>
+      <pre><code><span class='t-kw'>for</span> i := <span class='t-kw'>range</span> <span class='t-num'>3</span> {
+    <span class='t-kw'>go</span> <span class='t-kw'>func</span>() { <span class='t-bi'>print</span>(i) }()   <span class='t-cm'>// 0 1 2, not 3 3 3</span>
+}</code></pre>
+      <p>Each iteration gets a fresh loop variable, quietly killing Go's most infamous closure bug.</p>
+    </div>
+    <div class="spanel">
+      <h3>new(expr) <span class="vchip">1.26</span></h3>
+      <pre><code>age := <span class='t-bi'>new</span>(<span class='t-num'>42</span>)         <span class='t-cm'>// *int -&gt; 42</span>
+p := Person{Age: <span class='t-bi'>new</span>(y)} <span class='t-cm'>// optional field</span></code></pre>
+      <p><code>new</code> now takes an <i>expression</i>, not just a type &mdash; retires the ubiquitous <code>ptr(x)</code> helper.</p>
+    </div>
+    <div class="spanel">
+      <h3>Type-safe errors <span class="vchip">1.26</span></h3>
+      <pre><code><span class='t-kw'>if</span> pe, ok := errors.AsType[*fs.PathError](err); ok {
+    <span class='t-fn'>log</span>(pe.Path)
+}</code></pre>
+      <p><code>errors.AsType[T]</code> is a generic, faster, allocation-free twin of <code>errors.As</code>.</p>
+    </div>
+    <div class="spanel">
+      <h3>Leak detector + GC <span class="vchip">1.26</span></h3>
+      <pre><code><span class='t-cm'>// GOEXPERIMENT=goroutineleakprofile</span>
+<span class='t-cm'>// /debug/pprof/goroutineleak</span>
+<span class='t-cm'>// Green Tea GC now on by default</span></code></pre>
+      <p>A profile flags goroutines blocked forever on unreachable channels; the new GC cuts collection overhead 10&ndash;40%.</p>
+    </div>
+    <div class="spanel">
+      <h3>Structured logging <span class="vchip">1.21</span></h3>
+      <pre><code>slog.<span class='t-fn'>Info</span>(<span class='t-str'>"ready"</span>, <span class='t-str'>"port"</span>, <span class='t-num'>8080</span>, <span class='t-str'>"tls"</span>, <span class='t-co'>true</span>)
+<span class='t-cm'>// -&gt; level=INFO msg=ready port=8080 tls=true</span></code></pre>
+      <p><code>log/slog</code> brought level-based, key/value logging &mdash; JSON or text &mdash; into the standard library.</p>
+    </div>
+    <div class="spanel">
+      <h3>Native fuzzing <span class="vchip">1.18</span></h3>
+      <pre><code><span class='t-kw'>func</span> <span class='t-fn'>FuzzParse</span>(f *testing.F) {
+    f.<span class='t-fn'>Add</span>(<span class='t-str'>"1.2.3"</span>)
+    f.<span class='t-fn'>Fuzz</span>(<span class='t-kw'>func</span>(t *testing.T, s <span class='t-ty'>string</span>) { <span class='t-fn'>Parse</span>(s) })
+}</code></pre>
+      <p>The <code>go test</code> toolchain generates inputs to find crashers &mdash; run with <code>-fuzz=.</code></p>
+    </div>
+    <div class="spanel">
+      <h3>Container-aware GOMAXPROCS <span class="vchip">1.25</span></h3>
+      <pre><code><span class='t-cm'>// runtime now reads the cgroup CPU quota,</span>
+<span class='t-cm'>// not just the host core count</span></code></pre>
+      <p>Go right-sizes its scheduler to a container&rsquo;s CPU limit &mdash; no more over-threading under Kubernetes.</p>
+    </div>
+  </div>
+</section>
+
+<div class="part-head"><span class="pt">Part I</span><span class="lbl">The Language</span><span class="rule"></span></div>
+<main>
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Toolchain</span><span class="card-sub">one binary does it all</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> run main.<span class='t-kw'>go</span></code><span class="star">&#9733;</span><div class="desc">Compile + run in one step (throwaway binary).</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> build</code><div class="desc">Compile the package to a native binary here.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> build ./...</code><div class="desc">Build every package in the module tree.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> test ./...</code><div class="desc">Run all tests in the tree.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> fmt ./...</code><span class="star">&#9733;</span><div class="desc">Canonical formatting (gofmt) &mdash; non-negotiable.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> vet ./...</code><div class="desc">Static checks for suspicious constructs.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> mod init example.com/app</code><div class="desc">Start a module (creates <code>go.mod</code>).</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> get golang.org/x/tools@latest</code><div class="desc">Add or upgrade a dependency.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> install ./cmd/app@latest</code><div class="desc">Build + install a binary to <code>GOBIN</code>.</div></li>
+      <li class="setup"><code class="cmd">GOOS=linux GOARCH=arm64 <span class='t-kw'>go</span> build</code><div class="desc">Cross-compile &mdash; one toolchain targets every OS/arch.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> work init ./a ./b</code><span class="vchip">1.18</span><div class="desc">Multi-module workspace (creates <code>go.work</code>).</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> env GOPATH GOMODCACHE</code><div class="desc">Inspect the Go environment.</div></li>
+      <li class="new"><code class="cmd"><span class='t-kw'>go</span> fix ./...</code><span class="vchip">1.26</span><div class="desc">Apply modernizers &mdash; fully revamped.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> doc fmt.Println</code><div class="desc">Show docs in the terminal.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Program Anatomy</span><span class="card-sub">every file starts the same</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class='t-kw'>package</span> main</code><span class="star">&#9733;</span><div class="desc">An executable; any other name = a library.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>import</span> <span class='t-str'>"fmt"</span></code><div class="desc">Pull in a package by its import path.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>import</span> ( <span class='t-str'>"fmt"</span>; <span class='t-str'>"os"</span> )</code><div class="desc">Grouped imports (gofmt sorts them).</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>import</span> _ <span class='t-str'>"net/http/pprof"</span></code><div class="desc">Blank import: runs a package init for side effects only.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>func</span> <span class='t-fn'>main</span>() { ... }</code><span class="star">&#9733;</span><div class="desc">The entry point of <code>package main</code>.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>func</span> <span class='t-fn'>init</span>() { ... }</code><div class="desc">Runs once at startup, before <code>main</code> (any file may have one).</div></li>
+      <li class="setup"><code class="cmd"><span class='t-cm'>// line   /* block */</span></code><div class="desc">The two comment forms.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>func</span> <span class='t-fn'>Public</span>() {}</code><span class="badge-tip">export</span><div class="desc">Uppercase = exported; lowercase = package-private.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> run .</code><div class="desc">Run the whole package (all its files).</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Basic Types &amp; Literals</span><span class="card-sub">a small, explicit set</span></div>
+    <ul class="cmds">
+      <li class="types"><code class="cmd"><span class='t-kw'>var</span> b <span class='t-ty'>bool</span> = <span class='t-co'>true</span></code><div class="desc"><code>true</code> / <code>false</code> only.</div></li>
+      <li class="types"><code class="cmd"><span class='t-kw'>var</span> n <span class='t-ty'>int</span> = <span class='t-num'>42</span></code><div class="desc">Platform int (64-bit on most machines); also <code>int8..int64</code>, <code>uint..</code>.</div></li>
+      <li class="types"><code class="cmd"><span class='t-kw'>var</span> f <span class='t-ty'>float64</span> = <span class='t-num'>3.14</span></code><div class="desc">Also <code>float32</code>, <code>complex128</code>, <code>complex64</code>.</div></li>
+      <li class="types"><code class="cmd"><span class='t-kw'>var</span> s <span class='t-ty'>string</span> = <span class='t-str'>"hi"</span></code><span class="star">&#9733;</span><div class="desc">Immutable, UTF-8 encoded bytes.</div></li>
+      <li class="types"><code class="cmd"><span class='t-kw'>var</span> r <span class='t-ty'>rune</span> = <span class='t-str'>'A'</span></code><div class="desc"><code>rune</code>=int32 (code point); <code>byte</code>=uint8.</div></li>
+      <li class="types"><code class="cmd"><span class='t-kw'>var</span> x <span class='t-ty'>int</span></code><span class="star">&#9733;</span><div class="desc">Declared &amp; zero-valued &mdash; there are no uninitialised vars.</div></li>
+      <li class="types"><code class="cmd"><span class='t-num'>0</span>  <span class='t-str'>""</span>  <span class='t-co'>false</span>  <span class='t-co'>nil</span></code><span class="star">&#9733;</span><div class="desc">The zero values, by type.</div></li>
+      <li class="types"><code class="cmd"><span class='t-num'>0x1f</span>  0o17  0b1010  <span class='t-num'>1_000_000</span>  <span class='t-num'>1e6</span></code><div class="desc">Hex, octal, binary, digit-separated &amp; scientific literals.</div></li>
+      <li class="types"><code class="cmd"><span class='t-kw'>const</span> ( A = <span class='t-co'>iota</span>; B; C )</code><div class="desc"><code>iota</code> auto-increments: 0, 1, 2 &mdash; the enum pattern.</div></li>
+      <li class="types"><code class="cmd"><span class='t-kw'>const</span> ( _ = <span class='t-co'>iota</span>; KB = <span class='t-num'>1</span> &amp;lt;&amp;lt; (<span class='t-num'>10</span>*<span class='t-co'>iota</span>) )</code><div class="desc"><code>iota</code> in an expression &mdash; scaled/bit-flag enums.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Variables &amp; Constants</span><span class="card-sub">:= is your friend</span></div>
+    <ul class="cmds">
+      <li class="types"><code class="cmd"><span class='t-kw'>var</span> x <span class='t-ty'>int</span> = <span class='t-num'>5</span></code><div class="desc">Full declaration (type optional if inferable).</div></li>
+      <li class="types"><code class="cmd">x := <span class='t-num'>5</span></code><span class="star">&#9733;</span><div class="desc">Short declaration &mdash; inside functions only.</div></li>
+      <li class="types"><code class="cmd">a, b := <span class='t-num'>1</span>, <span class='t-num'>2</span></code><span class="star">&#9733;</span><div class="desc">Multiple assignment in one line.</div></li>
+      <li class="types"><code class="cmd">a, b = b, a</code><div class="desc">Swap with no temp variable.</div></li>
+      <li class="types"><code class="cmd">_ = <span class='t-fn'>f</span>()</code><div class="desc">The blank identifier discards a value.</div></li>
+      <li class="types"><code class="cmd"><span class='t-kw'>const</span> Pi = <span class='t-num'>3.14159</span></code><div class="desc">Compile-time constant (untyped until used).</div></li>
+      <li class="types"><code class="cmd"><span class='t-kw'>var</span> ( x <span class='t-ty'>int</span>; y <span class='t-ty'>string</span> )</code><div class="desc">Grouped declarations.</div></li>
+      <li class="danger"><code class="cmd">x := <span class='t-num'>5</span>; x := <span class='t-num'>6</span></code><span class="badge-danger">redecl</span><div class="desc">Re-<code>:=</code> in the same scope is an error &mdash; use <code>=</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Operators</span><span class="card-sub">no surprises</span></div>
+    <ul class="cmds">
+      <li class="types"><code class="cmd">+  -  *  /  %</code><span class="star">&#9733;</span><div class="desc">Arithmetic; <code>/</code> on ints truncates toward zero.</div></li>
+      <li class="types"><code class="cmd">==  !=  &amp;lt;  &amp;lt;=  &amp;gt;  &amp;gt;=</code><div class="desc">Comparison &mdash; both sides must be the same type.</div></li>
+      <li class="types"><code class="cmd">&amp;amp;&amp;amp;  ||  !</code><div class="desc">Logical, short-circuiting.</div></li>
+      <li class="types"><code class="cmd">&amp;amp;  |  ^  &amp;amp;^  &amp;lt;&amp;lt;  &amp;gt;&amp;gt;</code><div class="desc">Bitwise (<code>&amp;^</code> = AND-NOT).</div></li>
+      <li class="comp"><code class="cmd">&amp;amp;x   *p</code><span class="star">&#9733;</span><div class="desc">Address-of, and pointer dereference.</div></li>
+      <li class="types"><code class="cmd">x++   x--</code><div class="desc">Statements, not expressions (no <code>++x</code>).</div></li>
+      <li class="types"><code class="cmd">+=  -=  *=  ...</code><div class="desc">Compound assignment.</div></li>
+      <li class="conc"><code class="cmd">ch &amp;lt;- v   v := &amp;lt;-ch</code><div class="desc">Channel send / receive.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Strings, Runes &amp; Bytes</span><span class="card-sub">UTF-8 all the way</span></div>
+    <ul class="cmds">
+      <li class="types"><code class="cmd">s := <span class='t-str'>"h\u00e9llo"</span></code><div class="desc">Immutable, stored as UTF-8 bytes.</div></li>
+      <li class="types"><code class="cmd"><span class='t-bi'>len</span>(s)</code><span class="star">&#9733;</span><span class="badge-danger">bytes</span><div class="desc">Number of <b>bytes</b>, not characters.</div></li>
+      <li class="types"><code class="cmd">s[i]</code><div class="desc">The byte at <code>i</code> (a <code>uint8</code>).</div></li>
+      <li class="types"><code class="cmd"><span class='t-kw'>for</span> i, r := <span class='t-kw'>range</span> s</code><span class="star">&#9733;</span><div class="desc">Iterates <b>runes</b>; <code>i</code> jumps by rune width.</div></li>
+      <li class="types"><code class="cmd">[]<span class='t-ty'>rune</span>(s)   []<span class='t-ty'>byte</span>(s)</code><div class="desc">Decode to code points, or raw bytes.</div></li>
+      <li class="types"><code class="cmd"><span class='t-str'>`raw\nstring`</span></code><div class="desc">Backticks: no escapes, may span lines.</div></li>
+      <li class="types"><code class="cmd">strings.<span class='t-fn'>Split</span>(s, <span class='t-str'>","</span>)</code><div class="desc">Also <code>Join</code>, <code>Contains</code>, <code>ReplaceAll</code>, <code>TrimSpace</code>.</div></li>
+      <li class="types"><code class="cmd"><span class='t-kw'>var</span> b strings.Builder; b.<span class='t-fn'>WriteString</span>(x)</code><span class="star">&#9733;</span><span class="badge-tip">builder</span><div class="desc">The efficient way to concatenate in a loop.</div></li>
+      <li class="types"><code class="cmd">utf8.<span class='t-fn'>RuneCountInString</span>(s)</code><div class="desc">Count characters (runes), not bytes.</div></li>
+      <li class="types"><code class="cmd">fmt.<span class='t-fn'>Sprintf</span>(<span class='t-str'>"%d-%s"</span>, n, s)</code><div class="desc">Format into a string (<code>%v</code> for anything).</div></li>
+      <li class="types"><code class="cmd">strconv.<span class='t-fn'>Itoa</span>(n); strconv.<span class='t-fn'>Atoi</span>(<span class='t-str'>"7"</span>)</code><div class="desc">int &harr; string conversions.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Control Flow</span><span class="card-sub">one loop to rule them all</span></div>
+    <ul class="cmds">
+      <li class="fn"><code class="cmd"><span class='t-kw'>if</span> x &amp;gt; <span class='t-num'>0</span> { } <span class='t-kw'>else</span> { }</code><span class="star">&#9733;</span><div class="desc">Braces required; no parentheses.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>if</span> v := <span class='t-fn'>f</span>(); v &amp;gt; <span class='t-num'>0</span> { }</code><span class="star">&#9733;</span><div class="desc">Init statement scoped to the <code>if</code>.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>for</span> i := <span class='t-num'>0</span>; i &amp;lt; n; i++ { }</code><span class="star">&#9733;</span><div class="desc">The C-style three-clause loop.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>for</span> cond { }</code><div class="desc">Go's &ldquo;while&rdquo; &mdash; just <code>for</code>.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>for</span> { }</code><div class="desc">Infinite loop; <code>break</code> to exit.</div></li>
+      <li class="new"><code class="cmd"><span class='t-kw'>for</span> i := <span class='t-kw'>range</span> <span class='t-num'>5</span> { }</code><span class="vchip">1.22</span><div class="desc">Range over an integer.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>for</span> k, v := <span class='t-kw'>range</span> m</code><span class="star">&#9733;</span><div class="desc">Range slices, maps, strings, channels.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>switch</span> x { <span class='t-kw'>case</span> <span class='t-num'>1</span>: ... }</code><span class="star">&#9733;</span><div class="desc">No implicit fall-through; use <code>fallthrough</code> to chain.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>switch</span> { <span class='t-kw'>case</span> cond: ... }</code><div class="desc">Tag-less switch = a clean if/else ladder.</div></li>
+      <li class="fn"><code class="cmd">Outer: <span class='t-kw'>for</span> { <span class='t-kw'>for</span> { <span class='t-kw'>break</span> Outer } }</code><span class="badge-tip">label</span><div class="desc">Labels let <code>break</code>/<code>continue</code> target an outer loop.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>goto</span> Done</code><div class="desc">Jumps to a label in the same function (rare; loops usually read better).</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Functions</span><span class="card-sub">first-class, multi-return</span></div>
+    <ul class="cmds">
+      <li class="fn"><code class="cmd"><span class='t-kw'>func</span> <span class='t-fn'>add</span>(a, b <span class='t-ty'>int</span>) <span class='t-ty'>int</span> { }</code><div class="desc">Shared type for consecutive params.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>func</span> <span class='t-fn'>f</span>() (<span class='t-ty'>int</span>, <span class='t-ty'>error</span>)</code><span class="star">&#9733;</span><div class="desc">Multiple return values &mdash; the Go signature.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>func</span> <span class='t-fn'>f</span>() (n <span class='t-ty'>int</span>, err <span class='t-ty'>error</span>)</code><div class="desc">Named results (pre-declared, zero-valued).</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>return</span></code><div class="desc">Naked return sends back the named results.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>func</span> <span class='t-fn'>sum</span>(xs ...<span class='t-ty'>int</span>) <span class='t-ty'>int</span></code><div class="desc">Variadic: <code>xs</code> is a <code>[]int</code> inside.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-fn'>sum</span>(nums...)</code><div class="desc">Spread a slice into a variadic call.</div></li>
+      <li class="fn"><code class="cmd">f := <span class='t-kw'>func</span>(x <span class='t-ty'>int</span>) <span class='t-ty'>int</span> { ... }</code><span class="star">&#9733;</span><div class="desc">Anonymous function / closure.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>defer</span> <span class='t-fn'>cleanup</span>()</code><span class="star">&#9733;</span><div class="desc">Schedule a call for function exit.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>func</span>() <span class='t-kw'>func</span>() <span class='t-ty'>int</span> { ... }</code><div class="desc">Closures capture surrounding variables by reference.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>defer</span> <span class='t-kw'>func</span>(){ err = <span class='t-fn'>wrap</span>(err) }()</code><span class="badge-tip">named ret</span><div class="desc">A deferred closure can read &amp; modify <b>named</b> return values.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Errors</span><span class="card-sub">values, not exceptions</span></div>
+    <ul class="cmds">
+      <li class="fn"><code class="cmd"><span class='t-kw'>if</span> err != <span class='t-co'>nil</span> { <span class='t-kw'>return</span> err }</code><span class="star">&#9733;</span><div class="desc">The idiom &mdash; you'll write it everywhere.</div></li>
+      <li class="fn"><code class="cmd">errors.<span class='t-fn'>New</span>(<span class='t-str'>"not found"</span>)</code><div class="desc">A simple sentinel error value.</div></li>
+      <li class="fn"><code class="cmd">fmt.<span class='t-fn'>Errorf</span>(<span class='t-str'>"read: %w"</span>, err)</code><span class="star">&#9733;</span><div class="desc">Wrap an error, preserving the chain with <code>%w</code>.</div></li>
+      <li class="fn"><code class="cmd">errors.<span class='t-fn'>Is</span>(err, ErrNotFound)</code><div class="desc">Match a wrapped sentinel error.</div></li>
+      <li class="fn"><code class="cmd">errors.<span class='t-fn'>As</span>(err, &amp;amp;target)</code><div class="desc">Extract a concrete error type from the chain.</div></li>
+      <li class="new"><code class="cmd">errors.AsType[*PathErr](err)</code><span class="vchip">1.26</span><div class="desc">Generic, type-safe, faster <code>As</code>.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>func</span> (e *E) <span class='t-fn'>Error</span>() <span class='t-ty'>string</span></code><div class="desc">Implement <code>error</code> = one method.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>var</span> ErrNotFound = errors.<span class='t-fn'>New</span>(<span class='t-str'>"not found"</span>)</code><span class="star">&#9733;</span><div class="desc">A package-level <b>sentinel</b> to compare against.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>func</span> (e *E) <span class='t-fn'>Unwrap</span>() <span class='t-ty'>error</span> { <span class='t-kw'>return</span> e.inner }</code><div class="desc">Expose the wrapped error so <code>Is</code>/<code>As</code> can walk it.</div></li>
+      <li class="fn"><code class="cmd">errors.<span class='t-fn'>Join</span>(e1, e2)</code><div class="desc">Combine several errors into one.</div></li>
+      <li class="danger"><code class="cmd"><span class='t-bi'>panic</span>(<span class='t-str'>"..."</span>)</code><span class="badge-danger">avoid</span><div class="desc"><b>Not</b> for ordinary failures &mdash; return an error instead.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">defer, panic &amp; recover</span><span class="card-sub">cleanup &amp; escape hatch</span></div>
+    <ul class="cmds">
+      <li class="fn"><code class="cmd"><span class='t-kw'>defer</span> f.<span class='t-fn'>Close</span>()</code><span class="star">&#9733;</span><div class="desc">Guaranteed cleanup when the function returns.</div></li>
+      <li class="danger"><code class="cmd"><span class='t-kw'>defer</span> <span class='t-fn'>log</span>(x)</code><span class="badge-danger">eval-now</span><div class="desc">Args are evaluated <b>now</b>; the body runs at exit.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>defer</span> <span class='t-fn'>a</span>(); <span class='t-kw'>defer</span> <span class='t-fn'>b</span>()</code><div class="desc">Deferred calls run in LIFO order (b then a).</div></li>
+      <li class="danger"><code class="cmd"><span class='t-bi'>panic</span>(<span class='t-str'>"boom"</span>)</code><span class="badge-danger">stops</span><div class="desc">Unwinds the stack, running defers as it goes.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-bi'>recover</span>()</code><div class="desc">Stops a panic &mdash; only meaningful inside a deferred func.</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>defer</span> <span class='t-kw'>func</span>(){ <span class='t-bi'>recover</span>() }()</code><div class="desc">The catch pattern; convert a panic to an error.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Arrays &amp; Slices</span><span class="card-sub">the workhorse</span></div>
+    <ul class="cmds">
+      <li class="comp"><code class="cmd">[<span class='t-num'>3</span>]<span class='t-ty'>int</span>{<span class='t-num'>1</span>, <span class='t-num'>2</span>, <span class='t-num'>3</span>}</code><div class="desc">A fixed-size <b>array</b> (a value &mdash; copied on assign).</div></li>
+      <li class="comp"><code class="cmd">[]<span class='t-ty'>int</span>{<span class='t-num'>1</span>, <span class='t-num'>2</span>, <span class='t-num'>3</span>}</code><span class="star">&#9733;</span><div class="desc">A <b>slice</b>: dynamic view over a backing array.</div></li>
+      <li class="comp"><code class="cmd"><span class='t-bi'>make</span>([]<span class='t-ty'>int</span>, <span class='t-num'>0</span>, <span class='t-num'>10</span>)</code><span class="star">&#9733;</span><div class="desc">Allocate: <code>make([]T, len, cap)</code>.</div></li>
+      <li class="comp"><code class="cmd">s = <span class='t-bi'>append</span>(s, x)</code><span class="star">&#9733;</span><span class="badge-danger">reassign</span><div class="desc">Grow &mdash; reassign, since it may reallocate.</div></li>
+      <li class="danger"><code class="cmd">s[<span class='t-num'>1</span>:<span class='t-num'>3</span>]</code><span class="badge-danger">aliases</span><div class="desc">Sub-slice <code>[low:high)</code> <b>shares</b> the backing array.</div></li>
+      <li class="comp"><code class="cmd"><span class='t-bi'>len</span>(s)   <span class='t-bi'>cap</span>(s)</code><div class="desc">Length and capacity.</div></li>
+      <li class="comp"><code class="cmd"><span class='t-bi'>copy</span>(dst, src)</code><div class="desc">Copy elements between slices.</div></li>
+      <li class="new"><code class="cmd">slices.<span class='t-fn'>Sort</span>(s); slices.<span class='t-fn'>Contains</span>(s, x)</code><span class="vchip">1.21</span><div class="desc">The generic <code>slices</code> package.</div></li>
+      <li class="danger"><code class="cmd">s[<span class='t-num'>1</span>:<span class='t-num'>3</span>:<span class='t-num'>3</span>]</code><span class="badge-tip">cap</span><div class="desc">Three-index slice caps <code>cap</code> &mdash; stops <code>append</code> from clobbering the base.</div></li>
+      <li class="new"><code class="cmd">slices.<span class='t-fn'>Clone</span>(s)</code><span class="star">&#9733;</span><span class="vchip">1.21</span><div class="desc">Copy a slice (fresh backing array).</div></li>
+      <li class="new"><code class="cmd">slices.<span class='t-fn'>Insert</span>(s, i, x); slices.<span class='t-fn'>Delete</span>(s, i, j)</code><span class="vchip">1.21</span><div class="desc">Insert/remove by index, generically.</div></li>
+      <li class="new"><code class="cmd"><span class='t-bi'>clear</span>(s)</code><span class="vchip">1.21</span><div class="desc">Zero every element in place.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Maps</span><span class="card-sub">hash tables, built in</span></div>
+    <ul class="cmds">
+      <li class="comp"><code class="cmd">m := <span class='t-kw'>map</span>[<span class='t-ty'>string</span>]<span class='t-ty'>int</span>{<span class='t-str'>"a"</span>: <span class='t-num'>1</span>}</code><span class="star">&#9733;</span><div class="desc">Map literal.</div></li>
+      <li class="comp"><code class="cmd"><span class='t-bi'>make</span>(<span class='t-kw'>map</span>[<span class='t-ty'>string</span>]<span class='t-ty'>int</span>)</code><div class="desc">Allocate an empty, writable map.</div></li>
+      <li class="comp"><code class="cmd">m[<span class='t-str'>"b"</span>] = <span class='t-num'>2</span></code><span class="star">&#9733;</span><div class="desc">Insert or update.</div></li>
+      <li class="comp"><code class="cmd">v := m[<span class='t-str'>"z"</span>]</code><div class="desc">Missing key returns the value's zero, not an error.</div></li>
+      <li class="comp"><code class="cmd">v, ok := m[<span class='t-str'>"z"</span>]</code><span class="star">&#9733;</span><div class="desc">Comma-ok: <code>ok</code> tells you if the key exists.</div></li>
+      <li class="comp"><code class="cmd"><span class='t-bi'>delete</span>(m, <span class='t-str'>"a"</span>)</code><div class="desc">Remove a key.</div></li>
+      <li class="danger"><code class="cmd"><span class='t-kw'>for</span> k, v := <span class='t-kw'>range</span> m</code><span class="badge-danger">random</span><div class="desc">Iteration order is <b>random</b> by design.</div></li>
+      <li class="danger"><code class="cmd"><span class='t-kw'>var</span> m <span class='t-kw'>map</span>[<span class='t-ty'>string</span>]<span class='t-ty'>int</span>; m[<span class='t-str'>"x"</span>]=<span class='t-num'>1</span></code><span class="badge-danger">nil-map</span><div class="desc">Writing to a <b>nil</b> map panics.</div></li>
+      <li class="comp"><code class="cmd">set := <span class='t-kw'>map</span>[<span class='t-ty'>string</span>]<span class='t-kw'>struct</span>{}{}</code><span class="badge-tip">set</span><div class="desc">The idiomatic <b>set</b> &mdash; a zero-width value.</div></li>
+      <li class="new"><code class="cmd">maps.<span class='t-fn'>Clone</span>(m); maps.<span class='t-fn'>Equal</span>(a, b)</code><span class="vchip">1.21</span><div class="desc">Copy / compare maps generically.</div></li>
+      <li class="new"><code class="cmd">maps.<span class='t-fn'>Keys</span>(m)   maps.<span class='t-fn'>Values</span>(m)</code><span class="vchip">1.23</span><div class="desc">Iterators over a map.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Structs</span><span class="card-sub">plain data, composed</span></div>
+    <ul class="cmds">
+      <li class="comp"><code class="cmd"><span class='t-kw'>type</span> Point <span class='t-kw'>struct</span> { X, Y <span class='t-ty'>int</span> }</code><span class="star">&#9733;</span><div class="desc">Declare a struct type.</div></li>
+      <li class="comp"><code class="cmd">p := Point{X: <span class='t-num'>1</span>, Y: <span class='t-num'>2</span>}</code><span class="star">&#9733;</span><div class="desc">Keyed literal (order-independent, safe).</div></li>
+      <li class="comp"><code class="cmd">p := Point{<span class='t-num'>1</span>, <span class='t-num'>2</span>}</code><div class="desc">Positional literal (fragile if fields move).</div></li>
+      <li class="comp"><code class="cmd">p.X</code><div class="desc">Field access (works through pointers too).</div></li>
+      <li class="comp"><code class="cmd">&amp;amp;Point{<span class='t-num'>1</span>, <span class='t-num'>2</span>}</code><div class="desc">Pointer to a struct literal.</div></li>
+      <li class="comp"><code class="cmd"><span class='t-kw'>type</span> Big <span class='t-kw'>struct</span> { Point; Name <span class='t-ty'>string</span> }</code><span class="star">&#9733;</span><div class="desc"><b>Embedding</b>: composition, not inheritance.</div></li>
+      <li class="comp"><code class="cmd">Name <span class='t-ty'>string</span> <span class='t-str'>`json:"name"`</span></code><div class="desc">Struct tags carry metadata (JSON, DB, ...).</div></li>
+      <li class="new"><code class="cmd"><span class='t-bi'>new</span>(Point{<span class='t-num'>1</span>, <span class='t-num'>2</span>})</code><span class="vchip">1.26</span><div class="desc"><code>new</code> now takes an expression &rarr; <code>*Point</code>.</div></li>
+      <li class="comp"><code class="cmd">p := <span class='t-kw'>struct</span>{ X, Y <span class='t-ty'>int</span> }{<span class='t-num'>1</span>, <span class='t-num'>2</span>}</code><div class="desc">Anonymous struct &mdash; a one-off type, no declaration.</div></li>
+      <li class="comp"><code class="cmd">a == b</code><div class="desc">Structs compare with <code>==</code> if all fields are comparable.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Methods &amp; Receivers</span><span class="card-sub">functions with a receiver</span></div>
+    <ul class="cmds">
+      <li class="comp"><code class="cmd"><span class='t-kw'>func</span> (p Point) <span class='t-fn'>Dist</span>() <span class='t-ty'>float64</span></code><span class="star">&#9733;</span><div class="desc">Value receiver &mdash; operates on a <b>copy</b>.</div></li>
+      <li class="comp"><code class="cmd"><span class='t-kw'>func</span> (p *Point) <span class='t-fn'>Move</span>(dx <span class='t-ty'>int</span>)</code><span class="star">&#9733;</span><div class="desc">Pointer receiver &mdash; can <b>mutate</b> the value.</div></li>
+      <li class="comp"><code class="cmd">p.<span class='t-fn'>Move</span>(<span class='t-num'>1</span>)</code><div class="desc">Go auto-takes <code>&amp;p</code> when calling a <code>*</code>-method.</div></li>
+      <li class="danger"><code class="cmd">value receiver can't mutate</code><span class="badge-tip">use *T</span><div class="desc">Changes to a value receiver are lost on return.</div></li>
+      <li class="comp"><code class="cmd"><span class='t-kw'>func</span> (m Celsius) <span class='t-fn'>F</span>() Celsius</code><div class="desc">Methods attach to any named type, not just structs.</div></li>
+      <li class="comp"><code class="cmd">f := p.Dist</code><div class="desc">Method value: a bound closure you can pass around.</div></li>
+      <li class="comp"><code class="cmd">g := Point.Dist</code><div class="desc">Method <i>expression</i>: receiver becomes the first argument.</div></li>
+      <li class="danger"><code class="cmd">only *T has pointer-receiver methods</code><span class="badge-danger">method set</span><div class="desc">A <code>*T</code> satisfies more interfaces than a <code>T</code> &mdash; the method-set rule.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Interfaces</span><span class="card-sub">satisfied implicitly</span></div>
+    <ul class="cmds">
+      <li class="comp"><code class="cmd"><span class='t-kw'>type</span> Stringer <span class='t-kw'>interface</span> { <span class='t-fn'>String</span>() <span class='t-ty'>string</span> }</code><span class="star">&#9733;</span><div class="desc">An interface = a set of method signatures.</div></li>
+      <li class="comp"><code class="cmd"><span class='t-cm'>// no "implements" keyword</span></code><span class="star">&#9733;</span><div class="desc">A type satisfies it just by having the methods.</div></li>
+      <li class="new"><code class="cmd"><span class='t-ty'>any</span> = <span class='t-kw'>interface</span>{}</code><span class="vchip">1.18</span><div class="desc">The empty interface holds any value.</div></li>
+      <li class="comp"><code class="cmd">v, ok := x.(<span class='t-ty'>int</span>)</code><span class="star">&#9733;</span><div class="desc">Type assertion, comma-ok form (never panics).</div></li>
+      <li class="comp"><code class="cmd"><span class='t-kw'>switch</span> v := x.(<span class='t-kw'>type</span>) { <span class='t-kw'>case</span> <span class='t-ty'>int</span>: }</code><span class="star">&#9733;</span><div class="desc">Type switch over the dynamic type.</div></li>
+      <li class="comp"><code class="cmd">(<span class='t-kw'>type</span>, value)</code><div class="desc">An interface value is a type + a value pair.</div></li>
+      <li class="danger"><code class="cmd"><span class='t-kw'>var</span> e <span class='t-ty'>error</span> = (*T)(<span class='t-co'>nil</span>); e != <span class='t-co'>nil</span></code><span class="badge-danger">typed-nil</span><div class="desc">A non-nil interface can hold a nil pointer.</div></li>
+      <li class="comp"><code class="cmd"><span class='t-kw'>interface</span> { io.Reader; io.Writer }</code><div class="desc">Interfaces embed other interfaces (&rarr; <code>io.ReadWriter</code>).</div></li>
+      <li class="comp"><code class="cmd">io.Reader, io.Writer, fmt.Stringer</code><span class="badge-tip">stdlib</span><div class="desc">The small stdlib interfaces everything speaks.</div></li>
+      <li class="comp"><code class="cmd">accept interfaces, <span class='t-kw'>return</span> structs</code><span class="badge-tip">design</span><div class="desc">A common design guideline.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Generics</span><span class="card-sub">type parameters</span></div>
+    <ul class="cmds">
+      <li class="comp"><code class="cmd"><span class='t-kw'>func</span> Map[T, U <span class='t-ty'>any</span>](s []T, f <span class='t-kw'>func</span>(T) U) []U</code><span class="star">&#9733;</span><span class="vchip">1.18</span><div class="desc">Type parameters in square brackets.</div></li>
+      <li class="comp"><code class="cmd">[T <span class='t-ty'>any</span>]</code><div class="desc">The <code>any</code> constraint accepts every type.</div></li>
+      <li class="comp"><code class="cmd">[T <span class='t-ty'>comparable</span>]</code><span class="star">&#9733;</span><div class="desc">Types usable with <code>==</code> / map keys.</div></li>
+      <li class="comp"><code class="cmd"><span class='t-kw'>type</span> Number <span class='t-kw'>interface</span> { ~<span class='t-ty'>int</span> | ~<span class='t-ty'>float64</span> }</code><div class="desc">A constraint = a set of allowed types.</div></li>
+      <li class="comp"><code class="cmd">~<span class='t-ty'>int</span></code><div class="desc">Approximation: any type whose underlying type is <code>int</code>.</div></li>
+      <li class="comp"><code class="cmd"><span class='t-fn'>Map</span>(xs, f)</code><div class="desc">Type args are usually inferred &mdash; omit <code>[int, string]</code>.</div></li>
+      <li class="new"><code class="cmd">[T cmp.Ordered]</code><span class="vchip">1.21</span><div class="desc">The stdlib constraint for <code>&lt; &gt;</code>-comparable types.</div></li>
+      <li class="new"><code class="cmd"><span class='t-kw'>type</span> Set[T <span class='t-ty'>comparable</span>] = <span class='t-kw'>map</span>[T]<span class='t-ty'>bool</span></code><span class="vchip">1.24</span><div class="desc">Generic type aliases.</div></li>
+      <li class="new"><code class="cmd"><span class='t-kw'>type</span> Adder[A Adder[A]] <span class='t-kw'>interface</span> { <span class='t-fn'>Add</span>(A) A }</code><span class="vchip">1.26</span><div class="desc">Self-referential constraints now allowed.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Goroutines &amp; Channels</span><span class="card-sub">share by communicating</span></div>
+    <ul class="cmds">
+      <li class="conc"><code class="cmd"><span class='t-kw'>go</span> <span class='t-fn'>f</span>(x)</code><span class="star">&#9733;</span><div class="desc">Start a concurrent goroutine &mdash; cheap (a few KB).</div></li>
+      <li class="conc"><code class="cmd">ch := <span class='t-bi'>make</span>(<span class='t-kw'>chan</span> <span class='t-ty'>int</span>)</code><span class="star">&#9733;</span><div class="desc">An <b>unbuffered</b> channel (a rendezvous).</div></li>
+      <li class="conc"><code class="cmd">ch &amp;lt;- v</code><span class="star">&#9733;</span><div class="desc">Send &mdash; blocks until someone receives.</div></li>
+      <li class="conc"><code class="cmd">v := &amp;lt;-ch</code><span class="star">&#9733;</span><div class="desc">Receive &mdash; blocks until someone sends.</div></li>
+      <li class="conc"><code class="cmd"><span class='t-bi'>make</span>(<span class='t-kw'>chan</span> <span class='t-ty'>int</span>, <span class='t-num'>8</span>)</code><div class="desc"><b>Buffered</b> &mdash; blocks only when full/empty.</div></li>
+      <li class="conc"><code class="cmd"><span class='t-bi'>close</span>(ch)</code><div class="desc">Signal &ldquo;no more sends&rdquo;; receivers drain, then get zero.</div></li>
+      <li class="conc"><code class="cmd">v, ok := &amp;lt;-ch</code><div class="desc"><code>ok</code> is false once closed and drained.</div></li>
+      <li class="conc"><code class="cmd"><span class='t-kw'>func</span> <span class='t-fn'>send</span>(ch <span class='t-kw'>chan</span>&amp;lt;- <span class='t-ty'>int</span>)  <span class='t-kw'>func</span> <span class='t-fn'>recv</span>(ch &amp;lt;-<span class='t-kw'>chan</span> <span class='t-ty'>int</span>)</code><div class="desc">Directional channels document &amp; enforce intent.</div></li>
+      <li class="conc"><code class="cmd"><span class='t-kw'>for</span> v := <span class='t-kw'>range</span> ch</code><span class="star">&#9733;</span><div class="desc">Receive until the channel is closed.</div></li>
+      <li class="danger"><code class="cmd">ch &amp;lt;- v <span class='t-cm'>// on a closed ch</span></code><span class="badge-danger">panic</span><div class="desc">Sending on a closed channel <b>panics</b>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">select, sync &amp; context</span><span class="card-sub">coordinate goroutines</span></div>
+    <ul class="cmds">
+      <li class="conc"><code class="cmd"><span class='t-kw'>select</span> { <span class='t-kw'>case</span> &amp;lt;-a: ; <span class='t-kw'>case</span> b &amp;lt;- x: }</code><span class="star">&#9733;</span><div class="desc">Wait on the first ready channel.</div></li>
+      <li class="conc"><code class="cmd"><span class='t-kw'>select</span> { <span class='t-kw'>default</span>: }</code><div class="desc">A <code>default</code> makes it non-blocking.</div></li>
+      <li class="conc"><code class="cmd">mu.<span class='t-fn'>Lock</span>(); <span class='t-kw'>defer</span> mu.<span class='t-fn'>Unlock</span>()</code><span class="star">&#9733;</span><div class="desc">Guard shared state with a <code>sync.Mutex</code>.</div></li>
+      <li class="conc"><code class="cmd">wg.<span class='t-fn'>Add</span>(<span class='t-num'>1</span>); ...; wg.<span class='t-fn'>Wait</span>()</code><span class="star">&#9733;</span><div class="desc">Wait for a set of goroutines to finish.</div></li>
+      <li class="new"><code class="cmd">wg.<span class='t-fn'>Go</span>(<span class='t-kw'>func</span>(){ ... })</code><span class="vchip">1.25</span><div class="desc">Spawn + count in one call.</div></li>
+      <li class="conc"><code class="cmd"><span class='t-kw'>var</span> mu sync.RWMutex; mu.<span class='t-fn'>RLock</span>()</code><div class="desc">Many readers <b>or</b> one writer &mdash; cheaper for read-heavy state.</div></li>
+      <li class="conc"><code class="cmd"><span class='t-kw'>var</span> n atomic.Int64; n.<span class='t-fn'>Add</span>(<span class='t-num'>1</span>)</code><span class="star">&#9733;</span><div class="desc">Lock-free counters &amp; flags via <code>sync/atomic</code>.</div></li>
+      <li class="conc"><code class="cmd">sync.Once{}.<span class='t-fn'>Do</span>(f)</code><div class="desc">Run something exactly once.</div></li>
+      <li class="conc"><code class="cmd">ctx, cancel := context.<span class='t-fn'>WithCancel</span>(context.<span class='t-fn'>Background</span>())</code><div class="desc">Manual cancellation of a goroutine tree.</div></li>
+      <li class="conc"><code class="cmd">ctx, cancel := context.<span class='t-fn'>WithTimeout</span>(...)</code><span class="star">&#9733;</span><div class="desc">Deadlines &amp; cancellation; always <code>defer cancel()</code>.</div></li>
+      <li class="conc"><code class="cmd">&amp;lt;-ctx.<span class='t-fn'>Done</span>()</code><div class="desc">React when the context is cancelled.</div></li>
+      <li class="conc"><code class="cmd"><span class='t-kw'>go</span> test -race</code><span class="badge-tip">race</span><div class="desc">Catch data races &mdash; use it.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Packages &amp; Modules</span><span class="card-sub">how code is organised</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span>.mod</code><span class="star">&#9733;</span><div class="desc">Module path + go version + requirements.</div></li>
+      <li class="setup"><code class="cmd">module example.com/app</code><div class="desc">The import-path root of your module.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> <span class='t-num'>1.26</span></code><div class="desc">The language-version line.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>import</span> <span class='t-str'>"example.com/app/store"</span></code><div class="desc">Import by full path; the last element is the name.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> get pkg@v1.<span class='t-num'>4.0</span></code><div class="desc">Pin an exact version.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> mod tidy</code><span class="star">&#9733;</span><div class="desc">Add missing &amp; drop unused dependencies.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> mod download</code><div class="desc">Populate the module cache.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span>.sum</code><div class="desc">Checksums for reproducible builds &mdash; commit it.</div></li>
+      <li class="setup"><code class="cmd">internal/</code><span class="badge-tip">internal</span><div class="desc">Packages importable only within the parent tree.</div></li>
+      <li class="setup"><code class="cmd">replace example.com/x =&amp;gt; ../x</code><div class="desc">Point a dependency at a local/fork path (dev).</div></li>
+      <li class="new"><code class="cmd"><span class='t-kw'>go</span>.work</code><span class="vchip">1.18</span><div class="desc">Workspace file spanning several local modules.</div></li>
+      <li class="new"><code class="cmd">tool example.com/cmd/x</code><span class="vchip">1.24</span><div class="desc">Track build tools in go.mod.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">20</span><span class="card-title">Testing &amp; Benchmarks</span><span class="card-sub">batteries included</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">foo_test.<span class='t-kw'>go</span></code><div class="desc">Test files live beside the code they test.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>func</span> <span class='t-fn'>TestX</span>(t *testing.T)</code><span class="star">&#9733;</span><div class="desc">A test; fail with <code>t.Errorf</code> / <code>t.Fatal</code>.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> test ./...</code><div class="desc">Run the whole suite.</div></li>
+      <li class="setup"><code class="cmd">t.<span class='t-fn'>Run</span>(<span class='t-str'>"case"</span>, <span class='t-kw'>func</span>(t *testing.T){})</code><span class="star">&#9733;</span><div class="desc">Table-driven subtests.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>if</span> got != want { t.<span class='t-fn'>Errorf</span>(...) }</code><div class="desc">Report a mismatch and continue.</div></li>
+      <li class="new"><code class="cmd"><span class='t-kw'>func</span> <span class='t-fn'>BenchmarkX</span>(b *testing.B){ <span class='t-kw'>for</span> b.<span class='t-fn'>Loop</span>() {} }</code><span class="vchip">1.24</span><div class="desc">Modern benchmark loop.</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>func</span> <span class='t-fn'>ExampleX</span>() { ... }</code><div class="desc">Runnable doc examples &mdash; checked against <code>// Output:</code>.</div></li>
+      <li class="new"><code class="cmd">synctest.<span class='t-fn'>Test</span>(t, <span class='t-kw'>func</span>(t *testing.T){})</code><span class="vchip">1.25</span><div class="desc">Deterministic concurrency tests (virtual clock).</div></li>
+      <li class="new"><code class="cmd"><span class='t-kw'>func</span> <span class='t-fn'>FuzzX</span>(f *testing.F){ f.<span class='t-fn'>Fuzz</span>(<span class='t-kw'>func</span>(t, s <span class='t-ty'>string</span>){}) }</code><span class="star">&#9733;</span><span class="vchip">1.18</span><div class="desc">Native fuzzing &mdash; run with <code>-fuzz=.</code></div></li>
+      <li class="setup"><code class="cmd">t.<span class='t-fn'>Parallel</span>()</code><div class="desc">Mark a test to run alongside other parallel tests.</div></li>
+      <li class="setup"><code class="cmd">t.<span class='t-fn'>Cleanup</span>(<span class='t-kw'>func</span>(){ ... })</code><div class="desc">Register teardown (runs even on <code>t.Fatal</code>).</div></li>
+      <li class="setup"><code class="cmd"><span class='t-kw'>go</span> test -race -cover</code><div class="desc">Race detector &amp; coverage.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="part-head"><span class="pt">Part II</span><span class="lbl">The standard library you reach for daily</span><span class="rule"></span></div>
+<main class="p2">
+  <article class="card">
+    <div class="card-head"><span class="card-num">21</span><span class="card-title">fmt &amp; Formatting</span><span class="card-sub">print, format, scan</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">fmt.<span class='t-fn'>Println</span>(<span class='t-str'>"a"</span>, <span class='t-num'>1</span>)</code><span class="star">&#9733;</span><div class="desc">Print args space-separated + newline.</div></li>
+      <li class="setup"><code class="cmd">fmt.<span class='t-fn'>Printf</span>(<span class='t-str'>"%s=%d\n"</span>, k, n)</code><span class="star">&#9733;</span><div class="desc">Formatted print (no auto newline).</div></li>
+      <li class="setup"><code class="cmd">s := fmt.<span class='t-fn'>Sprintf</span>(<span class='t-str'>"%d"</span>, n)</code><div class="desc">Format into a string.</div></li>
+      <li class="setup"><code class="cmd">fmt.<span class='t-fn'>Fprintf</span>(w, ...)</code><div class="desc">Write formatted output to any <code>io.Writer</code>.</div></li>
+      <li class="types"><code class="cmd">%v  %+v  %#v  %T</code><span class="star">&#9733;</span><span class="badge-tip">verbs</span><div class="desc">Value &#183; with fields &#183; Go-syntax &#183; the type.</div></li>
+      <li class="types"><code class="cmd">%d %b %o %x  %c %U</code><div class="desc">Integer bases; rune char; Unicode code point.</div></li>
+      <li class="types"><code class="cmd">%f  %.2f  %<span class='t-num'>6.</span>2f  %e  %g</code><div class="desc">Float: fixed, precision, width, scientific, compact.</div></li>
+      <li class="types"><code class="cmd">%s  %q  %p</code><div class="desc">String; quoted/escaped string; pointer address.</div></li>
+      <li class="fn"><code class="cmd">fmt.<span class='t-fn'>Errorf</span>(<span class='t-str'>"ctx: %w"</span>, err)</code><div class="desc"><code>%w</code> wraps an error into the chain.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">22</span><span class="card-title">Time &amp; Duration</span><span class="card-sub">the reference-date layout</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">t := time.<span class='t-fn'>Now</span>()</code><span class="star">&#9733;</span><div class="desc">Current local time.</div></li>
+      <li class="setup"><code class="cmd">d := <span class='t-num'>3</span> * time.Second</code><div class="desc">Durations are typed integers of nanoseconds.</div></li>
+      <li class="setup"><code class="cmd">time.<span class='t-fn'>Sleep</span>(d)</code><div class="desc">Block the goroutine for a duration.</div></li>
+      <li class="fn"><code class="cmd">elapsed := time.<span class='t-fn'>Since</span>(start)</code><span class="star">&#9733;</span><div class="desc">Duration from a past instant to now.</div></li>
+      <li class="types"><code class="cmd">t.<span class='t-fn'>Format</span>(<span class='t-str'>"2006-01-02 15:04:05"</span>)</code><span class="star">&#9733;</span><span class="badge-danger">magic date</span><div class="desc">Layout <b>is</b> the reference date Mon Jan 2 15:04:05 2006.</div></li>
+      <li class="fn"><code class="cmd">t, err := time.<span class='t-fn'>Parse</span>(layout, s)</code><div class="desc">Parse a string with the same layout.</div></li>
+      <li class="conc"><code class="cmd">&amp;lt;-time.<span class='t-fn'>After</span>(d)</code><div class="desc">A channel that fires once after <code>d</code> &mdash; handy in <code>select</code>.</div></li>
+      <li class="conc"><code class="cmd">tk := time.<span class='t-fn'>NewTicker</span>(d); &amp;lt;-tk.C</code><div class="desc">Repeating ticks; <code>defer tk.Stop()</code>.</div></li>
+      <li class="setup"><code class="cmd">t.<span class='t-fn'>Add</span>(d); t.<span class='t-fn'>AddDate</span>(y, m, days); t.<span class='t-fn'>Unix</span>()</code><div class="desc">Arithmetic &amp; epoch seconds.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">23</span><span class="card-title">JSON &amp; Encoding</span><span class="card-sub">structs &harr; bytes</span></div>
+    <ul class="cmds">
+      <li class="fn"><code class="cmd">b, err := json.<span class='t-fn'>Marshal</span>(v)</code><span class="star">&#9733;</span><div class="desc">Value &rarr; JSON bytes (only <b>exported</b> fields).</div></li>
+      <li class="fn"><code class="cmd">err := json.<span class='t-fn'>Unmarshal</span>(b, &amp;amp;v)</code><span class="star">&#9733;</span><div class="desc">JSON bytes &rarr; a pointer target.</div></li>
+      <li class="comp"><code class="cmd">Name <span class='t-ty'>string</span> <span class='t-str'>`json:"name"`</span></code><span class="badge-tip">tag</span><div class="desc">Tag renames the JSON key.</div></li>
+      <li class="comp"><code class="cmd">F <span class='t-ty'>string</span> <span class='t-str'>`json:"f,omitempty"`</span></code><div class="desc">Drop the field when it is the empty value.</div></li>
+      <li class="new"><code class="cmd">F <span class='t-ty'>int</span> <span class='t-str'>`json:"f,omitzero"`</span></code><span class="vchip">1.24</span><div class="desc">Drop when zero &mdash; the fix for <code>false</code>/<code>0</code>.</div></li>
+      <li class="fn"><code class="cmd">json.<span class='t-fn'>MarshalIndent</span>(v, <span class='t-str'>""</span>, <span class='t-str'>"  "</span>)</code><div class="desc">Pretty-printed output.</div></li>
+      <li class="fn"><code class="cmd">json.<span class='t-fn'>NewDecoder</span>(r).<span class='t-fn'>Decode</span>(&amp;amp;v)</code><span class="star">&#9733;</span><div class="desc">Stream-decode from an <code>io.Reader</code> (e.g. a body).</div></li>
+      <li class="comp"><code class="cmd"><span class='t-kw'>map</span>[<span class='t-ty'>string</span>]<span class='t-ty'>any</span>   json.RawMessage</code><div class="desc">Decode into dynamic shapes or defer parsing.</div></li>
+      <li class="new"><code class="cmd">GOEXPERIMENT=jsonv2</code><span class="vchip">1.25</span><div class="desc">Faster, stricter <code>encoding/json/v2</code> (experimental).</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">24</span><span class="card-title">Files &amp; I/O</span><span class="card-sub">Reader and Writer everywhere</span></div>
+    <ul class="cmds">
+      <li class="fn"><code class="cmd">b, err := os.<span class='t-fn'>ReadFile</span>(path)</code><span class="star">&#9733;</span><div class="desc">Read a whole file into bytes.</div></li>
+      <li class="fn"><code class="cmd">os.<span class='t-fn'>WriteFile</span>(path, b, 0o644)</code><div class="desc">Write bytes to a file in one call.</div></li>
+      <li class="fn"><code class="cmd">f, err := os.<span class='t-fn'>Open</span>(path); <span class='t-kw'>defer</span> f.<span class='t-fn'>Close</span>()</code><span class="star">&#9733;</span><span class="badge-tip">defer close</span><div class="desc">Open for reading; always defer the close.</div></li>
+      <li class="comp"><code class="cmd">io.Reader / io.Writer</code><span class="star">&#9733;</span><div class="desc">The two interfaces every stream implements.</div></li>
+      <li class="fn"><code class="cmd">io.<span class='t-fn'>Copy</span>(dst, src)</code><div class="desc">Stream from any Reader to any Writer.</div></li>
+      <li class="fn"><code class="cmd">sc := bufio.<span class='t-fn'>NewScanner</span>(f); <span class='t-kw'>for</span> sc.<span class='t-fn'>Scan</span>()</code><span class="star">&#9733;</span><div class="desc">Read a file line by line.</div></li>
+      <li class="setup"><code class="cmd">os.Args   os.<span class='t-fn'>Getenv</span>(<span class='t-str'>"KEY"</span>)</code><div class="desc">CLI args &amp; environment variables.</div></li>
+      <li class="setup"><code class="cmd">os.Stdin  os.Stdout  os.Stderr</code><div class="desc">The standard streams (all <code>*os.File</code>).</div></li>
+      <li class="new"><code class="cmd">root, _ := os.<span class='t-fn'>Root</span>(dir)</code><span class="vchip">1.24</span><div class="desc">Confine file ops within a directory (no escapes).</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">25</span><span class="card-title">net/http</span><span class="card-sub">server &amp; client, built in</span></div>
+    <ul class="cmds">
+      <li class="comp"><code class="cmd">mux := http.<span class='t-fn'>NewServeMux</span>()</code><span class="star">&#9733;</span><div class="desc">A request router.</div></li>
+      <li class="new"><code class="cmd">mux.<span class='t-fn'>HandleFunc</span>(<span class='t-str'>"GET /items/{id}"</span>, h)</code><span class="star">&#9733;</span><span class="vchip">1.22</span><div class="desc">Method + wildcard routing in the stdlib mux.</div></li>
+      <li class="new"><code class="cmd">id := r.<span class='t-fn'>PathValue</span>(<span class='t-str'>"id"</span>)</code><span class="star">&#9733;</span><span class="vchip">1.22</span><div class="desc">Read a <code>{wildcard}</code> from the path.</div></li>
+      <li class="conc"><code class="cmd">http.<span class='t-fn'>ListenAndServe</span>(<span class='t-str'>":8080"</span>, mux)</code><span class="star">&#9733;</span><div class="desc">Start the server (blocks).</div></li>
+      <li class="fn"><code class="cmd"><span class='t-kw'>func</span>(w http.ResponseWriter, r *http.Request)</code><div class="desc">The handler signature; write to <code>w</code>.</div></li>
+      <li class="fn"><code class="cmd">resp, err := http.<span class='t-fn'>Get</span>(url)</code><span class="star">&#9733;</span><div class="desc">Simple client GET.</div></li>
+      <li class="danger"><code class="cmd"><span class='t-kw'>defer</span> resp.Body.<span class='t-fn'>Close</span>()</code><span class="star">&#9733;</span><span class="badge-danger">close body</span><div class="desc">Always close the body or you leak connections.</div></li>
+      <li class="fn"><code class="cmd">http.<span class='t-fn'>NewRequestWithContext</span>(ctx, ...)</code><div class="desc">Build a request that honours cancellation/timeouts.</div></li>
+      <li class="fn"><code class="cmd">json.<span class='t-fn'>NewDecoder</span>(resp.Body).<span class='t-fn'>Decode</span>(&amp;amp;v)</code><div class="desc">Decode a JSON response straight from the body.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">26</span><span class="card-title">log/slog</span><span class="card-sub">structured logging</span></div>
+    <ul class="cmds">
+      <li class="fn"><code class="cmd">slog.<span class='t-fn'>Info</span>(<span class='t-str'>"started"</span>, <span class='t-str'>"port"</span>, <span class='t-num'>8080</span>)</code><span class="star">&#9733;</span><span class="vchip">1.21</span><div class="desc">Level + message + key/value attrs.</div></li>
+      <li class="fn"><code class="cmd">slog.Debug / Warn / Error</code><div class="desc">The four levels; <code>Error</code> takes <code>"err", err</code>.</div></li>
+      <li class="fn"><code class="cmd">h := slog.<span class='t-fn'>NewJSONHandler</span>(os.Stdout, <span class='t-co'>nil</span>)</code><span class="star">&#9733;</span><div class="desc">Machine-readable JSON lines (or <code>NewTextHandler</code>).</div></li>
+      <li class="fn"><code class="cmd">log := slog.<span class='t-fn'>New</span>(h)</code><div class="desc">Build a logger around a handler.</div></li>
+      <li class="fn"><code class="cmd">log = log.<span class='t-fn'>With</span>(<span class='t-str'>"svc"</span>, <span class='t-str'>"api"</span>)</code><span class="star">&#9733;</span><div class="desc">Attach attrs to every subsequent line.</div></li>
+      <li class="fn"><code class="cmd">slog.<span class='t-fn'>SetDefault</span>(log)</code><div class="desc">Make the package-level <code>slog.Info</code> use it.</div></li>
+      <li class="fn"><code class="cmd">slog.<span class='t-fn'>Group</span>(<span class='t-str'>"req"</span>, <span class='t-str'>"method"</span>, m)</code><div class="desc">Nest related attrs under a key.</div></li>
+      <li class="setup"><code class="cmd">opts := &amp;amp;slog.HandlerOptions{Level: slog.LevelDebug}</code><div class="desc">Set the minimum level / add source.</div></li>
+      <li class="fn"><code class="cmd">slog.<span class='t-fn'>LogAttrs</span>(ctx, lvl, msg, ...)</code><div class="desc">Allocation-free path for hot logging.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">27</span><span class="card-title">Concurrency Patterns</span><span class="card-sub">goroutines, orchestrated</span></div>
+    <ul class="cmds">
+      <li class="conc"><code class="cmd">jobs := <span class='t-bi'>make</span>(<span class='t-kw'>chan</span> T); <span class='t-kw'>for</span> w:=<span class='t-num'>0</span>; w&amp;lt;N; w++ { <span class='t-kw'>go</span> <span class='t-fn'>worker</span>(jobs) }</code><span class="star">&#9733;</span><div class="desc"><b>Worker pool</b>: N goroutines draining one channel.</div></li>
+      <li class="conc"><code class="cmd">g, ctx := errgroup.<span class='t-fn'>WithContext</span>(ctx); g.<span class='t-fn'>Go</span>(fn)</code><span class="star">&#9733;</span><span class="badge-tip">x/sync</span><div class="desc">First error cancels the rest; <code>g.Wait()</code> returns it.</div></li>
+      <li class="conc"><code class="cmd"><span class='t-kw'>select</span> { <span class='t-kw'>case</span> v:=&amp;lt;-ch: ; <span class='t-kw'>case</span> &amp;lt;-time.<span class='t-fn'>After</span>(d): }</code><span class="star">&#9733;</span><div class="desc">Timeout / cancel a blocking receive.</div></li>
+      <li class="conc"><code class="cmd"><span class='t-kw'>select</span> { <span class='t-kw'>case</span> &amp;lt;-ctx.<span class='t-fn'>Done</span>(): <span class='t-kw'>return</span> ctx.<span class='t-fn'>Err</span>() }</code><span class="star">&#9733;</span><div class="desc">Honour cancellation in every long-running loop.</div></li>
+      <li class="conc"><code class="cmd"><span class='t-kw'>for</span> i:=<span class='t-kw'>range</span> in { out&amp;lt;-<span class='t-fn'>work</span>(i) }; <span class='t-bi'>close</span>(out)</code><div class="desc"><b>Pipeline</b> stage: transform a channel, then close it.</div></li>
+      <li class="conc"><code class="cmd">done := <span class='t-bi'>make</span>(<span class='t-kw'>chan</span> <span class='t-kw'>struct</span>{})</code><div class="desc">A zero-width signal channel; <code>close(done)</code> broadcasts.</div></li>
+      <li class="conc"><code class="cmd"><span class='t-kw'>var</span> wg sync.WaitGroup; wg.<span class='t-fn'>Go</span>(fn)</code><span class="vchip">1.25</span><div class="desc">Fan-out and wait for a batch.</div></li>
+      <li class="danger"><code class="cmd">goroutine + no exit path</code><span class="badge-danger">leak</span><div class="desc">A goroutine that can never return is a <b>leak</b>.</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="diagrams">
+  <h2>Six things worth picturing</h2>
+  <p class="sub">The models behind Go's most common surprises &mdash; slices, interfaces, the scheduler, channels, the error chain, and streams.</p>
+  <div class="dgrid">
+
+    <div class="dcard">
+      <h3>a slice = {ptr, len, cap}</h3>
+      <p>A slice is a small header pointing <i>into</i> a shared backing array. Two slices can overlap &mdash; and <code>append</code> within spare capacity writes straight through.</p>
+      <svg viewBox="0 0 400 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A slice header of pointer, length and capacity referencing a shared backing array.">
+        <rect x="14" y="18" width="150" height="52" rx="7" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.5"/>
+        <text x="89" y="36" text-anchor="middle" font-size="10.5" font-weight="700" fill="#4f46e5">slice header</text>
+        <text x="89" y="55" text-anchor="middle" font-size="10" fill="#4f46e5">ptr &#183; len=2 &#183; cap=4</text>
+        <line x1="89" y1="70" x2="89" y2="100" stroke="#4f46e5" stroke-width="1.5" marker-end="url(#ah)"/>
+        <g font-size="11" text-anchor="middle">
+          <rect x="30"  y="104" width="46" height="34" fill="#059669"/><text x="53"  y="126" fill="#fff">a</text>
+          <rect x="76"  y="104" width="46" height="34" fill="#059669"/><text x="99"  y="126" fill="#fff">b</text>
+          <rect x="122" y="104" width="46" height="34" fill="#c7d2fe"/><text x="145" y="126" fill="#1a1d24">_</text>
+          <rect x="168" y="104" width="46" height="34" fill="#c7d2fe"/><text x="191" y="126" fill="#1a1d24">_</text>
+          <rect x="214" y="104" width="46" height="34" fill="#f1f3f6" stroke="#e7e3db"/><text x="237" y="126" fill="#9aa3b2">x</text>
+        </g>
+        <text x="122" y="158" text-anchor="middle" font-size="9.5" fill="#4f46e5">len &#8594; visible</text>
+        <text x="122" y="172" text-anchor="middle" font-size="9.5" fill="#6b7280">cap &#8594; append lands here (shared!)</text>
+      </svg>
+    </div>
+
+    <div class="dcard">
+      <h3>interfaces are satisfied implicitly</h3>
+      <p>No <code>implements</code>: a type fits an interface just by having the methods. Inside, the value is a (type, value) pair &mdash; which is why a non-nil interface can still hold a nil pointer.</p>
+      <svg viewBox="0 0 400 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A concrete type with a String method automatically satisfies the Stringer interface.">
+        <rect x="14" y="26" width="150" height="60" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+        <text x="89" y="48" text-anchor="middle" font-size="11" font-weight="700" fill="#059669">type User</text>
+        <text x="89" y="68" text-anchor="middle" font-size="10" fill="#059669">String() string</text>
+        <line x1="164" y1="56" x2="232" y2="56" stroke="#1a1d24" stroke-width="1.5" marker-end="url(#ah)"/>
+        <text x="198" y="48" text-anchor="middle" font-size="9" fill="#1a1d24">auto-fits</text>
+        <rect x="234" y="26" width="150" height="60" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.5"/>
+        <text x="309" y="48" text-anchor="middle" font-size="11" font-weight="700" fill="#4f46e5">Stringer</text>
+        <text x="309" y="68" text-anchor="middle" font-size="10" fill="#4f46e5">String() string</text>
+        <rect x="60" y="118" width="280" height="52" rx="8" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.5"/>
+        <text x="200" y="140" text-anchor="middle" font-size="10.5" font-weight="700" fill="#dc2626">typed-nil trap</text>
+        <text x="200" y="158" text-anchor="middle" font-size="10" fill="#dc2626">iface{ type=*User, val=nil }  &#8800;  nil</text>
+      </svg>
+    </div>
+
+    <div class="dcard">
+      <h3>many goroutines, few threads</h3>
+      <p>The scheduler multiplexes thousands of goroutines (G) over a small pool of OS threads (M), one per logical processor (P). A blocked G simply parks &mdash; the thread runs another.</p>
+      <svg viewBox="0 0 400 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Nine goroutines mapped through two processors onto two OS threads and CPU cores.">
+        <g text-anchor="middle" font-size="9">
+          <text x="60" y="20" fill="#0f766e" font-weight="700">goroutines</text>
+          <circle cx="24" cy="40" r="9" fill="#0d9488"/><circle cx="48" cy="40" r="9" fill="#0d9488"/><circle cx="72" cy="40" r="9" fill="#0d9488"/>
+          <circle cx="24" cy="64" r="9" fill="#5eead4"/><circle cx="48" cy="64" r="9" fill="#5eead4"/><circle cx="72" cy="64" r="9" fill="#5eead4"/>
+          <circle cx="24" cy="88" r="9" fill="#0d9488"/><circle cx="48" cy="88" r="9" fill="#5eead4"/><circle cx="72" cy="88" r="9" fill="#0d9488"/>
+        </g>
+        <line x1="96" y1="64" x2="150" y2="64" stroke="#1a1d24" stroke-width="1.5" marker-end="url(#ah)"/>
+        <rect x="152" y="40" width="70" height="48" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/>
+        <text x="187" y="60" text-anchor="middle" font-size="10" font-weight="700" fill="#b45309">P P</text>
+        <text x="187" y="78" text-anchor="middle" font-size="8.5" fill="#92400e">GOMAXPROCS</text>
+        <line x1="222" y1="64" x2="262" y2="64" stroke="#1a1d24" stroke-width="1.5" marker-end="url(#ah)"/>
+        <rect x="264" y="40" width="60" height="48" rx="7" fill="#1a1d24"/>
+        <text x="294" y="68" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">M M</text>
+        <line x1="324" y1="64" x2="360" y2="64" stroke="#1a1d24" stroke-width="1.5" marker-end="url(#ah)"/>
+        <rect x="356" y="44" width="34" height="40" rx="6" fill="#e6f7fb" stroke="#00add8"/>
+        <text x="373" y="68" text-anchor="middle" font-size="9" fill="#007d9c">CPU</text>
+        <text x="200" y="150" text-anchor="middle" font-size="10" fill="#0f766e">9 goroutines &#8594; 2 threads &#8594; 2 cores</text>
+        <text x="200" y="168" text-anchor="middle" font-size="9.5" fill="#6b7280">blocked G parks; the thread picks up the next one</text>
+      </svg>
+    </div>
+
+    <div class="dcard">
+      <h3>unbuffered vs buffered channels</h3>
+      <p>An unbuffered channel is a hand-off: the sender blocks until a receiver is ready (a rendezvous). A buffered channel is a mailbox: sends only block when it's full.</p>
+      <svg viewBox="0 0 400 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Unbuffered channel forces sender and receiver to meet; buffered channel holds items in a queue.">
+        <text x="100" y="24" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0d9488">unbuffered &#8212; rendezvous</text>
+        <circle cx="40" cy="60" r="14" fill="#0d9488"/><text x="40" y="64" text-anchor="middle" font-size="9" fill="#fff">snd</text>
+        <line x1="56" y1="60" x2="144" y2="60" stroke="#0d9488" stroke-width="2" marker-end="url(#ahc)"/>
+        <circle cx="160" cy="60" r="14" fill="#5eead4"/><text x="160" y="64" text-anchor="middle" font-size="9" fill="#134e4a">rcv</text>
+        <text x="100" y="92" text-anchor="middle" font-size="9" fill="#6b7280">both block until they meet</text>
+
+        <text x="300" y="24" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0d9488">buffered &#8212; mailbox (cap 3)</text>
+        <circle cx="238" cy="60" r="14" fill="#0d9488"/><text x="238" y="64" text-anchor="middle" font-size="9" fill="#fff">snd</text>
+        <line x1="254" y1="60" x2="270" y2="60" stroke="#0d9488" stroke-width="2" marker-end="url(#ahc)"/>
+        <rect x="272" y="48" width="24" height="24" fill="#0d9488"/><rect x="296" y="48" width="24" height="24" fill="#5eead4"/><rect x="320" y="48" width="24" height="24" fill="#f1f3f6" stroke="#0d9488"/>
+        <line x1="346" y1="60" x2="362" y2="60" stroke="#0d9488" stroke-width="2" marker-end="url(#ahc)"/>
+        <text x="300" y="92" text-anchor="middle" font-size="9" fill="#6b7280">send blocks only when full</text>
+
+        <rect x="40" y="120" width="320" height="46" rx="8" fill="#e9faf8" stroke="#0d9488" stroke-width="1.5"/>
+        <text x="200" y="140" text-anchor="middle" font-size="10" font-weight="700" fill="#0f766e">close(ch): receivers drain, then get the zero value</text>
+        <text x="200" y="157" text-anchor="middle" font-size="9.5" fill="#0f766e">only the sender closes &#183; send on a closed channel panics</text>
+      </svg>
+    </div>
+
+    <div class="dcard">
+      <h3>the error chain (%w &middot; Is &middot; As)</h3>
+      <p>Each <code>fmt.Errorf("...: %w", err)</code> links a new message onto the one below it. <code>errors.Is</code> walks the whole chain looking for a sentinel; <code>errors.As</code> / <code>AsType</code> pulls out the first link of a given type.</p>
+      <svg viewBox="0 0 400 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="An error wraps an error wraps a sentinel; Is walks the chain, As extracts by type.">
+        <rect x="18" y="24" width="120" height="40" rx="7" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.4"/>
+        <text x="78" y="40" text-anchor="middle" font-size="9" fill="#3730a3">"read config: %w"</text>
+        <text x="78" y="54" text-anchor="middle" font-size="8" fill="#6b7280">outer</text>
+        <rect x="150" y="24" width="112" height="40" rx="7" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.4"/>
+        <text x="206" y="40" text-anchor="middle" font-size="9" fill="#3730a3">"open: %w"</text>
+        <text x="206" y="54" text-anchor="middle" font-size="8" fill="#6b7280">wrapper</text>
+        <rect x="274" y="24" width="110" height="40" rx="7" fill="#fef2f2" stroke="#dc2626" stroke-width="1.4"/>
+        <text x="329" y="40" text-anchor="middle" font-size="8.5" fill="#b91c1c">fs.ErrNotExist</text>
+        <text x="329" y="54" text-anchor="middle" font-size="8" fill="#6b7280">sentinel</text>
+        <line x1="150" y1="44" x2="140" y2="44" stroke="#4f46e5" stroke-width="1.6" marker-end="url(#ah)"/>
+        <line x1="274" y1="44" x2="264" y2="44" stroke="#4f46e5" stroke-width="1.6" marker-end="url(#ah)"/>
+        <text x="200" y="86" text-anchor="middle" font-size="8" fill="#6b7280">each arrow = one Unwrap()</text>
+        <rect x="18" y="102" width="366" height="40" rx="7" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.3"/>
+        <text x="30" y="119" font-size="9" fill="#5b21b6" font-weight="700">errors.Is(err, fs.ErrNotExist)</text>
+        <text x="30" y="133" font-size="8.5" fill="#6b21a8">walks every link, matches the sentinel &#10003;</text>
+        <rect x="18" y="150" width="366" height="40" rx="7" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.3"/>
+        <text x="30" y="167" font-size="9" fill="#5b21b6" font-weight="700">errors.As(err, &amp;pathErr)</text>
+        <text x="30" y="181" font-size="8.5" fill="#6b21a8">extracts the first *PathError link from the chain</text>
+      </svg>
+    </div>
+
+    <div class="dcard">
+      <h3>io.Reader &amp; io.Writer</h3>
+      <p>Almost every stream &mdash; files, sockets, buffers, HTTP bodies &mdash; is just a <code>Read(p)</code> that fills your buffer (returning <code>io.EOF</code> at the end) or a <code>Write(p)</code> that drains it. <code>io.Copy</code> is the loop that connects the two.</p>
+      <svg viewBox="0 0 400 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A Reader fills a byte buffer that a Writer drains; io.Copy is the loop between them.">
+        <rect x="14" y="70" width="70" height="44" rx="7" fill="#f1f5f9" stroke="#64748b" stroke-width="1.4"/>
+        <text x="49" y="88" text-anchor="middle" font-size="9" fill="#334155">source</text>
+        <text x="49" y="102" text-anchor="middle" font-size="8" fill="#6b7280">file/net</text>
+        <rect x="110" y="66" width="86" height="52" rx="7" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+        <text x="153" y="86" text-anchor="middle" font-size="9" font-weight="700" fill="#047857">io.Reader</text>
+        <text x="153" y="101" text-anchor="middle" font-size="8" fill="#059669">Read(p) (n, err)</text>
+        <rect x="214" y="74" width="44" height="36" rx="5" fill="#fff" stroke="#059669" stroke-width="1.2"/>
+        <text x="236" y="90" text-anchor="middle" font-size="8" fill="#334155">buf</text>
+        <text x="236" y="102" text-anchor="middle" font-size="7.5" fill="#6b7280">[]byte</text>
+        <rect x="276" y="66" width="88" height="52" rx="7" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+        <text x="320" y="86" text-anchor="middle" font-size="9" font-weight="700" fill="#047857">io.Writer</text>
+        <text x="320" y="101" text-anchor="middle" font-size="8" fill="#059669">Write(p) (n, err)</text>
+        <line x1="84" y1="92" x2="108" y2="92" stroke="#64748b" stroke-width="1.6" marker-end="url(#ah)"/>
+        <line x1="196" y1="92" x2="212" y2="92" stroke="#059669" stroke-width="1.6" marker-end="url(#ah)"/>
+        <line x1="258" y1="92" x2="274" y2="92" stroke="#059669" stroke-width="1.6" marker-end="url(#ah)"/>
+        <path d="M153 128 h167" fill="none" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3 3"/>
+        <path d="M153 128 v-4 M320 128 v-4" stroke="#94a3b8" stroke-width="1.2"/>
+        <text x="236" y="146" text-anchor="middle" font-size="9" font-weight="700" fill="#475569">io.Copy(dst, src)</text>
+        <text x="236" y="162" text-anchor="middle" font-size="8" fill="#6b7280">loops Read &rarr; Write until io.EOF</text>
+        <text x="200" y="184" text-anchor="middle" font-size="8" fill="#6b7280">bufio wraps either side to batch tiny calls</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">err != nil</span><span class="v">check every error &mdash; don't discard it with _</span></div>
+    <div><span class="k">typed nil</span><span class="v">an interface holding a (*T)(nil) is NOT == nil</span></div>
+    <div><span class="k">append</span><span class="v">always s = append(s, x); it may reallocate</span></div>
+    <div><span class="k">slice aliasing</span><span class="v">a[i:j] shares the backing array &mdash; writes leak</span></div>
+    <div><span class="k">range copies</span><span class="v">for _,v := range gives a COPY; use &amp;s[i] to mutate</span></div>
+    <div><span class="k">:= vs =</span><span class="v">:= makes new vars &mdash; watch shadowing in inner scopes</span></div>
+    <div><span class="k">receivers</span><span class="v">value receiver mutates a copy; use *T to change state</span></div>
+    <div><span class="k">Exported</span><span class="v">Capitalized = public; lowercase = package-private</span></div>
+    <div><span class="k">maps</span><span class="v">nil map reads ok, WRITES panic; order is random</span></div>
+    <div><span class="k">close</span><span class="v">only the sender closes; send on closed = panic</span></div>
+    <div><span class="k">defer</span><span class="v">args eval immediately; bodies run LIFO at return</span></div>
+    <div><span class="k">goroutine leak</span><span class="v">blocking forever on an unreachable channel (1.26 detects)</span></div>
+    <div><span class="k">no ternary/while</span><span class="v">just for, error values, and struct embedding</span></div>
+    <div><span class="k">string</span><span class="v">immutable UTF-8; len = bytes; range yields runes</span></div>
+    <div><span class="k">gofmt</span><span class="v">one true format &mdash; run it, don't argue</span></div>
+    <div><span class="k">resp.Body</span><span class="v">always defer Close() &mdash; an unclosed body leaks connections</span></div>
+    <div><span class="k">context</span><span class="v">pass ctx as the first arg; never store it in a struct</span></div>
+    <div><span class="k">time layout</span><span class="v">format with the reference date 2006-01-02 15:04:05, not %Y</span></div>
+    <div><span class="k">json</span><span class="v">only exported (Capitalized) fields marshal; tag to rename</span></div>
+    <div><span class="k">defer in a loop</span><span class="v">runs at function return, not each iteration &mdash; can pile up</span></div>
+    <div><span class="k">slog</span><span class="v">structured key/value logs beat fmt.Println for real services</span></div>
+  </div>
+</section>
+
+<footer>
+  Go cheat sheet &#183; synthesized from the official Go references &mdash; the <b>Go spec</b>, <b>Effective Go</b>, <b>A Tour of Go</b>, and the <b>1.21&ndash;1.26 release notes</b> on go.dev &mdash; cross-checked with pkg.go.dev, Go by Example, and antonz.org's release tours.<br>
+  Covers Go up to &amp; including <b>1.26</b> (Feb 2026; current stable 1.26.6, 13 Aug 2026 &mdash; re-verified 2026-08-28). Core syntax <b>and</b> the Part II standard-library snippets were compile-verified on the gc toolchain; the violet <code>1.N</code> chips mark the release each feature landed in. No inheritance, no exceptions, no ternary &#8212; and that's the point.
+</footer>
+
+</body>
+</html>

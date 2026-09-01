@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git Cheat Sheet</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --line:#2b3340;
+    --ink:#e6edf3; --mut:#8b97a7; --faint:#5d6878;
+    --orange:#f0883e; --orange-d:#a85a1f;
+    --green:#3fb950; --blue:#58a6ff; --purple:#bc8cff;
+    --red:#f85149; --yellow:#d29922; --cyan:#39c5cf;
+    --code:#1a2030; --code-ink:#c9d4e3;
+    --star:#f0c145;
+    --mono:"SF Mono",ui-monospace,"Cascadia Code","JetBrains Mono",Consolas,monospace;
+    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:
+      radial-gradient(1200px 500px at 80% -10%,rgba(240,136,62,.07),transparent 60%),
+      var(--bg);
+    color:var(--ink);font-family:var(--sans);line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--blue);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code,kbd{font-family:var(--mono)}
+
+  /* ---- header ---- */
+  header{
+    max-width:1320px;margin:0 auto;padding:38px 28px 8px;
+  }
+  .eyebrow{
+    font-family:var(--mono);font-size:12px;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--orange);font-weight:600;
+    display:flex;align-items:center;gap:10px;
+  }
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--orange);display:inline-block}
+  h1{
+    font-size:clamp(34px,6vw,58px);font-weight:800;letter-spacing:-.02em;
+    margin:.18em 0 .12em;line-height:1;
+  }
+  h1 .vcs{color:var(--orange)}
+  .lede{color:var(--mut);max-width:680px;font-size:15.5px;margin:0 0 6px}
+  .lede b{color:var(--ink);font-weight:600}
+
+  /* legend */
+  .legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:18px 0 4px;font-size:12.5px;color:var(--mut)}
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .dot.common{background:var(--orange)}
+  .dot.danger{background:var(--red)}
+  .dot.normal{background:var(--faint)}
+  .star{color:var(--star)}
+
+  /* nav */
+  nav.toc{
+    max-width:1320px;margin:14px auto 0;padding:0 28px;
+    display:flex;flex-wrap:wrap;gap:8px;
+  }
+  nav.toc a{
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;
+    color:var(--mut);background:var(--panel);border:1px solid var(--line);
+    padding:5px 11px;border-radius:999px;transition:.15s;
+  }
+  nav.toc a:hover{color:var(--orange);border-color:var(--orange-d);text-decoration:none}
+
+  /* ---- masonry grid ---- */
+  main{
+    max-width:1320px;margin:0 auto;padding:24px 28px 70px;
+    columns:3 380px;column-gap:20px;
+  }
+  section.card{
+    break-inside:avoid;background:var(--panel);
+    border:1px solid var(--line);border-radius:12px;
+    margin:0 0 20px;overflow:hidden;display:inline-block;width:100%;
+  }
+  .card-h{
+    display:flex;align-items:baseline;gap:10px;
+    padding:13px 16px 11px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,var(--panel2),var(--panel));
+  }
+  .card-h .num{
+    font-family:var(--mono);font-size:11px;font-weight:700;
+    color:var(--orange);border:1px solid var(--orange-d);
+    border-radius:6px;padding:2px 6px;flex:none;
+  }
+  .card-h h2{font-size:15px;margin:0;font-weight:700;letter-spacing:-.01em}
+  .card-h .sub{font-size:11.5px;color:var(--faint);margin-left:auto;font-family:var(--mono)}
+
+  .rows{padding:6px 0}
+  .row{
+    padding:8px 16px;border-left:2px solid transparent;
+  }
+  .row + .row{border-top:1px solid rgba(43,51,64,.55)}
+  .row.common{border-left-color:var(--orange);background:rgba(240,136,62,.045)}
+  .row.danger{border-left-color:var(--red);background:rgba(248,81,73,.05)}
+  .cmd{
+    font-family:var(--mono);font-size:12.8px;color:var(--code-ink);
+    display:block;white-space:nowrap;overflow-x:auto;padding:1px 0;
+  }
+  .cmd .g{color:var(--green)}          /* git */
+  .cmd .v{color:var(--purple)}         /* verb */
+  .cmd .a{color:var(--cyan)}           /* args/flags */
+  .cmd .p{color:var(--yellow)}         /* placeholders */
+  .cmd::-webkit-scrollbar{height:5px}
+  .cmd::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+  .desc{font-size:12.3px;color:var(--mut);margin-top:3px}
+  .row.common .desc{color:#c2cddc}
+  .tag{
+    font-size:9.5px;font-family:var(--mono);letter-spacing:.05em;
+    text-transform:uppercase;padding:1px 5px;border-radius:4px;margin-left:6px;
+    vertical-align:middle;
+  }
+  .tag.danger{background:rgba(248,81,73,.16);color:var(--red);border:1px solid rgba(248,81,73,.3)}
+
+  /* diagram cards span / styling */
+  section.viz{background:var(--panel2)}
+  .viz .card-h{background:linear-gradient(180deg,#222a3a,var(--panel2))}
+  .viz-body{padding:16px}
+  .viz-body p.cap{font-size:12.3px;color:var(--mut);margin:0 0 12px}
+  svg.flow{width:100%;height:auto;display:block}
+  .mermaid{background:transparent;text-align:center;font-size:13px}
+
+  .areas-legend{
+    display:flex;flex-wrap:wrap;gap:7px 14px;margin-top:14px;font-size:11.5px;color:var(--mut);
+    font-family:var(--mono);
+  }
+  .areas-legend b{font-weight:600}
+  .swatch{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:-1px}
+
+  footer{
+    max-width:1320px;margin:0 auto;padding:8px 28px 60px;
+    border-top:1px solid var(--line);color:var(--faint);font-size:12px;
+  }
+  footer .srcs{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-family:var(--mono);font-size:11px}
+  footer b{color:var(--mut)}
+
+  @media (max-width:560px){
+    main{columns:1}
+    header{padding:28px 18px 8px}
+    nav.toc,main,footer{padding-left:18px;padding-right:18px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Distributed Version Control · Quick Reference</div>
+  <h1><span class="vcs">git</span> cheat&nbsp;sheet</h1>
+  <p class="lede">The commands you reach for daily, collated from the <b>GitHub</b>, <b>GitLab</b>, <b>Atlassian</b>, <b>git-scm</b> &amp; <b>BU&nbsp;RCS</b> references — ordered the way you actually work, from setup to history surgery.</p>
+
+  <div class="legend">
+    <span><i class="dot common"></i> Everyday command <span class="star">★</span></span>
+    <span><i class="dot normal"></i> Standard</span>
+    <span><i class="dot danger"></i> Destructive — handle with care</span>
+    <span style="font-family:var(--mono);color:var(--green)">git</span>
+    <span style="font-family:var(--mono);color:var(--purple)">verb</span>
+    <span style="font-family:var(--mono);color:var(--cyan)">flags</span>
+    <span style="font-family:var(--mono);color:var(--yellow)">&lt;placeholder&gt;</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#model">The model</a>
+  <a href="#setup">Setup</a>
+  <a href="#start">Start</a>
+  <a href="#stage">Stage &amp; commit</a>
+  <a href="#flow">Lifecycle</a>
+  <a href="#branch">Branch &amp; merge</a>
+  <a href="#integrate">Merge vs rebase</a>
+  <a href="#sync">Remotes &amp; sync</a>
+  <a href="#inspect">Inspect</a>
+  <a href="#undo">Undo</a>
+  <a href="#stash">Stash</a>
+  <a href="#tag">Tags</a>
+  <a href="#rewrite">Rewrite history</a>
+  <a href="#refs">Refs &amp; ignore</a>
+</nav>
+
+<main>
+
+  <!-- ============ MENTAL MODEL DIAGRAM ============ -->
+  <section class="card viz" id="model">
+    <div class="card-h"><span class="num">01</span><h2>The four areas</h2><span class="sub">where your work lives</span></div>
+    <div class="viz-body">
+      <p class="cap">Every command moves work between these zones. Knowing the arrows is half of Git.</p>
+      <svg class="flow" viewBox="0 0 520 250" xmlns="http://www.w3.org/2000/svg" font-family="var(--mono)">
+        <defs>
+          <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L7,3 L0,6 Z" fill="#8b97a7"/>
+          </marker>
+          <marker id="aho" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L7,3 L0,6 Z" fill="#f0883e"/>
+          </marker>
+        </defs>
+        <!-- boxes -->
+        <g>
+          <rect x="6"   y="92" width="108" height="58" rx="9" fill="#1c2230" stroke="#39c5cf"/>
+          <text x="60" y="116" fill="#39c5cf" font-size="12" font-weight="700" text-anchor="middle">Working</text>
+          <text x="60" y="132" fill="#8b97a7" font-size="10.5" text-anchor="middle">directory</text>
+
+          <rect x="146" y="92" width="108" height="58" rx="9" fill="#1c2230" stroke="#f0883e"/>
+          <text x="200" y="116" fill="#f0883e" font-size="12" font-weight="700" text-anchor="middle">Staging</text>
+          <text x="200" y="132" fill="#8b97a7" font-size="10.5" text-anchor="middle">index</text>
+
+          <rect x="286" y="92" width="108" height="58" rx="9" fill="#1c2230" stroke="#3fb950"/>
+          <text x="340" y="116" fill="#3fb950" font-size="12" font-weight="700" text-anchor="middle">Local repo</text>
+          <text x="340" y="132" fill="#8b97a7" font-size="10.5" text-anchor="middle">.git history</text>
+
+          <rect x="426" y="92" width="88" height="58" rx="9" fill="#1c2230" stroke="#bc8cff"/>
+          <text x="470" y="116" fill="#bc8cff" font-size="12" font-weight="700" text-anchor="middle">Remote</text>
+          <text x="470" y="132" fill="#8b97a7" font-size="10.5" text-anchor="middle">origin</text>
+        </g>
+        <!-- forward arrows -->
+        <line x1="116" y1="110" x2="144" y2="110" stroke="#f0883e" stroke-width="2" marker-end="url(#aho)"/>
+        <text x="130" y="103" fill="#f0883e" font-size="9" text-anchor="middle">add</text>
+        <line x1="256" y1="110" x2="284" y2="110" stroke="#f0883e" stroke-width="2" marker-end="url(#aho)"/>
+        <text x="270" y="103" fill="#f0883e" font-size="9" text-anchor="middle">commit</text>
+        <line x1="396" y1="110" x2="424" y2="110" stroke="#f0883e" stroke-width="2" marker-end="url(#aho)"/>
+        <text x="411" y="103" fill="#f0883e" font-size="9" text-anchor="middle">push</text>
+        <!-- back arrows -->
+        <path d="M340,150 q-140,46 -280,4" fill="none" stroke="#8b97a7" stroke-width="1.6" marker-end="url(#ah)" stroke-dasharray="4 3"/>
+        <text x="200" y="196" fill="#8b97a7" font-size="9" text-anchor="middle">checkout / restore — discard changes</text>
+        <path d="M200,150 q-70,28 -140,2" fill="none" stroke="#8b97a7" stroke-width="1.6" marker-end="url(#ah)" stroke-dasharray="4 3"/>
+        <text x="118" y="178" fill="#8b97a7" font-size="9" text-anchor="middle">reset — unstage</text>
+        <path d="M470,150 q-200,70 -410,8" fill="none" stroke="#8b97a7" stroke-width="1.6" marker-end="url(#ah)" stroke-dasharray="4 3"/>
+        <text x="265" y="232" fill="#8b97a7" font-size="9" text-anchor="middle">pull / fetch — bring remote work down</text>
+        <!-- top label -->
+        <text x="60"  y="40" fill="#8b97a7" font-size="9.5" text-anchor="middle">edit files</text>
+        <text x="60"  y="54" fill="#5d6878" font-size="8.5" text-anchor="middle">untracked /</text>
+        <text x="60"  y="64" fill="#5d6878" font-size="8.5" text-anchor="middle">modified</text>
+        <line x1="60" y1="70" x2="60" y2="90" stroke="#5d6878" stroke-width="1.2" marker-end="url(#ah)"/>
+      </svg>
+      <div class="areas-legend">
+        <span><i class="swatch" style="background:#39c5cf"></i>where you edit</span>
+        <span><i class="swatch" style="background:#f0883e"></i>what the next commit will contain</span>
+        <span><i class="swatch" style="background:#3fb950"></i>safe, committed snapshots</span>
+        <span><i class="swatch" style="background:#bc8cff"></i>shared / backup</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SETUP ============ -->
+  <section class="card" id="setup">
+    <div class="card-h"><span class="num">02</span><h2>One-time setup</h2><span class="sub">~/.gitconfig</span></div>
+    <div class="rows">
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">config</span> <span class="a">--global</span> user.name <span class="p">"Name"</span></span>
+        <div class="desc">Identity stamped on every commit you make. <span class="star">★</span></div>
+      </div>
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">config</span> <span class="a">--global</span> user.email <span class="p">"you@x.com"</span></span>
+        <div class="desc">Email attached to your commits and tags. <span class="star">★</span></div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">config</span> <span class="a">--global</span> color.ui auto</span>
+        <div class="desc">Colorize Git's output for easier reading.</div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">config</span> <span class="a">--global</span> core.editor <span class="p">nano</span></span>
+        <div class="desc">Editor used for commit messages &amp; interactive rebase.</div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">config</span> <span class="a">--global</span> alias.lg <span class="p">"log --oneline"</span></span>
+        <div class="desc">Make a shortcut — now <code>git lg</code> works.</div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">config</span> <span class="a">--list --show-origin</span></span>
+        <div class="desc">List all settings and which file each came from.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ START A PROJECT ============ -->
+  <section class="card" id="start">
+    <div class="card-h"><span class="num">03</span><h2>Start a project</h2><span class="sub">init / clone</span></div>
+    <div class="rows">
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">init</span> <span class="p">[dir]</span></span>
+        <div class="desc">Turn a folder into a new, empty repository. <span class="star">★</span></div>
+      </div>
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">clone</span> <span class="p">&lt;url&gt;</span></span>
+        <div class="desc">Download a repo with its full history from a remote. <span class="star">★</span></div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">clone</span> <span class="p">&lt;url&gt;</span> <span class="p">[dir]</span></span>
+        <div class="desc">Clone into a specific local directory name.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STAGE & COMMIT ============ -->
+  <section class="card" id="stage">
+    <div class="card-h"><span class="num">04</span><h2>Stage &amp; commit</h2><span class="sub">the daily loop</span></div>
+    <div class="rows">
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">status</span></span>
+        <div class="desc">What's staged, unstaged, and untracked. Run it constantly. <span class="star">★</span></div>
+      </div>
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">add</span> <span class="p">&lt;file&gt;</span></span>
+        <div class="desc">Stage a file as it looks now for the next commit. <span class="star">★</span></div>
+      </div>
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">add</span> <span class="a">.</span></span>
+        <div class="desc">Stage every change in the current tree. <span class="star">★</span></div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">add</span> <span class="a">-p</span></span>
+        <div class="desc">Pick which hunks of a file to stage, interactively.</div>
+      </div>
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">commit</span> <span class="a">-m</span> <span class="p">"message"</span></span>
+        <div class="desc">Snapshot the staged content with a message. <span class="star">★</span></div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">commit</span> <span class="a">-am</span> <span class="p">"message"</span></span>
+        <div class="desc">Stage all <i>tracked</i> changes and commit in one step.</div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">diff</span></span>
+        <div class="desc">Changes in the working dir that aren't staged yet.</div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">diff</span> <span class="a">--staged</span></span>
+        <div class="desc">Changes staged but not yet committed.</div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">rm</span> <span class="p">&lt;file&gt;</span></span>
+        <div class="desc">Delete a file and stage the removal.</div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">rm</span> <span class="a">--cached</span> <span class="p">&lt;file&gt;</span></span>
+        <div class="desc">Stop tracking a file, but keep it on disk.</div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">mv</span> <span class="p">&lt;old&gt; &lt;new&gt;</span></span>
+        <div class="desc">Rename / move a file and stage the change.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LIFECYCLE MERMAID ============ -->
+  <section class="card viz" id="flow">
+    <div class="card-h"><span class="num">05</span><h2>File lifecycle</h2><span class="sub">untracked → committed</span></div>
+    <div class="viz-body">
+      <p class="cap">A file's journey through Git's states — and the commands that move it.</p>
+      <div class="mermaid">
+flowchart LR
+  U([Untracked]):::u -->|git add| S[Staged]:::s
+  W([Modified]):::w -->|git add| S
+  S -->|git commit| C[(Committed)]:::c
+  C -->|edit file| W
+  S -->|git reset| W
+  W -->|git restore| C
+  classDef u fill:#1c2230,stroke:#f85149,color:#f85149;
+  classDef w fill:#1c2230,stroke:#d29922,color:#d29922;
+  classDef s fill:#1c2230,stroke:#f0883e,color:#f0883e;
+  classDef c fill:#1c2230,stroke:#3fb950,color:#3fb950;
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BRANCH & MERGE ============ -->
+  <section class="card" id="branch">
+    <div class="card-h"><span class="num">06</span><h2>Branch &amp; merge</h2><span class="sub">isolate &amp; integrate</span></div>
+    <div class="rows">
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">branch</span></span>
+        <div class="desc">List branches; <code>*</code> marks the current one. <span class="star">★</span></div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">branch</span> <span class="a">-a</span></span>
+        <div class="desc">Include remote-tracking branches in the list.</div>
+      </div>
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">switch</span> <span class="a">-c</span> <span class="p">&lt;name&gt;</span></span>
+        <div class="desc">Create a branch and switch to it (modern form). <span class="star">★</span></div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">checkout</span> <span class="a">-b</span> <span class="p">&lt;name&gt;</span></span>
+        <div class="desc">Same thing, classic form — create &amp; check out.</div>
+      </div>
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">switch</span> <span class="p">&lt;name&gt;</span></span>
+        <div class="desc">Move onto an existing branch (or <code>checkout</code>). <span class="star">★</span></div>
+      </div>
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">merge</span> <span class="p">&lt;branch&gt;</span></span>
+        <div class="desc">Pull another branch's history into the current one. <span class="star">★</span></div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">branch</span> <span class="a">-d</span> <span class="p">&lt;name&gt;</span></span>
+        <div class="desc">Delete a branch that's already merged.</div>
+      </div>
+      <div class="row danger">
+        <span class="cmd"><span class="g">git</span> <span class="v">branch</span> <span class="a">-D</span> <span class="p">&lt;name&gt;</span></span>
+        <div class="desc">Force-delete even if unmerged. <span class="tag danger">loses work</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MERGE vs REBASE DIAGRAM ============ -->
+  <section class="card viz" id="integrate">
+    <div class="card-h"><span class="num">07</span><h2>Merge vs rebase</h2><span class="sub">two ways to combine</span></div>
+    <div class="viz-body">
+      <p class="cap"><b>Merge</b> ties histories together with a merge commit. <b>Rebase</b> replays your commits on top for a straight line.</p>
+      <svg class="flow" viewBox="0 0 520 230" xmlns="http://www.w3.org/2000/svg" font-family="var(--mono)" font-size="11">
+        <defs>
+          <marker id="m2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#8b97a7"/></marker>
+        </defs>
+        <!-- MERGE -->
+        <text x="14" y="22" fill="#58a6ff" font-weight="700">merge</text>
+        <line x1="20" y1="55" x2="200" y2="55" stroke="#3f4757" marker-end="url(#m2)"/>
+        <circle cx="40"  cy="55" r="7" fill="#3fb950"/><text x="40" y="59" text-anchor="middle" fill="#0d1117" font-size="9">A</text>
+        <circle cx="90"  cy="55" r="7" fill="#3fb950"/><text x="90" y="59" text-anchor="middle" fill="#0d1117" font-size="9">B</text>
+        <circle cx="170" cy="55" r="7" fill="#58a6ff"/><text x="170" y="59" text-anchor="middle" fill="#0d1117" font-size="9">M</text>
+        <text x="206" y="59" fill="#58a6ff" font-size="9">main</text>
+        <line x1="90" y1="62" x2="120" y2="92" stroke="#3f4757"/>
+        <circle cx="130" cy="100" r="7" fill="#bc8cff"/><text x="130" y="104" text-anchor="middle" fill="#0d1117" font-size="9">D</text>
+        <line x1="137" y1="98" x2="163" y2="62" stroke="#3f4757"/>
+        <text x="100" y="118" fill="#bc8cff" font-size="9">feature</text>
+        <line x1="0" y1="135" x2="520" y2="135" stroke="#2b3340" stroke-dasharray="3 4"/>
+        <!-- REBASE -->
+        <text x="14" y="160" fill="#f0883e" font-weight="700">rebase</text>
+        <line x1="20" y1="192" x2="290" y2="192" stroke="#3f4757" marker-end="url(#m2)"/>
+        <circle cx="40"  cy="192" r="7" fill="#3fb950"/><text x="40" y="196" text-anchor="middle" fill="#0d1117" font-size="9">A</text>
+        <circle cx="90"  cy="192" r="7" fill="#3fb950"/><text x="90" y="196" text-anchor="middle" fill="#0d1117" font-size="9">B</text>
+        <circle cx="150" cy="192" r="7" fill="#58a6ff"/><text x="150" y="196" text-anchor="middle" fill="#0d1117" font-size="9">C</text>
+        <circle cx="210" cy="192" r="7" fill="#bc8cff"/><text x="210" y="196" text-anchor="middle" fill="#0d1117" font-size="9">D'</text>
+        <circle cx="260" cy="192" r="7" fill="#bc8cff"/><text x="260" y="196" text-anchor="middle" fill="#0d1117" font-size="9">E'</text>
+        <text x="296" y="196" fill="#f0883e" font-size="9">linear</text>
+      </svg>
+      <div class="rows" style="padding:4px 0 0">
+        <div class="row common">
+          <span class="cmd"><span class="g">git</span> <span class="v">merge</span> <span class="p">&lt;branch&gt;</span></span>
+          <div class="desc">Non-destructive; preserves the true branch shape. <span class="star">★</span></div>
+        </div>
+        <div class="row">
+          <span class="cmd"><span class="g">git</span> <span class="v">merge</span> <span class="a">--squash</span> <span class="p">&lt;branch&gt;</span></span>
+          <div class="desc">Collapse a branch into one set of staged changes.</div>
+        </div>
+        <div class="row danger">
+          <span class="cmd"><span class="g">git</span> <span class="v">rebase</span> <span class="p">&lt;base&gt;</span></span>
+          <div class="desc">Replay commits onto base for linear history. <span class="tag danger">rewrites</span></div>
+        </div>
+        <div class="row">
+          <span class="cmd"><span class="g">git</span> <span class="v">cherry-pick</span> <span class="p">&lt;commit&gt;</span></span>
+          <div class="desc">Copy a single commit onto the current branch.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ REMOTES & SYNC ============ -->
+  <section class="card" id="sync">
+    <div class="card-h"><span class="num">08</span><h2>Remotes &amp; sync</h2><span class="sub">share &amp; update</span></div>
+    <div class="rows">
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">remote add</span> <span class="p">&lt;name&gt; &lt;url&gt;</span></span>
+        <div class="desc">Register a remote URL under a short alias (e.g. <code>origin</code>).</div>
+      </div>
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">pull</span></span>
+        <div class="desc">Fetch <i>and</i> merge the tracking branch in one move. <span class="star">★</span></div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">pull</span> <span class="a">--rebase</span></span>
+        <div class="desc">Fetch, then rebase your work on top — cleaner line.</div>
+      </div>
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">push</span></span>
+        <div class="desc">Send the current branch's commits to its remote. <span class="star">★</span></div>
+      </div>
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">push</span> <span class="a">-u</span> <span class="p">origin &lt;branch&gt;</span></span>
+        <div class="desc">First push of a new branch; sets its upstream. <span class="star">★</span></div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">fetch</span> <span class="p">[remote]</span></span>
+        <div class="desc">Download remote commits without touching your branches.</div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">push</span> <span class="a">--tags</span></span>
+        <div class="desc">Tags aren't pushed by default — send them explicitly.</div>
+      </div>
+      <div class="row danger">
+        <span class="cmd"><span class="g">git</span> <span class="v">push</span> <span class="a">--force-with-lease</span></span>
+        <div class="desc">Overwrite remote history, but abort if others pushed. <span class="tag danger">careful</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INSPECT ============ -->
+  <section class="card" id="inspect">
+    <div class="card-h"><span class="num">09</span><h2>Inspect history</h2><span class="sub">log · diff · blame</span></div>
+    <div class="rows">
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">log</span> <span class="a">--oneline --graph --decorate</span></span>
+        <div class="desc">Compact, visual history with branch labels. <span class="star">★</span></div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">log</span> <span class="a">-&lt;n&gt;</span></span>
+        <div class="desc">Limit to the last <code>n</code> commits.</div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">log</span> <span class="p">branchA</span>..<span class="p">branchB</span></span>
+        <div class="desc">Commits on B that aren't on A.</div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">log</span> <span class="a">--follow</span> <span class="p">&lt;file&gt;</span></span>
+        <div class="desc">History of a file, even across renames.</div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">log</span> <span class="a">--author=</span><span class="p">"name"</span></span>
+        <div class="desc">Filter commits by author (also <code>--grep</code>, <code>--after</code>).</div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">show</span> <span class="p">&lt;commit&gt;</span></span>
+        <div class="desc">Full diff &amp; metadata for one object.</div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">diff</span> <span class="p">&lt;commit&gt; &lt;commit&gt;</span></span>
+        <div class="desc">Compare any two points in history.</div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">blame</span> <span class="p">&lt;file&gt;</span></span>
+        <div class="desc">Who last changed each line of a file.</div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">reflog</span></span>
+        <div class="desc">Log of where HEAD has been — your safety net.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ UNDO ============ -->
+  <section class="card" id="undo">
+    <div class="card-h"><span class="num">10</span><h2>Undo &amp; recover</h2><span class="sub">restore · reset · revert</span></div>
+    <div class="rows">
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">restore</span> <span class="p">&lt;file&gt;</span></span>
+        <div class="desc">Throw away unstaged edits to a file. <span class="star">★</span></div>
+      </div>
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">reset</span> <span class="p">&lt;file&gt;</span></span>
+        <div class="desc">Unstage a file but keep its changes. <span class="star">★</span></div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">restore</span> <span class="p">&lt;file&gt;</span> <span class="a">--source</span> <span class="p">&lt;commit&gt;</span></span>
+        <div class="desc">Bring back a file as it was in an older commit.</div>
+      </div>
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">revert</span> <span class="p">&lt;commit&gt;</span></span>
+        <div class="desc">New commit that undoes a past one — safe on shared branches. <span class="star">★</span></div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">reset</span> <span class="p">HEAD^</span></span>
+        <div class="desc">Undo the last commit, keep changes in working dir.</div>
+      </div>
+      <div class="row danger">
+        <span class="cmd"><span class="g">git</span> <span class="v">reset</span> <span class="a">--hard</span> <span class="p">&lt;commit&gt;</span></span>
+        <div class="desc">Move branch &amp; wipe all changes after it. <span class="tag danger">irreversible</span></div>
+      </div>
+      <div class="row danger">
+        <span class="cmd"><span class="g">git</span> <span class="v">clean</span> <span class="a">-f</span></span>
+        <div class="desc">Delete untracked files (<code>-n</code> previews first). <span class="tag danger">deletes</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STASH ============ -->
+  <section class="card" id="stash">
+    <div class="card-h"><span class="num">11</span><h2>Stash</h2><span class="sub">shelve work</span></div>
+    <div class="rows">
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">stash</span></span>
+        <div class="desc">Shelve tracked changes &amp; clean the working dir. <span class="star">★</span></div>
+      </div>
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">stash</span> <span class="v">pop</span></span>
+        <div class="desc">Re-apply the latest stash and drop it. <span class="star">★</span></div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">stash</span> <span class="v">list</span></span>
+        <div class="desc">Show the stack of stashed changes.</div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">stash</span> <span class="v">drop</span></span>
+        <div class="desc">Discard the most recent stash entry.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAGS ============ -->
+  <section class="card" id="tag">
+    <div class="card-h"><span class="num">12</span><h2>Tags</h2><span class="sub">mark releases</span></div>
+    <div class="rows">
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">tag</span></span>
+        <div class="desc">List all tags.</div>
+      </div>
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">tag</span> <span class="a">-a</span> <span class="p">&lt;name&gt;</span> <span class="a">-m</span> <span class="p">"msg"</span></span>
+        <div class="desc">Annotated tag (a real object) for the current commit. <span class="star">★</span></div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">tag</span> <span class="p">&lt;name&gt; &lt;sha&gt;</span></span>
+        <div class="desc">Lightweight tag pointing at a specific commit.</div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">tag</span> <span class="a">-d</span> <span class="p">&lt;name&gt;</span></span>
+        <div class="desc">Remove a tag locally.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ REWRITE HISTORY ============ -->
+  <section class="card" id="rewrite">
+    <div class="card-h"><span class="num">13</span><h2>Rewrite history</h2><span class="sub">local branches only</span></div>
+    <div class="rows">
+      <div class="row common">
+        <span class="cmd"><span class="g">git</span> <span class="v">commit</span> <span class="a">--amend</span></span>
+        <div class="desc">Fold staged changes into the last commit / fix its message. <span class="star">★</span></div>
+      </div>
+      <div class="row danger">
+        <span class="cmd"><span class="g">git</span> <span class="v">rebase</span> <span class="a">-i</span> <span class="p">HEAD~&lt;n&gt;</span></span>
+        <div class="desc">Reorder, squash or edit the last n commits. <span class="tag danger">rewrites</span></div>
+      </div>
+      <div class="row">
+        <span class="cmd"><span class="g">git</span> <span class="v">reflog</span> <span class="p">&lt;branch&gt;</span></span>
+        <div class="desc">Find a lost commit ID to recover after a bad rebase.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ REFS & IGNORE ============ -->
+  <section class="card" id="refs">
+    <div class="card-h"><span class="num">14</span><h2>Refs &amp; ignoring</h2><span class="sub">how to name a commit</span></div>
+    <div class="viz-body" style="padding-bottom:4px">
+      <p class="cap">Anywhere a command wants <span style="color:var(--yellow);font-family:var(--mono)">&lt;commit&gt;</span>, any of these work:</p>
+    </div>
+    <div class="rows" style="padding-top:0">
+      <div class="row"><span class="cmd"><span class="p">main</span> · <span class="p">origin/main</span></span><div class="desc">A branch / remote-tracking branch.</div></div>
+      <div class="row"><span class="cmd"><span class="p">v0.1</span></span><div class="desc">A tag name.</div></div>
+      <div class="row"><span class="cmd"><span class="p">3e887ab</span></span><div class="desc">A commit SHA (first 7 chars suffice).</div></div>
+      <div class="row"><span class="cmd"><span class="p">HEAD</span></span><div class="desc">The commit you're currently on.</div></div>
+      <div class="row"><span class="cmd"><span class="p">HEAD~3</span> · <span class="p">HEAD^^^</span></span><div class="desc">Three commits back from HEAD.</div></div>
+    </div>
+    <div class="viz-body" style="border-top:1px solid var(--line)">
+      <p class="cap" style="margin-bottom:8px"><b>.gitignore</b> — keep noise out of the repo:</p>
+      <div style="background:var(--code);border:1px solid var(--line);border-radius:8px;padding:11px 13px;font-family:var(--mono);font-size:12.3px;color:var(--code-ink);line-height:1.7">
+        <div style="color:var(--faint)"># build artefacts &amp; logs</div>
+        <div>logs/</div>
+        <div>*.swp</div>
+        <div>/tmp</div>
+        <div><span style="color:var(--green)">!logs/.gitkeep</span>  <span style="color:var(--faint)"># un-ignore</span></div>
+      </div>
+      <p class="cap" style="margin:10px 0 0">Rules apply to the folder containing the file and all children.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <b>Collated from six canonical references</b> — ordered by real-world workflow, common commands starred &amp; highlighted, destructive ones flagged.
+  <div class="srcs">
+    <span>GitHub Education</span><span>·</span>
+    <span>git-scm.com</span><span>·</span>
+    <span>GitLab</span><span>·</span>
+    <span>Atlassian</span><span>·</span>
+    <span>BU Research Computing</span><span>·</span>
+    <span>cheat-sheets.org</span>
+  </div>
+</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad:true,
+    theme:"base",
+    themeVariables:{
+      background:"transparent",
+      primaryColor:"#1c2230",
+      primaryBorderColor:"#2b3340",
+      primaryTextColor:"#e6edf3",
+      lineColor:"#8b97a7",
+      fontSize:"13px",
+      fontFamily:"var(--mono)"
+    }
+  });
+</script>
+</body>
+</html>

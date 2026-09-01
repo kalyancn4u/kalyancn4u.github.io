@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LiteLLM Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">One API for 100+ LLM providers &middot; OpenAI-compatible &middot; router / fallbacks / proxy &middot; verified against LiteLLM 1.x (2026)</div>
+  <h1><span class="mono">LiteLLM</span> cheat sheet</h1>
+  <p class="lede"><b>LiteLLM</b> gives you a single, OpenAI-shaped interface to call <b>100+ providers</b> &mdash; OpenAI, Anthropic, Gemini, Bedrock, Azure, Groq, Ollama and more &mdash; by just changing the <code>model</code> string. Same request format, same response object (<code>response.choices[0].message.content</code>), everywhere. Use it as a <b>Python SDK</b> (<code>completion()</code>), a <b>Router</b> for load-balancing/fallbacks across deployments, or a standalone <b>proxy</b> gateway. This sheet targets <b>LiteLLM 1.x</b>.</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>core calls</span>
+    <span><i class="dot c2"></i>streaming / async</span>
+    <span><i class="dot c3"></i>providers &amp; params</span>
+    <span><i class="dot c4"></i>router / reliability</span>
+    <span><i class="dot c5"></i>cost / proxy</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-08-24 against the official docs at <b>docs.litellm.ai</b> (LiteLLM 1.x). Responses follow the OpenAI schema; the same code runs against any supported provider by swapping the <code>model</code> prefix.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub">Learn <code>completion()</code> once; it works for every provider. Reach for the Router when you need failover/load-balancing, and the proxy when non-Python apps need a gateway.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Call</h3>
+      <ol class="toc-list">
+        <li><a href="#install">1 &middot; Install &amp; completion()</a></li>
+        <li><a href="#messages">2 &middot; Messages, params, response</a></li>
+        <li><a href="#stream">3 &middot; Streaming &amp; async</a></li>
+        <li><a href="#embed">4 &middot; Embeddings &amp; more</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Providers</h3>
+      <ol class="toc-list">
+        <li><a href="#providers">5 &middot; Provider prefixes</a></li>
+        <li><a href="#keys">6 &middot; Keys &amp; provider params</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">Reliability</h3>
+      <ol class="toc-list">
+        <li><a href="#router">7 &middot; Router — load balance</a></li>
+        <li><a href="#fallbacks">8 &middot; Fallbacks &amp; retries</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Ops</h3>
+      <ol class="toc-list">
+        <li><a href="#cost">9 &middot; Cost, caching, callbacks</a></li>
+        <li><a href="#proxy">10 &middot; Proxy gateway</a></li>
+        <li><a href="#gotchas">11 &middot; Gotchas</a></li>
+        <li><a href="#worth">Worth memorizing</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-call"><h2 style="color:var(--c1)">Call Any Model</h2><p class="sub">One function, OpenAI-shaped, for every provider.</p></div>
+<main>
+  <article class="card" id="install">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Install &amp; completion()</span><span class="card-sub">the one call</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">pip install litellm</code><span class="star">&#9733;</span><div class="desc">SDK only. Add <code>litellm[proxy]</code> for the gateway server.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">from</span> litellm <span class="kw">import</span> completion
+r = completion(model=<span class="str">"openai/gpt-4o"</span>, messages=msgs)</code><span class="star">&#9733;</span><div class="desc">The universal call. Swap the model string to change provider &mdash; everything else stays identical.</div></li>
+      <li class="c1"><code class="cmd">r.choices[0].message.content</code><span class="star">&#9733;</span><div class="desc">Response follows the <b>OpenAI schema</b> for every provider: <code>choices</code>, <code>message</code>, <code>usage</code>, <code>id</code>, <code>model</code>.</div></li>
+      <li class="c1"><code class="cmd">export OPENAI_API_KEY=... &nbsp; ANTHROPIC_API_KEY=... &nbsp; GEMINI_API_KEY=...</code><div class="desc">Keys come from env vars by default (per provider), or pass <code>api_key=</code> explicitly.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="messages">
+    <div class="card-head"><span class="card-num n1">2</span><span class="card-title">Messages, params, response</span><span class="card-sub">the request</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">msgs = [{<span class="str">"role"</span>:<span class="str">"system"</span>,<span class="str">"content"</span>:<span class="str">"..."</span>},
+        {<span class="str">"role"</span>:<span class="str">"user"</span>,<span class="str">"content"</span>:<span class="str">"Hi"</span>}]</code><span class="star">&#9733;</span><div class="desc">Standard chat-message list. Multimodal content parts (image/audio) supported for capable models.</div></li>
+      <li class="c3"><code class="cmd">completion(model, messages, temperature=0.7, max_tokens=500)</code><span class="star">&#9733;</span><div class="desc">OpenAI-style params (<code>top_p</code>, <code>stop</code>, <code>n</code>, <code>seed</code>) are translated to each provider's native format.</div></li>
+      <li class="c3"><code class="cmd">completion(..., response_format={<span class="str">"type"</span>:<span class="str">"json_object"</span>})</code><div class="desc">JSON mode / structured output; pass a Pydantic model as <code>response_format=</code> where supported.</div></li>
+      <li class="c3"><code class="cmd">completion(..., tools=tools, tool_choice=<span class="str">"auto"</span>)</code><div class="desc">Function/tool calling with the OpenAI schema; read <code>r.choices[0].message.tool_calls</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="stream">
+    <div class="card-head"><span class="card-num n2">3</span><span class="card-title">Streaming &amp; async</span><span class="card-sub">non-blocking</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd"><span class="kw">for</span> chunk <span class="kw">in</span> completion(model, messages, stream=<span class="kw">True</span>):
+    print(chunk.choices[0].delta.content <span class="kw">or</span> <span class="str">""</span>, end=<span class="str">""</span>)</code><span class="star">&#9733;</span><div class="desc">Streaming yields OpenAI-style <code>delta</code> chunks for every provider.</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">from</span> litellm <span class="kw">import</span> acompletion
+r = <span class="kw">await</span> acompletion(model, messages)</code><span class="star">&#9733;</span><div class="desc">Async twin of <code>completion</code>. <code>stream=True</code> gives an async iterator.</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">from</span> litellm <span class="kw">import</span> stream_chunk_builder
+full = stream_chunk_builder(chunks, messages=msgs)</code><div class="desc">Reassemble streamed chunks into a single completion object (with usage).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="embed">
+    <div class="card-head"><span class="card-num n2">4</span><span class="card-title">Embeddings &amp; more</span><span class="card-sub">other endpoints</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd"><span class="kw">from</span> litellm <span class="kw">import</span> embedding
+embedding(model=<span class="str">"openai/text-embedding-3-small"</span>, input=[<span class="str">"txt"</span>])</code><span class="star">&#9733;</span><div class="desc">Same unified shape for embeddings. <code>aembedding</code> for async.</div></li>
+      <li class="c2"><code class="cmd">litellm.transcription(...) &middot; image_generation(...) &middot; rerank(...)</code><div class="desc">Audio, image and rerank endpoints where the provider supports them.</div></li>
+      <li class="c1"><code class="cmd">litellm.completion(model=<span class="str">"..."</span>, mock_response=<span class="str">"hi"</span>)</code><div class="desc">Return a canned response &mdash; test your app without hitting (or paying) a provider.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-prov"><h2 style="color:var(--c3)">Providers &amp; Params</h2><p class="sub">The model prefix routes the call; keys and quirks per provider.</p></div>
+<main>
+  <article class="card" id="providers">
+    <div class="card-head"><span class="card-num n3">5</span><span class="card-title">Provider prefixes</span><span class="card-sub">provider/model</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="str">"openai/gpt-4o"</span> &middot; <span class="str">"anthropic/claude-sonnet-4-5"</span></code><span class="star">&#9733;</span><div class="desc">The <code>provider/</code> prefix picks the backend. OpenAI models can be used prefixless too.</div></li>
+      <li class="c3"><code class="cmd"><span class="str">"gemini/gemini-2.5-pro"</span> &middot; <span class="str">"groq/llama-3.3-70b"</span> &middot; <span class="str">"mistral/..."</span></code><div class="desc">Hosted providers &mdash; each reads its own <code>*_API_KEY</code> env var.</div></li>
+      <li class="c3"><code class="cmd"><span class="str">"bedrock/anthropic.claude-..."</span> &middot; <span class="str">"azure/&lt;deployment&gt;"</span> &middot; <span class="str">"vertex_ai/..."</span></code><div class="desc">Cloud gateways use their own auth (AWS creds, <code>AZURE_API_BASE</code>+key, GCP project).</div></li>
+      <li class="c3"><code class="cmd"><span class="str">"ollama/llama3"</span> &middot; <span class="str">"openai/..."</span> + api_base=<span class="str">"http://localhost:8000/v1"</span></code><span class="star">&#9733;</span><div class="desc">Local models via Ollama, or any OpenAI-compatible server by setting <code>api_base</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="keys">
+    <div class="card-head"><span class="card-num n3">6</span><span class="card-title">Keys &amp; provider params</span><span class="card-sub">config</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">completion(model, messages, api_key=<span class="str">"..."</span>, api_base=<span class="str">"..."</span>)</code><div class="desc">Override per call instead of env vars. <code>litellm.api_key = ...</code> to set globally.</div></li>
+      <li class="c3"><code class="cmd">litellm.drop_params = <span class="kw">True</span></code><span class="star">&#9733;</span><div class="desc">Silently drop params a provider doesn't support (instead of erroring) &mdash; key for portable code across providers.</div></li>
+      <li class="c3"><code class="cmd">litellm.get_supported_openai_params(model=<span class="str">"..."</span>)</code><div class="desc">Ask what a given model actually supports before sending.</div></li>
+      <li class="c3"><code class="cmd">completion(..., num_retries=3, timeout=30)</code><div class="desc">Per-call retries &amp; timeout even without the Router.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-router"><h2 style="color:var(--c4)">Router &amp; Reliability</h2><p class="sub">Load-balance across deployments and fail over automatically.</p></div>
+<main>
+  <article class="card" id="router">
+    <div class="card-head"><span class="card-num n4">7</span><span class="card-title">Router &mdash; load balancing</span><span class="card-sub">many deployments</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="kw">from</span> litellm <span class="kw">import</span> Router
+router = Router(model_list=[...])</code><span class="star">&#9733;</span><div class="desc">A drop-in that spreads calls across multiple deployments of the same logical model &mdash; with retries, cooldowns, fallbacks &amp; cost tracking built in.</div></li>
+      <li class="c4"><code class="cmd">model_list=[{<span class="str">"model_name"</span>:<span class="str">"gpt"</span>,
+  <span class="str">"litellm_params"</span>:{<span class="str">"model"</span>:<span class="str">"azure/dep1"</span>, <span class="str">"api_key"</span>:...}}, ...]</code><span class="star">&#9733;</span><div class="desc">Group several real deployments under one <code>model_name</code>; callers just ask for <code>"gpt"</code>.</div></li>
+      <li class="c4"><code class="cmd">router.completion(model=<span class="str">"gpt"</span>, messages=msgs)</code><span class="star">&#9733;</span><div class="desc">Same signature as <code>completion</code> (and <code>router.acompletion</code>). The router picks a healthy deployment.</div></li>
+      <li class="c4"><code class="cmd">Router(..., routing_strategy=<span class="str">"latency-based-routing"</span>)</code><div class="desc">Also <code>simple-shuffle</code>, <code>least-busy</code>, <code>usage-based-routing</code> (respects per-deployment TPM/RPM limits).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="fallbacks">
+    <div class="card-head"><span class="card-num n4">8</span><span class="card-title">Fallbacks &amp; retries</span><span class="card-sub">failover</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">Router(..., fallbacks=[{<span class="str">"gpt"</span>: [<span class="str">"claude"</span>]}])</code><span class="star">&#9733;</span><div class="desc">On a 429/500 for <code>gpt</code>, automatically retry the request on <code>claude</code>. General-error failover.</div></li>
+      <li class="c4"><code class="cmd">context_window_fallbacks=[...] <span class="cm"># needs enable_pre_call_checks=True</span></code><div class="desc">Route to a bigger-context model when the input overflows the current one.</div></li>
+      <li class="c4"><code class="cmd">content_policy_fallbacks=[...]</code><div class="desc">On a content-policy refusal, send to a different provider instead of failing.</div></li>
+      <li class="c4"><code class="cmd">Router(..., num_retries=3, cooldown_time=60, allowed_fails=2)</code><div class="desc">Retries with backoff; a deployment that fails too often is put in cooldown and skipped.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-ops"><h2 style="color:var(--c5)">Cost, Observability &amp; Proxy</h2><p class="sub">Track spend, add logging, and expose a gateway for other apps.</p></div>
+<main>
+  <article class="card" id="cost">
+    <div class="card-head"><span class="card-num n5">9</span><span class="card-title">Cost, caching, callbacks</span><span class="card-sub">observability</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="kw">from</span> litellm <span class="kw">import</span> completion_cost
+completion_cost(completion_response=r)</code><span class="star">&#9733;</span><div class="desc">Dollar cost of a call from token usage + model pricing. Also on <code>r._hidden_params["response_cost"]</code>.</div></li>
+      <li class="c5"><code class="cmd">litellm.success_callback = [<span class="str">"langfuse"</span>] &middot; failure_callback = [...]</code><span class="star">&#9733;</span><div class="desc">One-line integrations: Langfuse, Helicone, MLflow, Prometheus, OpenTelemetry, Datadog, S3.</div></li>
+      <li class="c5"><code class="cmd">litellm.cache = Cache(type=<span class="str">"redis"</span>) <span class="cm"># or "local"</span></code><div class="desc">Response caching to cut cost/latency on repeated prompts.</div></li>
+      <li class="c5"><code class="cmd">r.usage.prompt_tokens &middot; r.usage.completion_tokens &middot; r.usage.total_tokens</code><div class="desc">Token accounting on every response; <code>litellm.token_counter(...)</code> to count before sending.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="proxy">
+    <div class="card-head"><span class="card-num n5">10</span><span class="card-title">Proxy gateway</span><span class="card-sub">OpenAI-compatible server</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd">litellm --config config.yaml</code><span class="star">&#9733;</span><div class="desc">Runs an <b>OpenAI-compatible</b> HTTP gateway in front of all your models &mdash; point any OpenAI SDK/app at it.</div></li>
+      <li class="c5"><code class="cmd">client = OpenAI(base_url=<span class="str">"http://localhost:4000"</span>, api_key=<span class="str">"sk-..."</span>)</code><span class="star">&#9733;</span><div class="desc">Non-Python apps (or the OpenAI SDK) call the proxy as if it were OpenAI; it routes to any provider.</div></li>
+      <li class="c5"><code class="cmd"># config.yaml: model_list + router_settings + litellm_settings</code><div class="desc">Central place for keys, virtual API keys, budgets/rate-limits per team, fallbacks and logging.</div></li>
+      <li class="c5"><code class="cmd">virtual keys &middot; per-key budgets &middot; spend tracking</code><div class="desc">Issue scoped keys with spend limits &mdash; the proxy becomes an org-wide LLM gateway with a dashboard.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-ref"><h2 style="color:var(--danger)">Gotchas</h2><p class="sub">The cross-provider surprises.</p></div>
+<main>
+  <article class="card" id="gotchas">
+    <div class="card-head"><span class="card-num">!</span><span class="card-title">Common gotchas</span><span class="card-sub">read before shipping</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">unsupported params error by default</code><div class="desc">Sending e.g. <code>logprobs</code> to a provider that lacks it raises. Set <code>litellm.drop_params=True</code> for portable code.</div></li>
+      <li class="danger"><code class="cmd">right key for the right prefix</code><div class="desc">Each provider reads its own env var (<code>ANTHROPIC_API_KEY</code>, <code>GEMINI_API_KEY</code>, ...). Wrong-key errors usually mean a missing/mismatched var.</div></li>
+      <li class="danger"><code class="cmd">Azure/Bedrock need extra config</code><div class="desc">Azure wants <code>api_base</code>+<code>api_version</code> and the <b>deployment</b> name; Bedrock/Vertex use cloud credentials, not a simple key.</div></li>
+      <li class="danger"><code class="cmd">costs depend on the price map</code><div class="desc"><code>completion_cost</code> relies on LiteLLM's model-price table &mdash; a brand-new model may be missing until you update or supply pricing.</div></li>
+      <li class="danger"><code class="cmd">capabilities still differ</code><div class="desc">A unified API doesn't unify features &mdash; tool calling, JSON mode, vision and context limits vary by model. Check per-model support.</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs" id="worth">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">one call, any provider</span><span class="v">completion(model="provider/name", messages=...) with an OpenAI-shaped response</span></div>
+    <div><span class="k">prefix picks the backend</span><span class="v">openai/ anthropic/ gemini/ bedrock/ azure/ ollama/ ...</span></div>
+    <div><span class="k">response is always OpenAI schema</span><span class="v">r.choices[0].message.content; r.usage.total_tokens</span></div>
+    <div><span class="k">stream=True yields deltas</span><span class="v">chunk.choices[0].delta.content — same for every provider</span></div>
+    <div><span class="k">acompletion / aembedding</span><span class="v">async twins of the sync calls</span></div>
+    <div><span class="k">drop_params=True for portability</span><span class="v">quietly drop params a provider doesn't support</span></div>
+    <div><span class="k">Router = load balance + failover</span><span class="v">model_list, fallbacks, retries, cooldowns, cost tracking</span></div>
+    <div><span class="k">completion_cost + callbacks</span><span class="v">per-call spend; one-line Langfuse/Prometheus/OTel logging</span></div>
+    <div><span class="k">proxy = OpenAI-compatible gateway</span><span class="v">litellm --config; point any OpenAI SDK at it</span></div>
+  </div>
+</section>
+
+<footer>
+  LiteLLM cheat sheet (litellm_cheatsheet v0).<br>
+  Verified 2026-08-24 against <b>docs.litellm.ai</b> (LiteLLM 1.x). Unified OpenAI-shaped interface across 100+ providers as an SDK, Router, or proxy gateway. Supported models, params and pricing change constantly &mdash; check the provider list and model-price map before relying on a specific model. Provider auth (Azure/Bedrock/Vertex) differs from simple API-key providers.<br>
+  Design system = shared cheat-sheet tokens (Inter + JetBrains Mono, light theme). Content only.
+</footer>
+</body>
+</html>

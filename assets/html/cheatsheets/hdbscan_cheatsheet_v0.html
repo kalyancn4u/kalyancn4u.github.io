@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>hdbscan Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --data:#64748b;    --data-bg:#f1f3f6;
+    --density:#d97706; --density-bg:#fdf6ec;
+    --tree:#7c3aed;    --tree-bg:#f3effd;
+    --fit:#059669;     --fit-bg:#ecf7f2;
+    --out:#4f46e5;     --out-bg:#eef0fd;
+    --danger:#dc2626;  --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .mono{font-family:var(--mono); color:var(--fit)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink); font-weight:600}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.data{background:var(--data)} .dot.density{background:var(--density)}
+  .dot.tree{background:var(--tree)} .dot.fit{background:var(--fit)}
+  .dot.out{background:var(--out)} .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.data{border-left-color:var(--data)}
+  ul.cmds li.density{border-left-color:var(--density)}
+  ul.cmds li.tree{border-left-color:var(--tree)}
+  ul.cmds li.fit{border-left-color:var(--fit)}
+  ul.cmds li.out{border-left-color:var(--out)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .arg{color:var(--out); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--tree); font-weight:500}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.94em; background:#f4f1ea; padding:0 .2em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* code-block card */
+  pre.block{
+    font-family:var(--mono); font-size:.76rem; line-height:1.65;
+    background:#12151b; color:#e8e6e1; margin:0; padding:.9rem 1rem;
+    overflow-x:auto; white-space:pre;
+  }
+  pre.block .c{color:#7f8794}
+  pre.block .k{color:#c4b5fd}
+  pre.block .s{color:#fbbf24}
+  pre.block .f{color:#6ee7b7}
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:var(--mono)}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#a5b4fc; font-size:.95em}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:var(--ink)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · hierarchical density-based clustering</div>
+  <h1><span class="mono">hdbscan</span> cheat sheet</h1>
+  <p class="lede">HDBSCAN finds clusters of <b>varying density</b> and leaves the rest as <b>noise</b> — no need to guess the number of clusters or a single distance threshold. It reshapes space by density, builds a cluster hierarchy, then keeps the most <b>stable</b> clusters. Two dials do most of the work: <b>min_cluster_size</b> (how big a group must be) and <b>min_samples</b> (how conservative to be about noise).</p>
+  <div class="legend">
+    <span><i class="dot data"></i>data &amp; setup</span>
+    <span><i class="dot density"></i>density · min_samples, metric</span>
+    <span><i class="dot tree"></i>hierarchy · min_cluster_size, selection</span>
+    <span><i class="dot fit"></i>fit / run</span>
+    <span><i class="dot out"></i>labels &amp; prediction</span>
+    <span><i class="dot danger"></i>pitfall</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked across: <b>hdbscan.readthedocs.io</b> (docs · API · parameter selection · how it works) · <b>Campello, Moulavi &amp; Sander, 2013</b> · <b>McInnes, Healy &amp; Astels — JOSS 2017</b> · <b>Malzer &amp; Baum, 2019 (ε)</b> · <b>scikit-learn</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">How a clustering is built — &amp; the two dials that steer it</div>
+  <svg class="flow-svg" viewBox="0 0 1120 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the HDBSCAN pipeline: data X is reshaped into mutual-reachability distances using core distances (min_samples), a minimum spanning tree and single-linkage hierarchy are built, the tree is condensed by min_cluster_size and stable clusters are extracted with eom or leaf, producing labels and probabilities. New points can be assigned with approximate_predict.">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="arrowO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#4f46e5"/>
+      </marker>
+    </defs>
+
+    <!-- boxes -->
+    <g>
+      <rect x="18" y="128" width="176" height="102" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="106" y="162" text-anchor="middle" font-size="14.5" font-weight="700" fill="#1a1d24">Data X</text>
+      <text x="106" y="183" text-anchor="middle" font-size="10" fill="#64748b">n × d features</text>
+      <text x="106" y="207" text-anchor="middle" font-size="10" fill="#64748b">or precomputed dists</text>
+    </g>
+    <g>
+      <rect x="234" y="128" width="196" height="102" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="332" y="158" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">Mutual reachability</text>
+      <text x="332" y="179" text-anchor="middle" font-size="10" fill="#b45309">core distances reshape</text>
+      <text x="332" y="205" text-anchor="middle" font-size="10" fill="#b45309">space by density</text>
+    </g>
+    <g>
+      <rect x="470" y="128" width="186" height="102" rx="12" fill="#f3effd" stroke="#7c3aed" stroke-width="2"/>
+      <text x="563" y="158" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">MST → hierarchy</text>
+      <text x="563" y="179" text-anchor="middle" font-size="10" fill="#6d28d9">min spanning tree →</text>
+      <text x="563" y="205" text-anchor="middle" font-size="10" fill="#6d28d9">single-linkage tree</text>
+    </g>
+    <g>
+      <rect x="696" y="128" width="200" height="102" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="796" y="158" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">Condense &amp; extract</text>
+      <text x="796" y="179" text-anchor="middle" font-size="10" fill="#047857">prune small splits →</text>
+      <text x="796" y="205" text-anchor="middle" font-size="10" fill="#047857">pick stable clusters</text>
+    </g>
+    <g>
+      <rect x="936" y="128" width="166" height="102" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="1019" y="158" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">labels_</text>
+      <text x="1019" y="178" text-anchor="middle" font-size="10" fill="#4f46e5">+ probabilities_</text>
+      <text x="1019" y="204" text-anchor="middle" font-size="10" fill="#4f46e5">noise = −1</text>
+    </g>
+
+    <!-- dial annotations -->
+    <text x="332" y="114" text-anchor="middle" font-size="11" font-weight="700" fill="#d97706">◤ min_samples · metric</text>
+    <text x="796" y="114" text-anchor="middle" font-size="11" font-weight="700" fill="#7c3aed">◤ min_cluster_size · eom / leaf</text>
+
+    <!-- forward arrows -->
+    <line x1="194" y1="179" x2="232" y2="179" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="430" y1="179" x2="468" y2="179" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="656" y1="179" x2="694" y2="179" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="896" y1="179" x2="934" y2="179" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- predict loopback (bottom, dashed indigo) -->
+    <path d="M1019 230 L1019 270 L332 270 L332 232" fill="none" stroke="#4f46e5" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrowO)"/>
+    <text x="676" y="286" text-anchor="middle" font-size="10.5" font-weight="600" fill="#4f46e5">hdbscan.approximate_predict(clusterer, X_new) — assign new points to the trained clusters</text>
+
+    <!-- outlier note (top) -->
+    <text x="1019" y="112" text-anchor="middle" font-size="9.5" fill="#64748b">outlier_scores_ (GLOSH)</text>
+
+    <!-- group labels -->
+    <text x="106" y="54" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">INPUT</text>
+    <text x="563" y="54" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#059669">THE DENSITY HIERARCHY</text>
+    <text x="1019" y="54" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#4f46e5">OUTPUT</text>
+  </svg>
+</section>
+
+<!-- ============ COMMAND CARDS ============ -->
+<main>
+
+  <!-- 01 INSTALL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; Import</span><span class="card-sub">once per env</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">pip install hdbscan</code><span class="star">★</span><div class="desc">The standalone library (needs a C compiler).</div></li>
+      <li class="data"><code class="cmd">conda install <span class="flag">-c</span> conda-forge hdbscan</code><div class="desc">Prebuilt — no compiler needed.</div></li>
+      <li class="data"><code class="cmd"><span class="kw">import</span> hdbscan</code><span class="star">★</span><div class="desc">Then <code>hdbscan.HDBSCAN(...)</code>.</div></li>
+      <li class="data"><code class="cmd"><span class="kw">from</span> sklearn.cluster <span class="kw">import</span> HDBSCAN</code><div class="desc">In sklearn ≥ 1.3 — fewer extras than standalone.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 QUICKSTART -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">60-Second Start</span><span class="card-sub">cluster &amp; read</span></div>
+    <ul class="cmds">
+      <li class="fit"><code class="cmd">c = hdbscan.HDBSCAN(<span class="flag">min_cluster_size</span>=<span class="arg">15</span>)</code><span class="star">★</span><div class="desc">Create the clusterer.</div></li>
+      <li class="fit"><code class="cmd">c.fit(<span class="arg">X</span>)</code><span class="star">★</span><div class="desc">Run the clustering.</div></li>
+      <li class="out"><code class="cmd">labels = c.labels_</code><span class="star">★</span><div class="desc">One label per point; <b>−1 = noise.</b></div></li>
+      <li class="fit"><code class="cmd">labels = c.fit_predict(<span class="arg">X</span>)</code><span class="star">★</span><div class="desc">Fit + return labels in one call.</div></li>
+      <li class="out"><code class="cmd">n = labels.max() + <span class="arg">1</span></code><div class="desc">Number of clusters found (noise excluded).</div></li>
+      <li class="out"><code class="cmd">plt.scatter(<span class="arg">*X.T</span>, <span class="flag">c</span>=<span class="arg">labels</span>, <span class="flag">s</span>=<span class="arg">5</span>)</code><div class="desc">Color points by cluster.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 CORE PARAMS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Core parameters</span><span class="card-sub">what to tune</span></div>
+    <ul class="cmds">
+      <li class="tree"><code class="cmd"><span class="flag">min_cluster_size</span>=<span class="arg">5</span></code><span class="star">★</span><div class="desc">Smallest group that counts as a cluster.</div></li>
+      <li class="density"><code class="cmd"><span class="flag">min_samples</span>=<span class="arg">None</span></code><span class="star">★</span><div class="desc">How conservative; <b>defaults to min_cluster_size.</b></div></li>
+      <li class="tree"><code class="cmd"><span class="flag">cluster_selection_method</span>=<span class="arg">"eom"</span></code><div class="desc"><code>"eom"</code> few big · <code>"leaf"</code> many small.</div></li>
+      <li class="density"><code class="cmd"><span class="flag">metric</span>=<span class="arg">"euclidean"</span></code><div class="desc">Distance in the input space.</div></li>
+      <li class="tree"><code class="cmd"><span class="flag">cluster_selection_epsilon</span>=<span class="arg">0.0</span></code><div class="desc">Merge clusters closer than this (DBSCAN-ish floor).</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 MIN_CLUSTER_SIZE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">min_cluster_size · granularity</span><span class="card-sub">tune this first</span></div>
+    <ul class="cmds">
+      <li class="tree"><code class="cmd">min_cluster_size=<span class="arg">5</span></code><span class="star">★</span><div class="desc">Default; small groups still count.</div></li>
+      <li class="tree"><code class="cmd">min_cluster_size=<span class="arg">50..100</span></code><div class="desc">Fewer, larger, core clusters.</div></li>
+      <li class="tree"><code class="cmd"><span class="c"># set to the smallest group you care about</span></code><div class="desc">Its meaning is intuitive — pick by domain.</div></li>
+      <li class="tree"><code class="cmd"><span class="c"># too small ⇒ micro-clusters</span></code><div class="desc">Larger values are more robust to noise.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 MIN_SAMPLES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">min_samples · conservativeness</span><span class="card-sub">the noise dial</span></div>
+    <ul class="cmds">
+      <li class="density"><code class="cmd">min_samples=<span class="arg">None</span></code><span class="star">★</span><div class="desc">Defaults to <code>min_cluster_size</code>.</div></li>
+      <li class="density"><code class="cmd">min_samples=<span class="arg">1</span></code><div class="desc">Little noise; clusters reach further out.</div></li>
+      <li class="density"><code class="cmd">min_samples=<span class="arg">25</span></code><div class="desc">Dense cores; more points called noise.</div></li>
+      <li class="density"><code class="cmd"><span class="c"># set it apart from min_cluster_size</span></code><div class="desc">Decouple to tune granularity &amp; noise separately.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 SELECTION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Cluster selection</span><span class="card-sub">reading the tree</span></div>
+    <ul class="cmds">
+      <li class="tree"><code class="cmd">cluster_selection_method=<span class="arg">"eom"</span></code><span class="star">★</span><div class="desc">Excess of Mass — a few most-persistent clusters.</div></li>
+      <li class="tree"><code class="cmd">cluster_selection_method=<span class="arg">"leaf"</span></code><div class="desc">Many small, homogeneous, fine clusters.</div></li>
+      <li class="tree"><code class="cmd">allow_single_cluster=<span class="arg">True</span></code><div class="desc">Permit one big cluster (off by default).</div></li>
+      <li class="tree"><code class="cmd">cluster_selection_epsilon=<span class="arg">0.5</span></code><div class="desc">Stop splitting below a distance — merges micro-clusters.</div></li>
+      <li class="tree"><code class="cmd">max_cluster_size=<span class="arg">0</span></code><div class="desc">Cap eom cluster size (0 = no limit).</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 METRICS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Metrics &amp; input</span><span class="card-sub">measuring distance</span></div>
+    <ul class="cmds">
+      <li class="density"><code class="cmd">metric=<span class="arg">"euclidean"</span></code><span class="star">★</span><div class="desc">Default; general numeric data.</div></li>
+      <li class="density"><code class="cmd">metric=<span class="arg">"manhattan"</span></code><div class="desc">Other tree-supported metrics.</div></li>
+      <li class="density"><code class="cmd">metric=<span class="arg">"minkowski"</span>, <span class="flag">p</span>=<span class="arg">3</span></code><div class="desc">Pass extra args as kwargs.</div></li>
+      <li class="density"><code class="cmd">metric=<span class="arg">"haversine"</span></code><div class="desc">Lat/lon in radians.</div></li>
+      <li class="density"><code class="cmd">metric=<span class="arg">"precomputed"</span></code><div class="desc">X is a square distance matrix.</div></li>
+      <li class="danger"><code class="cmd"><span class="c"># cosine not in the fast trees</span></code><div class="desc">Normalize rows + euclidean, or precompute.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 RESULTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Reading the result</span><span class="card-sub">fitted attributes</span></div>
+    <ul class="cmds">
+      <li class="out"><code class="cmd">c.labels_</code><span class="star">★</span><div class="desc">Cluster id per point; <code>−1</code> is noise.</div></li>
+      <li class="out"><code class="cmd">c.probabilities_</code><span class="star">★</span><div class="desc">Membership strength 0–1 (0 for noise).</div></li>
+      <li class="out"><code class="cmd">c.cluster_persistence_</code><div class="desc">Stability score per cluster (1 = rock-solid).</div></li>
+      <li class="out"><code class="cmd">c.outlier_scores_</code><div class="desc">GLOSH outlier score per point.</div></li>
+      <li class="out"><code class="cmd">c.exemplars_</code><div class="desc">Representative points (needs <code>prediction_data</code>).</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 PREDICT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Predict new points</span><span class="card-sub">assign unseen data</span></div>
+    <ul class="cmds">
+      <li class="out"><code class="cmd">hdbscan.HDBSCAN(<span class="flag">prediction_data</span>=<span class="arg">True</span>)</code><span class="star">★</span><div class="desc">Cache what's needed to predict later.</div></li>
+      <li class="out"><code class="cmd">c.generate_prediction_data()</code><div class="desc">Or enable it after fitting.</div></li>
+      <li class="out"><code class="cmd">labels, probs = hdbscan.approximate_predict(c, <span class="arg">X_new</span>)</code><span class="star">★</span><div class="desc">Assign new points to existing clusters.</div></li>
+      <li class="out"><code class="cmd">hdbscan.approximate_predict_scores(c, <span class="arg">X_new</span>)</code><div class="desc">Outlier score for new points.</div></li>
+      <li class="data"><code class="cmd"><span class="c"># not a full re-clustering</span></code><div class="desc">Re-fit if the data shifts a lot.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 SOFT CLUSTERING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Soft clustering</span><span class="card-sub">fuzzy membership</span></div>
+    <ul class="cmds">
+      <li class="out"><code class="cmd">hdbscan.all_points_membership_vectors(c)</code><span class="star">★</span><div class="desc">(n × k) — each point's membership to every cluster.</div></li>
+      <li class="out"><code class="cmd">hdbscan.membership_vector(c, <span class="arg">X_new</span>)</code><div class="desc">Soft-assign new points across clusters.</div></li>
+      <li class="out"><code class="cmd">vecs.argmax(<span class="flag">axis</span>=<span class="arg">1</span>)</code><div class="desc">Hard label = strongest membership.</div></li>
+      <li class="data"><code class="cmd"><span class="c"># requires prediction_data=True</span></code><div class="desc">Same cached data as approximate_predict.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 TREE PLOTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Visualize the hierarchy</span><span class="card-sub">the signature plots</span></div>
+    <ul class="cmds">
+      <li class="tree"><code class="cmd">c.condensed_tree_.plot(<span class="flag">select_clusters</span>=<span class="arg">True</span>)</code><span class="star">★</span><div class="desc">Icicle plot — see which clusters were chosen.</div></li>
+      <li class="tree"><code class="cmd">c.single_linkage_tree_.plot()</code><div class="desc">Full dendrogram of the merge hierarchy.</div></li>
+      <li class="tree"><code class="cmd">c.condensed_tree_.to_pandas()</code><div class="desc">parent · child · lambda_val · child_size.</div></li>
+      <li class="tree"><code class="cmd">c.minimum_spanning_tree_.plot()</code><div class="desc">Needs <code>gen_min_span_tree=True</code> at init.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 OUTLIERS / VALIDITY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Outliers &amp; validity</span><span class="card-sub">score the result</span></div>
+    <ul class="cmds">
+      <li class="out"><code class="cmd">c.outlier_scores_</code><span class="star">★</span><div class="desc">Higher = more outlier-like (GLOSH).</div></li>
+      <li class="data"><code class="cmd">np.quantile(c.outlier_scores_, <span class="arg">0.9</span>)</code><div class="desc">Threshold to flag the top outliers.</div></li>
+      <li class="out"><code class="cmd">c.relative_validity_</code><div class="desc">Fast DBCV — compare across hyper-params.</div></li>
+      <li class="out"><code class="cmd">hdbscan.validity.validity_index(<span class="arg">X, labels</span>)</code><div class="desc">Full DBCV score (−1 … 1, higher better).</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 DBSCAN / SPEED -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">DBSCAN* &amp; speed</span><span class="card-sub">extras &amp; scale</span></div>
+    <ul class="cmds">
+      <li class="fit"><code class="cmd">c.dbscan_clustering(<span class="flag">cut_distance</span>=<span class="arg">0.3</span>)</code><div class="desc">Extract a DBSCAN* clustering for free.</div></li>
+      <li class="data"><code class="cmd">core_dist_n_jobs=<span class="arg">-1</span></code><span class="star">★</span><div class="desc">Parallelize core-distance computation.</div></li>
+      <li class="data"><code class="cmd">algorithm=<span class="arg">"best"</span></code><div class="desc">Auto-pick; or <code>boruvka_kdtree</code> for big data.</div></li>
+      <li class="data"><code class="cmd">gen_min_span_tree=<span class="arg">True</span></code><div class="desc">Enable the MST plot &amp; <code>relative_validity_</code>.</div></li>
+      <li class="data"><code class="cmd">memory=<span class="arg">"./cache"</span></code><div class="desc">Cache the hard computation across re-runs.</div></li>
+    </ul>
+  </article>
+
+  <!-- RECIPE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">★</span><span class="card-title">Recommended recipe</span><span class="card-sub">sensible starting point</span></div>
+    <ul class="cmds">
+      <li class="tree"><code class="cmd">min_cluster_size = <span class="arg">smallest meaningful group</span></code><div class="desc">Pick by domain, then adjust.</div></li>
+      <li class="density"><code class="cmd">min_samples=<span class="arg">None</span> → lower it</code><div class="desc">Drop it to reduce noise if too much is −1.</div></li>
+      <li class="tree"><code class="cmd">cluster_selection_method=<span class="arg">"eom"</span></code><div class="desc"><code>"leaf"</code> when you want many fine clusters.</div></li>
+      <li class="data"><code class="cmd">PCA / UMAP → HDBSCAN</code><div class="desc">Reduce high-dim first, cluster the result.</div></li>
+      <li class="tree"><code class="cmd">condensed_tree_.plot(select_clusters=<span class="arg">True</span>)</code><div class="desc">Always eyeball the chosen clusters.</div></li>
+      <li class="out"><code class="cmd">prediction_data=<span class="arg">True</span></code><div class="desc">If you'll assign new points later.</div></li>
+    </ul>
+  </article>
+
+  <!-- PITFALLS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">!</span><span class="card-title">Watch out for</span><span class="card-sub">common gotchas</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">noise is a feature (−1)</code><span class="badge-danger">by design</span><div class="desc">HDBSCAN won't force outliers into clusters.</div></li>
+      <li class="danger"><code class="cmd">min_samples = min_cluster_size</code><span class="badge-danger">default</span><div class="desc">Set it explicitly to control noise.</div></li>
+      <li class="danger"><code class="cmd">raw high-dim ⇒ poor clusters</code><span class="badge-danger">care</span><div class="desc">Reduce dimensions first.</div></li>
+      <li class="danger"><code class="cmd">all-noise result?</code><span class="badge-danger">care</span><div class="desc">Lower <code>min_cluster_size</code> / try <code>allow_single_cluster</code>.</div></li>
+      <li class="danger"><code class="cmd">probabilities_ ≠ confidence</code><span class="badge-danger">care</span><div class="desc">It's persistence-based membership strength.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>How the pieces shape the clustering</h2>
+  <p class="sub">Four ideas that decide what HDBSCAN returns — based on the “How HDBSCAN Works” and parameter-selection guides.</p>
+  <div class="merge-grid">
+
+    <!-- condensed tree -->
+    <div class="merge-card">
+      <h3>the condensed tree</h3>
+      <p>As the density threshold rises, points “fall out” of clusters and bars narrow. HDBSCAN keeps the most persistent branches (Excess of Mass) — circled here.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="An icicle dendrogram: a wide root bar splits into branches that narrow with height; two persistent branches are circled as the selected clusters.">
+        <!-- root -->
+        <rect x="150" y="24" width="100" height="18" rx="2" fill="#c4b5fd"/>
+        <!-- split lines -->
+        <line x1="175" y1="42" x2="120" y2="58" stroke="#7c3aed" stroke-width="1"/>
+        <line x1="225" y1="42" x2="285" y2="58" stroke="#7c3aed" stroke-width="1"/>
+        <!-- left branch narrowing -->
+        <rect x="92"  y="58" width="56" height="16" rx="2" fill="#a78bfa"/>
+        <rect x="98"  y="74" width="44" height="16" rx="2" fill="#8b5cf6"/>
+        <rect x="103" y="90" width="34" height="16" rx="2" fill="#7c3aed"/>
+        <rect x="107" y="106" width="26" height="14" rx="2" fill="#6d28d9"/>
+        <!-- right branch splits again -->
+        <rect x="258" y="58" width="56" height="16" rx="2" fill="#a78bfa"/>
+        <line x1="272" y1="74" x2="250" y2="88" stroke="#7c3aed" stroke-width="1"/>
+        <line x1="300" y1="74" x2="320" y2="88" stroke="#7c3aed" stroke-width="1"/>
+        <rect x="232" y="88" width="34" height="14" rx="2" fill="#8b5cf6"/>
+        <rect x="236" y="102" width="26" height="14" rx="2" fill="#6d28d9"/>
+        <rect x="306" y="88" width="34" height="14" rx="2" fill="#8b5cf6"/>
+        <rect x="310" y="102" width="26" height="14" rx="2" fill="#6d28d9"/>
+        <!-- selection ovals -->
+        <ellipse cx="119" cy="97" rx="22" ry="26" fill="none" stroke="#dc2626" stroke-width="1.6"/>
+        <ellipse cx="249" cy="98" rx="20" ry="22" fill="none" stroke="#dc2626" stroke-width="1.6"/>
+        <ellipse cx="323" cy="98" rx="20" ry="22" fill="none" stroke="#dc2626" stroke-width="1.6"/>
+        <text x="200" y="140" text-anchor="middle" font-size="8.5" fill="#64748b">width = points in cluster · red = selected</text>
+        <text x="30" y="30" font-size="8" fill="#94a3b8">λ</text>
+        <line x1="34" y1="36" x2="34" y2="120" stroke="#cbd5e1" stroke-width="1" marker-end="url(#arrow)"/>
+      </svg>
+    </div>
+
+    <!-- min_cluster_size -->
+    <div class="merge-card">
+      <h3>min_cluster_size: fine ↔ coarse</h3>
+      <p>Small values keep many little clusters; large values merge them and prune the small ones as noise.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Left: small min_cluster_size yields five small colored clusters. Right: large min_cluster_size yields two big clusters with grey noise.">
+        <line x1="200" y1="30" x2="200" y2="130" stroke="#e7e3db" stroke-width="1"/>
+        <text x="100" y="24" text-anchor="middle" font-size="9" font-weight="700" fill="#6d28d9">small (=5)</text>
+        <text x="300" y="24" text-anchor="middle" font-size="9" font-weight="700" fill="#6d28d9">large (=60)</text>
+        <!-- small: 5 clusters -->
+        <g><circle cx="55" cy="55" r="3" fill="#059669"/><circle cx="62" cy="60" r="3" fill="#059669"/><circle cx="52" cy="64" r="3" fill="#059669"/>
+           <circle cx="120" cy="52" r="3" fill="#d97706"/><circle cx="127" cy="58" r="3" fill="#d97706"/><circle cx="117" cy="62" r="3" fill="#d97706"/>
+           <circle cx="70" cy="100" r="3" fill="#4f46e5"/><circle cx="77" cy="106" r="3" fill="#4f46e5"/><circle cx="67" cy="94" r="3" fill="#4f46e5"/>
+           <circle cx="135" cy="98" r="3" fill="#db2777"/><circle cx="142" cy="104" r="3" fill="#db2777"/>
+           <circle cx="98" cy="78" r="3" fill="#0891b2"/><circle cx="105" cy="83" r="3" fill="#0891b2"/></g>
+        <!-- large: 2 clusters + noise -->
+        <g><circle cx="255" cy="55" r="3" fill="#059669"/><circle cx="262" cy="60" r="3" fill="#059669"/><circle cx="252" cy="64" r="3" fill="#059669"/><circle cx="268" cy="52" r="3" fill="#059669"/><circle cx="258" cy="72" r="3" fill="#059669"/>
+           <circle cx="330" cy="95" r="3" fill="#4f46e5"/><circle cx="337" cy="101" r="3" fill="#4f46e5"/><circle cx="327" cy="105" r="3" fill="#4f46e5"/><circle cx="343" cy="98" r="3" fill="#4f46e5"/><circle cx="333" cy="88" r="3" fill="#4f46e5"/></g>
+        <g fill="#c7c9cd"><circle cx="300" cy="60" r="3"/><circle cx="285" cy="105" r="3"/><circle cx="355" cy="60" r="3"/><circle cx="300" cy="115" r="3"/></g>
+        <text x="300" y="140" text-anchor="middle" font-size="8" fill="#64748b">grey = noise (−1)</text>
+      </svg>
+    </div>
+
+    <!-- min_samples -->
+    <div class="merge-card">
+      <h3>min_samples: less ↔ more noise</h3>
+      <p>Low values let clusters absorb sparse fringes; high values pull clusters into dense cores and declare the fringes noise.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Left: low min_samples colors most points into two clusters. Right: high min_samples keeps only dense cores colored and marks fringe points grey.">
+        <line x1="200" y1="30" x2="200" y2="130" stroke="#e7e3db" stroke-width="1"/>
+        <text x="100" y="24" text-anchor="middle" font-size="9" font-weight="700" fill="#b45309">low (=1)</text>
+        <text x="300" y="24" text-anchor="middle" font-size="9" font-weight="700" fill="#b45309">high (=25)</text>
+        <!-- low: mostly colored -->
+        <g fill="#059669"><circle cx="60" cy="60" r="3"/><circle cx="70" cy="66" r="3"/><circle cx="55" cy="70" r="3"/><circle cx="80" cy="55" r="3"/><circle cx="48" cy="58" r="3"/><circle cx="88" cy="70" r="3"/></g>
+        <g fill="#4f46e5"><circle cx="110" cy="100" r="3"/><circle cx="120" cy="106" r="3"/><circle cx="100" cy="104" r="3"/><circle cx="128" cy="96" r="3"/><circle cx="95" cy="92" r="3"/></g>
+        <!-- high: dense cores colored, fringe grey -->
+        <g fill="#059669"><circle cx="262" cy="62" r="3"/><circle cx="270" cy="66" r="3"/><circle cx="258" cy="68" r="3"/><circle cx="266" cy="58" r="3"/></g>
+        <g fill="#4f46e5"><circle cx="312" cy="100" r="3"/><circle cx="320" cy="104" r="3"/><circle cx="308" cy="106" r="3"/><circle cx="316" cy="96" r="3"/></g>
+        <g fill="#c7c9cd"><circle cx="248" cy="58" r="3"/><circle cx="288" cy="72" r="3"/><circle cx="296" cy="96" r="3"/><circle cx="335" cy="98" r="3"/><circle cx="292" cy="110" r="3"/><circle cx="250" cy="74" r="3"/></g>
+        <text x="300" y="140" text-anchor="middle" font-size="8" fill="#64748b">fringe → noise</text>
+      </svg>
+    </div>
+
+    <!-- varying density -->
+    <div class="merge-card">
+      <h3>why not k-means / DBSCAN</h3>
+      <p>With clusters of different density, k-means splits by distance alone and DBSCAN's single ε can't fit all. HDBSCAN varies the threshold per region.</p>
+      <svg viewBox="0 0 400 150" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A dense small cluster and a sparse large cluster plus scattered noise; HDBSCAN captures both densities and leaves the scatter as noise.">
+        <!-- dense cluster -->
+        <g fill="#059669">
+          <circle cx="80" cy="70" r="2.6"/><circle cx="86" cy="74" r="2.6"/><circle cx="76" cy="76" r="2.6"/><circle cx="84" cy="66" r="2.6"/><circle cx="90" cy="72" r="2.6"/><circle cx="78" cy="66" r="2.6"/><circle cx="88" cy="80" r="2.6"/>
+        </g>
+        <ellipse cx="83" cy="72" rx="18" ry="15" fill="none" stroke="#059669" stroke-width="1" stroke-dasharray="3 3"/>
+        <!-- sparse cluster -->
+        <g fill="#4f46e5">
+          <circle cx="240" cy="55" r="2.6"/><circle cx="270" cy="70" r="2.6"/><circle cx="300" cy="55" r="2.6"/><circle cx="285" cy="95" r="2.6"/><circle cx="255" cy="100" r="2.6"/><circle cx="320" cy="85" r="2.6"/><circle cx="300" cy="112" r="2.6"/>
+        </g>
+        <ellipse cx="283" cy="83" rx="52" ry="40" fill="none" stroke="#4f46e5" stroke-width="1" stroke-dasharray="3 3"/>
+        <!-- noise -->
+        <g fill="#c7c9cd"><circle cx="150" cy="40" r="2.6"/><circle cx="170" cy="120" r="2.6"/><circle cx="130" cy="90" r="2.6"/></g>
+        <text x="83" y="112" text-anchor="middle" font-size="8" fill="#047857">dense</text>
+        <text x="283" y="138" text-anchor="middle" font-size="8" fill="#4f46e5">sparse — same clusterer</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WORTH MEMORIZING STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">min_cluster_size = granularity</span><span class="v">smallest group that's a cluster — the dial you tune first</span></div>
+    <div><span class="k">min_samples = conservativeness</span><span class="v">higher ⇒ more noise &amp; denser cores; defaults to min_cluster_size</span></div>
+    <div><span class="k">noise is label −1</span><span class="v">HDBSCAN refuses to force outliers into clusters</span></div>
+    <div><span class="k">eom vs leaf</span><span class="v">eom = a few big clusters · leaf = many small homogeneous ones</span></div>
+    <div><span class="k">probabilities_</span><span class="v">membership strength (persistence), not classifier confidence</span></div>
+    <div><span class="k">no n_clusters needed</span><span class="v">density finds the count for you (unlike k-means)</span></div>
+    <div><span class="k">varying density</span><span class="v">handled natively — plain DBSCAN's single ε can't</span></div>
+    <div><span class="k">reduce first on high-D</span><span class="v">PCA / UMAP → HDBSCAN beats raw high-dim</span></div>
+    <div><span class="k">prediction_data=True</span><span class="v">enables <code>approximate_predict</code> for new points</span></div>
+    <div><span class="k">the one plot</span><span class="v"><code>condensed_tree_.plot(select_clusters=True)</code></span></div>
+  </div>
+</section>
+
+<footer>
+  hdbscan cheat sheet · synthesized from the official documentation (hdbscan.readthedocs.io — basic usage, parameter selection, “How HDBSCAN Works” &amp; API), Campello, Moulavi &amp; Sander, “Density-Based Clustering Based on Hierarchical Density Estimates” (2013), McInnes, Healy &amp; Astels, “hdbscan: Hierarchical density based clustering” (JOSS, 2017), Malzer &amp; Baum (ε selection, 2019), and scikit-learn.<br>
+  API shown for hdbscan ≈ 0.8.x · defaults: <code>min_cluster_size=5</code>, <code>min_samples=None</code> (→ = min_cluster_size), <code>metric="euclidean"</code>, <code>cluster_selection_method="eom"</code>, <code>allow_single_cluster=False</code>.
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gensim Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --imp:#64748b;    --imp-bg:#f1f3f6;    /* setup / import / downloader */
+    --pre:#d97706;    --pre-bg:#fdf6ec;    /* preprocess & dictionary   */
+    --vec:#059669;    --vec-bg:#ecf7f2;    /* corpus & bag-of-words      */
+    --topic:#4f46e5;  --topic-bg:#eef0fd;  /* transforms & topic models  */
+    --embed:#7c3aed;  --embed-bg:#f3effc;  /* embeddings                 */
+    --sim:#0d9488;    --sim-bg:#e9f6f4;    /* similarity & evaluation    */
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .gen{font-family:var(--mono); color:var(--topic)}
+  h1 .sim{font-family:var(--mono); color:var(--sim)}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink); font-weight:600}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.imp{background:var(--imp)}     .dot.pre{background:var(--pre)}
+  .dot.vec{background:var(--vec)}     .dot.topic{background:var(--topic)}
+  .dot.embed{background:var(--embed)} .dot.sim{background:var(--sim)}
+  .dot.danger{background:var(--danger)}
+  .legend .star{color:var(--star)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- quickstart ---------- */
+  .quick-wrap{max-width:1500px; margin:0 auto; padding:.5rem clamp(1rem,4vw,3rem) 1rem}
+  .quick{
+    background:var(--ink); border-radius:12px; overflow:hidden;
+    box-shadow:0 2px 8px rgba(20,20,30,.10); max-width:1120px; margin:0 auto;
+  }
+  .quick-bar{
+    display:flex; align-items:center; gap:.5rem;
+    padding:.6rem .9rem; border-bottom:1px solid #2c313c;
+  }
+  .quick-bar i{width:11px; height:11px; border-radius:50%; display:inline-block}
+  .quick-bar .r{background:#ff5f57} .quick-bar .y{background:#febc2e} .quick-bar .g{background:#28c840}
+  .quick-bar span{
+    font-family:var(--mono); font-size:.72rem; color:#9aa2b1; margin-left:.4rem;
+  }
+  pre.quick-inner{
+    margin:0; padding:1rem 1.15rem; white-space:pre; tab-size:2;
+    font-family:var(--mono); font-size:.79rem; line-height:1.65; color:#e8e6e1;
+    overflow-x:auto;
+  }
+  .quick-inner .cm{color:#6b7280}
+  .quick-inner .kw{color:#c792ea}
+  .quick-inner .mod{color:#82aaff}
+  .quick-inner .fn{color:#82d9c9}
+  .quick-inner .str{color:#c3e88d}
+  .quick-inner .num{color:#f78c6c}
+  .quick-inner .op{color:#89ddff}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.imp{border-left-color:var(--imp)}
+  ul.cmds li.pre{border-left-color:var(--pre)}
+  ul.cmds li.vec{border-left-color:var(--vec)}
+  ul.cmds li.topic{border-left-color:var(--topic)}
+  ul.cmds li.embed{border-left-color:var(--embed)}
+  ul.cmds li.sim{border-left-color:var(--sim)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.5;
+  }
+  code.cmd .mod{color:var(--topic)}
+  code.cmd .fn{color:var(--sim); font-weight:600}
+  code.cmd .arg{color:var(--embed); font-weight:400}
+  code.cmd .str{color:var(--vec)}
+  code.cmd .num{color:var(--pre)}
+  code.cmd .kw{color:#a626a4}
+  code.cmd .op{color:var(--muted)}
+  li.danger code.cmd{color:var(--danger)}
+  li.danger code.cmd .arg,li.danger code.cmd .fn{color:var(--danger)}
+  .desc{font-size:.77rem; color:#525761; margin-top:.2rem}
+  .desc code{font-family:var(--mono); font-size:.9em; background:#f3f0ea; padding:.02em .3em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-new{
+    color:var(--embed); font-size:.63rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:var(--mono)}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.8rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#e8e6e1; background:#2c313c; padding:.02em .3em; border-radius:3px}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{background:#f3f0ea; padding:.02em .3em; border-radius:3px}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · topic modelling &amp; vector NLP for Python</div>
+  <h1><span class="gen">gen</span><span class="sim">sim</span> cheat sheet</h1>
+  <p class="lede">Every gensim workflow is <b>one pipeline</b>: raw text &rarr; a <b>Dictionary</b> that maps each token to an id &rarr; <b>bag-of-words</b> vectors (that's your <b>Corpus</b>) &rarr; a <b>Model</b> that transforms those vectors (TF-IDF, LSI, LDA, or embeddings) &rarr; <b>similarity</b> queries. Corpora stream from disk one vector at a time, so nothing has to fit in RAM. Learn the four nouns once and the API stops being a list to memorise.</p>
+  <div class="legend">
+    <span><i class="dot imp"></i>setup / import</span>
+    <span><i class="dot pre"></i>preprocess &amp; dictionary</span>
+    <span><i class="dot vec"></i>corpus &amp; vectors</span>
+    <span><i class="dot topic"></i>transforms &amp; topics</span>
+    <span><i class="dot embed"></i>embeddings</span>
+    <span><i class="dot sim"></i>similarity &amp; eval</span>
+    <span><i class="dot danger"></i>gotcha / removed</span>
+    <span><span class="star">&starf;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>radimrehurek.com/gensim</b> (Core Concepts + API, gensim 4.4) · introspected from the installed <b>gensim&nbsp;4.4.0</b> package · <b>machinelearningplus.com</b> · <b>cheatography (Gadpandey)</b> · <b>geeksforgeeks.org</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The pipeline &amp; the four nouns every command touches</div>
+  <svg class="flow-svg" viewBox="0 0 1120 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the gensim pipeline: raw text becomes a dictionary and bag-of-words corpus, a model transforms the vectors, and similarity queries rank documents.">
+    <defs>
+      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <!-- band A label -->
+    <text x="20" y="34" font-size="10.5" letter-spacing="2.5" fill="#94a3b8">THE PIPELINE — text in, ranked topics &amp; neighbours out</text>
+
+    <!-- boxes -->
+    <g>
+      <rect x="18"  y="52" width="176" height="118" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="106" y="82" text-anchor="middle" font-size="14.5" font-weight="700" fill="#1a1d24">Raw text</text>
+      <text x="106" y="103" text-anchor="middle" font-size="10.5" fill="#64748b">a Document = a str</text>
+      <text x="106" y="132" text-anchor="middle" font-size="10.5" fill="#64748b">simple_preprocess()</text>
+      <text x="106" y="149" text-anchor="middle" font-size="10.5" fill="#64748b">&rarr; [tokens]</text>
+    </g>
+    <g>
+      <rect x="252" y="52" width="192" height="118" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="348" y="82" text-anchor="middle" font-size="14.5" font-weight="700" fill="#1a1d24">Dictionary</text>
+      <text x="348" y="103" text-anchor="middle" font-size="10.5" fill="#b45309">token &harr; integer id</text>
+      <text x="348" y="132" text-anchor="middle" font-size="10.5" fill="#b45309">{computer:0,</text>
+      <text x="348" y="149" text-anchor="middle" font-size="10.5" fill="#b45309">&nbsp;human:1, ...}</text>
+    </g>
+    <g>
+      <rect x="502" y="52" width="192" height="118" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="598" y="82" text-anchor="middle" font-size="14.5" font-weight="700" fill="#1a1d24">Corpus</text>
+      <text x="598" y="103" text-anchor="middle" font-size="10.5" fill="#059669">bag-of-words vectors</text>
+      <text x="598" y="132" text-anchor="middle" font-size="10.5" fill="#059669">[(0,1),(1,1),(2,1)]</text>
+      <text x="598" y="149" text-anchor="middle" font-size="10.5" fill="#059669">one per document</text>
+    </g>
+    <g>
+      <rect x="752" y="52" width="192" height="118" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="848" y="82" text-anchor="middle" font-size="14.5" font-weight="700" fill="#1a1d24">Model</text>
+      <text x="848" y="103" text-anchor="middle" font-size="10.5" fill="#4f46e5">vector &rarr; vector</text>
+      <text x="848" y="132" text-anchor="middle" font-size="10.5" fill="#4f46e5">TF-IDF · LSI · LDA</text>
+      <text x="848" y="149" text-anchor="middle" font-size="10.5" fill="#7c3aed">Word2Vec · Doc2Vec</text>
+    </g>
+    <g>
+      <rect x="1002" y="52" width="100" height="118" rx="12" fill="#e9f6f4" stroke="#0d9488" stroke-width="2"/>
+      <text x="1052" y="82" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1d24">Query</text>
+      <text x="1052" y="104" text-anchor="middle" font-size="9.5" fill="#0d9488">index[q]</text>
+      <text x="1052" y="120" text-anchor="middle" font-size="9.5" fill="#0d9488">most_</text>
+      <text x="1052" y="133" text-anchor="middle" font-size="9.5" fill="#0d9488">similar()</text>
+      <text x="1052" y="150" text-anchor="middle" font-size="9.5" fill="#0d9488">topics</text>
+    </g>
+
+    <!-- forward arrows -->
+    <line x1="194" y1="94" x2="250" y2="94" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <text x="222" y="86" text-anchor="middle" font-size="9.5" font-weight="700" fill="#d97706">build</text>
+    <line x1="444" y1="94" x2="500" y2="94" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <text x="472" y="86" text-anchor="middle" font-size="9.5" font-weight="700" fill="#059669">doc2bow</text>
+    <line x1="694" y1="94" x2="750" y2="94" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <text x="722" y="86" text-anchor="middle" font-size="9.5" font-weight="700" fill="#4f46e5">fit</text>
+    <line x1="944" y1="94" x2="1000" y2="94" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <text x="972" y="86" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0d9488">model[·]</text>
+
+    <!-- streaming loopback -->
+    <path d="M598,170 L598,196 L106,196 L106,172" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+    <text x="352" y="211" text-anchor="middle" font-size="10" fill="#64748b">a corpus is just an <tspan font-style="italic">iterable of vectors</tspan> — stream it from disk, never load all of RAM at once</text>
+
+    <!-- band B: the four nouns -->
+    <text x="20" y="258" font-size="10.5" letter-spacing="2.5" fill="#94a3b8">THE FOUR CORE NOUNS — the whole mental model</text>
+    <g font-size="11">
+      <rect x="18"  y="272" width="262" height="66" rx="9" fill="#fff" stroke="#64748b" stroke-width="1.5"/>
+      <text x="30" y="296" font-size="12.5" font-weight="700" fill="#1a1d24">Document</text>
+      <text x="30" y="316" fill="#525761">some text — a str</text>
+      <text x="30" y="331" fill="#525761">"Human machine interface"</text>
+
+      <rect x="298" y="272" width="262" height="66" rx="9" fill="#fff" stroke="#d97706" stroke-width="1.5"/>
+      <text x="310" y="296" font-size="12.5" font-weight="700" fill="#1a1d24">Corpus</text>
+      <text x="310" y="316" fill="#525761">a collection of documents</text>
+      <text x="310" y="331" fill="#525761">used to train a model</text>
+
+      <rect x="578" y="272" width="262" height="66" rx="9" fill="#fff" stroke="#059669" stroke-width="1.5"/>
+      <text x="590" y="296" font-size="12.5" font-weight="700" fill="#1a1d24">Vector</text>
+      <text x="590" y="316" fill="#525761">a math representation</text>
+      <text x="590" y="331" fill="#525761">of one document</text>
+
+      <rect x="858" y="272" width="244" height="66" rx="9" fill="#fff" stroke="#4f46e5" stroke-width="1.5"/>
+      <text x="870" y="296" font-size="12.5" font-weight="700" fill="#1a1d24">Model</text>
+      <text x="870" y="316" fill="#525761">transforms vectors from</text>
+      <text x="870" y="331" fill="#525761">one representation to another</text>
+    </g>
+
+    <!-- footnote -->
+    <text x="20" y="372" font-size="10.5" fill="#6b7280">Unsupervised throughout — gensim learns themes, topics &amp; word meanings from plain text, no labels required.</text>
+    <text x="20" y="392" font-size="10.5" fill="#6b7280">Apply any trained model with subscript syntax: <tspan font-family="JetBrains Mono, monospace" fill="#4f46e5">tfidf[bow]</tspan> · <tspan font-family="JetBrains Mono, monospace" fill="#4f46e5">lsi[corpus]</tspan> · <tspan font-family="JetBrains Mono, monospace" fill="#4f46e5">lda[bow]</tspan> — training and transforming are separate steps.</text>
+    <text x="20" y="412" font-size="10.5" fill="#6b7280">Word/doc embeddings live on <tspan font-family="JetBrains Mono, monospace" fill="#7c3aed">model.wv</tspan> / <tspan font-family="JetBrains Mono, monospace" fill="#7c3aed">model.dv</tspan> — a KeyedVectors table you can detach, save, and query on its own.</text>
+  </svg>
+</section>
+
+<!-- ============ QUICKSTART ============ -->
+<section class="quick-wrap">
+  <div class="quick">
+    <div class="quick-bar"><i class="r"></i><i class="y"></i><i class="g"></i><span>quickstart.py — text &rarr; topics &rarr; similarity, end to end</span></div>
+<pre class="quick-inner"><span class="kw">from</span> <span class="mod">gensim</span> <span class="kw">import</span> corpora, models, similarities
+<span class="kw">from</span> <span class="mod">gensim.utils</span> <span class="kw">import</span> simple_preprocess
+
+docs  <span class="op">=</span> [<span class="str">"Human computer interaction"</span>, <span class="str">"A survey of user response time"</span>, <span class="str">"The EPS user interface system"</span>]
+texts <span class="op">=</span> [simple_preprocess(d) <span class="kw">for</span> d <span class="kw">in</span> docs]     <span class="cm"># tokenise + lowercase</span>
+
+dct    <span class="op">=</span> corpora.<span class="fn">Dictionary</span>(texts)             <span class="cm"># token &harr; id map</span>
+corpus <span class="op">=</span> [dct.<span class="fn">doc2bow</span>(t) <span class="kw">for</span> t <span class="kw">in</span> texts]     <span class="cm"># bag-of-words vectors</span>
+
+tfidf  <span class="op">=</span> models.<span class="fn">TfidfModel</span>(corpus)            <span class="cm"># learn a transform...</span>
+lsi    <span class="op">=</span> models.<span class="fn">LsiModel</span>(tfidf[corpus], id2word<span class="op">=</span>dct, num_topics<span class="op">=</span><span class="num">2</span>)
+
+index  <span class="op">=</span> similarities.<span class="fn">MatrixSimilarity</span>(lsi[corpus])
+q      <span class="op">=</span> lsi[tfidf[dct.<span class="fn">doc2bow</span>(simple_preprocess(<span class="str">"human interface"</span>))]]
+sims   <span class="op">=</span> <span class="kw">sorted</span>(<span class="kw">enumerate</span>(index[q]), key<span class="op">=</span><span class="kw">lambda</span> x: <span class="op">-</span>x[<span class="num">1</span>])   <span class="cm"># ranked docs</span></pre>
+  </div>
+</section>
+
+<!-- ============ COMMAND CARDS ============ -->
+<main>
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Import</span><span class="card-sub">once per project</span></div>
+    <ul class="cmds">
+      <li class="imp"><code class="cmd">pip install gensim</code><div class="desc">Installs gensim 4.x (a C compiler enables the fast training routines).</div></li>
+      <li class="imp"><code class="cmd"><span class="kw">from</span> gensim <span class="kw">import</span> corpora, models, similarities</code><span class="star">&starf;</span><div class="desc">The three workhorse sub-packages.</div></li>
+      <li class="imp"><code class="cmd"><span class="kw">from</span> gensim.utils <span class="kw">import</span> simple_preprocess</code><div class="desc">The quickest text&rarr;tokens helper.</div></li>
+      <li class="imp"><code class="cmd"><span class="kw">import</span> gensim.downloader <span class="kw">as</span> api</code><div class="desc">Fetch pretrained vectors &amp; datasets.</div></li>
+      <li class="imp"><code class="cmd"><span class="kw">import</span> logging; logging.basicConfig(level<span class="op">=</span>logging.INFO)</code><div class="desc">See training progress &amp; timings live.</div></li>
+      <li class="imp"><code class="cmd">gensim.__version__</code><div class="desc">Confirm you're on 4.x — the API changed a lot from 3.x.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 PREPROCESS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Preprocess Text</span><span class="card-sub">str &rarr; [tokens]</span></div>
+    <ul class="cmds">
+      <li class="pre"><code class="cmd">simple_preprocess(<span class="arg">text</span>, min_len<span class="op">=</span><span class="num">2</span>)</code><span class="star">&starf;</span><div class="desc">Lowercase, tokenise, drop punctuation &amp; short tokens.</div></li>
+      <li class="pre"><code class="cmd"><span class="kw">from</span> gensim.utils <span class="kw">import</span> tokenize</code><div class="desc"><code>list(tokenize(text, lowercase=True))</code> &mdash; a token generator.</div></li>
+      <li class="pre"><code class="cmd"><span class="kw">from</span> gensim.parsing.preprocessing <span class="kw">import</span> preprocess_string</code><div class="desc">Runs the DEFAULT_FILTERS: strip tags/punct/numeric/short, stopwords, stem.</div></li>
+      <li class="pre"><code class="cmd">remove_stopwords(<span class="arg">text</span>)</code><div class="desc">Drop gensim's 337 built-in English stopwords.</div></li>
+      <li class="pre"><code class="cmd"><span class="kw">from</span> gensim.parsing.preprocessing <span class="kw">import</span> STOPWORDS</code><div class="desc">The frozenset itself &mdash; extend or inspect it.</div></li>
+      <li class="pre"><code class="cmd">stem_text(<span class="arg">text</span>)</code><div class="desc">Porter-stem every word (<code>running</code>&rarr;<code>run</code>).</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 DICTIONARY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Dictionary</span><span class="card-sub">token &harr; id</span></div>
+    <ul class="cmds">
+      <li class="pre"><code class="cmd">dct <span class="op">=</span> corpora.<span class="fn">Dictionary</span>(<span class="arg">texts</span>)</code><span class="star">&starf;</span><div class="desc">Build an id map from a list of tokenised docs.</div></li>
+      <li class="pre"><code class="cmd">dct.token2id</code><div class="desc"><code>{token: id}</code>; reverse with <code>dct[id]</code>.</div></li>
+      <li class="pre"><code class="cmd">dct.<span class="fn">doc2bow</span>(<span class="arg">tokens</span>)</code><span class="star">&starf;</span><div class="desc">One doc &rarr; sorted bag-of-words <code>[(id,count)]</code>.</div></li>
+      <li class="pre"><code class="cmd">dct.<span class="fn">filter_extremes</span>(no_below<span class="op">=</span><span class="num">5</span>, no_above<span class="op">=</span><span class="num">0.5</span>)</code><span class="star">&starf;</span><div class="desc">Drop tokens in &lt;5 docs or &gt;50% of docs, then renumber.</div></li>
+      <li class="pre"><code class="cmd">dct.<span class="fn">add_documents</span>(<span class="arg">more_texts</span>)</code><div class="desc">Grow the vocabulary online.</div></li>
+      <li class="pre"><code class="cmd">dct.<span class="fn">save</span>(<span class="str">"x.dict"</span>) · Dictionary.<span class="fn">load</span>(<span class="str">"x.dict"</span>)</code><div class="desc">Persist so ids stay stable across runs.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 CORPUS / BoW -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Corpus &amp; Bag-of-Words</span><span class="card-sub">the vectors</span></div>
+    <ul class="cmds">
+      <li class="vec"><code class="cmd">corpus <span class="op">=</span> [dct.<span class="fn">doc2bow</span>(t) <span class="kw">for</span> t <span class="kw">in</span> texts]</code><span class="star">&starf;</span><div class="desc">A list of BoW vectors &mdash; the standard corpus.</div></li>
+      <li class="vec"><code class="cmd"><span class="kw">class</span> C:<br>&nbsp;&nbsp;<span class="kw">def</span> __iter__(self):<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> line <span class="kw">in</span> <span class="kw">open</span>(f): <span class="kw">yield</span> dct.<span class="fn">doc2bow</span>(line.split())</code><span class="star">&starf;</span><div class="desc">A streaming corpus &mdash; never loads the file into memory.</div></li>
+      <li class="vec"><code class="cmd">corpora.MmCorpus.<span class="fn">serialize</span>(<span class="str">"c.mm"</span>, corpus)</code><div class="desc">Save to Matrix Market format on disk.</div></li>
+      <li class="vec"><code class="cmd">corpus <span class="op">=</span> corpora.<span class="fn">MmCorpus</span>(<span class="str">"c.mm"</span>)</code><div class="desc">Lazily read it back, one vector at a time.</div></li>
+      <li class="vec"><code class="cmd">corpora.<span class="fn">SvmLightCorpus</span> · <span class="fn">BleiCorpus</span> · <span class="fn">LowCorpus</span></code><div class="desc">Other on-disk formats (SVMlight, Blei LDA-C, GibbsLDA).</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 TFIDF -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">TF-IDF</span><span class="card-sub">reweight the BoW</span></div>
+    <ul class="cmds">
+      <li class="topic"><code class="cmd">tfidf <span class="op">=</span> models.<span class="fn">TfidfModel</span>(corpus)</code><span class="star">&starf;</span><div class="desc">Learn document frequencies from the corpus.</div></li>
+      <li class="topic"><code class="cmd">tfidf[bow]</code><span class="star">&starf;</span><div class="desc">Transform one vector &mdash; rare terms weigh more.</div></li>
+      <li class="topic"><code class="cmd">tfidf[corpus]</code><div class="desc">A lazy view that transforms the whole corpus on iteration.</div></li>
+      <li class="topic"><code class="cmd">models.<span class="fn">TfidfModel</span>(corpus, smartirs<span class="op">=</span><span class="str">"ntc"</span>)</code><div class="desc">Pick an explicit SMART weighting scheme.</div></li>
+      <li class="topic"><code class="cmd">models.<span class="fn">OkapiBM25Model</span>(corpus)</code><span class="badge-new">4.x</span><div class="desc">BM25 ranking transform &mdash; often stronger for retrieval.</div></li>
+      <li class="topic"><code class="cmd">normalize<span class="op">=</span><span class="kw">True</span></code><div class="desc">L2-normalise output to unit length (the default).</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 LSI -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">LSI / LSA</span><span class="card-sub">latent topics · SVD</span></div>
+    <ul class="cmds">
+      <li class="topic"><code class="cmd">lsi <span class="op">=</span> models.<span class="fn">LsiModel</span>(tfidf[corpus], id2word<span class="op">=</span>dct, num_topics<span class="op">=</span><span class="num">200</span>)</code><span class="star">&starf;</span><div class="desc">Compress into latent semantic dimensions via truncated SVD.</div></li>
+      <li class="topic"><code class="cmd">lsi[bow]</code><div class="desc">Project a document into the low-dim topic space.</div></li>
+      <li class="topic"><code class="cmd">lsi.<span class="fn">print_topics</span>(<span class="num">5</span>)</code><div class="desc">Show the top-weighted terms per topic.</div></li>
+      <li class="topic"><code class="cmd">lsi.<span class="fn">add_documents</span>(<span class="arg">more</span>)</code><div class="desc">Incremental / online update &mdash; no full retrain.</div></li>
+      <li class="topic"><code class="cmd">models.<span class="fn">RpModel</span> · models.<span class="fn">LogEntropyModel</span></code><div class="desc">Random-projection &amp; log-entropy transforms.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 LDA -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">LDA Topic Model</span><span class="card-sub">probabilistic topics</span></div>
+    <ul class="cmds">
+      <li class="topic"><code class="cmd">lda <span class="op">=</span> models.<span class="fn">LdaModel</span>(corpus, id2word<span class="op">=</span>dct, num_topics<span class="op">=</span><span class="num">10</span>, passes<span class="op">=</span><span class="num">10</span>, random_state<span class="op">=</span><span class="num">1</span>)</code><span class="star">&starf;</span><div class="desc">The classic topic model &mdash; each doc is a mix of topics.</div></li>
+      <li class="topic"><code class="cmd">models.<span class="fn">LdaMulticore</span>(corpus, id2word<span class="op">=</span>dct, num_topics<span class="op">=</span><span class="num">10</span>, workers<span class="op">=</span><span class="num">4</span>)</code><span class="star">&starf;</span><div class="desc">Parallel LDA &mdash; much faster on many cores.</div></li>
+      <li class="topic"><code class="cmd">lda.<span class="fn">print_topics</span>(num_words<span class="op">=</span><span class="num">5</span>)</code><span class="star">&starf;</span><div class="desc">The top terms defining each topic.</div></li>
+      <li class="topic"><code class="cmd">lda.<span class="fn">get_document_topics</span>(bow)</code><span class="star">&starf;</span><div class="desc">This doc's topic mixture <code>[(topic, prob)]</code>.</div></li>
+      <li class="topic"><code class="cmd">lda.<span class="fn">show_topic</span>(<span class="num">0</span>, topn<span class="op">=</span><span class="num">10</span>)</code><div class="desc"><code>(word, prob)</code> pairs for one topic.</div></li>
+      <li class="topic"><code class="cmd">lda.<span class="fn">update</span>(<span class="arg">new_corpus</span>)</code><div class="desc">Online update with fresh documents.</div></li>
+      <li class="topic"><code class="cmd">lda.<span class="fn">log_perplexity</span>(corpus)</code><div class="desc">Held-out fit (lower is better).</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 MORE TOPIC MODELS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">More Topic Models</span><span class="card-sub">pick your algorithm</span></div>
+    <ul class="cmds">
+      <li class="topic"><code class="cmd">models.<span class="fn">HdpModel</span>(corpus, id2word<span class="op">=</span>dct)</code><div class="desc">Hierarchical Dirichlet Process &mdash; infers the topic count for you.</div></li>
+      <li class="topic"><code class="cmd">models.<span class="fn">Nmf</span>(corpus, num_topics<span class="op">=</span><span class="num">10</span>)</code><div class="desc">Non-negative matrix factorisation topics.</div></li>
+      <li class="topic"><code class="cmd">models.<span class="fn">LdaSeqModel</span>(...)</code><div class="desc">Dynamic topics that drift over time slices.</div></li>
+      <li class="sim"><code class="cmd">models.<span class="fn">AuthorTopicModel</span>(...)</code><div class="desc">Topic distributions per author.</div></li>
+      <li class="sim"><code class="cmd">models.<span class="fn">EnsembleLda</span>(...)</code><div class="desc">Find stable topics across many LDA runs.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 WORD2VEC -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Word2Vec</span><span class="card-sub">word embeddings</span></div>
+    <ul class="cmds">
+      <li class="embed"><code class="cmd">w2v <span class="op">=</span> models.<span class="fn">Word2Vec</span>(sentences, vector_size<span class="op">=</span><span class="num">100</span>, window<span class="op">=</span><span class="num">5</span>, min_count<span class="op">=</span><span class="num">5</span>, workers<span class="op">=</span><span class="num">4</span>, sg<span class="op">=</span><span class="num">0</span>)</code><span class="star">&starf;</span><div class="desc">Learn a vector per word. <code>sg=0</code> CBOW, <code>sg=1</code> skip-gram.</div></li>
+      <li class="embed"><code class="cmd">w2v.<span class="fn">build_vocab</span>(sents); w2v.<span class="fn">train</span>(sents, total_examples<span class="op">=</span>w2v.corpus_count, epochs<span class="op">=</span><span class="num">10</span>)</code><div class="desc">The manual two-step form (more control).</div></li>
+      <li class="embed"><code class="cmd">w2v.wv[<span class="str">"word"</span>]</code><span class="star">&starf;</span><div class="desc">The vector (raises <code>KeyError</code> if out-of-vocab).</div></li>
+      <li class="embed"><code class="cmd">w2v.wv.<span class="fn">most_similar</span>(<span class="str">"word"</span>)</code><span class="star">&starf;</span><div class="desc">Nearest neighbours by cosine.</div></li>
+      <li class="embed"><code class="cmd">w2v.<span class="fn">save</span>(<span class="str">"w.model"</span>) · Word2Vec.<span class="fn">load</span>(...)</code><div class="desc">Pickle &mdash; keeps training state, so you can resume.</div></li>
+      <li class="embed"><code class="cmd">negative<span class="op">=</span><span class="num">5</span> · hs<span class="op">=</span><span class="num">0</span> · epochs<span class="op">=</span><span class="num">5</span></code><div class="desc">Negative sampling vs hierarchical softmax; passes over data.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 KEYEDVECTORS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">KeyedVectors &amp; Word Math</span><span class="card-sub">the vector table</span></div>
+    <ul class="cmds">
+      <li class="embed"><code class="cmd">wv <span class="op">=</span> w2v.wv</code><div class="desc">The vectors detached from the training model &mdash; smaller, queryable.</div></li>
+      <li class="embed"><code class="cmd">wv.<span class="fn">most_similar</span>(positive<span class="op">=</span>[<span class="str">"king"</span>,<span class="str">"woman"</span>], negative<span class="op">=</span>[<span class="str">"man"</span>])</code><span class="star">&starf;</span><div class="desc">Vector algebra: king&minus;man+woman &asymp; <b>queen</b>.</div></li>
+      <li class="embed"><code class="cmd">wv.<span class="fn">similarity</span>(<span class="str">"cat"</span>, <span class="str">"dog"</span>)</code><span class="star">&starf;</span><div class="desc">Cosine similarity between two words.</div></li>
+      <li class="embed"><code class="cmd">wv.<span class="fn">doesnt_match</span>([<span class="str">"breakfast"</span>,<span class="str">"lunch"</span>,<span class="str">"dog"</span>])</code><div class="desc">The odd one out.</div></li>
+      <li class="embed"><code class="cmd">wv.index_to_key · wv.key_to_index</code><span class="badge-new">4.x</span><div class="desc">Vocab list &amp; lookup (replaced <code>index2word</code>/<code>vocab</code>).</div></li>
+      <li class="embed"><code class="cmd">KeyedVectors.<span class="fn">load_word2vec_format</span>(<span class="str">"vecs.bin"</span>, binary<span class="op">=</span><span class="kw">True</span>)</code><div class="desc">Load external vectors (GoogleNews, GloVe&hellip;).</div></li>
+      <li class="embed"><code class="cmd">wv.<span class="fn">wmdistance</span>(doc1, doc2)</code><div class="desc">Word Mover's Distance between token lists.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 DOC2VEC -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Doc2Vec</span><span class="card-sub">document embeddings</span></div>
+    <ul class="cmds">
+      <li class="embed"><code class="cmd"><span class="kw">from</span> gensim.models.doc2vec <span class="kw">import</span> TaggedDocument</code><div class="desc">Each doc must carry a tag (id or label).</div></li>
+      <li class="embed"><code class="cmd">docs <span class="op">=</span> [<span class="fn">TaggedDocument</span>(words, [i]) <span class="kw">for</span> i, words <span class="kw">in</span> <span class="kw">enumerate</span>(texts)]</code><span class="star">&starf;</span><div class="desc">Wrap tokens + tag together.</div></li>
+      <li class="embed"><code class="cmd">d2v <span class="op">=</span> models.<span class="fn">Doc2Vec</span>(docs, vector_size<span class="op">=</span><span class="num">50</span>, min_count<span class="op">=</span><span class="num">2</span>, epochs<span class="op">=</span><span class="num">40</span>, dm<span class="op">=</span><span class="num">1</span>)</code><span class="star">&starf;</span><div class="desc"><code>dm=1</code> PV-DM, <code>dm=0</code> PV-DBOW.</div></li>
+      <li class="embed"><code class="cmd">d2v.<span class="fn">infer_vector</span>([<span class="str">"new"</span>,<span class="str">"doc"</span>,<span class="str">"tokens"</span>])</code><span class="star">&starf;</span><div class="desc">Embed a document the model never saw.</div></li>
+      <li class="embed"><code class="cmd">d2v.dv[tag] · d2v.dv.<span class="fn">most_similar</span>([vec])</code><div class="desc">Trained doc-vectors &amp; nearest documents.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 FASTTEXT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">FastText</span><span class="card-sub">subword embeddings</span></div>
+    <ul class="cmds">
+      <li class="embed"><code class="cmd">ft <span class="op">=</span> models.<span class="fn">FastText</span>(sentences, vector_size<span class="op">=</span><span class="num">100</span>, min_n<span class="op">=</span><span class="num">3</span>, max_n<span class="op">=</span><span class="num">6</span>)</code><span class="star">&starf;</span><div class="desc">Learns character n-gram vectors, not just whole words.</div></li>
+      <li class="embed"><code class="cmd">ft.wv[<span class="str">"unseenword"</span>]</code><span class="star">&starf;</span><div class="desc">Works for OOV words via subwords &mdash; <b>no KeyError</b>.</div></li>
+      <li class="embed"><code class="cmd">ft.wv.<span class="fn">most_similar</span>(<span class="str">"word"</span>)</code><div class="desc">Same query API as Word2Vec.</div></li>
+      <li class="embed"><code class="cmd"><span class="kw">from</span> gensim.models.fasttext <span class="kw">import</span> load_facebook_vectors</code><div class="desc">Load Facebook's pretrained <code>.bin</code> models.</div></li>
+      <li class="embed"><code class="cmd">bucket<span class="op">=</span><span class="num">2000000</span></code><div class="desc">Hash buckets for the n-gram vocabulary.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 PHRASES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Phrases &amp; Bigrams</span><span class="card-sub">multiword tokens</span></div>
+    <ul class="cmds">
+      <li class="pre"><code class="cmd"><span class="kw">from</span> gensim.models <span class="kw">import</span> Phrases</code><div class="desc">Detect collocations from co-occurrence stats.</div></li>
+      <li class="pre"><code class="cmd">bigram <span class="op">=</span> <span class="fn">Phrases</span>(sentences, min_count<span class="op">=</span><span class="num">5</span>, threshold<span class="op">=</span><span class="num">10</span>)</code><span class="star">&starf;</span><div class="desc">Learn "new york" &rarr; <code>new_york</code>.</div></li>
+      <li class="pre"><code class="cmd">bigram[sentence]</code><span class="star">&starf;</span><div class="desc">Apply the transform to glue phrases.</div></li>
+      <li class="pre"><code class="cmd">frozen <span class="op">=</span> bigram.<span class="fn">freeze</span>()</code><span class="badge-new">4.x</span><div class="desc">Freeze for speed/memory (was <code>Phraser</code> in 3.x).</div></li>
+      <li class="pre"><code class="cmd"><span class="kw">from</span> gensim.models.phrases <span class="kw">import</span> ENGLISH_CONNECTOR_WORDS</code><div class="desc">Pass as <code>connector_words=</code> to skip of/the/and.</div></li>
+      <li class="pre"><code class="cmd">Word2Vec(bigram[corpus])</code><div class="desc">Feed phrased tokens straight into an embedding model.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 SIMILARITY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Similarity Queries</span><span class="card-sub">rank documents</span></div>
+    <ul class="cmds">
+      <li class="sim"><code class="cmd">index <span class="op">=</span> similarities.<span class="fn">MatrixSimilarity</span>(lsi[corpus], num_features<span class="op">=</span><span class="kw">len</span>(dct))</code><span class="star">&starf;</span><div class="desc">In-RAM cosine index over transformed docs.</div></li>
+      <li class="sim"><code class="cmd">similarities.<span class="fn">SparseMatrixSimilarity</span>(corpus, num_features<span class="op">=</span>...)</code><div class="desc">Sparse variant for large, high-dim vocabularies.</div></li>
+      <li class="sim"><code class="cmd">index <span class="op">=</span> similarities.<span class="fn">Similarity</span>(<span class="str">"/tmp/idx"</span>, corpus, num_features<span class="op">=</span>...)</code><span class="star">&starf;</span><div class="desc">Sharded to disk &mdash; scales past RAM.</div></li>
+      <li class="sim"><code class="cmd">sims <span class="op">=</span> index[query_vec]</code><span class="star">&starf;</span><div class="desc">Cosine of the query against every document.</div></li>
+      <li class="sim"><code class="cmd"><span class="kw">sorted</span>(<span class="kw">enumerate</span>(sims), key<span class="op">=</span><span class="kw">lambda</span> x: <span class="op">-</span>x[<span class="num">1</span>])</code><div class="desc">Turn scores into a ranked hit list.</div></li>
+      <li class="sim"><code class="cmd">similarities.<span class="fn">SoftCosineSimilarity</span> · <span class="fn">WmdSimilarity</span></code><div class="desc">Embedding-aware indexes (soft cosine, Word Mover's).</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 COHERENCE / EVAL -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Coherence &amp; Evaluation</span><span class="card-sub">is it any good?</span></div>
+    <ul class="cmds">
+      <li class="sim"><code class="cmd">cm <span class="op">=</span> models.<span class="fn">CoherenceModel</span>(model<span class="op">=</span>lda, texts<span class="op">=</span>texts, dictionary<span class="op">=</span>dct, coherence<span class="op">=</span><span class="str">"c_v"</span>)</code><span class="star">&starf;</span><div class="desc">Score how interpretable the topics are.</div></li>
+      <li class="sim"><code class="cmd">cm.<span class="fn">get_coherence</span>()</code><span class="star">&starf;</span><div class="desc">Higher = more coherent topics.</div></li>
+      <li class="sim"><code class="cmd">coherence<span class="op">=</span><span class="str">"u_mass"</span></code><div class="desc">Faster metric &mdash; needs <code>corpus=</code>, not <code>texts=</code>.</div></li>
+      <li class="sim"><code class="cmd"><span class="kw">for</span> k <span class="kw">in</span> <span class="kw">range</span>(<span class="num">2</span>,<span class="num">20</span>): ... compare coherence</code><span class="star">&starf;</span><div class="desc">Sweep <code>num_topics</code> and keep the peak.</div></li>
+      <li class="sim"><code class="cmd">wv.<span class="fn">evaluate_word_analogies</span>(<span class="str">"questions-words.txt"</span>)</code><div class="desc">Analogy accuracy for embeddings.</div></li>
+      <li class="sim"><code class="cmd">wv.<span class="fn">evaluate_word_pairs</span>(<span class="str">"wordsim353.tsv"</span>)</code><div class="desc">Correlation with human similarity judgements.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 DOWNLOADER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Pretrained · downloader</span><span class="card-sub">skip the training</span></div>
+    <ul class="cmds">
+      <li class="imp"><code class="cmd"><span class="kw">import</span> gensim.downloader <span class="kw">as</span> api</code><div class="desc">The pretrained model &amp; dataset hub.</div></li>
+      <li class="imp"><code class="cmd">api.<span class="fn">info</span>()[<span class="str">"models"</span>].keys()</code><div class="desc">List everything you can download.</div></li>
+      <li class="imp"><code class="cmd">wv <span class="op">=</span> api.<span class="fn">load</span>(<span class="str">"glove-wiki-gigaword-100"</span>)</code><span class="star">&starf;</span><div class="desc">GloVe 100-d vectors &mdash; returns a KeyedVectors.</div></li>
+      <li class="imp"><code class="cmd">api.<span class="fn">load</span>(<span class="str">"word2vec-google-news-300"</span>)</code><div class="desc">3M words/phrases (~1.7&nbsp;GB download).</div></li>
+      <li class="imp"><code class="cmd">corpus <span class="op">=</span> api.<span class="fn">load</span>(<span class="str">"text8"</span>)</code><div class="desc">A dataset (iterable of token lists), not a model.</div></li>
+      <li class="imp"><code class="cmd">~/gensim-data/</code><div class="desc">Where downloads are cached.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 SAVE / LOAD -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Save · Load · Persist</span><span class="card-sub">two different formats</span></div>
+    <ul class="cmds">
+      <li class="imp"><code class="cmd">model.<span class="fn">save</span>(<span class="str">"m.model"</span>)</code><span class="star">&starf;</span><div class="desc">Native pickle &mdash; keeps full state, so training can resume.</div></li>
+      <li class="imp"><code class="cmd">Model.<span class="fn">load</span>(<span class="str">"m.model"</span>)</code><span class="star">&starf;</span><div class="desc">Restore any gensim object.</div></li>
+      <li class="sim"><code class="cmd">wv.<span class="fn">save_word2vec_format</span>(<span class="str">"v.txt"</span>, binary<span class="op">=</span><span class="kw">False</span>)</code><div class="desc">Portable vectors-only export (loses training state).</div></li>
+      <li class="sim"><code class="cmd">KeyedVectors.<span class="fn">load_word2vec_format</span>(<span class="str">"v.bin"</span>, binary<span class="op">=</span><span class="kw">True</span>)</code><div class="desc">Read that portable format back.</div></li>
+      <li class="imp"><code class="cmd">corpora.MmCorpus.<span class="fn">serialize</span>(...) · dct.<span class="fn">save</span>(...)</code><div class="desc">Persist corpus &amp; dictionary alongside the model.</div></li>
+      <li class="imp"><code class="cmd">Model.<span class="fn">load</span>(<span class="str">"m.model"</span>, mmap<span class="op">=</span><span class="str">"r"</span>)</code><div class="desc">Memory-map big models to share across processes.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four ideas worth a picture</h2>
+  <p class="sub">The mental models behind the API — bag-of-words, topic factorisation, vector algebra, and the two training schemes.</p>
+  <div class="merge-grid">
+
+    <!-- D1 bag of words -->
+    <div class="merge-card">
+      <h3>doc2bow — text becomes a sparse vector</h3>
+      <p>Tokens map to integer ids through the Dictionary; the document becomes a list of (id, count) pairs.</p>
+      <svg viewBox="0 0 400 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A sentence is tokenised, each token maps to a dictionary id, and the document becomes a bag-of-words list of id count pairs.">
+        <text x="12" y="26" font-size="10.5" fill="#64748b">"human computer interface"</text>
+        <line x1="12" y1="36" x2="388" y2="36" stroke="#e7e3db"/>
+        <!-- tokens -->
+        <g font-size="11" text-anchor="middle">
+          <rect x="18"  y="52" width="96" height="26" rx="6" fill="#fdf6ec" stroke="#d97706"/><text x="66"  y="69" fill="#1a1d24">human</text>
+          <rect x="128" y="52" width="110" height="26" rx="6" fill="#fdf6ec" stroke="#d97706"/><text x="183" y="69" fill="#1a1d24">computer</text>
+          <rect x="252" y="52" width="120" height="26" rx="6" fill="#fdf6ec" stroke="#d97706"/><text x="312" y="69" fill="#1a1d24">interface</text>
+        </g>
+        <!-- arrows to ids -->
+        <line x1="66"  y1="80" x2="66"  y2="106" stroke="#64748b" stroke-width="1.4" marker-end="url(#ar2)"/>
+        <line x1="183" y1="80" x2="183" y2="106" stroke="#64748b" stroke-width="1.4" marker-end="url(#ar2)"/>
+        <line x1="312" y1="80" x2="312" y2="106" stroke="#64748b" stroke-width="1.4" marker-end="url(#ar2)"/>
+        <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+        <!-- ids -->
+        <g font-size="11" text-anchor="middle" font-weight="700">
+          <circle cx="66"  cy="122" r="14" fill="#059669"/><text x="66"  y="126" fill="#fff">1</text>
+          <circle cx="183" cy="122" r="14" fill="#059669"/><text x="183" y="126" fill="#fff">0</text>
+          <circle cx="312" cy="122" r="14" fill="#059669"/><text x="312" y="126" fill="#fff">2</text>
+        </g>
+        <text x="200" y="160" text-anchor="middle" font-size="10" fill="#64748b">dictionary: {computer:0, human:1, interface:2}</text>
+        <!-- bow -->
+        <rect x="70" y="170" width="260" height="24" rx="6" fill="#ecf7f2" stroke="#059669"/>
+        <text x="200" y="186" text-anchor="middle" font-size="11" font-weight="700" fill="#059669">[(0, 1), (1, 1), (2, 1)]</text>
+      </svg>
+    </div>
+
+    <!-- D2 topic factorisation -->
+    <div class="merge-card">
+      <h3>Topic model = matrix factorisation</h3>
+      <p>LSI, LDA and NMF all approximate the big documents&times;words matrix as documents&times;<b>topics</b> times topics&times;words.</p>
+      <svg viewBox="0 0 400 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The documents by words matrix is approximated by a documents by topics matrix multiplied by a topics by words matrix.">
+        <!-- big matrix -->
+        <rect x="20" y="55" width="90" height="90" rx="4" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.6"/>
+        <text x="65" y="40" text-anchor="middle" font-size="10" fill="#4f46e5">docs &times; words</text>
+        <text x="65" y="104" text-anchor="middle" font-size="11" fill="#4f46e5">C</text>
+        <text x="130" y="105" text-anchor="middle" font-size="18" fill="#1a1d24">&asymp;</text>
+        <!-- docs x topics (tall thin) -->
+        <rect x="152" y="55" width="44" height="90" rx="4" fill="#e9f6f4" stroke="#0d9488" stroke-width="1.6"/>
+        <text x="174" y="40" text-anchor="middle" font-size="10" fill="#0d9488">docs</text>
+        <text x="174" y="152" text-anchor="middle" font-size="9" fill="#0d9488">&times; topics</text>
+        <text x="215" y="105" text-anchor="middle" font-size="16" fill="#1a1d24">&middot;</text>
+        <!-- topics x words (short wide) -->
+        <rect x="232" y="72" width="148" height="44" rx="4" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+        <text x="306" y="64" text-anchor="middle" font-size="10" fill="#b45309">topics &times; words</text>
+        <text x="306" y="99" text-anchor="middle" font-size="9" fill="#b45309">(what each topic says)</text>
+        <text x="200" y="185" text-anchor="middle" font-size="10.5" fill="#64748b">few topics ⇒ compression + latent structure = the "themes"</text>
+      </svg>
+    </div>
+
+    <!-- D3 word math -->
+    <div class="merge-card">
+      <h3>Word2Vec — meaning as geometry</h3>
+      <p>Directions in the vector space encode relationships: king &minus; man + woman lands near queen.</p>
+      <svg viewBox="0 0 400 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A vector-space parallelogram: king minus man plus woman is approximately queen.">
+        <!-- parallelogram points -->
+        <g font-size="11" text-anchor="middle">
+          <!-- man bottom-left, king top-left, woman bottom-right, queen top-right -->
+          <line x1="90" y1="150" x2="90" y2="70" stroke="#7c3aed" stroke-width="1.8" marker-end="url(#ar3)"/>
+          <line x1="300" y1="150" x2="300" y2="70" stroke="#7c3aed" stroke-width="1.8" stroke-dasharray="4 3" marker-end="url(#ar3)"/>
+          <line x1="90" y1="150" x2="300" y2="150" stroke="#94a3b8" stroke-width="1.4"/>
+          <line x1="90" y1="70" x2="300" y2="70" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="4 3"/>
+          <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker></defs>
+          <circle cx="90"  cy="150" r="6" fill="#1a1d24"/><text x="90"  y="172" fill="#1a1d24">man</text>
+          <circle cx="90"  cy="70"  r="6" fill="#4f46e5"/><text x="90"  y="58"  fill="#4f46e5">king</text>
+          <circle cx="300" cy="150" r="6" fill="#1a1d24"/><text x="300" y="172" fill="#1a1d24">woman</text>
+          <circle cx="300" cy="70"  r="7" fill="#7c3aed"/><text x="300" y="58"  fill="#7c3aed">queen</text>
+          <text x="70" y="115" text-anchor="end" font-size="9.5" fill="#7c3aed">royalty</text>
+          <text x="195" y="165" text-anchor="middle" font-size="9.5" fill="#94a3b8">gender</text>
+        </g>
+        <text x="200" y="194" text-anchor="middle" font-size="10" fill="#64748b">wv.most_similar(positive=["king","woman"], negative=["man"])</text>
+      </svg>
+    </div>
+
+    <!-- D4 CBOW vs skip-gram -->
+    <div class="merge-card">
+      <h3>CBOW vs skip-gram — the sg knob</h3>
+      <p>CBOW (<code>sg=0</code>) predicts a word from its context; skip-gram (<code>sg=1</code>) predicts the context from the word.</p>
+      <svg viewBox="0 0 400 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CBOW predicts a target word from surrounding context words; skip-gram predicts the surrounding context from the target word.">
+        <!-- CBOW left -->
+        <text x="100" y="24" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">CBOW · sg=0</text>
+        <g font-size="9.5" text-anchor="middle">
+          <rect x="20" y="40" width="52" height="20" rx="4" fill="#f3effc" stroke="#7c3aed"/><text x="46" y="54">the</text>
+          <rect x="20" y="66" width="52" height="20" rx="4" fill="#f3effc" stroke="#7c3aed"/><text x="46" y="80">quick</text>
+          <rect x="20" y="118" width="52" height="20" rx="4" fill="#f3effc" stroke="#7c3aed"/><text x="46" y="132">brown</text>
+          <rect x="20" y="144" width="52" height="20" rx="4" fill="#f3effc" stroke="#7c3aed"/><text x="46" y="158">jumps</text>
+          <line x1="72" y1="50"  x2="118" y2="96" stroke="#7c3aed" stroke-width="1.3" marker-end="url(#ar4)"/>
+          <line x1="72" y1="76"  x2="118" y2="100" stroke="#7c3aed" stroke-width="1.3" marker-end="url(#ar4)"/>
+          <line x1="72" y1="128" x2="118" y2="106" stroke="#7c3aed" stroke-width="1.3" marker-end="url(#ar4)"/>
+          <line x1="72" y1="154" x2="118" y2="110" stroke="#7c3aed" stroke-width="1.3" marker-end="url(#ar4)"/>
+          <rect x="120" y="90" width="60" height="26" rx="6" fill="#7c3aed"/><text x="150" y="107" fill="#fff" font-weight="700">fox?</text>
+          <defs><marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker></defs>
+        </g>
+        <!-- skip-gram right -->
+        <text x="300" y="24" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">skip-gram · sg=1</text>
+        <g font-size="9.5" text-anchor="middle">
+          <rect x="270" y="90" width="60" height="26" rx="6" fill="#0d9488"/><text x="300" y="107" fill="#fff" font-weight="700">fox</text>
+          <rect x="342" y="40" width="52" height="20" rx="4" fill="#e9f6f4" stroke="#0d9488"/><text x="368" y="54">the</text>
+          <rect x="342" y="66" width="52" height="20" rx="4" fill="#e9f6f4" stroke="#0d9488"/><text x="368" y="80">quick</text>
+          <rect x="342" y="118" width="52" height="20" rx="4" fill="#e9f6f4" stroke="#0d9488"/><text x="368" y="132">brown</text>
+          <rect x="342" y="144" width="52" height="20" rx="4" fill="#e9f6f4" stroke="#0d9488"/><text x="368" y="158">jumps</text>
+          <line x1="330" y1="100" x2="340" y2="52"  stroke="#0d9488" stroke-width="1.3" marker-end="url(#ar5)"/>
+          <line x1="330" y1="102" x2="340" y2="76"  stroke="#0d9488" stroke-width="1.3" marker-end="url(#ar5)"/>
+          <line x1="330" y1="106" x2="340" y2="128" stroke="#0d9488" stroke-width="1.3" marker-end="url(#ar5)"/>
+          <line x1="330" y1="110" x2="340" y2="154" stroke="#0d9488" stroke-width="1.3" marker-end="url(#ar5)"/>
+          <defs><marker id="ar5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0d9488"/></marker></defs>
+        </g>
+        <text x="200" y="192" text-anchor="middle" font-size="9.5" fill="#64748b">skip-gram is slower but better on rare words &amp; small data</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WORTH MEMORIZING ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">same Dictionary</span><span class="v"><code>doc2bow</code> silently drops words the dictionary never saw</span></div>
+    <div><span class="k">a corpus streams</span><span class="v">it's an iterable of vectors — gensim never needs all of RAM</span></div>
+    <div><span class="k">gensim 4 renames</span><span class="v"><code>size</code>&rarr;<code>vector_size</code>, <code>iter</code>&rarr;<code>epochs</code> on the embedding models</span></div>
+    <div><span class="k">vocab access</span><span class="v"><code>wv.index_to_key</code> / <code>wv.key_to_index</code>, not <code>wv.vocab</code></span></div>
+    <div><span class="k">vectors on .wv</span><span class="v">call <code>model.wv.most_similar</code>, not <code>model.most_similar</code></span></div>
+    <div><span class="k">min_count=5</span><span class="v">default drops rare words — lower it for small corpora</span></div>
+    <div><span class="k">apply with [ ]</span><span class="v"><code>tfidf[bow]</code>, <code>lda[bow]</code> — train &amp; transform are separate</span></div>
+    <div><span class="k">Similarity vs Matrix</span><span class="v"><code>Similarity</code> shards to disk; <code>MatrixSimilarity</code> holds all in RAM</span></div>
+    <div><span class="k">c_v vs u_mass</span><span class="v">coherence <code>c_v</code> needs <code>texts=</code>, <code>u_mass</code> needs <code>corpus=</code></span></div>
+    <div><span class="k">FastText ≠ Word2Vec</span><span class="v">FastText returns OOV vectors; Word2Vec raises <code>KeyError</code></span></div>
+    <div><span class="k">save ≠ save_..format</span><span class="v"><code>.save()</code> keeps training state; the w2v format keeps vectors only</span></div>
+    <div><span class="k">num_topics is yours</span><span class="v">gensim won't pick it — sweep k and compare coherence</span></div>
+  </div>
+</section>
+
+<footer>
+  gensim cheat sheet · verified against the installed <code>gensim 4.4.0</code> package (API introspected directly) and cross-checked with the official Core Concepts + Topics &amp; Transformations tutorials at <code>radimrehurek.com/gensim</code>.<br>
+  API shown for <b>gensim 4.x</b> — the 3.x&rarr;4.x jump renamed embedding params (<code>vector_size</code>/<code>epochs</code>), moved vocab onto <code>KeyedVectors</code> (<code>index_to_key</code>), and replaced <code>Phraser</code> with <code>Phrases.freeze()</code>.
+</footer>
+
+</body>
+</html>

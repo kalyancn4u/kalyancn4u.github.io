@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flask Extensions — Top 25 Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --psql:#64748b;  --psql-bg:#f1f3f6;
+    --ddl:#d97706;   --ddl-bg:#fdf6ec;
+    --dml:#059669;   --dml-bg:#ecf7f2;
+    --query:#2563eb; --query-bg:#eaf0fe;
+    --admin:#7c3aed; --admin-bg:#f4f0fd;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .fl{font-family:var(--mono); color:var(--query)}
+  h1 .ex{font-family:var(--mono); color:var(--admin)}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.fs{background:var(--query)} .dot.api{background:var(--dml)}
+  .dot.ops{background:var(--admin)} .dot.dev{background:var(--psql)}
+  .dot.danger{background:var(--danger)}
+
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .section-break{
+    max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);
+  }
+  .section-break h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-num.t1{background:var(--query)}
+  .card-num.t2{background:var(--dml)}
+  .card-num.t3{background:var(--admin)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  .pip{font-family:var(--mono); font-size:.7rem; color:var(--query); font-weight:500}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.fs{border-left-color:var(--query)}
+  ul.cmds li.api{border-left-color:var(--dml)}
+  ul.cmds li.ops{border-left-color:var(--admin)}
+  ul.cmds li.dev{border-left-color:var(--psql)}
+  ul.cmds li.cfg{border-left-color:var(--ddl)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .arg{color:var(--query); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--ddl); font-weight:600}
+  code.cmd .fn{color:var(--admin); font-weight:600}
+  code.cmd .str{color:var(--dml)}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-warn{
+    color:var(--ddl); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-fs,.badge-api,.badge-ops,.badge-dev{
+    font-size:.6rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em;
+    padding:.08rem .34rem; border-radius:4px;
+  }
+  .badge-fs{color:var(--query); background:var(--query-bg)}
+  .badge-api{color:var(--dml); background:var(--dml-bg)}
+  .badge-ops{color:var(--admin); background:var(--admin-bg)}
+  .badge-dev{color:var(--psql); background:var(--psql-bg)}
+
+  /* Table of contents / outline */
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{
+    display:grid; gap:1.2rem; grid-template-columns:1fr;
+    background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;
+  }
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:.55rem;
+  }
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--query); color:var(--query)}
+  ol.toc-list .rk{
+    display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700;
+    color:var(--admin); font-size:.76rem;
+  }
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+
+  /* Overview table */
+  .rank-wrap{max-width:1500px; margin:0 auto; padding:.5rem clamp(1rem,4vw,3rem) 1rem}
+  .rank-table{
+    width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line);
+    border-radius:10px; overflow:hidden; font-size:.8rem;
+  }
+  .rank-table th,.rank-table td{padding:.45rem .7rem; text-align:left; border-bottom:1px solid #f1eee8; vertical-align:top}
+  .rank-table thead th{
+    font-family:var(--mono); font-size:.66rem; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--muted); background:var(--psql-bg); border-bottom:1px solid var(--line);
+  }
+  .rank-table tbody tr:last-child td{border-bottom:none}
+  .rank-table td.rk{font-family:var(--mono); font-weight:700; color:var(--admin); width:2.4em}
+  .rank-table td.ext a{font-family:var(--mono); font-weight:600; color:var(--ink); text-decoration:none}
+  .rank-table td.ext a:hover{color:var(--query)}
+  .rank-table td.pipc{font-family:var(--mono); font-size:.72rem; color:var(--muted)}
+  .rank-table td.bkt{font-family:var(--mono); font-size:.68rem; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); white-space:nowrap}
+  .rank-table td.tier{font-family:var(--mono); font-size:.7rem; font-weight:700; white-space:nowrap}
+  .rank-table tr.t1 td.tier{color:var(--query)} .rank-table tr.t2 td.tier{color:var(--dml)} .rank-table tr.t3 td.tier{color:var(--admin)}
+  .tbl-scroll{overflow-x:auto}
+
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Flask ecosystem &middot; top-25 extensions &middot; 3 tiers by popularity &middot; verified against Flask&nbsp;3.1 &amp; each project's docs (2026-08-24)</div>
+  <h1><span class="fl">flask</span> <span style="color:var(--muted);font-weight:400">&mdash;</span> <span class="ex">extensions</span> cheat sheet</h1>
+  <p class="lede">Flask is a micro-framework: the batteries live in <b>extensions</b>. This sheet covers the <b>25 most-used Flask extensions</b>, popularity-ordered into three tiers &mdash; ORM &amp; migrations, auth &amp; sessions, REST/OpenAPI, caching &amp; rate-limiting, real-time, security headers, scheduling and more. Every card lists the <code>pip</code> name, the key objects/decorators/config, a minimal example, a gotcha, and the <b>version verified at build</b>. All examples use the <b>application-factory</b> pattern (<code>init_app</code>) and target current stable releases on Python&nbsp;3.12+.</p>
+  <div class="legend">
+    <span><i class="dot fs"></i>full-stack web (FS)</span>
+    <span><i class="dot api"></i>API / model-serving (API)</span>
+    <span><i class="dot ops"></i>ops / scheduling (OPS)</span>
+    <span><i class="dot dev"></i>dev / config</span>
+    <span><i class="dot danger"></i>gotcha / caution</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Each extension verified 2026-08-24 against its official docs/repo: <b>flask.palletsprojects.com</b> &middot; <b>pallets-eco</b> projects (Flask-SQLAlchemy, Flask-Caching, Flask-Mail, Flask-Admin, Flask-Security, Flask-DebugToolbar) &middot; <b>miguelgrinberg</b> (Flask-Migrate, Flask-SocketIO) &middot; <b>flask-jwt-extended</b> &middot; <b>flask-smorest</b> &middot; <b>flask-marshmallow</b> &middot; <b>flask-limiter</b> &middot; <b>flask-session</b> &middot; <b>Authlib</b> &middot; <b>flask-talisman</b> &middot; <b>flask-apscheduler</b> &middot; <b>flask-compress</b> &middot; <b>flask-babel</b> &middot; <b>spec-first/connexion</b> &middot; <b>strawberry.rocks</b>. Versions shown are current stable at build; re-check before pinning.</p>
+</header>
+
+<!-- ============ OUTLINE / JUMP INDEX ============ -->
+<section class="toc-wrap" id="top">
+  <h2>Outline &mdash; jump to any extension</h2>
+  <p class="sub">25 extensions in three popularity tiers. <b>FS</b> = full-stack web, <b>API</b> = API / model-serving, <b>OPS</b> = ops/scheduling. Start with the <a href="#ext-101">Extensions 101</a> card for the shared init pattern, or the <a href="#overview">overview table</a>.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Tier 1 &middot; essential</h3>
+      <ol class="toc-list">
+        <li><span class="rk">1</span><a href="#ext-sqlalchemy">Flask-SQLAlchemy</a> <span class="cap">ORM</span></li>
+        <li><span class="rk">2</span><a href="#ext-migrate">Flask-Migrate</a> <span class="cap">migrations</span></li>
+        <li><span class="rk">3</span><a href="#ext-login">Flask-Login</a> <span class="cap">sessions/auth</span></li>
+        <li><span class="rk">4</span><a href="#ext-wtf">Flask-WTF</a> <span class="cap">forms/CSRF</span></li>
+        <li><span class="rk">5</span><a href="#ext-cors">Flask-CORS</a> <span class="cap">cross-origin</span></li>
+        <li><span class="rk">6</span><a href="#ext-jwt">Flask-JWT-Extended</a> <span class="cap">JWT auth</span></li>
+      </ol>
+      <h3 style="margin-top:1rem">Reference</h3>
+      <ol class="toc-list">
+        <li><a href="#ext-101">Extensions 101 &mdash; the init pattern</a></li>
+        <li><a href="#overview">Overview table (all 25)</a></li>
+        <li><a href="#deprecated">Deprecated / avoid &mdash; use instead</a></li>
+        <li><a href="#worth">Worth memorizing</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Tier 2 &middot; very common</h3>
+      <ol class="toc-list">
+        <li><span class="rk">7</span><a href="#ext-smorest">flask-smorest</a> <span class="cap">REST + OpenAPI</span></li>
+        <li><span class="rk">8</span><a href="#ext-marshmallow">Flask-Marshmallow</a> <span class="cap">serialization</span></li>
+        <li><span class="rk">9</span><a href="#ext-caching">Flask-Caching</a> <span class="cap">caching</span></li>
+        <li><span class="rk">10</span><a href="#ext-limiter">Flask-Limiter</a> <span class="cap">rate limiting</span></li>
+        <li><span class="rk">11</span><a href="#ext-mail">Flask-Mail</a> <span class="cap">email</span></li>
+        <li><span class="rk">12</span><a href="#ext-socketio">Flask-SocketIO</a> <span class="cap">websockets</span></li>
+        <li><span class="rk">13</span><a href="#ext-bcrypt">Flask-Bcrypt</a> <span class="cap">password hash</span></li>
+        <li><span class="rk">14</span><a href="#ext-session">Flask-Session</a> <span class="cap">server sessions</span></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Tier 3 &middot; useful / specialized</h3>
+      <ol class="toc-list">
+        <li><span class="rk">15</span><a href="#ext-admin">Flask-Admin</a> <span class="cap">admin UI</span></li>
+        <li><span class="rk">16</span><a href="#ext-security">Flask-Security</a> <span class="cap">auth suite</span></li>
+        <li><span class="rk">17</span><a href="#ext-talisman">Flask-Talisman</a> <span class="cap">security headers</span></li>
+        <li><span class="rk">18</span><a href="#ext-apscheduler">Flask-APScheduler</a> <span class="cap">scheduling</span></li>
+        <li><span class="rk">19</span><a href="#ext-executor">Flask-Executor</a> <span class="cap">background tasks</span></li>
+        <li><span class="rk">20</span><a href="#ext-authlib">Authlib</a> <span class="cap">OAuth/OIDC</span></li>
+        <li><span class="rk">21</span><a href="#ext-compress">Flask-Compress</a> <span class="cap">gzip/brotli</span></li>
+        <li><span class="rk">22</span><a href="#ext-babel">Flask-Babel</a> <span class="cap">i18n</span></li>
+        <li><span class="rk">23</span><a href="#ext-debugtoolbar">Flask-DebugToolbar</a> <span class="cap">debug</span></li>
+        <li><span class="rk">24</span><a href="#ext-connexion">Connexion</a> <span class="cap">spec-first API</span></li>
+        <li><span class="rk">25</span><a href="#ext-graphql">Strawberry GraphQL</a> <span class="cap">GraphQL</span></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- OVERVIEW TABLE -->
+<section class="rank-wrap" id="overview">
+  <div class="tbl-scroll">
+  <table class="rank-table">
+    <thead><tr><th>#</th><th>Extension</th><th>pip install</th><th>Purpose</th><th>Bucket</th><th>Tier</th></tr></thead>
+    <tbody>
+      <tr class="t1"><td class="rk">1</td><td class="ext"><a href="#ext-sqlalchemy">Flask-SQLAlchemy</a></td><td class="pipc">Flask-SQLAlchemy</td><td>ORM integration (models, session, engine)</td><td class="bkt">FS&middot;API</td><td class="tier">T1</td></tr>
+      <tr class="t1"><td class="rk">2</td><td class="ext"><a href="#ext-migrate">Flask-Migrate</a></td><td class="pipc">Flask-Migrate</td><td>Alembic DB migrations via <code>flask db</code></td><td class="bkt">FS&middot;API</td><td class="tier">T1</td></tr>
+      <tr class="t1"><td class="rk">3</td><td class="ext"><a href="#ext-login">Flask-Login</a></td><td class="pipc">Flask-Login</td><td>User session &amp; login state</td><td class="bkt">FS</td><td class="tier">T1</td></tr>
+      <tr class="t1"><td class="rk">4</td><td class="ext"><a href="#ext-wtf">Flask-WTF</a></td><td class="pipc">Flask-WTF</td><td>Forms, validation &amp; CSRF</td><td class="bkt">FS</td><td class="tier">T1</td></tr>
+      <tr class="t1"><td class="rk">5</td><td class="ext"><a href="#ext-cors">Flask-CORS</a></td><td class="pipc">Flask-Cors</td><td>Cross-Origin Resource Sharing</td><td class="bkt">API</td><td class="tier">T1</td></tr>
+      <tr class="t1"><td class="rk">6</td><td class="ext"><a href="#ext-jwt">Flask-JWT-Extended</a></td><td class="pipc">Flask-JWT-Extended</td><td>JWT access/refresh tokens</td><td class="bkt">API</td><td class="tier">T1</td></tr>
+      <tr class="t2"><td class="rk">7</td><td class="ext"><a href="#ext-smorest">flask-smorest</a></td><td class="pipc">flask-smorest</td><td>REST API + auto OpenAPI/Swagger</td><td class="bkt">API</td><td class="tier">T2</td></tr>
+      <tr class="t2"><td class="rk">8</td><td class="ext"><a href="#ext-marshmallow">Flask-Marshmallow</a></td><td class="pipc">flask-marshmallow</td><td>Object serialization/deserialization</td><td class="bkt">API</td><td class="tier">T2</td></tr>
+      <tr class="t2"><td class="rk">9</td><td class="ext"><a href="#ext-caching">Flask-Caching</a></td><td class="pipc">Flask-Caching</td><td>View/function response caching</td><td class="bkt">API&middot;OPS</td><td class="tier">T2</td></tr>
+      <tr class="t2"><td class="rk">10</td><td class="ext"><a href="#ext-limiter">Flask-Limiter</a></td><td class="pipc">Flask-Limiter</td><td>Rate limiting</td><td class="bkt">API&middot;OPS</td><td class="tier">T2</td></tr>
+      <tr class="t2"><td class="rk">11</td><td class="ext"><a href="#ext-mail">Flask-Mail</a></td><td class="pipc">Flask-Mail</td><td>SMTP email sending</td><td class="bkt">FS</td><td class="tier">T2</td></tr>
+      <tr class="t2"><td class="rk">12</td><td class="ext"><a href="#ext-socketio">Flask-SocketIO</a></td><td class="pipc">Flask-SocketIO</td><td>WebSocket / real-time events</td><td class="bkt">FS&middot;API</td><td class="tier">T2</td></tr>
+      <tr class="t2"><td class="rk">13</td><td class="ext"><a href="#ext-bcrypt">Flask-Bcrypt</a></td><td class="pipc">Flask-Bcrypt</td><td>bcrypt password hashing</td><td class="bkt">FS</td><td class="tier">T2</td></tr>
+      <tr class="t2"><td class="rk">14</td><td class="ext"><a href="#ext-session">Flask-Session</a></td><td class="pipc">Flask-Session</td><td>Server-side session store</td><td class="bkt">FS</td><td class="tier">T2</td></tr>
+      <tr class="t3"><td class="rk">15</td><td class="ext"><a href="#ext-admin">Flask-Admin</a></td><td class="pipc">Flask-Admin</td><td>Auto CRUD admin interface</td><td class="bkt">FS</td><td class="tier">T3</td></tr>
+      <tr class="t3"><td class="rk">16</td><td class="ext"><a href="#ext-security">Flask-Security</a></td><td class="pipc">Flask-Security</td><td>Full auth suite (roles/2FA/reset)</td><td class="bkt">FS</td><td class="tier">T3</td></tr>
+      <tr class="t3"><td class="rk">17</td><td class="ext"><a href="#ext-talisman">Flask-Talisman</a></td><td class="pipc">flask-talisman</td><td>HTTPS + CSP/HSTS security headers</td><td class="bkt">FS&middot;API</td><td class="tier">T3</td></tr>
+      <tr class="t3"><td class="rk">18</td><td class="ext"><a href="#ext-apscheduler">Flask-APScheduler</a></td><td class="pipc">Flask-APScheduler</td><td>In-process cron/interval jobs</td><td class="bkt">OPS</td><td class="tier">T3</td></tr>
+      <tr class="t3"><td class="rk">19</td><td class="ext"><a href="#ext-executor">Flask-Executor</a></td><td class="pipc">Flask-Executor</td><td>Background threads/processes</td><td class="bkt">API&middot;OPS</td><td class="tier">T3</td></tr>
+      <tr class="t3"><td class="rk">20</td><td class="ext"><a href="#ext-authlib">Authlib</a></td><td class="pipc">Authlib</td><td>OAuth 1/2 &amp; OIDC client/server</td><td class="bkt">FS&middot;API</td><td class="tier">T3</td></tr>
+      <tr class="t3"><td class="rk">21</td><td class="ext"><a href="#ext-compress">Flask-Compress</a></td><td class="pipc">Flask-Compress</td><td>Response compression</td><td class="bkt">API</td><td class="tier">T3</td></tr>
+      <tr class="t3"><td class="rk">22</td><td class="ext"><a href="#ext-babel">Flask-Babel</a></td><td class="pipc">Flask-Babel</td><td>i18n / l10n (translations)</td><td class="bkt">FS</td><td class="tier">T3</td></tr>
+      <tr class="t3"><td class="rk">23</td><td class="ext"><a href="#ext-debugtoolbar">Flask-DebugToolbar</a></td><td class="pipc">Flask-DebugToolbar</td><td>In-browser debug panels</td><td class="bkt">dev</td><td class="tier">T3</td></tr>
+      <tr class="t3"><td class="rk">24</td><td class="ext"><a href="#ext-connexion">Connexion</a></td><td class="pipc">connexion[flask]</td><td>Spec-first API from OpenAPI</td><td class="bkt">API</td><td class="tier">T3</td></tr>
+      <tr class="t3"><td class="rk">25</td><td class="ext"><a href="#ext-graphql">Strawberry GraphQL</a></td><td class="pipc">strawberry-graphql[flask]</td><td>GraphQL endpoint</td><td class="bkt">API</td><td class="tier">T3</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="sub" style="margin-top:.6rem">Ordering reflects popularity/importance, not quality. Tier is a rough usage band, not a hard rule &mdash; a small API service may only need Tier-1 items, while a large app pulls from all three.</p>
+</section>
+
+<main>
+  <!-- E101 -->
+  <article class="card" id="ext-101">
+    <div class="card-head"><span class="card-num">101</span><span class="card-title">Extensions 101 &mdash; the shared pattern</span><span class="card-sub">init, factory, config</span></div>
+    <ul class="cmds">
+      <li class="dev"><code class="cmd">pip install Flask-Thing</code><span class="star">&#9733;</span><div class="desc">Distribution names are usually <code>Flask-Xxx</code>; the import is lower-snake, e.g. <code>from flask_login import LoginManager</code>.</div></li>
+      <li class="fs"><code class="cmd">ext = Thing(app)</code><div class="desc">The simple, single-app form &mdash; construct the extension with the app directly.</div></li>
+      <li class="fs"><code class="cmd">ext = Thing()<br><span class="kw">def</span> <span class="fn">create_app</span>():<br>&nbsp;&nbsp;app = Flask(__name__)<br>&nbsp;&nbsp;ext.<span class="fn">init_app</span>(app)<br>&nbsp;&nbsp;<span class="kw">return</span> app</code><span class="star">&#9733;</span><div class="desc">The <b>application-factory</b> pattern: build the extension at module scope, bind it inside the factory with <code>init_app()</code>. Preferred for testing, blueprints &amp; multiple configs &mdash; used throughout this sheet.</div></li>
+      <li class="cfg"><code class="cmd">app.config[<span class="str">"SECRET_KEY"</span>] = ...</code><div class="desc">Most extensions read <code>app.config</code> keys (uppercase). Set them before <code>init_app()</code> / first request; a <code>SECRET_KEY</code> is required for sessions, CSRF and signing.</div></li>
+      <li class="dev"><code class="cmd"><span class="kw">with</span> app.<span class="fn">app_context</span>(): ...</code><div class="desc">Outside a request (scripts, CLI, background jobs) you need an <b>app context</b> for <code>current_app</code>, DB sessions, etc.</div></li>
+      <li class="danger"><code class="cmd">one extension object, one init_app per app</code><span class="badge-warn">gotcha</span><div class="desc">Don't call the extension's constructor with the app <em>and</em> <code>init_app()</code>; pick one. With the factory, never share request-scoped state at module level.</div></li>
+    </ul>
+  </article>
+</main>
+
+<!-- ============ TIER 1 ============ -->
+<div class="section-break" id="tier1"><h2 style="color:var(--query)">Tier 1 &mdash; Essential</h2><p class="sub">The extensions almost every non-trivial Flask app reaches for: the ORM, migrations, login sessions, forms/CSRF, CORS, and JWT auth.</p></div>
+
+<main>
+  <!-- 1 Flask-SQLAlchemy -->
+  <article class="card" id="ext-sqlalchemy">
+    <div class="card-head"><span class="card-num t1">1</span><span class="card-title">Flask-SQLAlchemy</span><span class="badge-fs">FS</span><span class="badge-api">API</span><span class="card-sub">v3.1.1 &middot; SA&nbsp;2.0</span></div>
+    <ul class="cmds">
+      <li class="fs"><code class="cmd">db = SQLAlchemy(model_class=Base)</code> &middot; <code class="cmd">db.<span class="fn">init_app</span>(app)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-SQLAlchemy</span>. v3.1 requires SQLAlchemy &ge;2.0.16 and supports the 2.0 declarative style via <code>model_class</code>.</div></li>
+      <li class="cfg"><code class="cmd">app.config[<span class="str">"SQLALCHEMY_DATABASE_URI"</span>] = <span class="str">"postgresql+psycopg://..."</span></code><div class="desc">The one required setting. <code>SQLALCHEMY_ENGINE_OPTIONS</code> for pool tuning; <code>SQLALCHEMY_BINDS</code> for multiple databases.</div></li>
+      <li class="api"><code class="cmd"><span class="kw">class</span> User(db.Model):<br>&nbsp;&nbsp;id = db.<span class="fn">mapped_column</span>(db.Integer, primary_key=<span class="kw">True</span>)</code><div class="desc"><code>db.Model</code> is the declarative base; <code>db.session</code>, <code>db.engine</code>, and all SA types hang off <code>db</code>.</div></li>
+      <li class="api"><code class="cmd">db.session.<span class="fn">execute</span>(db.<span class="fn">select</span>(User).where(...)).scalars()</code><span class="star">&#9733;</span><div class="desc">SA 2.0 query style. <code>db.get_or_404()</code> / <code>db.paginate()</code> are handy Flask-specific helpers.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">Query</span>.get() / Model.query</code><span class="badge-warn">legacy</span><div class="desc">The old <code>Model.query</code> / <code>Query.get()</code> Django-ish API is legacy in SA 2.0 &mdash; prefer <code>select()</code> + <code>db.session.execute()</code>. Model changes need an <b>app context</b>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 2 Flask-Migrate -->
+  <article class="card" id="ext-migrate">
+    <div class="card-head"><span class="card-num t1">2</span><span class="card-title">Flask-Migrate</span><span class="badge-fs">FS</span><span class="badge-api">API</span><span class="card-sub">v4.x &middot; Alembic</span></div>
+    <ul class="cmds">
+      <li class="fs"><code class="cmd">migrate = Migrate()</code> &middot; <code class="cmd">migrate.<span class="fn">init_app</span>(app, db)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-Migrate</span>. Wraps <b>Alembic</b> and wires it into the <code>flask</code> CLI. Pass the same <code>db</code> object.</div></li>
+      <li class="ops"><code class="cmd">flask db init</code><div class="desc">Create the <code>migrations/</code> folder once per project.</div></li>
+      <li class="ops"><code class="cmd">flask db migrate -m <span class="str">"add users"</span></code><span class="star">&#9733;</span><div class="desc">Autogenerate a revision by diffing models vs the DB. <b>Always read the generated script</b> &mdash; autogenerate misses some changes.</div></li>
+      <li class="ops"><code class="cmd">flask db upgrade</code> &middot; <code class="cmd">flask db downgrade</code><span class="star">&#9733;</span><div class="desc">Apply / roll back. <code>flask db stamp head</code> marks an existing DB as current without running migrations.</div></li>
+      <li class="danger"><code class="cmd">autogenerate blind spots</code><span class="badge-warn">gotcha</span><div class="desc">Column renames, server defaults, and some type changes aren't detected &mdash; edit the revision by hand. Ensure models are imported before <code>migrate</code> runs.</div></li>
+    </ul>
+  </article>
+
+  <!-- 3 Flask-Login -->
+  <article class="card" id="ext-login">
+    <div class="card-head"><span class="card-num t1">3</span><span class="card-title">Flask-Login</span><span class="badge-fs">FS</span><span class="card-sub">v0.6.3</span></div>
+    <ul class="cmds">
+      <li class="fs"><code class="cmd">login_manager = LoginManager()</code> &middot; <code class="cmd">login_manager.<span class="fn">init_app</span>(app)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-Login</span>. Manages the logged-in user in the session. Set <code>login_manager.login_view = "auth.login"</code>.</div></li>
+      <li class="fs"><code class="cmd"><span class="fn">@login_manager.user_loader</span><br><span class="kw">def</span> <span class="fn">load_user</span>(user_id): <span class="kw">return</span> db.session.get(User, int(user_id))</code><span class="star">&#9733;</span><div class="desc">Required callback: turn the stored id back into a user object. Your <code>User</code> should subclass <code>UserMixin</code>.</div></li>
+      <li class="fs"><code class="cmd"><span class="fn">login_user</span>(user, remember=<span class="kw">True</span>)</code> &middot; <code class="cmd"><span class="fn">logout_user</span>()</code><div class="desc">Call on successful password check / on logout.</div></li>
+      <li class="fs"><code class="cmd"><span class="fn">@login_required</span></code> &middot; <code class="cmd">current_user</code><span class="star">&#9733;</span><div class="desc">Protect a view; <code>current_user</code> is a proxy to the logged-in user (or <code>AnonymousUserMixin</code>).</div></li>
+      <li class="danger"><code class="cmd">needs SECRET_KEY &middot; not authorization</code><span class="badge-warn">gotcha</span><div class="desc">Sessions are signed with <code>SECRET_KEY</code>. Flask-Login handles <em>authentication</em> only &mdash; role/permission checks are your job (or use Flask-Security).</div></li>
+    </ul>
+  </article>
+
+  <!-- 4 Flask-WTF -->
+  <article class="card" id="ext-wtf">
+    <div class="card-head"><span class="card-num t1">4</span><span class="card-title">Flask-WTF</span><span class="badge-fs">FS</span><span class="card-sub">v1.3.0</span></div>
+    <ul class="cmds">
+      <li class="fs"><code class="cmd"><span class="kw">class</span> LoginForm(FlaskForm):<br>&nbsp;&nbsp;email = StringField(validators=[DataRequired(), Email()])</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-WTF</span>. Wraps WTForms with CSRF, file uploads and i18n.</div></li>
+      <li class="fs"><code class="cmd"><span class="kw">if</span> form.<span class="fn">validate_on_submit</span>(): ...</code><span class="star">&#9733;</span><div class="desc">True on a POST that passes validation &mdash; the canonical view idiom. Renders errors into <code>form.field.errors</code>.</div></li>
+      <li class="fs"><code class="cmd">CSRFProtect(app)</code> &middot; <code class="cmd">&#123;&#123; form.csrf_token &#125;&#125;</code><span class="star">&#9733;</span><div class="desc">Enable app-wide CSRF; drop the hidden token into every form (or <code>form.hidden_tag()</code>).</div></li>
+      <li class="fs"><code class="cmd">file = FileField(validators=[FileAllowed([<span class="str">"jpg"</span>,<span class="str">"png"</span>])])</code><div class="desc"><code>FileRequired</code> / <code>FileAllowed</code> validate uploads; the file is in <code>form.file.data</code>.</div></li>
+      <li class="danger"><code class="cmd">SECRET_KEY + WTF_CSRF_TIME_LIMIT</code><span class="badge-warn">gotcha</span><div class="desc">CSRF needs <code>SECRET_KEY</code>. For pure-JSON APIs, either exempt routes (<code>@csrf.exempt</code>) or send the token header &mdash; don't silently disable CSRF app-wide.</div></li>
+    </ul>
+  </article>
+
+  <!-- 5 Flask-CORS -->
+  <article class="card" id="ext-cors">
+    <div class="card-head"><span class="card-num t1">5</span><span class="card-title">Flask-CORS</span><span class="badge-api">API</span><span class="card-sub">v6.0.x</span></div>
+    <ul class="cmds">
+      <li class="api"><code class="cmd">CORS(app)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-Cors</span> (note the <code>-Cors</code> spelling). Bare form allows all origins &mdash; fine for dev, too open for prod.</div></li>
+      <li class="api"><code class="cmd">CORS(app, resources=&#123;<span class="str">r"/api/*"</span>: &#123;<span class="str">"origins"</span>: [<span class="str">"https://app.example.com"</span>]&#125;&#125;)</code><span class="star">&#9733;</span><div class="desc">Scope CORS to path patterns and explicit origins &mdash; the recommended prod configuration.</div></li>
+      <li class="api"><code class="cmd"><span class="fn">@cross_origin</span>(origins=[...])</code><div class="desc">Per-view decorator when you only need CORS on a couple of endpoints.</div></li>
+      <li class="api"><code class="cmd">supports_credentials=<span class="kw">True</span></code><div class="desc">Needed to allow cookies/Authorization across origins &mdash; and then you <em>cannot</em> use <code>origins="*"</code>.</div></li>
+      <li class="danger"><code class="cmd">keep it current (CVE history)</code><span class="badge-danger">security</span><div class="desc">Flask-Cors had several 2024 CVEs (path-matching &amp; regex handling). Pin a recent 6.x, and never reflect arbitrary origins with credentials enabled.</div></li>
+    </ul>
+  </article>
+
+  <!-- 6 Flask-JWT-Extended -->
+  <article class="card" id="ext-jwt">
+    <div class="card-head"><span class="card-num t1">6</span><span class="card-title">Flask-JWT-Extended</span><span class="badge-api">API</span><span class="card-sub">v4.7.4</span></div>
+    <ul class="cmds">
+      <li class="api"><code class="cmd">jwt = JWTManager(app)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-JWT-Extended</span>. Set <code>app.config["JWT_SECRET_KEY"]</code>. Supports access + refresh tokens, cookies or headers.</div></li>
+      <li class="api"><code class="cmd">token = <span class="fn">create_access_token</span>(identity=user.id)</code><span class="star">&#9733;</span><div class="desc">Issue a JWT on login; <code>create_refresh_token()</code> for the long-lived refresh flow.</div></li>
+      <li class="api"><code class="cmd"><span class="fn">@jwt_required</span>()</code> &middot; <code class="cmd"><span class="fn">@jwt_required</span>(refresh=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Protect endpoints; the refresh variant guards the token-refresh route. <code>@jwt_required(optional=True)</code> for mixed public/private.</div></li>
+      <li class="api"><code class="cmd">uid = <span class="fn">get_jwt_identity</span>()</code> &middot; <code class="cmd">current_user</code><div class="desc">Read the identity inside a protected view. Register <code>@jwt.user_lookup_loader</code> to make <code>current_user</code> return your ORM object.</div></li>
+      <li class="danger"><code class="cmd">token revocation is opt-in</code><span class="badge-warn">gotcha</span><div class="desc">JWTs are stateless &mdash; logout/blocklist needs a <code>@jwt.token_in_blocklist_loader</code> backed by Redis/DB. Set sensible <code>JWT_ACCESS_TOKEN_EXPIRES</code>.</div></li>
+    </ul>
+  </article>
+</main>
+
+<!-- ============ TIER 2 ============ -->
+<div class="section-break" id="tier2"><h2 style="color:var(--dml)">Tier 2 &mdash; Very Common</h2><p class="sub">The next layer: REST/OpenAPI scaffolding, serialization, caching &amp; rate limiting, email, real-time sockets, password hashing, and server-side sessions.</p></div>
+
+<main>
+  <!-- 7 flask-smorest -->
+  <article class="card" id="ext-smorest">
+    <div class="card-head"><span class="card-num t2">7</span><span class="card-title">flask-smorest</span><span class="badge-api">API</span><span class="card-sub">v0.47.0</span></div>
+    <ul class="cmds">
+      <li class="api"><code class="cmd">api = Api(app)</code> &middot; <code class="cmd">blp = Blueprint(<span class="str">"pets"</span>, __name__, url_prefix=<span class="str">"/pets"</span>)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install flask-smorest</span>. Marshmallow-based REST framework; auto-generates OpenAPI + a Swagger-UI / ReDoc page.</div></li>
+      <li class="api"><code class="cmd"><span class="fn">@blp.route</span>(<span class="str">"/"</span>)<br><span class="fn">@blp.arguments</span>(PetSchema)<br><span class="fn">@blp.response</span>(201, PetSchema)<br><span class="kw">def</span> <span class="fn">post</span>(self, new_data): ...</code><span class="star">&#9733;</span><div class="desc"><code>@blp.arguments</code> validates &amp; injects the parsed body; <code>@blp.response</code> serializes and documents the status/schema.</div></li>
+      <li class="api"><code class="cmd">app.config[<span class="str">"API_TITLE"</span>], [<span class="str">"OPENAPI_VERSION"</span>] = <span class="str">"3.0.3"</span></code><div class="desc">Config drives the spec; the docs UI mounts at <code>OPENAPI_SWAGGER_UI_PATH</code>. Register blueprints with <code>api.register_blueprint(blp)</code>.</div></li>
+      <li class="api"><code class="cmd"><span class="fn">@blp.paginate</span>()</code> &middot; <code class="cmd"><span class="fn">abort</span>(404, message=...)</code><div class="desc">Built-in pagination and consistent error responses.</div></li>
+      <li class="danger"><code class="cmd">alt: Flask-RESTX</code><span class="badge-warn">choose one</span><div class="desc">Flask-RESTX (<code>Api</code>/<code>Namespace</code>/<code>@api.route</code>/<code>marshal_with</code>) is the reflection-based alternative. <b>Flask-RESTful is discouraged for new code</b> (see deprecated table).</div></li>
+    </ul>
+  </article>
+
+  <!-- 8 Flask-Marshmallow -->
+  <article class="card" id="ext-marshmallow">
+    <div class="card-head"><span class="card-num t2">8</span><span class="card-title">Flask-Marshmallow</span><span class="badge-api">API</span><span class="card-sub">v1.5.0</span></div>
+    <ul class="cmds">
+      <li class="api"><code class="cmd">ma = Marshmallow()</code> &middot; <code class="cmd">ma.<span class="fn">init_app</span>(app)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install flask-marshmallow</span>. Thin Flask layer over marshmallow; pairs with Flask-SQLAlchemy (install <code>marshmallow-sqlalchemy</code> too).</div></li>
+      <li class="api"><code class="cmd"><span class="kw">class</span> UserSchema(ma.SQLAlchemyAutoSchema):<br>&nbsp;&nbsp;<span class="kw">class</span> Meta: model = User; load_instance = <span class="kw">True</span></code><span class="star">&#9733;</span><div class="desc">Auto-derive fields from an ORM model. <code>SQLAlchemySchema</code> for explicit control.</div></li>
+      <li class="api"><code class="cmd">UserSchema().<span class="fn">dump</span>(user)</code> &middot; <code class="cmd">UserSchema().<span class="fn">load</span>(request.json)</code><span class="star">&#9733;</span><div class="desc"><code>dump</code> = object&rarr;dict (serialize); <code>load</code> = dict&rarr;validated object. Add <code>many=True</code> for lists.</div></li>
+      <li class="api"><code class="cmd">ma.<span class="fn">Hyperlinks</span> &middot; ma.URLFor</code><div class="desc">Emit hypermedia links to other routes in the output.</div></li>
+      <li class="danger"><code class="cmd">marshmallow 3&rarr;4 field changes</code><span class="badge-warn">gotcha</span><div class="desc">Validation raises <code>ValidationError</code> &mdash; catch it (or let flask-smorest do so). Keep marshmallow &amp; marshmallow-sqlalchemy versions aligned.</div></li>
+    </ul>
+  </article>
+
+  <!-- 9 Flask-Caching -->
+  <article class="card" id="ext-caching">
+    <div class="card-head"><span class="card-num t2">9</span><span class="card-title">Flask-Caching</span><span class="badge-api">API</span><span class="badge-ops">OPS</span><span class="card-sub">v2.4.1</span></div>
+    <ul class="cmds">
+      <li class="api"><code class="cmd">cache = Cache(config=&#123;<span class="str">"CACHE_TYPE"</span>: <span class="str">"RedisCache"</span>&#125;)</code> &middot; <code class="cmd">cache.<span class="fn">init_app</span>(app)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-Caching</span>. Backends: <code>SimpleCache</code>, <code>RedisCache</code>, <code>MemcachedCache</code>, <code>FileSystemCache</code>.</div></li>
+      <li class="api"><code class="cmd"><span class="fn">@cache.cached</span>(timeout=60)</code><span class="star">&#9733;</span><div class="desc">Cache a view's response by request path. Add <code>query_string=True</code> to vary on the query.</div></li>
+      <li class="api"><code class="cmd"><span class="fn">@cache.memoize</span>(timeout=300)</code><span class="star">&#9733;</span><div class="desc">Cache a function's return keyed by its <b>arguments</b> &mdash; for expensive helpers, not just views.</div></li>
+      <li class="api"><code class="cmd">cache.<span class="fn">delete_memoized</span>(fn, arg)</code> &middot; <code class="cmd">cache.<span class="fn">clear</span>()</code><div class="desc">Targeted invalidation. <code>cache.set/get</code> for manual key/value use.</div></li>
+      <li class="danger"><code class="cmd">stale data &amp; per-user pages</code><span class="badge-warn">gotcha</span><div class="desc">Don't <code>@cache.cached</code> responses that vary per user unless you key on identity &mdash; you'll serve one user's page to another.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 Flask-Limiter -->
+  <article class="card" id="ext-limiter">
+    <div class="card-head"><span class="card-num t2">10</span><span class="card-title">Flask-Limiter</span><span class="badge-api">API</span><span class="badge-ops">OPS</span><span class="card-sub">v4.1.x</span></div>
+    <ul class="cmds">
+      <li class="api"><code class="cmd">limiter = Limiter(key_func=get_remote_address, default_limits=[<span class="str">"200/day"</span>,<span class="str">"50/hour"</span>])</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-Limiter</span>. <code>limiter.init_app(app)</code>. Now v4.x &mdash; API broadly compatible with 3.x docs.</div></li>
+      <li class="api"><code class="cmd"><span class="fn">@limiter.limit</span>(<span class="str">"5 per minute"</span>)</code><span class="star">&#9733;</span><div class="desc">Per-route override. Also <code>@limiter.exempt</code> to skip a route, and <code>shared_limit</code> across routes.</div></li>
+      <li class="cfg"><code class="cmd">storage_uri=<span class="str">"redis://localhost:6379"</span></code><span class="star">&#9733;</span><div class="desc">Use a shared store (Redis/Memcached) in production &mdash; the default in-memory store is per-process and resets on restart.</div></li>
+      <li class="api"><code class="cmd">key_func = lambda: get_jwt_identity()</code><div class="desc">Limit per authenticated user instead of per IP by swapping the key function.</div></li>
+      <li class="danger"><code class="cmd">in-memory storage in prod</code><span class="badge-danger">gotcha</span><div class="desc">With multiple workers/instances, in-memory counters don't share state &mdash; limits become per-worker. Always set <code>storage_uri</code> behind a load balancer.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 Flask-Mail -->
+  <article class="card" id="ext-mail">
+    <div class="card-head"><span class="card-num t2">11</span><span class="card-title">Flask-Mail</span><span class="badge-fs">FS</span><span class="card-sub">v0.10.0</span></div>
+    <ul class="cmds">
+      <li class="fs"><code class="cmd">mail = Mail()</code> &middot; <code class="cmd">mail.<span class="fn">init_app</span>(app)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-Mail</span> (now maintained under pallets-eco). SMTP email from views &amp; scripts.</div></li>
+      <li class="cfg"><code class="cmd">MAIL_SERVER, MAIL_PORT, MAIL_USE_TLS, MAIL_USERNAME, MAIL_PASSWORD</code><span class="star">&#9733;</span><div class="desc">Config keys for the SMTP connection; set <code>MAIL_DEFAULT_SENDER</code> to avoid repeating it.</div></li>
+      <li class="fs"><code class="cmd">msg = Message(<span class="str">"Hi"</span>, recipients=[<span class="str">"a@b.com"</span>], body=<span class="str">"..."</span>)</code><div class="desc">Build the message; set <code>msg.html</code> for HTML, <code>msg.attach(...)</code> for files.</div></li>
+      <li class="fs"><code class="cmd">mail.<span class="fn">send</span>(msg)</code><span class="star">&#9733;</span><div class="desc">Sends synchronously. Use <code>mail.connect()</code> as a context manager to batch several sends over one connection.</div></li>
+      <li class="danger"><code class="cmd">blocks the request</code><span class="badge-warn">gotcha</span><div class="desc">SMTP is slow &mdash; sending inside a request stalls it. Offload to a background task (Flask-Executor / Celery / APScheduler) for anything user-facing.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 Flask-SocketIO -->
+  <article class="card" id="ext-socketio">
+    <div class="card-head"><span class="card-num t2">12</span><span class="card-title">Flask-SocketIO</span><span class="badge-fs">FS</span><span class="badge-api">API</span><span class="card-sub">v5.x</span></div>
+    <ul class="cmds">
+      <li class="fs"><code class="cmd">socketio = SocketIO()</code> &middot; <code class="cmd">socketio.<span class="fn">init_app</span>(app)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-SocketIO</span>. Bidirectional Socket.IO events over WebSocket (with long-poll fallback).</div></li>
+      <li class="fs"><code class="cmd"><span class="fn">@socketio.on</span>(<span class="str">"message"</span>)<br><span class="kw">def</span> <span class="fn">handle</span>(data): <span class="fn">emit</span>(<span class="str">"reply"</span>, data, broadcast=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Register event handlers; <code>emit()</code> sends back, <code>join_room()</code>/<code>emit(..., to=room)</code> for rooms.</div></li>
+      <li class="fs"><code class="cmd">socketio.<span class="fn">run</span>(app, host=<span class="str">"0.0.0.0"</span>)</code><span class="star">&#9733;</span><div class="desc">Use this runner (not <code>app.run</code>) in dev so the WebSocket server starts.</div></li>
+      <li class="ops"><code class="cmd">message_queue=<span class="str">"redis://"</span></code><div class="desc">Required to broadcast across multiple worker processes/servers.</div></li>
+      <li class="danger"><code class="cmd">async worker must match</code><span class="badge-danger">gotcha</span><div class="desc"><code>async_mode</code> is <code>threading</code>, <code>eventlet</code> or <code>gevent</code>. <b>eventlet is no longer maintained</b> &mdash; prefer <code>threading</code> or <code>gevent</code>, and run gunicorn with the matching worker class (e.g. <code>-k gevent</code>).</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 Flask-Bcrypt -->
+  <article class="card" id="ext-bcrypt">
+    <div class="card-head"><span class="card-num t2">13</span><span class="card-title">Flask-Bcrypt</span><span class="badge-fs">FS</span><span class="card-sub">v1.0.1</span></div>
+    <ul class="cmds">
+      <li class="fs"><code class="cmd">bcrypt = Bcrypt()</code> &middot; <code class="cmd">bcrypt.<span class="fn">init_app</span>(app)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-Bcrypt</span>. bcrypt password hashing with a Flask-friendly API.</div></li>
+      <li class="fs"><code class="cmd">pw_hash = bcrypt.<span class="fn">generate_password_hash</span>(pw).decode()</code><span class="star">&#9733;</span><div class="desc">Salted bcrypt hash; store the string. <code>BCRYPT_LOG_ROUNDS</code> tunes cost (default 12).</div></li>
+      <li class="fs"><code class="cmd">bcrypt.<span class="fn">check_password_hash</span>(pw_hash, candidate)</code><span class="star">&#9733;</span><div class="desc">Constant-time verify at login &mdash; returns bool.</div></li>
+      <li class="danger"><code class="cmd">72-byte limit</code><span class="badge-warn">gotcha</span><div class="desc">bcrypt silently truncates passwords beyond 72 bytes. For new apps, Werkzeug's built-in <code>generate_password_hash</code> (scrypt/pbkdf2) or Argon2 are also solid choices.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 Flask-Session -->
+  <article class="card" id="ext-session">
+    <div class="card-head"><span class="card-num t2">14</span><span class="card-title">Flask-Session</span><span class="badge-fs">FS</span><span class="card-sub">v0.8.0</span></div>
+    <ul class="cmds">
+      <li class="fs"><code class="cmd">Session(app)</code> &nbsp;<span class="kw">or</span>&nbsp; <code class="cmd">sess = Session(); sess.<span class="fn">init_app</span>(app)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-Session</span>. Moves session data <b>server-side</b> instead of the default signed cookie &mdash; needed for large or sensitive sessions.</div></li>
+      <li class="cfg"><code class="cmd">app.config[<span class="str">"SESSION_TYPE"</span>] = <span class="str">"redis"</span></code><span class="star">&#9733;</span><div class="desc">Backends include <code>redis</code>, <code>memcached</code>, <code>sqlalchemy</code>, <code>mongodb</code>, and <code>cachelib</code>. Point <code>SESSION_REDIS</code> at your client.</div></li>
+      <li class="fs"><code class="cmd">session[<span class="str">"user_id"</span>] = 42</code><div class="desc">The normal Flask <code>session</code> dict &mdash; only the storage changes, your code doesn't.</div></li>
+      <li class="danger"><code class="cmd">SESSION_TYPE="filesystem" deprecated</code><span class="badge-warn">v0.7+</span><div class="desc">The <code>filesystem</code> type was deprecated in 0.7.0 &mdash; use <code>cachelib</code> with a FileSystemCache instead. Still set <code>SECRET_KEY</code> (the session id cookie is signed).</div></li>
+    </ul>
+  </article>
+</main>
+
+<!-- ============ TIER 3 ============ -->
+<div class="section-break" id="tier3"><h2 style="color:var(--admin)">Tier 3 &mdash; Useful / Specialized</h2><p class="sub">Reached for when the need arises: admin UIs, a full auth suite, security headers, background scheduling &amp; tasks, OAuth, compression, i18n, debugging, and spec-first / GraphQL APIs.</p></div>
+
+<main>
+  <!-- 15 Flask-Admin -->
+  <article class="card" id="ext-admin">
+    <div class="card-head"><span class="card-num t3">15</span><span class="card-title">Flask-Admin</span><span class="badge-fs">FS</span><span class="card-sub">v2.2.0</span></div>
+    <ul class="cmds">
+      <li class="fs"><code class="cmd">admin = Admin(app, name=<span class="str">"Dashboard"</span>, template_mode=<span class="str">"bootstrap4"</span>)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-Admin</span>. Auto CRUD UI over your models. <b>v2.0 (Oct 2025) was a major rewrite</b> &mdash; check the migration notes if upgrading from 1.x.</div></li>
+      <li class="fs"><code class="cmd">admin.<span class="fn">add_view</span>(ModelView(User, db.session))</code><span class="star">&#9733;</span><div class="desc">One line gives list/create/edit/delete for a model. Subclass <code>ModelView</code> to set <code>column_list</code>, <code>form_columns</code>, filters, etc.</div></li>
+      <li class="fs"><code class="cmd"><span class="kw">class</span> SecureView(ModelView):<br>&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">is_accessible</span>(self): <span class="kw">return</span> current_user.is_authenticated</code><span class="star">&#9733;</span><div class="desc">Override <code>is_accessible()</code> / <code>inaccessible_callback()</code> to gate the admin behind auth.</div></li>
+      <li class="danger"><code class="cmd">unsecured by default</code><span class="badge-danger">gotcha</span><div class="desc">Out of the box the admin is <b>wide open</b> &mdash; always add access control before deploying. Pairs naturally with Flask-Login or Flask-Security.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 Flask-Security -->
+  <article class="card" id="ext-security">
+    <div class="card-head"><span class="card-num t3">16</span><span class="card-title">Flask-Security</span><span class="badge-fs">FS</span><span class="card-sub">v5.8.x</span></div>
+    <ul class="cmds">
+      <li class="fs"><code class="cmd">datastore = SQLAlchemyUserDatastore(db, User, Role)</code> &middot; <code class="cmd">Security(app, datastore)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-Security</span>. Batteries-included auth: login, registration, roles, password reset, confirmation, MFA/TOTP, WebAuthn.</div></li>
+      <li class="fs"><code class="cmd"><span class="fn">@auth_required</span>()</code> &middot; <code class="cmd"><span class="fn">@roles_required</span>(<span class="str">"admin"</span>)</code> &middot; <code class="cmd"><span class="fn">@roles_accepted</span>(...)</code><span class="star">&#9733;</span><div class="desc">Authorization decorators on top of Flask-Login sessions and/or tokens.</div></li>
+      <li class="fs"><code class="cmd">User(UserMixin) &middot; Role(RoleMixin)</code><div class="desc">Use the provided mixins; it ships the login/register/reset views &amp; templates for you.</div></li>
+      <li class="danger"><code class="cmd">was "Flask-Security-Too"</code><span class="badge-warn">renamed</span><div class="desc">The maintained fork <b>merged back into pallets-eco</b> and is now published as <code>Flask-Security</code> again (same release on both PyPI names). Don't install the old abandoned original.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 Flask-Talisman -->
+  <article class="card" id="ext-talisman">
+    <div class="card-head"><span class="card-num t3">17</span><span class="card-title">Flask-Talisman</span><span class="badge-fs">FS</span><span class="badge-api">API</span><span class="card-sub">HTTPS + CSP</span></div>
+    <ul class="cmds">
+      <li class="fs"><code class="cmd">Talisman(app)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install flask-talisman</span>. Sets HTTP security headers and forces HTTPS. Default CSP is <code>default-src 'self'; object-src 'none'</code>.</div></li>
+      <li class="fs"><code class="cmd">Talisman(app, content_security_policy=&#123;<span class="str">"default-src"</span>: <span class="str">"'self'"</span>&#125;)</code><span class="star">&#9733;</span><div class="desc">Customize the CSP; <code>force_https</code>, <code>strict_transport_security</code> (HSTS) and <code>frame_options</code> are toggles.</div></li>
+      <li class="fs"><code class="cmd">csp_nonce_in=[<span class="str">"script-src"</span>]</code> &middot; <code class="cmd">&#123;&#123; csp_nonce() &#125;&#125;</code><div class="desc">Use per-request nonces for inline scripts instead of <code>'unsafe-inline'</code>.</div></li>
+      <li class="danger"><code class="cmd">force_https breaks health checks behind a proxy</code><span class="badge-warn">gotcha</span><div class="desc">Behind a load balancer that terminates TLS, set <code>force_https=False</code> (or trust <code>X-Forwarded-Proto</code> via <code>ProxyFix</code>) so internal HTTP probes aren't redirected.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 Flask-APScheduler -->
+  <article class="card" id="ext-apscheduler">
+    <div class="card-head"><span class="card-num t3">18</span><span class="card-title">Flask-APScheduler</span><span class="badge-ops">OPS</span><span class="card-sub">v1.13.x</span></div>
+    <ul class="cmds">
+      <li class="ops"><code class="cmd">scheduler = APScheduler()</code> &middot; <code class="cmd">scheduler.<span class="fn">init_app</span>(app)</code> &middot; <code class="cmd">scheduler.<span class="fn">start</span>()</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-APScheduler</span>. In-process cron/interval jobs with a Flask app context.</div></li>
+      <li class="ops"><code class="cmd"><span class="fn">@scheduler.task</span>(<span class="str">"cron"</span>, id=<span class="str">"nightly"</span>, hour=3)</code><span class="star">&#9733;</span><div class="desc">Decorate a function as a job; also <code>"interval"</code> (seconds/minutes) and <code>"date"</code> triggers. Jobs run inside <code>scheduler.app.app_context()</code>.</div></li>
+      <li class="ops"><code class="cmd">scheduler.<span class="fn">add_job</span>(...)</code> &middot; <code class="cmd">SCHEDULER_API_ENABLED = <span class="kw">True</span></code><div class="desc">Add jobs programmatically; the optional REST API lists/pauses/runs jobs.</div></li>
+      <li class="danger"><code class="cmd">pins APScheduler 3.x &middot; multi-worker duplication</code><span class="badge-danger">gotcha</span><div class="desc">v1.13 <b>requires APScheduler 3.x</b> (v4 not yet supported). With multiple gunicorn workers each starts its own scheduler &mdash; run it in one process, or use Celery-beat / an external scheduler for HA.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 Flask-Executor -->
+  <article class="card" id="ext-executor">
+    <div class="card-head"><span class="card-num t3">19</span><span class="card-title">Flask-Executor</span><span class="badge-api">API</span><span class="badge-ops">OPS</span><span class="card-sub">v1.0.0</span></div>
+    <ul class="cmds">
+      <li class="ops"><code class="cmd">executor = Executor(app)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-Executor</span>. A <code>concurrent.futures</code> pool that propagates app &amp; request context into the worker.</div></li>
+      <li class="ops"><code class="cmd">future = executor.<span class="fn">submit</span>(do_work, arg)</code><span class="star">&#9733;</span><div class="desc">Fire a background thread/process and get a <code>Future</code>. <code>EXECUTOR_TYPE = "thread"|"process"</code>, <code>EXECUTOR_MAX_WORKERS</code>.</div></li>
+      <li class="ops"><code class="cmd">executor.<span class="fn">map</span>(fn, iterable)</code> &middot; <code class="cmd">future.<span class="fn">result</span>()</code><div class="desc">Parallel map; <code>add_done_callback()</code> to react when a task finishes. <code>submit_stored()</code> keeps futures by key.</div></li>
+      <li class="danger"><code class="cmd">in-process, dies with the worker</code><span class="badge-warn">gotcha</span><div class="desc">Great for short, fire-and-forget work; tasks are lost on restart and don't scale across machines. For durable/distributed queues use Celery or RQ.</div></li>
+    </ul>
+  </article>
+
+  <!-- 20 Authlib -->
+  <article class="card" id="ext-authlib">
+    <div class="card-head"><span class="card-num t3">20</span><span class="card-title">Authlib (Flask)</span><span class="badge-fs">FS</span><span class="badge-api">API</span><span class="card-sub">v1.7.x</span></div>
+    <ul class="cmds">
+      <li class="fs"><code class="cmd">oauth = OAuth(app)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Authlib</span>. OAuth 1.0/2.0 &amp; OpenID Connect &mdash; both client (log in with Google/GitHub) and provider sides. The modern replacement for Flask-OAuthlib.</div></li>
+      <li class="fs"><code class="cmd">oauth.<span class="fn">register</span>(<span class="str">"google"</span>, client_id=..., server_metadata_url=..., client_kwargs=&#123;<span class="str">"scope"</span>: <span class="str">"openid email"</span>&#125;)</code><span class="star">&#9733;</span><div class="desc">Register each provider once; OIDC discovery fills in the endpoints.</div></li>
+      <li class="fs"><code class="cmd"><span class="kw">return</span> oauth.google.<span class="fn">authorize_redirect</span>(redirect_uri)</code><div class="desc">Kick off the login; in the callback: <code>token = oauth.google.authorize_access_token()</code>, then read <code>token["userinfo"]</code>.</div></li>
+      <li class="danger"><code class="cmd">state/session required</code><span class="badge-warn">gotcha</span><div class="desc">The OAuth flow stores <code>state</code> in the Flask session &mdash; needs <code>SECRET_KEY</code> and cookies that survive the redirect (watch <code>SameSite</code>). Register the exact <code>redirect_uri</code> with the provider.</div></li>
+    </ul>
+  </article>
+
+  <!-- 21 Flask-Compress -->
+  <article class="card" id="ext-compress">
+    <div class="card-head"><span class="card-num t3">21</span><span class="card-title">Flask-Compress</span><span class="badge-api">API</span><span class="card-sub">v1.17</span></div>
+    <ul class="cmds">
+      <li class="api"><code class="cmd">compress = Compress()</code> &middot; <code class="cmd">compress.<span class="fn">init_app</span>(app)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-Compress</span>. Transparently compresses responses with <b>gzip, deflate, brotli or zstd</b> based on <code>Accept-Encoding</code>.</div></li>
+      <li class="cfg"><code class="cmd">COMPRESS_MIMETYPES = [<span class="str">"text/html"</span>, <span class="str">"application/json"</span>, ...]</code><div class="desc">Which content types to compress; <code>COMPRESS_MIN_SIZE</code> skips tiny payloads; <code>COMPRESS_LEVEL</code> / <code>COMPRESS_BR_LEVEL</code> tune ratio vs CPU.</div></li>
+      <li class="api"><code class="cmd">install brotli / zstandard for those algorithms</code><div class="desc">Brotli/zstd need their optional libraries present; otherwise it falls back to gzip.</div></li>
+      <li class="danger"><code class="cmd">let the proxy do it?</code><span class="badge-warn">note</span><div class="desc">If nginx/Cloudflare already compresses, doing it again in Flask wastes CPU. Use this when the app serves responses directly.</div></li>
+    </ul>
+  </article>
+
+  <!-- 22 Flask-Babel -->
+  <article class="card" id="ext-babel">
+    <div class="card-head"><span class="card-num t3">22</span><span class="card-title">Flask-Babel</span><span class="badge-fs">FS</span><span class="card-sub">v4.0.0</span></div>
+    <ul class="cmds">
+      <li class="fs"><code class="cmd">babel = Babel(app, locale_selector=get_locale)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-Babel</span>. i18n/l10n built on Babel &amp; <code>pytz</code> &mdash; translations, dates, numbers, currencies.</div></li>
+      <li class="fs"><code class="cmd"><span class="kw">from</span> flask_babel <span class="kw">import</span> gettext <span class="kw">as</span> _<br>flash(_(<span class="str">"Saved!"</span>))</code><span class="star">&#9733;</span><div class="desc">Wrap user-facing strings in <code>_()</code> / <code>gettext()</code>; <code>ngettext()</code> for plurals; <code>&#123;&#123; _("...") &#125;&#125;</code> in templates.</div></li>
+      <li class="ops"><code class="cmd">pybabel extract -o messages.pot . </code> &rarr; <code class="cmd">init</code> &rarr; <code class="cmd">compile</code><span class="star">&#9733;</span><div class="desc">Workflow: <code>extract</code> strings, <code>init -l fr</code> a catalog, translate the <code>.po</code>, then <code>compile</code> to <code>.mo</code>.</div></li>
+      <li class="danger"><code class="cmd">locale_selector runs per request</code><span class="badge-warn">gotcha</span><div class="desc">Return the locale from the user/session/<code>Accept-Language</code>; forgetting to compile catalogs means you always see the source language.</div></li>
+    </ul>
+  </article>
+
+  <!-- 23 Flask-DebugToolbar -->
+  <article class="card" id="ext-debugtoolbar">
+    <div class="card-head"><span class="card-num t3">23</span><span class="card-title">Flask-DebugToolbar</span><span class="badge-dev">dev</span><span class="card-sub">v0.16.0</span></div>
+    <ul class="cmds">
+      <li class="dev"><code class="cmd">toolbar = DebugToolbarExtension(app)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install Flask-DebugToolbar</span> (now pallets-eco). Injects an in-page panel with request, config, template &amp; SQLAlchemy query timing.</div></li>
+      <li class="cfg"><code class="cmd">app.debug = <span class="kw">True</span></code> &middot; <code class="cmd">SECRET_KEY set</code><span class="star">&#9733;</span><div class="desc">Only active in debug mode. The SQLAlchemy panel shows every query &amp; its duration &mdash; great for spotting N+1s.</div></li>
+      <li class="dev"><code class="cmd">DEBUG_TB_INTERCEPT_REDIRECTS = <span class="kw">False</span></code><div class="desc">Common tweak so redirects aren't paused by the toolbar.</div></li>
+      <li class="danger"><code class="cmd">never enable in production</code><span class="badge-danger">gotcha</span><div class="desc">It exposes config &amp; internals and only renders on HTML responses. Keep it strictly dev-only.</div></li>
+    </ul>
+  </article>
+
+  <!-- 24 Connexion -->
+  <article class="card" id="ext-connexion">
+    <div class="card-head"><span class="card-num t3">24</span><span class="card-title">Connexion</span><span class="badge-api">API</span><span class="card-sub">v3.x &middot; spec-first</span></div>
+    <ul class="cmds">
+      <li class="api"><code class="cmd">app = connexion.FlaskApp(__name__)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install "connexion[flask]"</span>. <b>Spec-first</b>: write OpenAPI, and Connexion routes, validates &amp; documents automatically. v3 is an <b>ASGI</b> rewrite.</div></li>
+      <li class="api"><code class="cmd">app.<span class="fn">add_api</span>(<span class="str">"openapi.yaml"</span>)</code><span class="star">&#9733;</span><div class="desc">The <code>operationId</code> in each path maps to a Python function; request/response are validated against the schema. Swagger UI is served automatically.</div></li>
+      <li class="api"><code class="cmd">connexion.AsyncApp(__name__)</code><div class="desc">Use <code>FlaskApp</code> to keep the Flask ecosystem, or <code>AsyncApp</code> for pure-ASGI async. Run with <code>uvicorn</code>.</div></li>
+      <li class="danger"><code class="cmd">v2 &rarr; v3 is a big change</code><span class="badge-warn">gotcha</span><div class="desc">Connexion 3 became an ASGI middleware stack &mdash; app construction, error handling and middleware differ from 2.x. Serve via an ASGI server (or the built-in runner), not plain <code>flask run</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 25 Strawberry GraphQL -->
+  <article class="card" id="ext-graphql">
+    <div class="card-head"><span class="card-num t3">25</span><span class="card-title">Strawberry GraphQL</span><span class="badge-api">API</span><span class="card-sub">code-first</span></div>
+    <ul class="cmds">
+      <li class="api"><code class="cmd"><span class="fn">@strawberry.type</span><br><span class="kw">class</span> Query: ...</code> &middot; <code class="cmd">schema = strawberry.Schema(Query)</code><span class="star">&#9733;</span><div class="desc"><span class="pip">pip install "strawberry-graphql[flask]"</span>. Type-annotation / code-first GraphQL. (Ariadne is the schema-first alternative.)</div></li>
+      <li class="api"><code class="cmd">app.add_url_rule(<span class="str">"/graphql"</span>, view_func=GraphQLView.as_view(<span class="str">"graphql"</span>, schema=schema))</code><span class="star">&#9733;</span><div class="desc">Mount the sync view; <code>AsyncGraphQLView</code> has the same interface for async resolvers.</div></li>
+      <li class="api"><code class="cmd">GraphiQL IDE at /graphql</code><div class="desc">The view serves the in-browser GraphiQL explorer by default (disable with <code>graphiql=False</code> in prod).</div></li>
+      <li class="danger"><code class="cmd">one endpoint, guard depth/complexity</code><span class="badge-warn">gotcha</span><div class="desc">GraphQL exposes a single POST endpoint &mdash; add query-depth/complexity limits and auth in resolvers/extensions to prevent abusive queries.</div></li>
+    </ul>
+  </article>
+</main>
+
+<!-- ============ DEPRECATED ============ -->
+<div class="section-break" id="deprecated"><h2 style="color:var(--danger)">Deprecated / Avoid &mdash; use instead</h2><p class="sub">Still widely referenced in old tutorials, but unmaintained or superseded. Validated 2026-08-24.</p></div>
+
+<section class="rank-wrap">
+  <div class="tbl-scroll">
+  <table class="rank-table">
+    <thead><tr><th>Avoid</th><th>Use instead</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td class="ext" style="color:var(--danger)">Flask-RESTful</td><td class="pipc" style="color:var(--dml)">flask-smorest / Flask-RESTX</td><td>Maintenance-only; discouraged for new APIs. smorest/RESTX give OpenAPI + schema validation.</td></tr>
+      <tr><td class="ext" style="color:var(--danger)">Flask-Security (original)</td><td class="pipc" style="color:var(--dml)">Flask-Security (pallets-eco)</td><td>The old mattupstate project was abandoned; the maintained fork (ex &ldquo;Flask-Security-Too&rdquo;) is now published as Flask-Security again.</td></tr>
+      <tr><td class="ext" style="color:var(--danger)">Flask-OAuthlib</td><td class="pipc" style="color:var(--dml)">Authlib</td><td>Deprecated by its own author in favour of Authlib.</td></tr>
+      <tr><td class="ext" style="color:var(--danger)">Flask-Script</td><td class="pipc" style="color:var(--dml)">built-in Flask CLI (click)</td><td>Custom commands now use <code>@app.cli.command()</code> / <code>flask</code>; Flask-Script is obsolete.</td></tr>
+      <tr><td class="ext" style="color:var(--danger)">Flask-Testing</td><td class="pipc" style="color:var(--dml)">pytest + app.test_client()</td><td>Unmaintained; Flask's test client + pytest fixtures cover it.</td></tr>
+      <tr><td class="ext" style="color:var(--danger)">Flask-Uploads</td><td class="pipc" style="color:var(--dml)">Flask-Reuploaded / custom</td><td>Original abandoned; Flask-Reuploaded is the drop-in maintained fork.</td></tr>
+      <tr><td class="ext" style="color:var(--danger)">eventlet (SocketIO worker)</td><td class="pipc" style="color:var(--dml)">threading / gevent</td><td>eventlet is no longer actively maintained; prefer threading or gevent async modes.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ============ QUICK REFS ============ -->
+<section class="refs" id="worth">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">factory + init_app</span><span class="v">construct at module scope, bind inside create_app() with init_app(app) &mdash; the pattern the whole ecosystem expects</span></div>
+    <div><span class="k">SECRET_KEY is load-bearing</span><span class="v">sessions, Flask-Login, CSRF, Flask-WTF, Flask-Session id, and OAuth state all depend on it</span></div>
+    <div><span class="k">pip name &ne; import name</span><span class="v">pip install Flask-Login &rarr; import flask_login; Flask-Cors keeps the -Cors spelling</span></div>
+    <div><span class="k">JWT_SECRET_KEY &ne; SECRET_KEY</span><span class="v">Flask-JWT-Extended uses its own key (falls back to SECRET_KEY if unset)</span></div>
+    <div><span class="k">Flask-SQLAlchemy 3.1 = SA 2.0</span><span class="v">use select()+db.session.execute(); Model.query is legacy</span></div>
+    <div><span class="k">Limiter needs shared storage</span><span class="v">set storage_uri=redis:// or limits are per-worker and reset on restart</span></div>
+    <div><span class="k">SocketIO worker must match gunicorn</span><span class="v">async_mode (threading/gevent) has to line up with the gunicorn worker class; eventlet is EOL</span></div>
+    <div><span class="k">Flask-Admin is open by default</span><span class="v">override is_accessible() before you deploy an admin</span></div>
+    <div><span class="k">Flask-Security-Too &rarr; Flask-Security</span><span class="v">merged back into pallets-eco; both PyPI names ship the same 5.8.x release</span></div>
+    <div><span class="k">Flask-Session filesystem is deprecated</span><span class="v">use cachelib (or redis/sqlalchemy) since 0.7.0</span></div>
+    <div><span class="k">Connexion 3 is ASGI</span><span class="v">FlaskApp/AsyncApp + add_api(); serve with uvicorn, not flask run</span></div>
+    <div><span class="k">don't block the request</span><span class="v">email/long jobs &rarr; Flask-Executor / APScheduler / Celery, not inline in the view</span></div>
+  </div>
+</section>
+
+<footer>
+  Flask Extensions cheat sheet (flask_extensions_cheatsheet v0) &middot; 25 extensions across 3 popularity tiers + a deprecated/avoid table. New dedicated topic &mdash; does not modify the core <code>flask_cheatsheet</code>.<br>
+  Verified 2026-08-24 against each project's official docs/repo, targeting <b>Flask&nbsp;3.1.x</b> on <b>Python&nbsp;3.12+</b>. Versions checked: Flask-SQLAlchemy&nbsp;3.1.1, Flask-Migrate&nbsp;4.x, Flask-Login&nbsp;0.6.3, Flask-WTF&nbsp;1.3.0, Flask-Cors&nbsp;6.0.x, Flask-JWT-Extended&nbsp;4.7.4, flask-smorest&nbsp;0.47.0, Flask-Marshmallow&nbsp;1.5.0, Flask-Caching&nbsp;2.4.1, Flask-Limiter&nbsp;4.1.x, Flask-Mail&nbsp;0.10.0, Flask-SocketIO&nbsp;5.x, Flask-Bcrypt&nbsp;1.0.1, Flask-Session&nbsp;0.8.0, Flask-Admin&nbsp;2.2.0, Flask-Security&nbsp;5.8.x, Flask-Talisman, Flask-APScheduler&nbsp;1.13.x, Flask-Executor&nbsp;1.0.0, Authlib&nbsp;1.7.x, Flask-Compress&nbsp;1.17, Flask-Babel&nbsp;4.0.0, Flask-DebugToolbar&nbsp;0.16.0, Connexion&nbsp;3.x, strawberry-graphql. Sources: flask.palletsprojects.com, pallets-eco &amp; miguelgrinberg repos, flask-jwt-extended / flask-smorest / flask-marshmallow / flask-limiter / flask-session / flask-apscheduler / flask-compress / flask-babel docs, authlib.org, spec-first/connexion, strawberry.rocks. Re-confirm current versions before pinning.<br>
+  Design system = the shared cheat-sheet tokens (Inter + JetBrains Mono, light theme). Content only &mdash; no restyle.
+</footer>
+
+</body>
+</html>

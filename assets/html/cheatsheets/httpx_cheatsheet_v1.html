@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>httpx (Python) Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b; --setup-bg:#f1f3f6;
+    --req:#d97706;   --req-bg:#fdf6ec;
+    --resp:#059669;  --resp-bg:#ecf7f2;
+    --client:#4f46e5;--client-bg:#eef0fd;
+    --async:#7c3aed; --async-bg:#f4eefc;
+    --io:#0d9488;    --io-bg:#e8f6f4;
+    --danger:#dc2626;--danger-bg:#fdf0ef;
+    --star:#b45309;
+    --t-mod:#0d9488; --t-fn:#4f46e5; --t-arg:#b45309; --t-str:#059669;
+    --t-kw:#7c3aed;  --t-num:#d97706; --t-cm:#94a3b8;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;}
+
+  /* header */
+  header{border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;}
+  h1 .hx{font-family:var(--mono); color:var(--async)}
+  h1 .tag{font-family:var(--mono); font-size:.9rem; color:var(--muted); font-weight:500; letter-spacing:.02em}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* legend */
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)} .dot.req{background:var(--req)}
+  .dot.resp{background:var(--resp)} .dot.client{background:var(--client)}
+  .dot.async{background:var(--async)} .dot.io{background:var(--io)}
+  .dot.danger{background:var(--danger)}
+
+  /* hero */
+  .flow-wrap{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;}
+  .flow-title{font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;}
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* quickstart code panel */
+  .quick{max-width:1120px; margin:1.4rem auto 0; background:var(--ink); border-radius:10px;
+    overflow:hidden; box-shadow:0 2px 8px rgba(20,20,30,.08)}
+  .quick-bar{display:flex; align-items:center; gap:.5rem; padding:.55rem .9rem;
+    border-bottom:1px solid #2b2f3a}
+  .quick-bar .d{width:11px;height:11px;border-radius:50%}
+  .quick-bar .t{font-family:var(--mono); font-size:.72rem; color:#8b93a7; margin-left:.4rem}
+  pre.quick-inner{margin:0; padding:1rem 1.15rem; white-space:pre; overflow-x:auto;
+    font-family:var(--mono); font-size:.82rem; line-height:1.65; color:#e8e6e1; tab-size:2}
+  .quick-inner .cm{color:var(--t-cm)} .quick-inner .kw{color:#c084fc}
+  .quick-inner .mod{color:#2dd4bf} .quick-inner .fn{color:#818cf8}
+  .quick-inner .str{color:#6ee7b7} .quick-inner .arg{color:#fbbf24}
+  .quick-inner .num{color:#fbbf24}
+
+  /* main grid */
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 2rem;
+    column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  @media(min-width:1640px){ main{column-count:4} }
+
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.req{border-left-color:var(--req)}
+  ul.cmds li.resp{border-left-color:var(--resp)}
+  ul.cmds li.client{border-left-color:var(--client)}
+  ul.cmds li.async{border-left-color:var(--async)}
+  ul.cmds li.io{border-left-color:var(--io)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.5}
+  code.cmd .mod{color:var(--t-mod)} code.cmd .fn{color:var(--t-fn); font-weight:600}
+  code.cmd .arg{color:var(--t-arg)} code.cmd .str{color:var(--t-str)}
+  code.cmd .kw{color:var(--t-kw)} code.cmd .num{color:var(--t-num)}
+  code.cmd .cm{color:var(--t-cm)} code.cmd .p{color:#94a3b8}
+  li.danger code.cmd{color:#b42318}
+  .desc{font-size:.77rem; color:#525761; margin-top:.2rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee;
+    padding:.02rem .25rem; border-radius:3px; color:#3f444f}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.64rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-async{color:var(--async); font-size:.64rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+
+  /* diagrams */
+  .diagrams{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;}
+  .diagrams h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:var(--mono)}
+
+  /* refs strip */
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.8rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner .v code{color:#fcd9a8; font-size:.95em}
+
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;}
+  footer code{color:#3f444f}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · a next-gen HTTP client · Python</div>
+  <h1><span class="hx">httpx</span> <span class="tag">cheat sheet</span></h1>
+  <p class="lede"><b>requests' API, made Client-centric and async-ready.</b> Same round trip &mdash; you build a request, a <b>Client</b> sends it over a pooled connection (HTTP/1.1 <i>or</i> HTTP/2), you read one <b>Response</b> &mdash; but the <i>same code runs sync or async</i>, timeouts are <b>on by default</b>, and redirects are <b>off by default</b>. Know those three twists and everything you learned from requests carries over.</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>setup / CLI</span>
+    <span><i class="dot req"></i>the request</span>
+    <span><i class="dot resp"></i>the response</span>
+    <span><i class="dot client"></i>the Client</span>
+    <span><i class="dot async"></i>async</span>
+    <span><i class="dot io"></i>transport · HTTP/2 · TLS</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-08-26 against <b>httpx 0.28.1</b> (stable; 1.0 in prerelease) &amp; cross-checked across: <b>python-httpx.org</b> (official) &middot; <b>encode/httpx</b> (GitHub) &middot; <b>betterstack.com</b> &middot; <b>oneuptime.com</b> &middot; <b>python-httpx.org/async</b> &middot; <b>httpcore docs</b></p>
+</header>
+
+<!-- ============ SIGNATURE HERO DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">One round trip &mdash; and the sync / async duality that defines httpx</div>
+  <svg class="flow-svg" viewBox="0 0 1120 476" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Top band: a request flows through a Client with a connection pool and transport speaking HTTP/1.1 or HTTP/2 to a server and back as one Response. Bottom band: the same API runs sync via Client or async via AsyncClient, both producing the same Response.">
+    <defs>
+      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="arg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+      </marker>
+    </defs>
+
+    <!-- BAND A -->
+    <text x="24" y="28" font-size="10.5" letter-spacing="2.5" fill="#94a3b8">BAND A &middot; THE REQUEST / RESPONSE CYCLE, THROUGH A CLIENT</text>
+
+    <!-- request -->
+    <rect x="20" y="46" width="234" height="150" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+    <text x="137" y="72" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">Build a Request</text>
+    <text x="137" y="95"  text-anchor="middle" font-size="10.5" fill="#b45309">client.get(url, &hellip;)</text>
+    <text x="137" y="117" text-anchor="middle" font-size="10" fill="#8a6d3b">params= &middot; headers= &middot; auth=</text>
+    <text x="137" y="135" text-anchor="middle" font-size="10" fill="#8a6d3b">content= / data= /</text>
+    <text x="137" y="151" text-anchor="middle" font-size="10" fill="#8a6d3b">json= / files=</text>
+    <text x="137" y="176" text-anchor="middle" font-size="9.5" fill="#b45309">timeout ON (5s) &middot; redirects OFF</text>
+
+    <!-- client -->
+    <rect x="304" y="46" width="250" height="150" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+    <text x="429" y="72" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">Client</text>
+    <text x="429" y="94"  text-anchor="middle" font-size="10" fill="#4f46e5">connection pool (keep-alive)</text>
+    <text x="429" y="114" text-anchor="middle" font-size="10" fill="#4338ca">+ Transport (httpcore)</text>
+    <text x="429" y="138" text-anchor="middle" font-size="10.5" fill="#4338ca" font-weight="700">HTTP/1.1  or  HTTP/2</text>
+    <text x="429" y="162" text-anchor="middle" font-size="9.5" fill="#6b7280">base_url &middot; shared headers /</text>
+    <text x="429" y="177" text-anchor="middle" font-size="9.5" fill="#6b7280">cookies / auth / limits</text>
+
+    <!-- server -->
+    <rect x="604" y="60" width="170" height="122" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+    <text x="689" y="112" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">Server</text>
+    <text x="689" y="134" text-anchor="middle" font-size="10" fill="#64748b">handles the verb</text>
+
+    <!-- response -->
+    <rect x="824" y="46" width="276" height="150" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <text x="962" y="72" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">One Response</text>
+    <text x="962" y="95"  text-anchor="middle" font-size="10.5" fill="#059669">r.status_code &middot; r.http_version</text>
+    <text x="838" y="119" font-size="10" fill="#047857">r.text</text>
+    <text x="905" y="119" font-size="10" fill="#047857">r.json()</text>
+    <text x="985" y="119" font-size="10" fill="#047857">r.content</text>
+    <text x="838" y="141" font-size="10" fill="#047857">r.is_success &middot; r.is_error</text>
+    <text x="962" y="166" text-anchor="middle" font-size="9.5" fill="#059669">r.raise_for_status() &#8594; HTTPStatusError</text>
+    <text x="962" y="182" text-anchor="middle" font-size="9" fill="#6b7280">.iter_bytes() / .aiter_bytes() to stream</text>
+
+    <!-- arrows A -->
+    <line x1="254" y1="121" x2="300" y2="121" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <line x1="554" y1="121" x2="600" y2="121" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+    <text x="577" y="113" text-anchor="middle" font-size="9" fill="#94a3b8">TCP/TLS</text>
+    <line x1="774" y1="121" x2="820" y2="121" stroke="#1a1d24" stroke-width="2" marker-end="url(#ar)"/>
+
+    <!-- divider -->
+    <line x1="20" y1="228" x2="1100" y2="228" stroke="#e7e3db" stroke-width="1.5"/>
+
+    <!-- BAND B -->
+    <text x="24" y="258" font-size="10.5" letter-spacing="2.5" fill="#94a3b8">BAND B &middot; SAME API, TWO RUNTIMES &mdash; async JUST ADDS async with, await, aiter_</text>
+
+    <!-- sync panel -->
+    <rect x="20" y="278" width="470" height="150" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+    <text x="40" y="302" font-size="11.5" font-weight="700" fill="#4338ca">SYNC &mdash; httpx.Client</text>
+    <rect x="40" y="314" width="430" height="96" rx="8" fill="#1a1d24"/>
+    <text x="56" y="337" font-size="11" fill="#c084fc">with <tspan fill="#2dd4bf">httpx</tspan>.<tspan fill="#818cf8">Client</tspan>() as c:</text>
+    <text x="56" y="359" font-size="11" fill="#e8e6e1">    r = c.<tspan fill="#818cf8">get</tspan>(<tspan fill="#6ee7b7">"https://api.&hellip;"</tspan>)</text>
+    <text x="56" y="381" font-size="11" fill="#e8e6e1">    data = r.<tspan fill="#818cf8">json</tspan>()</text>
+    <text x="56" y="401" font-size="9.5" fill="#8b93a7"># blocks until the response arrives</text>
+
+    <!-- async panel -->
+    <rect x="520" y="278" width="580" height="150" rx="12" fill="#f4eefc" stroke="#7c3aed" stroke-width="2"/>
+    <text x="540" y="302" font-size="11.5" font-weight="700" fill="#6d28d9">ASYNC &mdash; httpx.AsyncClient</text>
+    <rect x="540" y="314" width="540" height="96" rx="8" fill="#1a1d24"/>
+    <text x="556" y="337" font-size="11" fill="#c084fc">async with <tspan fill="#2dd4bf">httpx</tspan>.<tspan fill="#818cf8">AsyncClient</tspan>() as c:</text>
+    <text x="556" y="359" font-size="11" fill="#e8e6e1">    r = <tspan fill="#c084fc">await</tspan> c.<tspan fill="#818cf8">get</tspan>(<tspan fill="#6ee7b7">"https://api.&hellip;"</tspan>)</text>
+    <text x="556" y="381" font-size="11" fill="#e8e6e1">    data = r.<tspan fill="#818cf8">json</tspan>()</text>
+    <text x="556" y="401" font-size="9.5" fill="#8b93a7"># await lets other tasks run while it waits</text>
+
+    <!-- convergence -->
+    <line x1="255" y1="428" x2="255" y2="452" stroke="#7c3aed" stroke-width="1.6" marker-end="url(#arg)"/>
+    <line x1="810" y1="428" x2="810" y2="452" stroke="#7c3aed" stroke-width="1.6" marker-end="url(#arg)"/>
+    <rect x="360" y="452" width="400" height="20" rx="10" fill="#f4eefc" stroke="#7c3aed" stroke-width="1.4"/>
+    <text x="560" y="466" text-anchor="middle" font-size="10" fill="#6d28d9" font-weight="700">&#8594; identical Response object &amp; identical method names &#8592;</text>
+  </svg>
+
+  <!-- quickstart panel -->
+  <div class="quick">
+    <div class="quick-bar"><span class="d" style="background:#ff5f56"></span><span class="d" style="background:#ffbd2e"></span><span class="d" style="background:#27c93f"></span><span class="t">quickstart.py &mdash; the 90% you reach for</span></div>
+<pre class="quick-inner"><span class="kw">import</span> <span class="mod">httpx</span>
+
+<span class="cm"># one-off (spins up + discards a client) &mdash; fine for a script</span>
+r = <span class="mod">httpx</span>.<span class="fn">get</span>(<span class="str">"https://api.example.com/items"</span>,
+              <span class="arg">params</span>={<span class="str">"page"</span>: <span class="num">2</span>},
+              <span class="arg">headers</span>={<span class="str">"Authorization"</span>: <span class="str">"Bearer &lt;tok&gt;"</span>},
+              <span class="arg">follow_redirects</span>=<span class="kw">True</span>)   <span class="cm"># OFF by default in httpx!</span>
+r.<span class="fn">raise_for_status</span>()                    <span class="cm"># &#8594; HTTPStatusError on 4xx/5xx</span>
+data = r.<span class="fn">json</span>()
+
+<span class="cm"># reuse a Client for many calls: pooling + base_url + shared headers</span>
+<span class="kw">with</span> <span class="mod">httpx</span>.<span class="fn">Client</span>(<span class="arg">base_url</span>=<span class="str">"https://api.example.com"</span>,
+                 <span class="arg">headers</span>={<span class="str">"Authorization"</span>: <span class="str">"Bearer &lt;tok&gt;"</span>},
+                 <span class="arg">timeout</span>=<span class="num">10.0</span>) <span class="kw">as</span> client:
+    client.<span class="fn">post</span>(<span class="str">"/items"</span>, <span class="arg">json</span>={<span class="str">"name"</span>: <span class="str">"Milo"</span>})   <span class="cm"># relative path joins base_url</span>
+
+<span class="cm"># async: same surface, add async with / await</span>
+<span class="kw">async with</span> <span class="mod">httpx</span>.<span class="fn">AsyncClient</span>() <span class="kw">as</span> client:
+    r = <span class="kw">await</span> client.<span class="fn">get</span>(<span class="str">"https://api.example.com/items"</span>)</pre>
+  </div>
+</section>
+
+<!-- ============ REFERENCE CARDS ============ -->
+<main>
+
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Import</span><span class="card-sub">pick your extras</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd"><span class="cm">$</span> pip install httpx</code><div class="desc">Core sync + async client. Python 3.9+.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm">$</span> pip install <span class="str">"httpx[http2]"</span></code><div class="desc">Adds the <code>h2</code> package &mdash; required before <code>http2=True</code> works.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm">$</span> pip install <span class="str">"httpx[cli]"</span></code><div class="desc">A curl-like terminal client: <code>httpx https://&hellip;</code>.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">import</span> <span class="mod">httpx</span></code><span class="star">&#9733;</span><div class="desc">One namespace &mdash; requests-compatible surface.</div></li>
+      <li class="setup"><code class="cmd"><span class="mod">httpx</span>.__version__</code><div class="desc">e.g. <code>'0.28.1'</code> &mdash; the current stable line.</div></li>
+      <li class="setup"><code class="cmd"><span class="cm">$</span> pip install <span class="arg">--pre</span> httpx</code><div class="desc"><b>1.0 is in prerelease</b> (<code>1.0.dev5</code>, Aug 2026); the API is largely stable but <code>0.28.1</code> remains the pinned default.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 HTTP VERBS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">The HTTP Verbs</span><span class="card-sub">top-level or client</span></div>
+    <ul class="cmds">
+      <li class="req"><code class="cmd"><span class="mod">httpx</span>.<span class="fn">get</span>(url, <span class="arg">params</span>=&hellip;)</code><span class="star">&#9733;</span><div class="desc">Read a resource.</div></li>
+      <li class="req"><code class="cmd"><span class="mod">httpx</span>.<span class="fn">post</span>(url, <span class="arg">json</span>=&hellip;)</code><span class="star">&#9733;</span><div class="desc">Create / submit.</div></li>
+      <li class="req"><code class="cmd"><span class="mod">httpx</span>.<span class="fn">put</span> / <span class="fn">patch</span> / <span class="fn">delete</span></code><div class="desc">Replace · partial update · remove.</div></li>
+      <li class="req"><code class="cmd"><span class="mod">httpx</span>.<span class="fn">head</span> / <span class="fn">options</span></code><div class="desc">Headers only · allowed methods / CORS.</div></li>
+      <li class="req"><code class="cmd"><span class="mod">httpx</span>.<span class="fn">request</span>(<span class="str">"GET"</span>, url, **kw)</code><div class="desc">Generic form; verb as a string.</div></li>
+      <li class="req"><code class="cmd"><span class="mod">httpx</span>.<span class="fn">stream</span>(<span class="str">"GET"</span>, url)</code><div class="desc">Streaming variant &mdash; a context manager (card 15).</div></li>
+      <li class="client"><code class="cmd">c.<span class="fn">get</span>(url) &middot; c.<span class="fn">post</span>(url)</code><div class="desc">Same verbs on a <code>Client</code> instance &mdash; preferred (card 09).</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 QUERY PARAMS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Query Parameters</span><span class="card-sub">the ?key=value string</span></div>
+    <ul class="cmds">
+      <li class="req"><code class="cmd"><span class="fn">get</span>(url, <span class="arg">params</span>={<span class="str">"q"</span>: <span class="str">"x"</span>, <span class="str">"n"</span>: <span class="num">2</span>})</code><span class="star">&#9733;</span><div class="desc">Dict &#8594; <code>?q=x&amp;n=2</code>, encoded for you.</div></li>
+      <li class="req"><code class="cmd"><span class="arg">params</span>={<span class="str">"id"</span>: [<span class="num">1</span>, <span class="num">2</span>]}</code><div class="desc">List repeats the key &#8594; <code>?id=1&amp;id=2</code>.</div></li>
+      <li class="req"><code class="cmd"><span class="arg">params</span>=[(<span class="str">"k"</span>, <span class="str">"a"</span>), (<span class="str">"k"</span>, <span class="str">"b"</span>)]</code><div class="desc">List of tuples for ordered / duplicate keys.</div></li>
+      <li class="req"><code class="cmd"><span class="mod">httpx</span>.<span class="fn">QueryParams</span>({<span class="str">"a"</span>: <span class="num">1</span>})</code><div class="desc">Immutable multidict; <code>.merge()</code> to add.</div></li>
+      <li class="resp"><code class="cmd">r.url &middot; r.url.params</code><div class="desc"><code>r.url</code> is a rich <code>httpx.URL</code> object &mdash; inspect the final URL.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 REQUEST BODY -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Sending a Body</span><span class="card-sub">4 kwargs, pick one</span></div>
+    <ul class="cmds">
+      <li class="req"><code class="cmd"><span class="fn">post</span>(url, <span class="arg">json</span>={<span class="str">"a"</span>: <span class="num">1</span>})</code><span class="star">&#9733;</span><div class="desc">JSON body + <code>Content-Type: application/json</code>.</div></li>
+      <li class="req"><code class="cmd"><span class="fn">post</span>(url, <span class="arg">data</span>={<span class="str">"a"</span>: <span class="num">1</span>})</code><span class="star">&#9733;</span><div class="desc">Form fields &#8594; <code>x-www-form-urlencoded</code>. <b>Dicts only.</b></div></li>
+      <li class="req"><code class="cmd"><span class="fn">post</span>(url, <span class="arg">content</span>=<span class="str">b"raw bytes"</span>)</code><span class="star">&#9733;</span><div class="desc">Raw bytes / str / generator body. <b>Use <code>content=</code>, not <code>data=</code>, for raw.</b></div></li>
+      <li class="io"><code class="cmd"><span class="fn">post</span>(url, <span class="arg">files</span>={<span class="str">"f"</span>: <span class="fn">open</span>(<span class="str">"a.png"</span>,<span class="str">"rb"</span>)})</code><div class="desc">Multipart upload (card 14 style). Mix with <code>data=</code> fields.</div></li>
+      <li class="danger"><code class="cmd">content= &ne; data=</code><span class="badge-danger">vs requests</span><div class="desc">requests overloaded <code>data=</code> for both. httpx splits them: <code>data=</code> is form-only.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 CUSTOM HEADERS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Custom Headers</span><span class="card-sub">dict in, multidict out</span></div>
+    <ul class="cmds">
+      <li class="client"><code class="cmd"><span class="fn">get</span>(url, <span class="arg">headers</span>={<span class="str">"User-Agent"</span>: <span class="str">"app/1.0"</span>})</code><span class="star">&#9733;</span><div class="desc">Pass request headers as a plain dict.</div></li>
+      <li class="client"><code class="cmd"><span class="arg">headers</span>={<span class="str">"Authorization"</span>: <span class="str">"Bearer &lt;tok&gt;"</span>}</code><span class="star">&#9733;</span><div class="desc">The usual way to send an API token (card 14).</div></li>
+      <li class="resp"><code class="cmd">r.headers[<span class="str">"content-type"</span>]</code><div class="desc"><code>httpx.Headers</code> is case-insensitive; dup values comma-joined.</div></li>
+      <li class="resp"><code class="cmd">r.request.headers</code><div class="desc">Inspect exactly what was sent.</div></li>
+      <li class="client"><code class="cmd">c.headers.<span class="fn">update</span>({&hellip;})</code><div class="desc">Set defaults once on a Client &mdash; sent on every call.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 RESPONSE OBJECT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">The Response Object</span><span class="card-sub">everything on r</span></div>
+    <ul class="cmds">
+      <li class="resp"><code class="cmd">r.status_code</code><span class="star">&#9733;</span><div class="desc"><code>200</code>, <code>404</code>&hellip; as an int.</div></li>
+      <li class="resp"><code class="cmd">r.text</code><span class="star">&#9733;</span><div class="desc">Body decoded to <code>str</code> (via <code>r.encoding</code>).</div></li>
+      <li class="resp"><code class="cmd">r.content</code><div class="desc">Body as raw <code>bytes</code>.</div></li>
+      <li class="resp"><code class="cmd">r.json()</code><span class="star">&#9733;</span><div class="desc">Parse a JSON body &#8594; dict / list.</div></li>
+      <li class="resp"><code class="cmd">r.headers &middot; r.cookies</code><div class="desc">Response headers &amp; any cookies set.</div></li>
+      <li class="resp"><code class="cmd">r.http_version</code><div class="desc"><code>"HTTP/1.1"</code> or <code>"HTTP/2"</code> &mdash; confirm h2 is live.</div></li>
+      <li class="resp"><code class="cmd">r.url &middot; r.elapsed &middot; r.reason_phrase</code><div class="desc">Final URL · <code>timedelta</code> · status text.</div></li>
+      <li class="resp"><code class="cmd">r.encoding &middot; r.num_bytes_downloaded</code><div class="desc">Charset used by <code>.text</code> · bytes seen so far.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 STATUS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Status &amp; is_* Helpers</span><span class="card-sub">no math needed</span></div>
+    <ul class="cmds">
+      <li class="resp"><code class="cmd">r.<span class="fn">raise_for_status</span>()</code><span class="star">&#9733;</span><div class="desc">Raises <code>HTTPStatusError</code> on 4xx/5xx; <b>returns <code>r</code></b> so you can chain.</div></li>
+      <li class="resp"><code class="cmd">r.is_success</code><span class="star">&#9733;</span><div class="desc"><code>True</code> for 2xx. Cleaner than a range check.</div></li>
+      <li class="resp"><code class="cmd">r.is_error</code><div class="desc"><code>True</code> for 4xx or 5xx.</div></li>
+      <li class="resp"><code class="cmd">r.is_client_error &middot; r.is_server_error</code><div class="desc">4xx-only · 5xx-only.</div></li>
+      <li class="resp"><code class="cmd">r.is_redirect &middot; r.is_informational</code><div class="desc">3xx with a Location · 1xx.</div></li>
+      <li class="resp"><code class="cmd">r.status_code == <span class="mod">httpx</span>.codes.OK</code><div class="desc">Named codes: <code>codes.NOT_FOUND</code>, <code>codes.is_error(404)</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># 4xx/5xx do NOT raise on their own</span></code><span class="badge-danger">key</span><div class="desc">A bad status is still a valid Response &mdash; check it.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 JSON -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Working with JSON</span><span class="card-sub">the API workhorse</span></div>
+    <ul class="cmds">
+      <li class="resp"><code class="cmd">data = r.<span class="fn">json</span>()</code><div class="desc">Decode the response body into Python objects.</div></li>
+      <li class="req"><code class="cmd"><span class="fn">post</span>(url, <span class="arg">json</span>=payload)</code><span class="star">&#9733;</span><div class="desc">Encode &amp; send with the JSON Content-Type set for you.</div></li>
+      <li class="danger"><code class="cmd">r.<span class="fn">json</span>() &#8594; JSONDecodeError</code><span class="badge-danger">gotcha</span><div class="desc">Raises on a non-JSON body (HTML error page). Guard with <code>raise_for_status()</code> first.</div></li>
+      <li class="resp"><code class="cmd">r.<span class="fn">json</span>()  <span class="cm"># uses stdlib json</span></code><div class="desc">Same semantics you know; raises <code>json.JSONDecodeError</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 THE CLIENT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">The Client (sync)</span><span class="card-sub">use it, don't skip it</span></div>
+    <ul class="cmds">
+      <li class="client"><code class="cmd"><span class="kw">with</span> <span class="mod">httpx</span>.<span class="fn">Client</span>() <span class="kw">as</span> c:</code><span class="star">&#9733;</span><div class="desc">Pools &amp; reuses connections (keep-alive); closes cleanly. The idiomatic form.</div></li>
+      <li class="client"><code class="cmd"><span class="fn">Client</span>(<span class="arg">base_url</span>=<span class="str">"https://api.x.com"</span>)</code><span class="star">&#9733;</span><div class="desc">Then call relative paths: <code>c.get("/items")</code>.</div></li>
+      <li class="client"><code class="cmd"><span class="fn">Client</span>(<span class="arg">headers</span>=&hellip;, <span class="arg">auth</span>=&hellip;, <span class="arg">cookies</span>=&hellip;)</code><div class="desc">Defaults merged into every request from this client.</div></li>
+      <li class="client"><code class="cmd"><span class="fn">Client</span>(<span class="arg">params</span>={<span class="str">"key"</span>: <span class="str">"&lt;apikey&gt;"</span>})</code><div class="desc">Query params added to all calls.</div></li>
+      <li class="io"><code class="cmd"><span class="fn">Client</span>(<span class="arg">limits</span>=<span class="mod">httpx</span>.<span class="fn">Limits</span>(max_connections=<span class="num">100</span>))</code><div class="desc">Tune the pool: <code>max_connections</code>, <code>max_keepalive_connections</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="mod">httpx</span>.<span class="fn">get</span>()  <span class="cm"># builds+discards a client</span></code><span class="badge-danger">note</span><div class="desc">No pooling across calls. Fine for one-offs; use a Client in a loop / service.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 ASYNC -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Async &mdash; AsyncClient</span><span class="card-sub">the signature feature</span></div>
+    <ul class="cmds">
+      <li class="async"><code class="cmd"><span class="kw">async with</span> <span class="mod">httpx</span>.<span class="fn">AsyncClient</span>() <span class="kw">as</span> c:</code><span class="star">&#9733;</span><div class="desc">Same API as <code>Client</code>, awaitable. Enter with <code>async with</code>.</div></li>
+      <li class="async"><code class="cmd">r = <span class="kw">await</span> c.<span class="fn">get</span>(url)</code><span class="star">&#9733;</span><div class="desc">Every request method is a coroutine &mdash; <code>await</code> it.</div></li>
+      <li class="async"><code class="cmd"><span class="kw">await</span> asyncio.<span class="fn">gather</span>(*[c.<span class="fn">get</span>(u) <span class="kw">for</span> u <span class="kw">in</span> urls])</code><span class="star">&#9733;</span><div class="desc">Fire many requests concurrently on one client &mdash; the real speed win.</div></li>
+      <li class="async"><code class="cmd"><span class="kw">async for</span> chunk <span class="kw">in</span> r.<span class="fn">aiter_bytes</span>():</code><div class="desc">Async streaming: <code>aiter_bytes / aiter_text / aiter_lines</code>.</div></li>
+      <li class="async"><code class="cmd"><span class="kw">await</span> c.<span class="fn">aclose</span>()</code><div class="desc">Close manually if you didn't use <code>async with</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># don't reuse a client across event loops</span></code><span class="badge-danger">gotcha</span><div class="desc">Create the <code>AsyncClient</code> inside the running loop.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 TIMEOUTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Timeouts</span><span class="card-sub">on by default</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd"><span class="cm"># default = 5s on every phase</span></code><span class="star">&#9733;</span><div class="desc">"Strict timeouts everywhere" &mdash; the opposite of requests (which has none).</div></li>
+      <li class="io"><code class="cmd"><span class="fn">get</span>(url, <span class="arg">timeout</span>=<span class="num">10.0</span>)</code><span class="star">&#9733;</span><div class="desc">One float applies to all phases.</div></li>
+      <li class="io"><code class="cmd"><span class="mod">httpx</span>.<span class="fn">Timeout</span>(<span class="num">10.0</span>, <span class="arg">connect</span>=<span class="num">5.0</span>)</code><div class="desc">Granular: <code>connect</code>, <code>read</code>, <code>write</code>, <code>pool</code> &mdash; four phases.</div></li>
+      <li class="danger"><code class="cmd"><span class="fn">get</span>(url, <span class="arg">timeout</span>=<span class="kw">None</span>)</code><span class="badge-danger">danger</span><div class="desc">Disables timeouts &#8594; can hang forever. Rarely what you want.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">except</span> <span class="mod">httpx</span>.TimeoutException:</code><div class="desc">Covers Connect / Read / Write / Pool timeouts.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 REDIRECTS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Redirects &amp; History</span><span class="card-sub">OFF by default</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="cm"># follow_redirects=False by default</span></code><span class="badge-danger">vs requests</span><div class="desc">requests follows automatically; httpx does <b>not</b>. The #1 surprise.</div></li>
+      <li class="req"><code class="cmd"><span class="fn">get</span>(url, <span class="arg">follow_redirects</span>=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Opt in per call, or set it once on the Client.</div></li>
+      <li class="resp"><code class="cmd">r.history</code><div class="desc">List of redirect Responses that led here.</div></li>
+      <li class="resp"><code class="cmd">r.next_request</code><div class="desc">The <code>Request</code> for the next hop when not auto-following.</div></li>
+      <li class="resp"><code class="cmd">r.has_redirect_location</code><div class="desc">True if the response points elsewhere.</div></li>
+      <li class="client"><code class="cmd"><span class="fn">Client</span>(<span class="arg">max_redirects</span>=<span class="num">20</span>)</code><div class="desc">Cap the chain; overflow &#8594; <code>TooManyRedirects</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 EXCEPTIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Errors &amp; Exceptions</span><span class="card-sub">two branches</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="kw">except</span> <span class="mod">httpx</span>.HTTPError:</code><span class="star">&#9733;</span><div class="desc">Root of the tree &mdash; catch to handle <b>any</b> httpx failure.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">except</span> <span class="mod">httpx</span>.RequestError:</code><div class="desc">Never got a response: network, timeout, DNS, protocol.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">except</span> <span class="mod">httpx</span>.HTTPStatusError:</code><span class="star">&#9733;</span><div class="desc">Got a response, but <code>raise_for_status()</code> saw 4xx/5xx.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">except</span> <span class="mod">httpx</span>.ConnectError:</code><div class="desc">Couldn't establish the connection (a <code>NetworkError</code>).</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">except</span> <span class="mod">httpx</span>.TimeoutException:</code><div class="desc">Any of the four timeout phases.</div></li>
+      <li><code class="cmd">e.request &middot; e.response</code><div class="desc"><code>HTTPStatusError</code> carries both; <code>RequestError</code> carries <code>e.request</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 AUTH -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Authentication</span><span class="card-sub">prove who you are</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd"><span class="fn">get</span>(url, <span class="arg">auth</span>=(<span class="str">"user"</span>, <span class="str">"pass"</span>))</code><span class="star">&#9733;</span><div class="desc">Shorthand for HTTP Basic auth.</div></li>
+      <li class="io"><code class="cmd"><span class="arg">headers</span>={<span class="str">"Authorization"</span>: <span class="str">"Bearer &lt;tok&gt;"</span>}</code><div class="desc">Bearer / API tokens ride in a header, not <code>auth=</code>.</div></li>
+      <li class="io"><code class="cmd"><span class="arg">auth</span>=<span class="mod">httpx</span>.<span class="fn">BasicAuth</span>(<span class="str">"u"</span>, <span class="str">"p"</span>)</code><div class="desc">Explicit Basic; also <code>httpx.DigestAuth(...)</code>.</div></li>
+      <li class="io"><code class="cmd"><span class="arg">auth</span>=<span class="mod">httpx</span>.<span class="fn">NetRCAuth</span>()</code><div class="desc">Pull credentials from a <code>.netrc</code> file.</div></li>
+      <li class="io"><code class="cmd"><span class="kw">class</span> MyAuth(<span class="mod">httpx</span>.<span class="fn">Auth</span>):</code><div class="desc">Define <code>auth_flow(request)</code> as a generator &mdash; for token refresh, signing, etc.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 STREAMING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Streaming &amp; Downloads</span><span class="card-sub">don't buffer it all</span></div>
+    <ul class="cmds">
+      <li class="resp"><code class="cmd"><span class="kw">with</span> <span class="mod">httpx</span>.<span class="fn">stream</span>(<span class="str">"GET"</span>, url) <span class="kw">as</span> r:</code><span class="star">&#9733;</span><div class="desc">Streaming is a <b>context manager</b>, not a kwarg.</div></li>
+      <li class="resp"><code class="cmd"><span class="kw">for</span> chunk <span class="kw">in</span> r.<span class="fn">iter_bytes</span>():</code><div class="desc">Also <code>iter_text()</code>, <code>iter_lines()</code>, <code>iter_raw()</code> (undecoded).</div></li>
+      <li class="async"><code class="cmd"><span class="kw">async with</span> c.<span class="fn">stream</span>(<span class="str">"GET"</span>, url) <span class="kw">as</span> r:</code><span class="badge-async">async</span><div class="desc">Then <code>async for chunk in r.aiter_bytes():</code>.</div></li>
+      <li class="req"><code class="cmd"><span class="fn">post</span>(url, <span class="arg">content</span>=byte_generator())</code><div class="desc">Stream a request body up by passing a generator to <code>content=</code>.</div></li>
+      <li class="danger"><code class="cmd">r.text  <span class="cm"># mid-stream &#8594; ResponseNotRead</span></code><span class="badge-danger">gotcha</span><div class="desc">Call <code>r.read()</code> first, or stay inside the iterator.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 HTTP/2 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">HTTP/2</span><span class="card-sub">opt-in, one flag</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd"><span class="fn">Client</span>(<span class="arg">http2</span>=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">Enable HTTP/2 &mdash; multiplex many requests over one connection.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># needs: pip install "httpx[http2]"</span></code><span class="badge-danger">key</span><div class="desc">Without the <code>h2</code> package, <code>http2=True</code> silently falls back to 1.1.</div></li>
+      <li class="resp"><code class="cmd">r.http_version == <span class="str">"HTTP/2"</span></code><div class="desc">Confirm the negotiated protocol actually upgraded.</div></li>
+      <li class="io"><code class="cmd"><span class="fn">Client</span>(<span class="arg">http1</span>=<span class="kw">False</span>, <span class="arg">http2</span>=<span class="kw">True</span>)</code><div class="desc">Force h2 only (no 1.1 fallback).</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 TRANSPORTS and RETRIES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Transports &amp; Retries</span><span class="card-sub">the low level</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd">t = <span class="mod">httpx</span>.<span class="fn">HTTPTransport</span>(<span class="arg">retries</span>=<span class="num">3</span>)</code><div class="desc">Pass via <code>Client(transport=t)</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># retries = CONNECTION failures only</span></code><span class="badge-danger">key</span><div class="desc">It does <b>not</b> retry on 5xx/429 status codes &mdash; use <code>tenacity</code> for that.</div></li>
+      <li class="io"><code class="cmd"><span class="fn">Client</span>(<span class="arg">mounts</span>={<span class="str">"https://"</span>: t})</code><div class="desc">Route different URL prefixes to different transports.</div></li>
+      <li class="io"><code class="cmd"><span class="mod">httpx</span>.<span class="fn">ASGITransport</span>(app=app)</code><span class="badge-async">test</span><div class="desc">Call an ASGI app (FastAPI/Starlette) in-process &mdash; no live server.</div></li>
+      <li class="io"><code class="cmd"><span class="mod">httpx</span>.<span class="fn">WSGITransport</span> &middot; <span class="fn">MockTransport</span></code><div class="desc">Test WSGI apps, or return canned responses in tests.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 COOKIES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Cookies</span><span class="card-sub">send &amp; persist</span></div>
+    <ul class="cmds">
+      <li class="resp"><code class="cmd">r.cookies[<span class="str">"session"</span>]</code><div class="desc">Read a cookie the server set.</div></li>
+      <li class="req"><code class="cmd"><span class="fn">get</span>(url, <span class="arg">cookies</span>={<span class="str">"session"</span>: <span class="str">"abc"</span>})</code><div class="desc">Send cookies with one call.</div></li>
+      <li class="client"><code class="cmd"><span class="kw">with</span> <span class="mod">httpx</span>.<span class="fn">Client</span>() <span class="kw">as</span> c:</code><div class="desc">A Client <b>persists cookies</b> across calls &mdash; log in once, stay in.</div></li>
+      <li class="client"><code class="cmd">c.cookies.<span class="fn">set</span>(<span class="str">"k"</span>, <span class="str">"v"</span>, domain=&hellip;)</code><div class="desc">Seed the jar for later requests.</div></li>
+      <li><code class="cmd">jar = <span class="mod">httpx</span>.<span class="fn">Cookies</span>()</code><div class="desc">A standalone cookie jar you can share.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 PROXIES and TLS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Proxies &amp; TLS</span><span class="card-sub">route &amp; verify</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd"><span class="fn">Client</span>(<span class="arg">proxy</span>=<span class="str">"http://10.0.0.1:8080"</span>)</code><span class="star">&#9733;</span><div class="desc">Singular <code>proxy=</code> for all traffic.</div></li>
+      <li class="danger"><code class="cmd"><span class="arg">proxies</span>=  <span class="cm"># REMOVED in 0.28</span></code><span class="badge-danger">gotcha</span><div class="desc">Old <code>proxies=</code> is gone &#8594; use <code>proxy=</code> or <code>mounts=</code>.</div></li>
+      <li class="io"><code class="cmd"><span class="fn">Client</span>(<span class="arg">mounts</span>={<span class="str">"https://"</span>: <span class="mod">httpx</span>.<span class="fn">HTTPTransport</span>(proxy=&hellip;)})</code><div class="desc">Per-scheme / per-host proxy routing.</div></li>
+      <li class="io"><code class="cmd"><span class="cm"># verify=True by default (certifi CAs)</span></code><div class="desc">TLS validated out of the box.</div></li>
+      <li class="danger"><code class="cmd"><span class="fn">Client</span>(<span class="arg">verify</span>=<span class="kw">False</span>)</code><span class="badge-danger">danger</span><div class="desc">Disables cert checks &mdash; never in production.</div></li>
+      <li class="io"><code class="cmd"><span class="fn">Client</span>(<span class="arg">verify</span>=<span class="str">"/path/ca.pem"</span>, <span class="arg">cert</span>=&hellip;)</code><div class="desc">Custom CA bundle · client-side cert (mutual TLS).</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four pictures that make httpx click</h2>
+  <p class="sub">The models behind the cards &mdash; the four body kwargs, the two-branch exception tree, the four timeout phases, and why a Client beats a bare <code>httpx.get()</code>.</p>
+  <div class="merge-grid">
+
+    <!-- D1: body kwargs -->
+    <div class="merge-card">
+      <h3>1 &middot; Four body kwargs &mdash; pick exactly one</h3>
+      <p>httpx splits raw <code>content=</code> from form <code>data=</code> (requests overloaded <code>data=</code> for both).</p>
+      <svg viewBox="0 0 430 250" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="json equals sets application slash json; data equals dict sets form urlencoded; content equals sends raw bytes; files equals sends multipart form-data.">
+        <defs><marker id="d1a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker></defs>
+        <g font-size="11">
+          <rect x="12" y="20" width="150" height="40" rx="8" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+          <text x="87" y="38" text-anchor="middle" font-weight="700" fill="#b45309">json={&hellip;}</text>
+          <text x="87" y="53" text-anchor="middle" font-size="9" fill="#8a6d3b">any JSON-able object</text>
+          <line x1="164" y1="40" x2="212" y2="40" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#d1a)"/>
+          <rect x="216" y="20" width="202" height="40" rx="8" fill="#f4eefc" stroke="#7c3aed" stroke-width="1.5"/>
+          <text x="317" y="38" text-anchor="middle" font-size="10.5" fill="#6d28d9" font-weight="700">application/json</text>
+          <text x="317" y="52" text-anchor="middle" font-size="8.5" fill="#7c3aed">encoded + header set</text>
+
+          <rect x="12" y="72" width="150" height="40" rx="8" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+          <text x="87" y="90" text-anchor="middle" font-weight="700" fill="#b45309">data={&hellip;}</text>
+          <text x="87" y="105" text-anchor="middle" font-size="9" fill="#8a6d3b">a dict of fields</text>
+          <line x1="164" y1="92" x2="212" y2="92" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#d1a)"/>
+          <rect x="216" y="72" width="202" height="40" rx="8" fill="#f4eefc" stroke="#7c3aed" stroke-width="1.5"/>
+          <text x="317" y="90" text-anchor="middle" font-size="9.5" fill="#6d28d9" font-weight="700">x-www-form-urlencoded</text>
+          <text x="317" y="104" text-anchor="middle" font-size="8.5" fill="#7c3aed">form fields only</text>
+
+          <rect x="12" y="124" width="150" height="40" rx="8" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+          <text x="87" y="142" text-anchor="middle" font-weight="700" fill="#b45309">content=&hellip;</text>
+          <text x="87" y="157" text-anchor="middle" font-size="9" fill="#8a6d3b">bytes / str / generator</text>
+          <line x1="164" y1="144" x2="212" y2="144" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#d1a)"/>
+          <rect x="216" y="124" width="202" height="40" rx="8" fill="#f4eefc" stroke="#7c3aed" stroke-width="1.5"/>
+          <text x="317" y="142" text-anchor="middle" font-size="10" fill="#6d28d9" font-weight="700">raw body, as-is</text>
+          <text x="317" y="156" text-anchor="middle" font-size="8.5" fill="#7c3aed">you set Content-Type</text>
+
+          <rect x="12" y="176" width="150" height="40" rx="8" fill="#e8f6f4" stroke="#0d9488" stroke-width="1.6"/>
+          <text x="87" y="194" text-anchor="middle" font-weight="700" fill="#0f766e">files={&hellip;}</text>
+          <text x="87" y="209" text-anchor="middle" font-size="9" fill="#0d9488">file-like objects</text>
+          <line x1="164" y1="196" x2="212" y2="196" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#d1a)"/>
+          <rect x="216" y="176" width="202" height="40" rx="8" fill="#f4eefc" stroke="#7c3aed" stroke-width="1.5"/>
+          <text x="317" y="194" text-anchor="middle" font-size="10" fill="#6d28d9" font-weight="700">multipart/form-data</text>
+          <text x="317" y="208" text-anchor="middle" font-size="8.5" fill="#7c3aed">boundary handled</text>
+
+          <rect x="12" y="226" width="406" height="18" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.3"/>
+          <text x="215" y="239" text-anchor="middle" font-size="9" fill="#b42318">passing raw bytes to data= is wrong &mdash; that slot is for form dicts</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D2: exception tree -->
+    <div class="merge-card">
+      <h3>2 &middot; The exception tree &mdash; two questions</h3>
+      <p>Did you get a response at all? <code>RequestError</code> = no. <code>HTTPStatusError</code> = yes, but a bad status.</p>
+      <svg viewBox="0 0 430 250" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="HTTPError splits into RequestError (no response: TransportError with TimeoutException, NetworkError, ProtocolError, ProxyError; plus DecodingError and TooManyRedirects) and HTTPStatusError (bad status from raise_for_status).">
+        <g font-size="10">
+          <rect x="150" y="12" width="130" height="28" rx="8" fill="#1a1d24"/>
+          <text x="215" y="30" text-anchor="middle" fill="#fff" font-weight="700" font-size="11">HTTPError</text>
+          <path d="M215,40 V52 H108 V64" fill="none" stroke="#cbd5e1" stroke-width="1.4"/>
+          <path d="M215,40 V52 H330 V64" fill="none" stroke="#cbd5e1" stroke-width="1.4"/>
+          <!-- left: RequestError -->
+          <rect x="40" y="64" width="136" height="30" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="108" y="83" text-anchor="middle" fill="#b42318" font-weight="700" font-size="10.5">RequestError</text>
+          <text x="108" y="106" text-anchor="middle" font-size="8" fill="#94a3b8">"never got a response"</text>
+          <!-- right: HTTPStatusError -->
+          <rect x="262" y="64" width="136" height="30" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="330" y="83" text-anchor="middle" fill="#b42318" font-weight="700" font-size="10">HTTPStatusError</text>
+          <text x="330" y="106" text-anchor="middle" font-size="8" fill="#94a3b8">from raise_for_status()</text>
+          <!-- TransportError under RequestError -->
+          <path d="M108,94 V118 H108 V130" fill="none" stroke="#e2b8b4" stroke-width="1.2"/>
+          <rect x="44" y="120" width="128" height="26" rx="6" fill="#fff" stroke="#dc2626" stroke-width="1.2"/>
+          <text x="108" y="137" text-anchor="middle" fill="#b42318" font-weight="700" font-size="9.5">TransportError</text>
+          <!-- four transport children -->
+          <path d="M108,146 V156 H40 V166" fill="none" stroke="#eccecb" stroke-width="1"/>
+          <path d="M108,146 V156 H108 V166" fill="none" stroke="#eccecb" stroke-width="1"/>
+          <path d="M108,146 V156 H176 V166" fill="none" stroke="#eccecb" stroke-width="1"/>
+          <rect x="8" y="166" width="66" height="22" rx="5" fill="#fff" stroke="#dc2626" stroke-width="1"/>
+          <text x="41" y="181" text-anchor="middle" fill="#b42318" font-size="8">Timeout&hellip;</text>
+          <rect x="78" y="166" width="62" height="22" rx="5" fill="#fff" stroke="#dc2626" stroke-width="1"/>
+          <text x="109" y="181" text-anchor="middle" fill="#b42318" font-size="8">Network&hellip;</text>
+          <rect x="144" y="166" width="62" height="22" rx="5" fill="#fff" stroke="#dc2626" stroke-width="1"/>
+          <text x="175" y="181" text-anchor="middle" fill="#b42318" font-size="8">Protocol&hellip;</text>
+          <text x="108" y="203" text-anchor="middle" font-size="8" fill="#6b7280">Timeout&#8594; Connect/Read/Write/Pool &middot; Network&#8594; Connect/Read</text>
+          <!-- siblings of TransportError -->
+          <rect x="16" y="214" width="86" height="22" rx="5" fill="#fdf0ef" stroke="#dc2626" stroke-width="1"/>
+          <text x="59" y="229" text-anchor="middle" fill="#b42318" font-size="8.5">DecodingError</text>
+          <rect x="110" y="214" width="104" height="22" rx="5" fill="#fdf0ef" stroke="#dc2626" stroke-width="1"/>
+          <text x="162" y="229" text-anchor="middle" fill="#b42318" font-size="8.5">TooManyRedirects</text>
+          <path d="M108,94 V210 H59 V214" fill="none" stroke="#eccecb" stroke-width="1"/>
+          <path d="M108,94 V210 H162 V214" fill="none" stroke="#eccecb" stroke-width="1"/>
+          <!-- catch note -->
+          <rect x="248" y="150" width="168" height="86" rx="8" fill="#f4eefc" stroke="#7c3aed" stroke-width="1.3"/>
+          <text x="332" y="170" text-anchor="middle" font-size="9" fill="#6d28d9" font-weight="700">catch broad or narrow</text>
+          <text x="332" y="188" text-anchor="middle" font-size="8.5" fill="#7c3aed">except httpx.HTTPError</text>
+          <text x="332" y="202" text-anchor="middle" font-size="8.5" fill="#7c3aed">&#8594; catches everything</text>
+          <text x="332" y="222" text-anchor="middle" font-size="8.5" fill="#7c3aed">RequestError vs</text>
+          <text x="332" y="234" text-anchor="middle" font-size="8.5" fill="#7c3aed">HTTPStatusError to split</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- D3: timeout phases -->
+    <div class="merge-card">
+      <h3>3 &middot; Four timeout phases of one request</h3>
+      <p>httpx clocks each phase separately &mdash; all default to 5s. requests only had <code>(connect, read)</code>.</p>
+      <svg viewBox="0 0 430 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A request timeline: pool wait, then connect, then write the request, then read the response — each a separately configurable timeout.">
+        <defs><marker id="d3a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0d9488"/></marker></defs>
+        <!-- timeline -->
+        <line x1="20" y1="150" x2="410" y2="150" stroke="#0d9488" stroke-width="2" marker-end="url(#d3a)"/>
+        <text x="410" y="170" text-anchor="end" font-size="9" fill="#0d9488">time &#8594;</text>
+        <!-- phases -->
+        <g font-size="10">
+          <rect x="24" y="70" width="88" height="60" rx="8" fill="#e8f6f4" stroke="#0d9488" stroke-width="1.6"/>
+          <text x="68" y="94" text-anchor="middle" font-weight="700" fill="#0f766e">pool</text>
+          <text x="68" y="112" text-anchor="middle" font-size="8" fill="#0d9488">wait for a free</text>
+          <text x="68" y="123" text-anchor="middle" font-size="8" fill="#0d9488">connection slot</text>
+
+          <rect x="118" y="70" width="88" height="60" rx="8" fill="#e8f6f4" stroke="#0d9488" stroke-width="1.6"/>
+          <text x="162" y="94" text-anchor="middle" font-weight="700" fill="#0f766e">connect</text>
+          <text x="162" y="112" text-anchor="middle" font-size="8" fill="#0d9488">establish the</text>
+          <text x="162" y="123" text-anchor="middle" font-size="8" fill="#0d9488">TCP + TLS</text>
+
+          <rect x="212" y="70" width="88" height="60" rx="8" fill="#e8f6f4" stroke="#0d9488" stroke-width="1.6"/>
+          <text x="256" y="94" text-anchor="middle" font-weight="700" fill="#0f766e">write</text>
+          <text x="256" y="112" text-anchor="middle" font-size="8" fill="#0d9488">send the</text>
+          <text x="256" y="123" text-anchor="middle" font-size="8" fill="#0d9488">request body</text>
+
+          <rect x="306" y="70" width="100" height="60" rx="8" fill="#e8f6f4" stroke="#0d9488" stroke-width="1.6"/>
+          <text x="356" y="94" text-anchor="middle" font-weight="700" fill="#0f766e">read</text>
+          <text x="356" y="112" text-anchor="middle" font-size="8" fill="#0d9488">wait for / receive</text>
+          <text x="356" y="123" text-anchor="middle" font-size="8" fill="#0d9488">the response</text>
+        </g>
+        <text x="215" y="34" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">httpx.Timeout(connect=5, read=5, write=5, pool=5)</text>
+        <text x="215" y="52" text-anchor="middle" font-size="9" fill="#6b7280">one float sets all four &middot; a Timeout() object tunes them independently</text>
+        <!-- ticks -->
+        <line x1="112" y1="140" x2="112" y2="160" stroke="#94a3b8" stroke-width="1"/>
+        <line x1="206" y1="140" x2="206" y2="160" stroke="#94a3b8" stroke-width="1"/>
+        <line x1="300" y1="140" x2="300" y2="160" stroke="#94a3b8" stroke-width="1"/>
+      </svg>
+    </div>
+
+    <!-- D4: get vs Client -->
+    <div class="merge-card">
+      <h3>4 &middot; <code>httpx.get()</code> vs a Client</h3>
+      <p>The bare call builds and throws away a client &mdash; and its whole connection pool &mdash; every time.</p>
+      <svg viewBox="0 0 430 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Top: three httpx.get calls each build and discard their own client and pool. Bottom: one Client is reused across three calls, keeping the connection alive.">
+        <defs><marker id="d4a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+        <!-- top: bare get -->
+        <text x="14" y="24" font-size="10" font-weight="700" fill="#64748b">httpx.get(url) &times;3 &mdash; new client + pool each time</text>
+        <g font-size="8.5">
+          <rect x="14" y="34" width="120" height="46" rx="7" fill="#f1f3f6" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4 3"/>
+          <text x="74" y="52" text-anchor="middle" fill="#475569" font-weight="700">client + pool</text>
+          <text x="74" y="66" text-anchor="middle" fill="#94a3b8">dial &#8594; call &#8594; discard</text>
+          <rect x="154" y="34" width="120" height="46" rx="7" fill="#f1f3f6" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4 3"/>
+          <text x="214" y="52" text-anchor="middle" fill="#475569" font-weight="700">client + pool</text>
+          <text x="214" y="66" text-anchor="middle" fill="#94a3b8">dial &#8594; call &#8594; discard</text>
+          <rect x="294" y="34" width="120" height="46" rx="7" fill="#f1f3f6" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4 3"/>
+          <text x="354" y="52" text-anchor="middle" fill="#475569" font-weight="700">client + pool</text>
+          <text x="354" y="66" text-anchor="middle" fill="#94a3b8">dial &#8594; call &#8594; discard</text>
+        </g>
+        <text x="420" y="98" text-anchor="end" font-size="8.5" fill="#b42318">3 handshakes</text>
+        <!-- bottom: one client -->
+        <text x="14" y="128" font-size="10" font-weight="700" fill="#4338ca">with Client() as c: c.get() &times;3 &mdash; one pool, reused</text>
+        <rect x="14" y="138" width="400" height="46" rx="8" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.6"/>
+        <text x="90" y="160" text-anchor="middle" font-size="9" fill="#4338ca" font-weight="700">Client + pool</text>
+        <text x="90" y="174" text-anchor="middle" font-size="8" fill="#4f46e5">dial once</text>
+        <g font-size="8.5" fill="#4f46e5">
+          <circle cx="200" cy="161" r="12" fill="#fff" stroke="#4f46e5" stroke-width="1.3"/><text x="200" y="164" text-anchor="middle">c1</text>
+          <circle cx="250" cy="161" r="12" fill="#fff" stroke="#4f46e5" stroke-width="1.3"/><text x="250" y="164" text-anchor="middle">c2</text>
+          <circle cx="300" cy="161" r="12" fill="#fff" stroke="#4f46e5" stroke-width="1.3"/><text x="300" y="164" text-anchor="middle">c3</text>
+        </g>
+        <line x1="102" y1="161" x2="186" y2="161" stroke="#4f46e5" stroke-width="1.4" marker-end="url(#d4a)"/>
+        <text x="378" y="165" text-anchor="middle" font-size="8.5" fill="#0f766e" font-weight="700">reused</text>
+        <text x="420" y="200" text-anchor="end" font-size="8.5" fill="#0f766e">1 handshake &middot; keep-alive</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WORTH MEMORIZING ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">redirects OFF</span><span class="v"><code>follow_redirects=False</code> by default (requests: True!)</span></div>
+    <div><span class="k">timeouts ON</span><span class="v">5s on every phase by default; <code>timeout=None</code> disables (risky)</span></div>
+    <div><span class="k">content= vs data=</span><span class="v"><code>content=</code> raw bytes/str; <code>data=</code> form dict only</span></div>
+    <div><span class="k">use a Client</span><span class="v"><code>httpx.get()</code> builds + discards a client (no pooling)</span></div>
+    <div><span class="k">async = same API</span><span class="v"><code>AsyncClient</code> + <code>await</code> + <code>async with</code>; <code>aiter_*</code> to stream</span></div>
+    <div><span class="k">HTTP/2</span><span class="v"><code>http2=True</code> AND <code>pip install httpx[http2]</code> (the h2 pkg)</span></div>
+    <div><span class="k">raise_for_status</span><span class="v">raises <code>HTTPStatusError</code>; returns <code>r</code> so it chains</span></div>
+    <div><span class="k">retries</span><span class="v"><code>HTTPTransport(retries=n)</code> = connections only, not statuses</span></div>
+    <div><span class="k">status retries</span><span class="v">no built-in 5xx/429 retry &mdash; use <code>tenacity</code></span></div>
+    <div><span class="k">error split</span><span class="v"><code>RequestError</code> = no response &middot; <code>HTTPStatusError</code> = bad status</span></div>
+    <div><span class="k">proxy= singular</span><span class="v"><code>proxies=</code> was removed in 0.28 &#8594; <code>proxy=</code> / <code>mounts=</code></span></div>
+    <div><span class="k">is_success / is_error</span><span class="v">boolean helpers on the Response &mdash; skip the math</span></div>
+    <div><span class="k">streaming</span><span class="v"><code>.stream()</code> ctx; <code>.text</code> mid-stream &#8594; <code>ResponseNotRead</code></span></div>
+    <div><span class="k">4 timeouts</span><span class="v"><code>Timeout(connect, read, write, pool)</code></span></div>
+    <div><span class="k">base_url</span><span class="v">set on a Client; relative paths join onto it</span></div>
+    <div><span class="k">test in-process</span><span class="v"><code>ASGITransport</code> / <code>WSGITransport</code> / <code>MockTransport</code></span></div>
+  </div>
+</section>
+
+<footer>
+  httpx cheat sheet &middot; Verified 2026-08-26 against <code>httpx 0.28.1</code> (Python 3.9+; stable line &mdash; <code>1.0.dev5</code> is the current prerelease) &amp; synthesized from the official docs (python-httpx.org), the encode/httpx repo, Better Stack, oneuptime and the httpcore transport docs.<br>
+  Signatures, defaults &amp; the exception tree verified by live introspection &middot; <code>timeout ON</code> / <code>follow_redirects OFF</code> / <code>proxy=</code> checked against httpx 0.28 &middot; httpx speaks HTTP/1.1 &amp; HTTP/2, sync &amp; async, and mirrors much of the <code>requests</code> API.
+</footer>
+
+</body>
+</html>

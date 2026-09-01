@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>fastparquet Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Pure-Python Parquet reader/writer &middot; pandas-native &middot; verified against fastparquet 2026.x (2026) &middot; ⚠ maintenance winding down</div>
+  <h1><span class="mono">fastparquet</span> cheat sheet</h1>
+  <p class="lede"><b>fastparquet</b> reads &amp; writes the <b>Parquet</b> columnar format from Python, built around pandas. <code>write(path, df)</code> saves a DataFrame; <code>ParquetFile(path).to_pandas()</code> reads it back &mdash; with column pushdown, row-group filtering, partitioned datasets, and pluggable compression (snappy/zstd/gzip/&hellip;). <b>Heads-up:</b> with pandas 3.0 depending on <b>PyArrow</b> directly, fastparquet is in <b>maintenance/retirement</b> &mdash; prefer <code>pyarrow</code> (or <code>df.to_parquet</code>) for new code; this sheet documents fastparquet for existing pandas-2.x usage. Targets <b>fastparquet 2026.x</b>, Python 3.9+.</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>write</span>
+    <span><i class="dot c2"></i>read</span>
+    <span><i class="dot c3"></i>partitions &amp; row groups</span>
+    <span><i class="dot c4"></i>compression &amp; append</span>
+    <span><i class="dot c5"></i>remote &amp; migration</span>
+    <span><i class="dot danger"></i>gotcha / retirement</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-08-31 against fastparquet.readthedocs.io &amp; the dask/fastparquet repo (fastparquet 2026.5.0, released 2026-05-15; CalVer; Python 3.9+). Deps: numpy, pandas, cramjam (codecs), fsspec (remote). Usually reached via <code>pandas.read_parquet(..., engine="fastparquet")</code> rather than directly.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub"><code>write()</code> to save, <code>ParquetFile</code> to read. Then column/row-group selection, partitioned datasets, compression, append, and &mdash; for new work &mdash; the move to PyArrow.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Write &amp; read</h3>
+      <ol class="toc-list">
+        <li><span class="rk">1</span><a href="#install">Install &amp; status</a></li>
+        <li><span class="rk">2</span><a href="#write">Write a DataFrame</a></li>
+        <li><span class="rk">3</span><a href="#read">Read: ParquetFile</a></li>
+        <li><span class="rk">4</span><a href="#select">Column/row-group select</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Datasets &amp; compression</h3>
+      <ol class="toc-list">
+        <li><span class="rk">5</span><a href="#partition">Partitioned datasets</a></li>
+        <li><span class="rk">6</span><a href="#compress">Compression &amp; options</a></li>
+        <li><span class="rk">7</span><a href="#append">Append &amp; schema</a></li>
+        <li><span class="rk">8</span><a href="#metadata">Metadata &amp; inspection</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Remote &amp; migration</h3>
+      <ol class="toc-list">
+        <li><span class="rk">9</span><a href="#remote">Remote (fsspec) &amp; dask</a></li>
+        <li><span class="rk">10</span><a href="#migration">Move to PyArrow</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-io"><h2 style="color:var(--c1)">Write &amp; Read</h2><p class="sub">The two functions that do 90% of the work &mdash; plus how to read only what you need.</p></div>
+<main>
+  <article class="card" id="install">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Install &amp; status</span><span class="card-sub">pip / read this</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">pip install <span class="arg">fastparquet</span></code><span class="star">&#9733;</span><div class="desc">Pulls numpy, pandas, cramjam, fsspec. Python 3.9+.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># fastparquet is winding down — pandas 3.0 requires pyarrow</span></code><span class="badge-danger">retiring</span><div class="desc">Active development has largely stopped. For <b>new</b> projects use <code>pyarrow</code> / <code>df.to_parquet()</code> (card 10). Keep using fastparquet only for existing pandas-2.x pipelines.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">from</span> fastparquet <span class="kw">import</span> write, ParquetFile</code><span class="star">&#9733;</span><div class="desc">The two names you need: <code>write</code> (out) and <code>ParquetFile</code> (in).</div></li>
+      <li class="c1"><code class="cmd">df.to_parquet(<span class="str">"f.parq"</span>, engine=<span class="str">"fastparquet"</span>)
+pd.read_parquet(<span class="str">"f.parq"</span>, engine=<span class="str">"fastparquet"</span>)</code><span class="star">&#9733;</span><div class="desc">Most people use fastparquet <b>via pandas</b> by naming the engine &mdash; no direct import needed.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="write">
+    <div class="card-head"><span class="card-num n1">2</span><span class="card-title">Write a DataFrame</span><span class="card-sub">write()</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">write(<span class="str">"out.parq"</span>, df)</code><span class="star">&#9733;</span><div class="desc">Single-file Parquet from a pandas DataFrame. The index is written by default (<code>write_index=False</code> to drop it).</div></li>
+      <li class="c1"><code class="cmd">write(<span class="str">"out.parq"</span>, df, compression=<span class="str">"snappy"</span>, row_group_offsets=500_000)</code><span class="star">&#9733;</span><div class="desc"><code>row_group_offsets</code> = row boundaries for logical segments (an int = rows per group). Row groups are the unit of read parallelism &amp; filtering.</div></li>
+      <li class="c1"><code class="cmd">write(<span class="str">"dataset/"</span>, df, file_scheme=<span class="str">"hive"</span>)</code><span class="star">&#9733;</span><div class="desc"><code>file_scheme="hive"</code> writes a multi-file <b>dataset</b> directory with a <code>_metadata</code> file (vs <code>"simple"</code> = one file).</div></li>
+      <li class="c1"><code class="cmd">write(<span class="str">"out.parq"</span>, df, object_encoding=<span class="str">"utf8"</span>, times=<span class="str">"int64"</span>)</code><div class="desc">Control how object columns &amp; timestamps are encoded when types are ambiguous.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="read">
+    <div class="card-head"><span class="card-num n1">3</span><span class="card-title">Read: ParquetFile</span><span class="card-sub">to_pandas()</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">pf = ParquetFile(<span class="str">"out.parq"</span>)
+df = pf.to_pandas()</code><span class="star">&#9733;</span><div class="desc">Open then materialize to a DataFrame. <code>ParquetFile</code> also accepts a directory (a dataset) or a list of files.</div></li>
+      <li class="c2"><code class="cmd">pf.columns  &middot;  pf.dtypes  &middot;  pf.count()  &middot;  pf.info</code><span class="star">&#9733;</span><div class="desc">Inspect schema &amp; row count <b>without</b> reading the data &mdash; Parquet stores this in the footer.</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">for</span> df <span class="kw">in</span> pf.iter_row_groups():
+    process(df)</code><span class="star">&#9733;</span><div class="desc">Iterate one row-group DataFrame at a time &mdash; bounded memory over a big file.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="select">
+    <div class="card-head"><span class="card-num n1">4</span><span class="card-title">Column/row-group select</span><span class="card-sub">read less</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">pf.to_pandas(columns=[<span class="str">"a"</span>, <span class="str">"b"</span>])</code><span class="star">&#9733;</span><div class="desc"><b>Column pushdown</b>: read only the columns you need &mdash; the whole point of a columnar format.</div></li>
+      <li class="c2"><code class="cmd">pf.to_pandas(filters=[(<span class="str">"year"</span>, <span class="str">"=="</span>, 2026)])</code><span class="star">&#9733;</span><div class="desc"><b>Predicate/row-group pushdown</b>: skip row groups (and partitions) whose stats can't match &mdash; big speedups on filtered reads.</div></li>
+      <li class="c2"><code class="cmd">pf.to_pandas(columns=[<span class="str">"city"</span>], categories=[<span class="str">"city"</span>])</code><div class="desc">Load low-cardinality string columns as pandas <code>category</code> dtype to save memory.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># filters prune whole row groups, not individual rows</span></code><span class="badge-warn">note</span><div class="desc">Row-group filtering is coarse &mdash; you still get all rows in a group that <i>might</i> match; re-filter the DataFrame for exact results.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-ds"><h2 style="color:var(--c3)">Datasets &amp; Compression</h2><p class="sub">Partition for query pruning; pick a codec; append to existing datasets.</p></div>
+<main>
+  <article class="card" id="partition">
+    <div class="card-head"><span class="card-num n3">5</span><span class="card-title">Partitioned datasets</span><span class="card-sub">partition_on</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">write(<span class="str">"dataset/"</span>, df, partition_on=[<span class="str">"year"</span>, <span class="str">"month"</span>],
+    file_scheme=<span class="str">"hive"</span>)</code><span class="star">&#9733;</span><div class="desc"><b>Hive partitioning</b>: writes <code>year=2026/month=8/&hellip;.parq</code> subdirs. Filtering on a partition column then skips whole directories.</div></li>
+      <li class="c3"><code class="cmd">pf = ParquetFile(<span class="str">"dataset/"</span>)
+pf.to_pandas(filters=[(<span class="str">"year"</span>, <span class="str">"=="</span>, 2026)])</code><span class="star">&#9733;</span><div class="desc">Reading a partitioned dataset restores the partition columns and prunes by them automatically.</div></li>
+      <li class="c3"><code class="cmd"><span class="cm"># partition on LOW-cardinality columns only</span></code><span class="badge-warn">tip</span><div class="desc">Partitioning on a high-cardinality column makes millions of tiny files &mdash; slow &amp; wasteful. Partition on coarse buckets (date, region).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="compress">
+    <div class="card-head"><span class="card-num n3">6</span><span class="card-title">Compression &amp; options</span><span class="card-sub">codecs</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">write(path, df, compression=<span class="str">"zstd"</span>)   <span class="cm"># or snappy/gzip/lz4/brotli</span></code><span class="star">&#9733;</span><div class="desc"><b>snappy</b> = fast, decent ratio (common default); <b>zstd</b> = better ratio, still fast; <b>gzip</b> = smallest but slow. Codecs come from <code>cramjam</code>.</div></li>
+      <li class="c3"><code class="cmd">write(path, df, compression={<span class="str">"a"</span>:<span class="str">"zstd"</span>, <span class="str">"b"</span>:<span class="str">"snappy"</span>, <span class="str">"_default"</span>:<span class="str">"gzip"</span>})</code><div class="desc">Per-column compression via a dict &mdash; use heavier codecs on big columns only.</div></li>
+      <li class="c3"><code class="cmd">write(path, df, stats=<span class="kw">True</span>)</code><div class="desc">Column statistics (min/max) enable the row-group filtering in card 4 &mdash; on by default; keep them for filterable data.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="append">
+    <div class="card-head"><span class="card-num n3">7</span><span class="card-title">Append &amp; schema</span><span class="card-sub">grow a dataset</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">write(<span class="str">"dataset/"</span>, new_df, append=<span class="kw">True</span>, file_scheme=<span class="str">"hive"</span>)</code><span class="star">&#9733;</span><div class="desc"><code>append=True</code> adds row groups/files to an existing dataset &mdash; the schema must match.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># append requires file_scheme="hive" (multi-file), not "simple"</span></code><span class="badge-warn">gotcha</span><div class="desc">You can't append to a single-file (<code>simple</code>) Parquet &mdash; use a hive dataset directory if you plan to append.</div></li>
+      <li class="c3"><code class="cmd">pf = ParquetFile([<span class="str">"a.parq"</span>, <span class="str">"b.parq"</span>])  <span class="cm"># read many as one</span></code><div class="desc">Pass a list of files to read several as a single logical table (matching schemas).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="metadata">
+    <div class="card-head"><span class="card-num n3">8</span><span class="card-title">Metadata &amp; inspection</span><span class="card-sub">the footer</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">pf.schema  &middot;  pf.row_groups  &middot;  pf.statistics</code><div class="desc">Inspect the Parquet schema tree, row-group layout, and per-column min/max stats.</div></li>
+      <li class="c3"><code class="cmd">pf.key_value_metadata  <span class="cm"># custom + pandas metadata</span></code><div class="desc">Read the embedded key/value metadata (pandas stores its index/dtype info here).</div></li>
+      <li class="c3"><code class="cmd">pf.count(filters=[(<span class="str">"year"</span>, <span class="str">"=="</span>, 2026)])</code><div class="desc">Count matching rows using stats/partitions without reading the data.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-remote"><h2 style="color:var(--c5)">Remote &amp; Migration</h2><p class="sub">Read cloud storage via fsspec, feed Dask, and move to PyArrow for the future.</p></div>
+<main>
+  <article class="card" id="remote">
+    <div class="card-head"><span class="card-num n5">9</span><span class="card-title">Remote (fsspec) &amp; dask</span><span class="card-sub">cloud &amp; scale</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd">pf = ParquetFile(<span class="str">"s3://bucket/data/"</span>,
+    open_with=fsspec.open, storage_options={...})</code><span class="star">&#9733;</span><div class="desc">Via <b>fsspec</b>, read/write S3/GCS/Azure/HTTP by URL. <code>pandas.read_parquet("s3://...", engine="fastparquet")</code> works too.</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">import</span> dask.dataframe <span class="kw">as</span> dd
+ddf = dd.read_parquet(<span class="str">"dataset/"</span>, engine=<span class="str">"fastparquet"</span>)</code><div class="desc">fastparquet was originally built for <b>Dask</b> &mdash; it reads/writes partitioned datasets one row-group per task.</div></li>
+      <li class="c5"><code class="cmd">write(<span class="str">"gcs://bucket/out/"</span>, df, file_scheme=<span class="str">"hive"</span>, open_with=fsspec.open)</code><div class="desc">Write straight to object storage.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="migration">
+    <div class="card-head"><span class="card-num n5">10</span><span class="card-title">Move to PyArrow</span><span class="card-sub">the future</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd">df.to_parquet(<span class="str">"f.parq"</span>)          <span class="cm"># default engine = pyarrow (pandas 3.x)</span>
+pd.read_parquet(<span class="str">"f.parq"</span>)         <span class="cm"># reads fastparquet-written files fine</span></code><span class="star">&#9733;</span><div class="desc">Parquet is a standard format &mdash; files are interoperable. Just drop <code>engine="fastparquet"</code> to use PyArrow.</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">import</span> pyarrow.parquet <span class="kw">as</span> pq
+pq.write_table(table, <span class="str">"f.parq"</span>)  &middot;  pq.read_table(<span class="str">"f.parq"</span>)</code><div class="desc">The PyArrow equivalents: <code>ParquetFile</code>&rarr;<code>pq.ParquetFile</code>, <code>write</code>&rarr;<code>pq.write_table</code>/<code>write_to_dataset</code>, filters/partitioning all supported (and faster).</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># also strong for Parquet: Polars (pl.read_parquet) and DuckDB</span></code><div class="desc"><b>Polars</b> and <b>DuckDB</b> read Parquet natively &amp; very fast &mdash; great modern alternatives for analytics.</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">write(path, df)</span><span class="v">DataFrame -> Parquet</span></div>
+    <div><span class="k">ParquetFile(path).to_pandas()</span><span class="v">Parquet -> DataFrame</span></div>
+    <div><span class="k">engine="fastparquet"</span><span class="v">usually reached via pandas</span></div>
+    <div><span class="k">columns=[...]</span><span class="v">column pushdown — read less</span></div>
+    <div><span class="k">filters=[(col, "==", v)]</span><span class="v">row-group/partition pruning</span></div>
+    <div><span class="k">file_scheme="hive"</span><span class="v">multi-file dataset (needed to append)</span></div>
+    <div><span class="k">partition_on=[...]</span><span class="v">low-cardinality columns only</span></div>
+    <div><span class="k">compression=</span><span class="v">snappy (fast) / zstd (smaller)</span></div>
+    <div><span class="k">append=True</span><span class="v">grow a hive dataset (schema must match)</span></div>
+    <div><span class="k">iter_row_groups()</span><span class="v">bounded-memory streaming read</span></div>
+    <div><span class="k">RETIRING</span><span class="v">new code -> pyarrow / df.to_parquet</span></div>
+    <div><span class="k">Parquet is standard</span><span class="v">files interoperate across engines</span></div>
+  </div>
+</section>
+
+<footer>
+  <b>fastparquet cheat sheet</b> &middot; v0 &middot; content verified 2026-08-31 against fastparquet.readthedocs.io &amp; dask/fastparquet (fastparquet 2026.5.0, CalVer, Python 3.9+).<br>
+  Pure-Python Parquet I/O for pandas: <code>write()</code> out, <code>ParquetFile().to_pandas()</code> in, with column/row-group pushdown, hive partitioning, per-column compression (via cramjam), append, and fsspec remote storage. <b>Maintenance is winding down</b> now that pandas 3.0 requires PyArrow &mdash; for new work prefer <code>pyarrow</code> / <code>df.to_parquet()</code> (or Polars/DuckDB). Parquet files are a standard format and interoperate across engines.<br>
+  Star (&#9733;) marks the most common operations. Given the retirement, confirm behavior against your installed version and plan a PyArrow migration.
+</footer>
+</body>
+</html>

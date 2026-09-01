@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>imbalanced-learn Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --core:#64748b;   --core-bg:#f1f3f6;
+    --under:#d97706;  --under-bg:#fdf6ec;
+    --over:#059669;   --over-bg:#ecf7f2;
+    --ens:#4f46e5;    --ens-bg:#eef0fd;
+    --eval:#0891b2;   --eval-bg:#ecf6fa;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .imb{font-family:var(--mono); color:var(--over)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.core{background:var(--core)}   .dot.under{background:var(--under)}
+  .dot.over{background:var(--over)}   .dot.ens{background:var(--ens)}
+  .dot.eval{background:var(--eval)}   .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1140px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- section headings ---------- */
+  .deck-wrap, .diagrams, .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 2rem;
+  }
+  .deck-wrap h2, .diagrams h2, .refs h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .deck-wrap .sub, .diagrams .sub{
+    color:var(--muted); font-size:.9rem; margin-bottom:1.5rem; max-width:78ch;
+  }
+  .deck-wrap .sub b{color:var(--ink); font-weight:600}
+
+  /* ---------- masonry deck ---------- */
+  .deck{column-gap:1.4rem}
+  @media(min-width:760px){ .deck{column-count:2} }
+  @media(min-width:1200px){ .deck{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  .card-note{
+    padding:.6rem 1rem; font-size:.79rem; color:#525761;
+    background:#fcfbf9; border-bottom:1px solid var(--line);
+  }
+  .card-note b{color:var(--ink); font-weight:600}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.core{border-left-color:var(--core)}
+  ul.cmds li.under{border-left-color:var(--under)}
+  ul.cmds li.over{border-left-color:var(--over)}
+  ul.cmds li.ens{border-left-color:var(--ens)}
+  ul.cmds li.eval{border-left-color:var(--eval)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.82rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word; line-height:1.55;
+  }
+  code.cmd .arg{color:var(--ens); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .fn{color:var(--over); font-weight:700}
+  code.cmd .cm{color:#9aa1ac; font-weight:400}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc b{color:var(--ink); font-weight:600}
+  .desc code, .card-note code, .sub code, .refs-inner code{
+    font-family:var(--mono); font-size:.92em; background:#f4f2ee;
+    padding:.05rem .22rem; border-radius:3px;
+  }
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-ok{
+    color:var(--over); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+
+  /* ---------- tables inside cards ---------- */
+  table.grid{width:100%; border-collapse:collapse; font-size:.76rem}
+  table.grid th{
+    text-align:left; font-family:var(--mono); font-size:.64rem; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--muted); font-weight:700;
+    padding:.55rem 1rem .4rem; border-bottom:1px solid var(--line); background:#fcfbf9;
+  }
+  table.grid td{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8; vertical-align:top; color:#525761;
+  }
+  table.grid tr:last-child td{border-bottom:none}
+  table.grid td.key{font-family:var(--mono); color:var(--ink); font-weight:700; white-space:nowrap}
+  table.grid td b{color:var(--ink); font-weight:600}
+
+  /* ---------- diagram grids ---------- */
+  .dia-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .dia-grid{grid-template-columns:1fr 1fr} }
+  .dia-grid.two-up{grid-template-columns:1fr}
+  @media(min-width:900px){ .dia-grid.two-up{grid-template-columns:1fr 1fr} }
+  .dia-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .dia-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .dia-card h3.bad{color:var(--danger)}
+  .dia-card h3.good{color:var(--over)}
+  .dia-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .dia-card p b{color:var(--ink); font-weight:600}
+  .dia-card .bsvg{width:100%; height:auto; display:block}
+  .dia-card .bsvg text{font-family:var(--mono)}
+  .dia-card.bad{border-color:#f3cdc9; background:var(--danger-bg)}
+  .dia-card.good{border-color:#c3e6d8; background:var(--over-bg)}
+  .dia-card.bad .bsvg, .dia-card.good .bsvg{background:#fff; border-radius:6px}
+
+  /* ---------- mermaid ---------- */
+  .mer-wrap{
+    border:1px solid var(--line); border-radius:10px; background:#fff;
+    padding:1.2rem; overflow-x:auto;
+  }
+  .mermaid{text-align:center; font-size:13px}
+
+  /* ---------- refs strip ---------- */
+  .refs{padding-bottom:4rem}
+  .refs h2{margin-bottom:1rem}
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{background:#2b303a; color:#e8e6e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer a{color:var(--ens); text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · resampling &amp; imbalanced classification</div>
+  <h1><span class="imb">imbalanced-learn</span> cheat sheet</h1>
+  <p class="lede">Every technique attacks the skew at one of four levels: the <b>data</b> (over- or under-sample), the <b>algorithm</b> (reweight the loss), or the <b>decision</b> (move the threshold). <code>imblearn</code> owns the first two. Learn the map once — and learn <em>where</em> resampling is allowed to happen — and the 31 estimators stop being a list to memorize.</p>
+  <div class="legend">
+    <span><i class="dot core"></i>foundations</span>
+    <span><i class="dot over"></i>over-sample</span>
+    <span><i class="dot under"></i>under-sample</span>
+    <span><i class="dot ens"></i>combine &amp; ensemble</span>
+    <span><i class="dot eval"></i>pipeline &amp; metrics</span>
+    <span><i class="dot danger"></i>trap</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>imbalanced-learn.org</b> (API reference · User Guide · Common Pitfalls, v0.14.x) · <b>scikit-learn.org</b> · <b>the original JMLR paper</b> · <b>machinelearningmastery.com</b> · verified 2026-08-28 against <b>imbalanced-learn 0.14.2</b> (requires scikit-learn ≥ 1.4.2; supports sklearn up to 1.9, incl. <code>set_output</code>)</p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">The four levels &amp; where imblearn is allowed to act</div>
+  <svg class="flow-svg" viewBox="0 0 1140 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the four levels at which class imbalance can be addressed, and the rule that resampling must happen only inside the training fold.">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+      </marker>
+    </defs>
+
+    <!-- group labels -->
+    <text x="255" y="30" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">IMBLEARN'S TERRITORY</text>
+    <text x="785" y="30" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#dc2626">THE RULE THAT MAKES IT VALID</text>
+
+    <!-- source -->
+    <g>
+      <rect x="20" y="130" width="130" height="110" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="85" y="168" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">Skewed y</text>
+      <text x="85" y="190" text-anchor="middle" font-size="11" fill="#64748b">99 : 1</text>
+      <text x="85" y="214" text-anchor="middle" font-size="10.5" fill="#64748b">Counter(y)</text>
+    </g>
+    <line x1="150" y1="185" x2="188" y2="185" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- level 1 : over -->
+    <g>
+      <rect x="192" y="48" width="300" height="60" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="208" y="72" font-size="12.5" font-weight="700" fill="#1a1d24">1 · DATA — grow the minority</text>
+      <text x="208" y="93" font-size="10.5" fill="#059669">SMOTE · ADASYN · Borderline · RandomOverSampler</text>
+    </g>
+    <!-- level 2 : under -->
+    <g>
+      <rect x="192" y="120" width="300" height="60" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="208" y="144" font-size="12.5" font-weight="700" fill="#1a1d24">2 · DATA — shrink the majority</text>
+      <text x="208" y="165" font-size="10.5" fill="#b45309">RandomUnderSampler · TomekLinks · ENN · NearMiss</text>
+    </g>
+    <!-- level 3 : algorithm -->
+    <g>
+      <rect x="192" y="192" width="300" height="60" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="208" y="216" font-size="12.5" font-weight="700" fill="#1a1d24">3 · ALGORITHM — reweight the loss</text>
+      <text x="208" y="237" font-size="10.5" fill="#4f46e5">class_weight · BalancedRF · BalancedBagging · RUSBoost</text>
+    </g>
+    <!-- level 4 : decision -->
+    <g>
+      <rect x="192" y="264" width="300" height="60" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2" stroke-dasharray="5 4"/>
+      <text x="208" y="288" font-size="12.5" font-weight="700" fill="#1a1d24">4 · DECISION — move the threshold</text>
+      <text x="208" y="309" font-size="10.5" fill="#64748b">TunedThresholdClassifierCV &#160;— sklearn's job, not imblearn's</text>
+    </g>
+    <text x="342" y="345" text-anchor="middle" font-size="10.5" font-weight="700" fill="#b45309">…and level 4 is free, invents no data, and often enough on its own</text>
+
+    <!-- bracket to the gate -->
+    <path d="M494 78 L520 78 L520 222 L494 222" fill="none" stroke="#94a3b8" stroke-width="1.6"/>
+    <line x1="520" y1="150" x2="588" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="554" y="142" text-anchor="middle" font-size="10.5" font-weight="700" fill="#64748b">but only</text>
+
+    <!-- THE GATE -->
+    <g>
+      <rect x="592" y="90" width="200" height="120" rx="12" fill="#fdf0ef" stroke="#dc2626" stroke-width="2"/>
+      <text x="692" y="122" text-anchor="middle" font-size="14" font-weight="700" fill="#dc2626">THE GATE</text>
+      <text x="692" y="146" text-anchor="middle" font-size="11" fill="#dc2626">resample the</text>
+      <text x="692" y="164" text-anchor="middle" font-size="12" font-weight="700" fill="#dc2626">TRAIN FOLD ONLY</text>
+      <text x="692" y="190" text-anchor="middle" font-size="10.5" fill="#dc2626">imblearn.pipeline.Pipeline</text>
+    </g>
+    <line x1="792" y1="150" x2="850" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- eval -->
+    <g>
+      <rect x="854" y="90" width="266" height="120" rx="12" fill="#ecf6fa" stroke="#0891b2" stroke-width="2"/>
+      <text x="987" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">Score on the NATURAL skew</text>
+      <text x="987" y="145" text-anchor="middle" font-size="11" fill="#0891b2">balanced_accuracy</text>
+      <text x="987" y="163" text-anchor="middle" font-size="11" fill="#0891b2">average_precision  (PR-AUC)</text>
+      <text x="987" y="181" text-anchor="middle" font-size="11" fill="#0891b2">geometric_mean_score</text>
+      <text x="987" y="200" text-anchor="middle" font-size="10.5" font-weight="700" fill="#dc2626">never plain accuracy</text>
+    </g>
+
+    <!-- the leak arrow (what NOT to do) -->
+    <path d="M342 264 Q470 300 690 226" fill="none" stroke="#dc2626" stroke-width="1.6" stroke-dasharray="5 4"/>
+    <line x1="700" y1="222" x2="712" y2="216" stroke="#dc2626" stroke-width="1.6" marker-end="url(#arrowRed)"/>
+    <text x="880" y="256" text-anchor="middle" font-size="11" font-weight="700" fill="#dc2626">skip the gate → synthetic points leak into your test fold</text>
+    <text x="880" y="274" text-anchor="middle" font-size="10.5" fill="#dc2626">→ CV score is a fantasy, production score is not</text>
+
+    <text x="987" y="230" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#0891b2">THE ONLY HONEST NUMBER</text>
+  </svg>
+</section>
+
+<!-- ============ FOUNDATIONS ============ -->
+<section class="deck-wrap">
+  <h2>Foundations &amp; contracts</h2>
+  <p class="sub">Four things to know before you touch a sampler. Card 03 is the one everybody skips and then loses an afternoon to.</p>
+  <div class="deck">
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; Import Surface</span><span class="card-sub">nine modules</span></div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd">pip install <span class="arg">imbalanced-learn</span> <span class="cm"># NOT "imblearn"</span></code><span class="star">★</span><div class="desc">Package name has hyphens; the <i>import</i> name doesn't. There's a squatter named <code>imblearn</code> on PyPI — don't install it.</div></li>
+      <li class="over"><code class="cmd">from <span class="fn">imblearn.over_sampling</span> import SMOTE</code><span class="star">★</span><div class="desc">8 classes — grow the minority.</div></li>
+      <li class="under"><code class="cmd">from <span class="fn">imblearn.under_sampling</span> import RandomUnderSampler</code><span class="star">★</span><div class="desc">11 classes — shrink the majority.</div></li>
+      <li class="ens"><code class="cmd">from <span class="fn">imblearn.combine</span> import SMOTEENN, SMOTETomek</code><div class="desc">2 classes — over-sample, then clean up the mess.</div></li>
+      <li class="ens"><code class="cmd">from <span class="fn">imblearn.ensemble</span> import BalancedRandomForestClassifier</code><span class="star">★</span><div class="desc">4 classifiers that resample <i>internally</i>, per estimator.</div></li>
+      <li class="eval"><code class="cmd">from <span class="fn">imblearn.pipeline</span> import Pipeline, make_pipeline</code><span class="star">★</span><div class="desc"><b>The one you must not skip.</b> See card 15.</div></li>
+      <li class="eval"><code class="cmd">from <span class="fn">imblearn.metrics</span> import classification_report_imbalanced</code><div class="desc">8 metrics scikit-learn doesn't ship.</div></li>
+      <li class="core"><code class="cmd">from <span class="fn">imblearn.datasets</span> import make_imbalance, fetch_datasets</code><div class="desc">Skew a balanced set, or pull 27 real benchmarks.</div></li>
+      <li class="core"><code class="cmd">from <span class="fn">imblearn</span> import FunctionSampler</code><div class="desc">Wrap any <code>(X,y) → (X,y)</code> function into a sampler.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Diagnose First</span><span class="card-sub">before you fix</span></div>
+    <div class="card-note">Half of "imbalanced" problems are 80:20 and need nothing but a better <b>metric</b>. Resampling starts earning its keep past roughly <b>1:20</b>.</div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd">from collections import Counter<br><span class="fn">Counter</span>(y) <span class="cm"># {0: 9900, 1: 100}</span></code><span class="star">★</span><div class="desc">The two-second diagnostic. Run it before and after every sampler.</div></li>
+      <li class="core"><code class="cmd">IR = n_majority / n_minority <span class="cm"># = 99</span></code><div class="desc"><b>Imbalance Ratio.</b> Report it — it frames every decision downstream.</div></li>
+      <li class="core"><code class="cmd"><span class="fn">make_imbalance</span>(X, y, sampling_strategy=<span class="arg">{0: 100, 1: 50}</span>)</code><div class="desc">Deliberately skew a balanced dataset — for tests and demos.</div></li>
+      <li class="core"><code class="cmd"><span class="fn">fetch_datasets</span>()[<span class="arg">'ecoli'</span>] <span class="cm"># 27 sets, IR 9 → 130</span></code><div class="desc">Real benchmarks from Zenodo. Sanity-check a method before you trust it.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># the count matters more than the ratio</span></code><span class="badge-danger">think</span><div class="desc">1:1000 with 5,000 positives is a fine problem. 1:10 with <b>12</b> positives is not a modelling problem — it's a data-collection problem, and SMOTE will happily invent 100 fictional points from those 12.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">The sampling_strategy Contract</span><span class="card-sub">read it once, properly</span></div>
+    <div class="card-note">Every sampler takes it. It's the single biggest source of confusion in the library — because <b><code>'auto'</code> means different things for over- and under-samplers</b>, and because the float is a <b>target ratio</b>, not a multiplier.</div>
+    <table class="grid">
+      <thead><tr><th>Type</th><th>Meaning &amp; gotchas</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="key">float</td>
+          <td>Desired <b>minority : majority ratio after resampling</b>.<br>
+          Over: α<sub>os</sub> = N<sub>rm</sub> / N<sub>M</sub> &nbsp;·&nbsp; Under: α<sub>us</sub> = N<sub>m</sub> / N<sub>rM</sub><br>
+          <span style="color:#dc2626"><b>Binary only</b> — raises on multi-class. <b>Rejected by every cleaning sampler.</b></span></td>
+        </tr>
+        <tr>
+          <td class="key">str</td>
+          <td><code>'minority'</code> · <code>'not minority'</code> · <code>'not majority'</code> · <code>'all'</code> · <code>'auto'</code><br>
+          <span style="color:#dc2626"><b><code>'auto'</code> is two behaviours:</b></span> over-samplers → <code>'not majority'</code>; under-samplers → <code>'not minority'</code>.</td>
+        </tr>
+        <tr>
+          <td class="key">dict</td>
+          <td><code>{class: n_samples_after}</code> — absolute counts, not deltas. <b>The only sane option for multi-class.</b></td>
+        </tr>
+        <tr>
+          <td class="key">callable</td>
+          <td><code>f(y) → dict</code>. Recomputed per fold — the right way to say "bring every class to 25% of the majority" inside CV.</td>
+        </tr>
+      </tbody>
+    </table>
+    <ul class="cmds">
+      <li class="over"><code class="cmd">SMOTE(sampling_strategy=<span class="arg">0.5</span>) <span class="cm"># 900/100 → 900/450</span></code><span class="star">★</span><div class="desc">Minority grows to <b>half the majority</b>. Majority untouched.</div></li>
+      <li class="under"><code class="cmd">RandomUnderSampler(sampling_strategy=<span class="arg">0.5</span>) <span class="cm"># → 200/100</span></code><span class="star">★</span><div class="desc">Same <code>0.5</code>, opposite bar moves. Majority shrinks to 2× minority.</div></li>
+      <li class="danger"><code class="cmd">SMOTE(sampling_strategy=<span class="arg">0.1</span>) <span class="cm"># data already at 0.11</span></code><span class="badge-danger">raises</span><div class="desc"><b>The float trap.</b> A target <i>below</i> the current ratio is a <code>ValueError</code>, not a no-op. Check <code>Counter(y)</code> first.</div></li>
+      <li class="core"><code class="cmd"><span class="fn">check_sampling_strategy</span>(strategy, y, <span class="arg">'over-sampling'</span>)</code><div class="desc">Resolves any input into the exact <code>{class: n}</code> dict it will produce — <b>without running the sampler</b>. Your debugger for this card.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">The Sampler API</span><span class="card-sub">fit_resample, nothing else</span></div>
+    <div class="card-note">Samplers are <b>not transformers</b>. They change the <i>number of rows</i>, so they cannot implement <code>transform()</code> — which is precisely why sklearn's Pipeline rejects them.</div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd">X_res, y_res = sampler.<span class="fn">fit_resample</span>(X, y)</code><span class="star">★</span><div class="desc">The <b>only</b> resampling entry point. <code>len(X_res) != len(X)</code>. pandas in → pandas out.</div></li>
+      <li class="core"><code class="cmd">sampler.<span class="fn">sampling_strategy_</span> <span class="cm"># resolved dict</span></code><div class="desc">Post-fit: exactly how many samples per class were added or removed.</div></li>
+      <li class="core"><code class="cmd">sampler.<span class="fn">sample_indices_</span></code><div class="desc">Only on <b>selection</b>-based samplers (RUS, Tomek, ENN, NearMiss, CNN…). Absent on <b>generative</b> ones (SMOTE, ADASYN, ClusterCentroids) — an invented point has no original index to point at.</div></li>
+      <li class="danger"><code class="cmd">sklearn.pipeline.<span class="fn">Pipeline</span>([(<span class="arg">'smote'</span>, SMOTE()), …])</code><span class="badge-danger">TypeError</span><div class="desc"><code>All intermediate steps should be transformers</code>. Use <code>imblearn.pipeline.Pipeline</code>. Samplers also cannot live inside a <code>ColumnTransformer</code>.</div></li>
+    </ul>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ OVER-SAMPLING ============ -->
+<section class="deck-wrap">
+  <h2>Over-sampling — grow the minority</h2>
+  <p class="sub">Keeps every row of information. Risks overfitting the minority, and <b>corrupts your predicted probabilities</b>. Every SMOTE variant is a k-NN, so <b>scale your features first</b>.</p>
+  <div class="deck">
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">RandomOverSampler</span><span class="card-sub">the honest baseline</span></div>
+    <div class="card-note">Duplicates minority rows at random. Crude — and it <b>beats SMOTE more often than the literature admits</b>. It never invents a point that doesn't exist.</div>
+    <ul class="cmds">
+      <li class="over"><code class="cmd"><span class="fn">RandomOverSampler</span>(random_state=<span class="arg">42</span>)</code><span class="star">★</span><div class="desc">Pure duplication. Roughly equivalent to per-sample weighting for most learners.</div></li>
+      <li class="over"><code class="cmd"><span class="fn">RandomOverSampler</span>(shrinkage=<span class="arg">0.2</span>)</code><div class="desc"><b>Smoothed bootstrap:</b> adds Gaussian noise around each duplicate so they aren't exact clones. <code>None</code> (default) = exact copies. Numeric only.</div></li>
+      <li class="over"><code class="cmd"><span class="cm"># the only over-sampler that takes any dtype</span></code><span class="badge-ok">unique</span><div class="desc">Strings, categoricals, mixed DataFrames, sparse — all fine. Every SMOTE variant needs a distance metric; this one doesn't. <b>When your features are messy, this is your option.</b></div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">SMOTE</span><span class="card-sub">interpolate, don't clone</span></div>
+    <div class="card-note">For each minority point, pick one of its <b>k nearest minority neighbours</b> and drop a synthetic point on the segment between them. See the geometry diagram below.</div>
+    <ul class="cmds">
+      <li class="over"><code class="cmd"><span class="fn">SMOTE</span>(k_neighbors=<span class="arg">5</span>, random_state=<span class="arg">42</span>)</code><span class="star">★</span><div class="desc">Lower <code>k</code> → tighter, more local synthesis. Raise it when the minority is sparse and scattered.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># needs ≥ k_neighbors + 1 minority samples</span></code><span class="badge-danger">raises</span><div class="desc"><code>Expected n_neighbors &lt;= n_samples</code>. You cannot synthesise from 4 points.</div></li>
+      <li class="danger"><code class="cmd">StandardScaler() <b>→</b> SMOTE() <span class="cm"># in that order</span></code><span class="badge-danger">order</span><div class="desc">It's a Euclidean k-NN. Unscaled, your largest-magnitude feature silently owns the entire distance metric.</div></li>
+      <li class="danger"><code class="cmd">SMOTE on OneHotEncoder output</code><span class="badge-danger">nonsense</span><div class="desc">Produces <code>is_married = 0.41</code>. Use <b>SMOTENC</b> on the raw columns — card 08.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">The SMOTE Family</span><span class="card-sub">same maths, different <i>where</i></span></div>
+    <div class="card-note">Vanilla SMOTE synthesises uniformly — including deep in the safe interior, where new points teach the model nothing. Every variant answers one question: <b>where should the budget go?</b></div>
+    <ul class="cmds">
+      <li class="over"><code class="cmd"><span class="fn">BorderlineSMOTE</span>(kind=<span class="arg">'borderline-1'</span>, m_neighbors=<span class="arg">10</span>)</code><span class="star">★</span><div class="desc">Only from minority points <b>in danger</b> — mostly-majority neighbourhoods, but not <i>all</i> majority (those are labelled noise and skipped). <code>'borderline-2'</code> also interpolates toward a majority neighbour.</div></li>
+      <li class="over"><code class="cmd"><span class="fn">SVMSMOTE</span>(m_neighbors=<span class="arg">10</span>, out_step=<span class="arg">0.5</span>)</code><div class="desc">Synthesises around the minority <b>support vectors</b>. The one variant that can <b>extrapolate outward</b> when a region is sparse. Sharper boundary; slower.</div></li>
+      <li class="over"><code class="cmd"><span class="fn">KMeansSMOTE</span>(cluster_balance_threshold=<span class="arg">0.1</span>)</code><div class="desc">Clusters first, then over-samples <b>only minority-dominated clusters</b>. Fixes the "synthesise straight through a majority island" failure. Will raise if no cluster qualifies.</div></li>
+      <li class="over"><code class="cmd"><span class="fn">ADASYN</span>(n_neighbors=<span class="arg">5</span>)</code><div class="desc">Weights each minority point by <b>how many majority neighbours it has</b> — hardest points get the most children.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># ADASYN amplifies label noise, by design</span></code><span class="badge-danger">care</span><div class="desc">A mislabelled minority point sitting in majority territory is <i>exactly</i> what it targets. Never run it on data you haven't de-noised.</div></li>
+      <li class="core"><code class="cmd"><span class="cm"># rule of thumb</span></code><div class="desc">Clean data → <b>BorderlineSMOTE</b>. Noisy data → plain <b>SMOTE</b>, or <b>SMOTEENN</b> to sweep up after.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Categorical Features</span><span class="card-sub">SMOTENC · SMOTEN</span></div>
+    <div class="card-note">Vanilla SMOTE on one-hot columns produces <code>gender = 0.63</code>. These two exist so you never do that.</div>
+    <ul class="cmds">
+      <li class="over"><code class="cmd"><span class="fn">SMOTENC</span>(categorical_features=<span class="arg">[0, 3, 7]</span>)</code><span class="star">★</span><div class="desc"><b>Mixed</b> continuous + categorical. Interpolates the continuous columns; takes the <b>majority vote among the k neighbours</b> for each categorical one.</div></li>
+      <li class="over"><code class="cmd"><span class="fn">SMOTENC</span>(categorical_features=<span class="arg">"auto"</span>)</code><div class="desc">Auto-detects <code>category</code>/<code>object</code> dtypes — <b>DataFrame input only</b>. Otherwise pass indices or a boolean mask.</div></li>
+      <li class="over"><code class="cmd"><span class="fn">SMOTEN</span>(k_neighbors=<span class="arg">5</span>)</code><div class="desc"><b>All-categorical</b> X. Neighbours found via the Value Difference Metric; every new value is a mode vote. No interpolation happens at all.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># SMOTENC needs ≥1 continuous feature</span></code><span class="badge-danger">raises</span><div class="desc">All-categorical X is <b>SMOTEN's</b> job. And feed both the <b>raw</b> columns — encode <i>after</i> resampling, inside the pipeline.</div></li>
+    </ul>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ UNDER-SAMPLING ============ -->
+<section class="deck-wrap">
+  <h2>Under-sampling — shrink the majority</h2>
+  <p class="sub">Throws information away — but it's fast, it never invents data, and it never corrupts your probabilities. <b>Card 09 is the distinction the docs bury</b>, and it explains most "why was my sampling_strategy ignored?" confusion.</p>
+  <div class="deck">
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Controlled vs Cleaning</span><span class="card-sub">the split that organises everything</span></div>
+    <table class="grid">
+      <thead><tr><th>Controlled</th><th>Cleaning</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>You name the target.</b> It hits it exactly.</td>
+          <td><b>A heuristic decides what dies.</b> You cannot name a count.</td>
+        </tr>
+        <tr>
+          <td><code>RandomUnderSampler</code><br><code>NearMiss</code><br><code>ClusterCentroids</code><br><code>InstanceHardnessThreshold</code></td>
+          <td><code>TomekLinks</code><br><code>ENN</code> / <code>RepeatedENN</code> / <code>AllKNN</code><br><code>CondensedNearestNeighbour</code> / <code>OneSidedSelection</code><br><code>NeighbourhoodCleaningRule</code></td>
+        </tr>
+        <tr>
+          <td>Takes <code>float</code>, <code>dict</code>, <code>str</code>, <code>callable</code>.</td>
+          <td><b>Takes <code>str</code> / <code>list</code> only</b> — which classes are <i>eligible</i> for removal. A float or dict <b>raises</b>.</td>
+        </tr>
+        <tr>
+          <td>Result is balanced.</td>
+          <td><b>Result is still imbalanced</b>, just less noisy. Removing 94 of 9,900 rows is a normal outcome.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="card-note">Cleaning samplers are <b>not a balancing tool</b> — they're a <b>noise-removal</b> tool. Their real home is the second half of <code>SMOTEENN</code> / <code>SMOTETomek</code>, or as a pre-step before a controlled sampler.</div>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">RandomUnderSampler</span><span class="card-sub">brutal · fast · hard to beat</span></div>
+    <ul class="cmds">
+      <li class="under"><code class="cmd"><span class="fn">RandomUnderSampler</span>(random_state=<span class="arg">42</span>)</code><span class="star">★</span><div class="desc">Drops majority rows at random until balanced. O(n). Any dtype, sparse included.</div></li>
+      <li class="under"><code class="cmd"><span class="fn">RandomUnderSampler</span>(replacement=<span class="arg">True</span>)</code><div class="desc">Bootstrap instead of a subset. <b>This is the sampler running inside BalancedBagging and EasyEnsemble</b> — which is how you get RUS's speed <i>without</i> throwing data away.</div></li>
+      <li class="over"><code class="cmd"><span class="cm"># the right default when you're data-rich</span></code><span class="badge-ok">try first</span><div class="desc">500k negatives, 5k positives? Dropping to 5k+5k costs you nothing you'd have learned anyway, trains 50× faster, and dodges every SMOTE pathology.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># destructive when the majority is small</span></code><span class="badge-danger">care</span><div class="desc">You're discarding real signal to fix a ratio. Use a <b>balanced ensemble</b> (card 13) — same balanced subsets, but every majority row is seen by <i>some</i> estimator.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Tomek Links &amp; ENN</span><span class="card-sub">cleaning · erase the fuzz</span></div>
+    <div class="card-note">A <b>Tomek link</b> is a pair of opposite-class points that are each other's nearest neighbour — something is wrong there. <b>ENN</b> is blunter: delete any point its neighbours disagree with.</div>
+    <ul class="cmds">
+      <li class="under"><code class="cmd"><span class="fn">TomekLinks</span>()</code><span class="star">★</span><div class="desc">Default <code>'auto'</code> removes only the <b>majority</b> member of each link. <code>sampling_strategy='all'</code> removes <b>both</b> — a genuinely different, more aggressive operation.</div></li>
+      <li class="under"><code class="cmd"><span class="fn">EditedNearestNeighbours</span>(n_neighbors=<span class="arg">3</span>, kind_sel=<span class="arg">'all'</span>)</code><div class="desc">Remove a point if <b>any</b> of its 3 neighbours disagrees (<code>'all'</code>, aggressive) or if <b>most</b> do (<code>'mode'</code>, gentle).</div></li>
+      <li class="under"><code class="cmd"><span class="fn">RepeatedEditedNearestNeighbours</span>(max_iter=<span class="arg">100</span>)</code><div class="desc">Runs ENN until nothing more is removed. Peels the boundary layer by layer.</div></li>
+      <li class="under"><code class="cmd"><span class="fn">AllKNN</span>(allow_minority=<span class="arg">False</span>)</code><div class="desc">ENN with k ramping 1→n. The most thorough of the three — and the most likely to over-clean.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">NearMiss &amp; the Specialists</span><span class="card-sub">distance-driven selection</span></div>
+    <ul class="cmds">
+      <li class="under"><code class="cmd"><span class="fn">NearMiss</span>(version=<span class="arg">1</span>, n_neighbors=<span class="arg">3</span>)</code><div class="desc">Keep majority points with the <b>smallest</b> mean distance to their k <b>nearest</b> minority points. Hugs the boundary — very sensitive to minority noise.</div></li>
+      <li class="under"><code class="cmd"><span class="fn">NearMiss</span>(version=<span class="arg">2</span>)</code><div class="desc">Distance to the k <b>farthest</b> minority points instead. Effectively picks majority points near the minority <i>centroid</i>. More stable than v1.</div></li>
+      <li class="under"><code class="cmd"><span class="fn">NearMiss</span>(version=<span class="arg">3</span>, n_neighbors_ver3=<span class="arg">3</span>)</code><div class="desc">Two-stage: shortlist each minority point's M nearest majority neighbours, then keep those <b>farthest</b> from the minority. High recall, low precision. The most defensible of the three.</div></li>
+      <li class="under"><code class="cmd"><span class="fn">ClusterCentroids</span>(voting=<span class="arg">'auto'</span>)</code><div class="desc"><b>Prototype generation</b> — replaces the majority with k-Means <i>centroids</i> (synthetic, not real rows). <code>voting='hard'</code> snaps each centroid to the nearest real sample.</div></li>
+      <li class="under"><code class="cmd"><span class="fn">InstanceHardnessThreshold</span>(estimator=…, cv=<span class="arg">5</span>)</code><div class="desc">Cross-validates a classifier, then drops the majority points it's <b>least confident</b> about. A learned, model-aware cleaner.</div></li>
+      <li class="under"><code class="cmd"><span class="fn">CondensedNearestNeighbour</span>() · <span class="fn">OneSidedSelection</span>() · <span class="fn">NeighbourhoodCleaningRule</span>()</code><div class="desc">CNN keeps only majority points a 1-NN would <b>misclassify</b> (noise-sensitive — noise <i>is</i> misclassified, so it gets kept). <b>OSS = CNN then TomekLinks</b>, explicitly to fix that. NCR = ENN, plus cleaning <i>around</i> minority points.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># CNN / OSS / NCR are ~O(n²)</span></code><span class="badge-danger">slow</span><div class="desc">1968-era algorithms designed for hundreds of rows. Past ~50k, use RUS or a balanced ensemble.</div></li>
+    </ul>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ COMBINE & ENSEMBLE ============ -->
+<section class="deck-wrap">
+  <h2>Combine &amp; ensemble</h2>
+  <p class="sub">Where the library actually earns its keep. <b>Card 14 is the strongest single default in imblearn</b> — and card 16 is the free baseline you must beat before you're allowed to claim SMOTE helped.</p>
+  <div class="deck">
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Balanced Ensembles</span><span class="card-sub">under-sample without losing data</span></div>
+    <div class="card-note">The elegant answer to RUS's weakness: <b>under-sample many times, differently, and ensemble</b>. Every majority row lands in <i>some</i> bag.</div>
+    <ul class="cmds">
+      <li class="ens"><code class="cmd"><span class="fn">BalancedBaggingClassifier</span>(estimator=<span class="arg">HistGradientBoostingClassifier()</span>, n_estimators=<span class="arg">10</span>)</code><span class="star">★</span><div class="desc">The general form — <b>wrap any classifier</b>. Swap the internal sampler with <code>sampler=NearMiss()</code> etc. The most flexible tool in the library.</div></li>
+      <li class="ens"><code class="cmd"><span class="fn">EasyEnsembleClassifier</span>(n_estimators=<span class="arg">10</span>)</code><div class="desc">BalancedBagging pinned to <code>AdaBoost</code> learners. That's the entire difference.</div></li>
+      <li class="ens"><code class="cmd"><span class="fn">RUSBoostClassifier</span>(n_estimators=<span class="arg">200</span>)</code><div class="desc"><b>Boosting</b>, not bagging: random under-samples <i>before each boosting round</i>. Strong at very high IR; sequential, so no <code>n_jobs</code> speed-up.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">BalancedRandomForest</span><span class="card-sub">start here</span></div>
+    <div class="card-note">A forest where <b>every tree grows on its own balanced bootstrap</b>. No synthetic data, no discarded data — across 200 trees the whole majority class gets seen.</div>
+    <ul class="cmds">
+      <li class="ens"><code class="cmd"><span class="fn">BalancedRandomForestClassifier</span>(<br>&nbsp;&nbsp;n_estimators=<span class="arg">200</span>,<br>&nbsp;&nbsp;sampling_strategy=<span class="arg">"all"</span>,<br>&nbsp;&nbsp;replacement=<span class="arg">True</span>,<br>&nbsp;&nbsp;bootstrap=<span class="arg">False</span>,<br>&nbsp;&nbsp;random_state=<span class="arg">42</span>)</code><span class="star">★</span><div class="desc"><b>Write all four arguments out.</b> This is the canonical Chen–Liaw–Breiman algorithm, and what the official docs use in every example.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># the default-drift trap</span></code><span class="badge-danger">pin them</span><div class="desc">The defaults for <code>sampling_strategy</code>, <code>replacement</code> and <code>bootstrap</code> were all migrated across 0.11 → 0.13 behind <code>FutureWarning</code>s. Code relying on defaults <b>silently changed algorithm</b> between versions. Pin them and the problem vanishes.</div></li>
+      <li class="over"><code class="cmd"><span class="cm"># why it's the best default</span></code><span class="badge-ok">strong</span><div class="desc">One line. No distance metric to break. Multi-class native. Gives <code>feature_importances_</code>. And it beats most SMOTE + classifier pipelines on tabular data.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">SMOTEENN &amp; SMOTETomek</span><span class="card-sub">synthesise, then sweep up</span></div>
+    <div class="card-note">SMOTE happily interpolates a new point straight into majority territory. These two <b>over-sample, then run a cleaner over the result</b> to delete exactly those mistakes.</div>
+    <ul class="cmds">
+      <li class="ens"><code class="cmd"><span class="fn">SMOTEENN</span>(random_state=<span class="arg">42</span>)</code><span class="star">★</span><div class="desc">SMOTE → ENN. <b>The aggressive one</b>: ENN's default <code>kind_sel='all'</code> removes misclassified points from <i>every</i> class, so it deletes a lot — including some synthetic points it just made. Usually the better performer.</div></li>
+      <li class="ens"><code class="cmd"><span class="fn">SMOTETomek</span>(random_state=<span class="arg">42</span>)</code><div class="desc">SMOTE → TomekLinks. Gentler; only deletes mutually-nearest opposite pairs.</div></li>
+      <li class="ens"><code class="cmd"><span class="fn">SMOTEENN</span>(smote=<span class="arg">BorderlineSMOTE()</span>,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enn=<span class="arg">EditedNearestNeighbours(sampling_strategy='majority')</span>)</code><div class="desc">Both stages are swappable. Restricting ENN to <code>'majority'</code> stops it eating your fresh synthetic points — a very common tweak.</div></li>
+      <li class="core"><code class="cmd">Counter(y_res) <span class="cm"># still uneven — correct!</span></code><div class="desc">The cleaning stage runs <i>after</i> balancing and removes rows from both classes. Not a bug.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">class_weight</span><span class="card-sub">not imblearn — but try it first</span></div>
+    <div class="card-note">Reweight the <b>loss</b> instead of the data. Same effect as duplicating minority rows — but nothing is added, nothing is invented, and it costs nothing.</div>
+    <ul class="cmds">
+      <li class="ens"><code class="cmd"><span class="fn">LogisticRegression</span>(class_weight=<span class="arg">"balanced"</span>)</code><span class="star">★</span><div class="desc">Weight = <code>n_samples / (n_classes × bincount(y))</code>. Works on LogReg, SVC, RandomForest, DecisionTree, SGD, HistGradientBoosting.</div></li>
+      <li class="ens"><code class="cmd"><span class="fn">XGBClassifier</span>(scale_pos_weight=<span class="arg">n_neg/n_pos</span>)</code><div class="desc">XGBoost's binary equivalent. LightGBM: <code>is_unbalance=True</code>, or the same <code>scale_pos_weight</code>.</div></li>
+      <li class="ens"><code class="cmd"><span class="fn">RandomForestClassifier</span>(class_weight=<span class="arg">"balanced_subsample"</span>)</code><div class="desc">Recomputes weights per bootstrap. Closer in spirit to BalancedRF — and often nearly as good.</div></li>
+      <li class="over"><code class="cmd"><span class="cm"># benchmark this before writing any imblearn</span></code><span class="badge-ok">baseline</span><div class="desc">A large share of published "SMOTE improved my F1" results <b>evaporate</b> when compared against <code>class_weight='balanced'</code> plus a tuned threshold. Skip this baseline and you don't actually know whether resampling helped.</div></li>
+    </ul>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ THE LEAKAGE DIAGRAM ============ -->
+<section class="diagrams">
+  <h2>The one mistake that invalidates everything</h2>
+  <p class="sub">Resample the whole dataset, <b>then</b> split, and your test fold contains synthetic points interpolated from rows in your training fold — the model has effectively already seen the answers. Under-sampling is largely immune; <b>over-sampling is where the bias is severe</b> (published radiology work measured AUC inflated by ~0.10 per step of imbalance). This is the single reason <code>imblearn.pipeline</code> exists.</p>
+  <div class="dia-grid two-up">
+
+    <div class="dia-card bad">
+      <h3 class="bad">✗ resample → split</h3>
+      <p><b>Leakage.</b> SMOTE sees every row, including the ones about to become your test fold. It interpolates <i>across</i> the split that hasn't happened yet.</p>
+      <svg viewBox="0 0 440 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wrong pattern: SMOTE applied to the full dataset before splitting, leaking synthetic points into the test fold.">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+          </marker>
+        </defs>
+        <rect x="14" y="46" width="86" height="52" rx="10" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+        <text x="57" y="70" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">Full data</text>
+        <text x="57" y="87" text-anchor="middle" font-size="10" fill="#64748b">99 : 1</text>
+        <line x1="100" y1="72" x2="128" y2="72" stroke="#dc2626" stroke-width="2" marker-end="url(#ar)"/>
+
+        <rect x="132" y="46" width="92" height="52" rx="10" fill="#fdf0ef" stroke="#dc2626" stroke-width="2"/>
+        <text x="178" y="70" text-anchor="middle" font-size="11" font-weight="700" fill="#dc2626">SMOTE</text>
+        <text x="178" y="87" text-anchor="middle" font-size="10" fill="#dc2626">on everything</text>
+        <line x1="224" y1="72" x2="252" y2="72" stroke="#dc2626" stroke-width="2" marker-end="url(#ar)"/>
+
+        <rect x="256" y="46" width="92" height="52" rx="10" fill="#fff" stroke="#64748b" stroke-width="2"/>
+        <text x="302" y="70" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">50 : 50</text>
+        <text x="302" y="87" text-anchor="middle" font-size="10" fill="#64748b">synthetic mixed in</text>
+        <line x1="348" y1="72" x2="374" y2="72" stroke="#dc2626" stroke-width="2" marker-end="url(#ar)"/>
+
+        <rect x="378" y="42" width="52" height="26" rx="7" fill="#fff" stroke="#64748b" stroke-width="1.6"/>
+        <text x="404" y="59" text-anchor="middle" font-size="9.5" fill="#1a1d24">train</text>
+        <rect x="378" y="76" width="52" height="26" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="2"/>
+        <text x="404" y="93" text-anchor="middle" font-size="9.5" font-weight="700" fill="#dc2626">test ✗</text>
+
+        <path d="M302 104 Q340 150 400 108" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+        <text x="220" y="146" font-size="10.5" font-weight="700" fill="#dc2626">a synthetic point in the TEST fold was</text>
+        <text x="220" y="163" font-size="10.5" font-weight="700" fill="#dc2626">interpolated from a row in the TRAIN fold</text>
+        <text x="220" y="186" font-size="10" fill="#dc2626">…and the test set is now 50:50, a distribution that will never exist</text>
+      </svg>
+    </div>
+
+    <div class="dia-card good">
+      <h3 class="good">✓ split → resample inside the fold</h3>
+      <p><b>Correct.</b> The Pipeline calls <code>fit_resample()</code> during <code>fit</code> and acts as a <b>pass-through</b> during <code>predict</code>. Each fold resamples independently; the test fold keeps its natural skew.</p>
+      <svg viewBox="0 0 440 200" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Correct pattern: pipeline resamples only the training fold, test fold keeps its natural imbalance.">
+        <defs>
+          <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#059669"/>
+          </marker>
+        </defs>
+        <rect x="14" y="46" width="80" height="52" rx="10" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+        <text x="54" y="70" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">Full data</text>
+        <text x="54" y="87" text-anchor="middle" font-size="10" fill="#64748b">99 : 1</text>
+        <line x1="94" y1="72" x2="118" y2="72" stroke="#059669" stroke-width="2" marker-end="url(#ag)"/>
+
+        <rect x="122" y="40" width="80" height="26" rx="7" fill="#fff" stroke="#64748b" stroke-width="1.6"/>
+        <text x="162" y="57" text-anchor="middle" font-size="9.5" fill="#1a1d24">train · 99:1</text>
+        <rect x="122" y="78" width="80" height="26" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+        <text x="162" y="95" text-anchor="middle" font-size="9.5" font-weight="700" fill="#059669">test · 99:1</text>
+
+        <line x1="202" y1="53" x2="226" y2="53" stroke="#059669" stroke-width="2" marker-end="url(#ag)"/>
+        <rect x="230" y="38" width="94" height="30" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+        <text x="277" y="57" text-anchor="middle" font-size="10" font-weight="700" fill="#059669">SMOTE (fit only)</text>
+        <line x1="324" y1="53" x2="348" y2="53" stroke="#059669" stroke-width="2" marker-end="url(#ag)"/>
+        <rect x="352" y="38" width="78" height="30" rx="8" fill="#fff" stroke="#059669" stroke-width="2"/>
+        <text x="391" y="57" text-anchor="middle" font-size="10" fill="#1a1d24">clf.fit()</text>
+
+        <path d="M202 91 L348 91" fill="none" stroke="#059669" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ag)"/>
+        <text x="275" y="85" text-anchor="middle" font-size="9.5" font-weight="700" fill="#059669">sampler SKIPPED at predict</text>
+        <rect x="352" y="78" width="78" height="28" rx="8" fill="#fff" stroke="#059669" stroke-width="2"/>
+        <text x="391" y="96" text-anchor="middle" font-size="10" fill="#1a1d24">clf.score()</text>
+
+        <text x="14" y="140" font-size="10.5" font-weight="700" fill="#059669">pipe = make_pipeline(StandardScaler(), SMOTE(), clf)</text>
+        <text x="14" y="158" font-size="10.5" font-weight="700" fill="#059669">cross_val_score(pipe, X, y, cv=StratifiedKFold(5))</text>
+        <text x="14" y="184" font-size="10" fill="#059669">The CV number you get is the number you'll actually see in production.</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ PIPELINE & METRICS ============ -->
+<section class="deck-wrap">
+  <h2>Pipeline, CV &amp; metrics</h2>
+  <p class="sub">The part everybody gets wrong. Two rules: <b>resampling only ever happens inside a fold</b>, and <b>accuracy is the enemy</b> — at 99:1, a model that predicts zero forever scores 99%.</p>
+  <div class="deck">
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">imblearn Pipeline</span><span class="card-sub">the correct pattern</span></div>
+    <ul class="cmds">
+      <li class="eval"><code class="cmd">from <span class="fn">imblearn.pipeline</span> import Pipeline <span class="cm"># NOT sklearn's</span></code><span class="star">★</span><div class="desc">This single import is the difference between an honest CV score and a fantasy.</div></li>
+      <li class="eval"><code class="cmd">pipe = <span class="fn">Pipeline</span>([<br>&nbsp;&nbsp;(<span class="arg">"scale"</span>, StandardScaler()), <span class="cm"># SMOTE is a k-NN</span><br>&nbsp;&nbsp;(<span class="arg">"smote"</span>, SMOTE(random_state=42)),<br>&nbsp;&nbsp;(<span class="arg">"clf"</span>, LogisticRegression()),<br>])</code><span class="star">★</span><div class="desc"><b>Order matters:</b> scale → resample → fit. Encode categoricals <i>after</i> SMOTENC, <i>before</i> SMOTE.</div></li>
+      <li class="eval"><code class="cmd"><span class="fn">cross_validate</span>(pipe, X, y, cv=<span class="arg">StratifiedKFold(5)</span>,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;scoring=<span class="arg">"balanced_accuracy"</span>)</code><span class="star">★</span><div class="desc"><b>Stratify, always.</b> With a 1% minority, plain <code>KFold</code> can hand you a fold with zero positives and a silent <code>nan</code>.</div></li>
+      <li class="eval"><code class="cmd"><span class="fn">GridSearchCV</span>(pipe, {<br>&nbsp;&nbsp;<span class="arg">"smote__k_neighbors"</span>: [3, 5, 7],<br>&nbsp;&nbsp;<span class="arg">"smote__sampling_strategy"</span>: [0.3, 0.5, 1.0]})</code><div class="desc"><b>Tune the sampler like any other hyper-parameter.</b> <code>sampling_strategy</code> is a knob, not a constant — full 1:1 balance is rarely the optimum.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># sample_weight is NOT forwarded through a sampler</span></code><span class="badge-danger">limit</span><div class="desc">The rows change, so the weights no longer line up. Need sample weights <i>and</i> resampling? Use <code>class_weight</code> or a balanced ensemble instead.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Metrics That Don't Lie</span><span class="card-sub">accuracy is the enemy</span></div>
+    <div class="card-note">At 99:1, <code>always_predict_zero</code> scores <b>99% accuracy</b>. Every metric below is designed so that model scores ~0.</div>
+    <ul class="cmds">
+      <li class="eval"><code class="cmd"><span class="fn">classification_report_imbalanced</span>(y_true, y_pred)</code><span class="star">★</span><div class="desc">The one-shot overview. Columns: <code>pre rec spe f1 geo iba sup</code> — precision, recall, <b>specificity</b>, F1, <b>geometric mean</b>, <b>index-balanced accuracy</b>, support.</div></li>
+      <li class="eval"><code class="cmd"><span class="fn">balanced_accuracy_score</span>(y_true, y_pred) <span class="cm"># sklearn</span></code><span class="star">★</span><div class="desc">Mean recall across classes. The safest default <code>scoring=</code> string — chance level is 0.5 regardless of skew.</div></li>
+      <li class="eval"><code class="cmd"><span class="fn">average_precision_score</span>(y_true, y_proba) <span class="cm"># sklearn</span></code><span class="star">★</span><div class="desc"><b>PR-AUC. Use this, not ROC-AUC.</b> ROC's x-axis (FPR) has a <i>huge</i> denominator when negatives dominate, so thousands of false positives barely move the curve.</div></li>
+      <li class="eval"><code class="cmd"><span class="fn">geometric_mean_score</span>(y_true, y_pred)</code><div class="desc">√(sensitivity × specificity). Drops to <b>0</b> the moment <i>either</i> class is ignored. Brutally honest.</div></li>
+      <li class="eval"><code class="cmd"><span class="fn">sensitivity_score</span> · <span class="fn">specificity_score</span> · <span class="fn">sensitivity_specificity_support</span></code><div class="desc">The individual pieces, sklearn-style API.</div></li>
+      <li class="eval"><code class="cmd">iba = <span class="fn">make_index_balanced_accuracy</span>(alpha=<span class="arg">0.1</span>)(geometric_mean_score)</code><div class="desc">A <b>decorator factory</b> — wraps <i>any</i> metric to penalise a gap between per-class performance.</div></li>
+      <li class="eval"><code class="cmd"><span class="fn">macro_averaged_mean_absolute_error</span>(y_true, y_pred)</code><div class="desc">For imbalanced <b>ordinal</b> targets (ratings, severity grades) where class distance matters.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Threshold Tuning</span><span class="card-sub">often the whole fix</span></div>
+    <div class="card-note"><code>predict()</code> hard-codes a 0.5 cut-off. On imbalanced data that number is <b>arbitrary and usually wrong</b>. Moving it costs zero training time and invents zero data.</div>
+    <ul class="cmds">
+      <li class="eval"><code class="cmd"><span class="fn">TunedThresholdClassifierCV</span>(clf, scoring=<span class="arg">"balanced_accuracy"</span>) <span class="cm"># sklearn ≥1.5</span></code><span class="star">★</span><div class="desc">Cross-validates the cut-off itself. Exposes <code>.best_threshold_</code>.</div></li>
+      <li class="eval"><code class="cmd"><span class="fn">TunedThresholdClassifierCV</span>(clf,<br>&nbsp;&nbsp;scoring=<span class="arg">make_scorer(cost_fn, greater_is_better=False)</span>)</code><div class="desc"><b>The real answer for business problems.</b> Encode the actual cost (a missed fraud costs ₹40,000; a false alert costs ₹50) and optimise the cut-off against <i>that</i>.</div></li>
+      <li class="eval"><code class="cmd">y_pred = (clf.predict_proba(X)[:, 1] &gt;= <span class="arg">t</span>).astype(int)</code><div class="desc">The manual version. Sweep <code>t</code> along the PR curve and pick an operating point you can defend.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># resampling corrupts predict_proba</span></code><span class="badge-danger">care</span><div class="desc">After SMOTE the model is calibrated to a <b>50:50 world that does not exist</b>, so it systematically over-predicts the minority. Need real probabilities (pricing, risk, expected value)? Prefer <code>class_weight</code> + threshold tuning — or recalibrate afterwards on an untouched, naturally-skewed set.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">20</span><span class="card-title">The Rest of the Surface</span><span class="card-sub">escape hatches</span></div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd"><span class="fn">FunctionSampler</span>(func=<span class="arg">my_fn</span>, kw_args=<span class="arg">{…}</span>, validate=<span class="arg">False</span>)</code><div class="desc">Turn any <code>(X, y) → (X_res, y_res)</code> function into a pipeline-safe sampler. The escape hatch for <b>outlier rejection, business rules, domain filters</b> that must still run per-fold.</div></li>
+      <li class="eval"><code class="cmd">from <span class="fn">imblearn.model_selection</span> import InstanceHardnessCV</code><div class="desc">A CV splitter that spreads <b>hard instances evenly across folds</b>, so fold scores stop swinging wildly on tiny minority classes. Drop-in for <code>cv=</code>.</div></li>
+      <li class="core"><code class="cmd">from <span class="fn">imblearn.keras</span> import BalancedBatchGenerator</code><div class="desc">Yields <b>class-balanced mini-batches</b> to Keras <code>fit()</code>. The deep-learning-native answer: rebalance <i>per batch</i>, never touch the dataset. <code>imblearn.tensorflow.balanced_batch_generator</code> is the TF equivalent.</div></li>
+      <li class="core"><code class="cmd">from imblearn.utils.estimator_checks import <span class="fn">parametrize_with_checks</span></code><div class="desc">pytest decorator to validate a sampler you wrote yourself against the full contract.</div></li>
+    </ul>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ HOW THE SAMPLERS ACTUALLY WORK ============ -->
+<section class="diagrams">
+  <h2>How the samplers actually work</h2>
+  <p class="sub">The geometry behind the four ideas you'll reach for most. Every one of them is a nearest-neighbour rule in disguise — which is why <b>feature scaling is not optional</b>.</p>
+  <div class="dia-grid">
+
+    <div class="dia-card">
+      <h3>SMOTE</h3>
+      <p>Pick a minority seed, pick one of its k nearest <i>minority</i> neighbours, drop a point on the segment. <code>x_new = x_i + λ(x_nn − x_i)</code>, λ ~ U(0,1).</p>
+      <svg viewBox="0 0 390 170" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SMOTE geometry: synthetic points placed on the line segments between a minority seed and its nearest minority neighbours.">
+        <rect x="1" y="1" width="388" height="150" rx="8" fill="#fcfbf9" stroke="#e7e3db"/>
+        <g fill="#cbd5e1">
+          <circle cx="280" cy="34" r="5"/><circle cx="318" cy="58" r="5"/><circle cx="344" cy="104" r="5"/>
+          <circle cx="298" cy="126" r="5"/><circle cx="358" cy="66" r="5"/><circle cx="264" cy="138" r="5"/>
+        </g>
+        <g stroke="#059669" stroke-width="1.6" stroke-dasharray="4 3">
+          <line x1="106" y1="98" x2="64" y2="48"/><line x1="106" y1="98" x2="168" y2="92"/><line x1="106" y1="98" x2="50" y2="120"/>
+        </g>
+        <g fill="#1a1d24">
+          <circle cx="64" cy="48" r="6"/><circle cx="132" cy="32" r="6"/><circle cx="50" cy="120" r="6"/><circle cx="168" cy="92" r="6"/>
+        </g>
+        <g fill="#059669" stroke="#fff" stroke-width="1.2">
+          <circle cx="85" cy="73" r="5.5"/><circle cx="140" cy="95" r="5.5"/><circle cx="80" cy="108" r="5.5"/>
+        </g>
+        <circle cx="106" cy="98" r="6" fill="#1a1d24"/>
+        <circle cx="106" cy="98" r="11" fill="none" stroke="#059669" stroke-width="1.8"/>
+        <text x="106" y="126" text-anchor="middle" font-size="9" fill="#059669" font-weight="700">seed</text>
+        <circle cx="16" cy="164" r="5" fill="#1a1d24"/><text x="26" y="168" font-size="9" fill="#6b7280">real minority</text>
+        <circle cx="118" cy="164" r="5" fill="#059669"/><text x="128" y="168" font-size="9" fill="#6b7280">synthetic</text>
+        <circle cx="204" cy="164" r="5" fill="#cbd5e1"/><text x="214" y="168" font-size="9" fill="#6b7280">majority</text>
+        <text x="296" y="168" font-size="9" fill="#b45309">never extrapolates outward</text>
+      </svg>
+    </div>
+
+    <div class="dia-card">
+      <h3>BorderlineSMOTE vs ADASYN</h3>
+      <p>Same interpolation — different budget. Borderline spends it <b>on the edge</b>; ADASYN spends it <b>where the minority is hardest</b> (most majority neighbours).</p>
+      <svg viewBox="0 0 390 170" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="BorderlineSMOTE concentrates synthetic points along the class boundary; ADASYN concentrates them where minority points have the most majority neighbours.">
+        <rect x="1" y="1" width="188" height="150" rx="8" fill="#fcfbf9" stroke="#e7e3db"/>
+        <rect x="201" y="1" width="188" height="150" rx="8" fill="#fcfbf9" stroke="#e7e3db"/>
+        <path d="M14 132 Q66 30 178 48" fill="none" stroke="#059669" stroke-width="2"/>
+        <g fill="#1a1d24"><circle cx="30" cy="122" r="4.5"/><circle cx="52" cy="94" r="4.5"/><circle cx="40" cy="66" r="4.5"/><circle cx="78" cy="108" r="4.5"/><circle cx="72" cy="60" r="4.5"/><circle cx="106" cy="78" r="4.5"/></g>
+        <g fill="#059669"><circle cx="96" cy="98" r="4.5"/><circle cx="118" cy="82" r="4.5"/><circle cx="134" cy="66" r="4.5"/><circle cx="76" cy="120" r="4.5"/></g>
+        <g fill="#cbd5e1"><circle cx="152" cy="122" r="4.5"/><circle cx="166" cy="94" r="4.5"/><circle cx="140" cy="136" r="4.5"/></g>
+        <text x="95" y="20" text-anchor="middle" font-size="10" font-weight="700" fill="#059669">BorderlineSMOTE</text>
+        <text x="95" y="166" text-anchor="middle" font-size="8.5" fill="#6b7280">only the "in danger" seeds fire</text>
+
+        <path d="M214 132 Q266 30 378 48" fill="none" stroke="#cbd5e1" stroke-width="1.6" stroke-dasharray="4 3"/>
+        <g fill="#1a1d24"><circle cx="230" cy="122" r="4.5"/><circle cx="252" cy="94" r="4.5"/><circle cx="240" cy="66" r="4.5"/><circle cx="278" cy="108" r="4.5"/><circle cx="272" cy="60" r="4.5"/><circle cx="306" cy="78" r="4.5"/></g>
+        <g fill="#d97706"><circle cx="316" cy="66" r="4.5"/><circle cx="330" cy="86" r="4.5"/><circle cx="322" cy="104" r="4.5"/><circle cx="300" cy="58" r="4.5"/><circle cx="338" cy="66" r="4.5"/><circle cx="310" cy="92" r="4.5"/></g>
+        <g fill="#cbd5e1"><circle cx="352" cy="122" r="4.5"/><circle cx="366" cy="94" r="4.5"/><circle cx="340" cy="136" r="4.5"/><circle cx="358" cy="52" r="4.5"/></g>
+        <text x="295" y="20" text-anchor="middle" font-size="10" font-weight="700" fill="#d97706">ADASYN</text>
+        <text x="295" y="166" text-anchor="middle" font-size="8.5" fill="#6b7280">density ∝ majority neighbours — amplifies noise</text>
+      </svg>
+    </div>
+
+    <div class="dia-card">
+      <h3>TomekLinks (cleaning)</h3>
+      <p>A pair of opposite-class points that are <b>each other's</b> nearest neighbour. Remove the majority member and the margin widens. Note the result is <b>still imbalanced</b>.</p>
+      <svg viewBox="0 0 390 170" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tomek links: mutually nearest opposite-class pairs are identified and the majority member removed, widening the margin.">
+        <rect x="1" y="14" width="188" height="126" rx="8" fill="#fcfbf9" stroke="#e7e3db"/>
+        <rect x="201" y="14" width="188" height="126" rx="8" fill="#fcfbf9" stroke="#e7e3db"/>
+        <text x="95" y="10" text-anchor="middle" font-size="9.5" font-weight="700" fill="#6b7280">BEFORE</text>
+        <text x="295" y="10" text-anchor="middle" font-size="9.5" font-weight="700" fill="#d97706">AFTER</text>
+
+        <g fill="#1a1d24"><circle cx="26" cy="46" r="5"/><circle cx="46" cy="78" r="5"/><circle cx="30" cy="112" r="5"/><circle cx="62" cy="56" r="5"/><circle cx="86" cy="94" r="5"/></g>
+        <g fill="#cbd5e1"><circle cx="164" cy="42" r="5"/><circle cx="142" cy="84" r="5"/><circle cx="170" cy="114" r="5"/><circle cx="124" cy="52" r="5"/><circle cx="102" cy="102" r="5"/></g>
+        <line x1="86" y1="94" x2="102" y2="102" stroke="#dc2626" stroke-width="2.2"/>
+        <circle cx="86" cy="94" r="10" fill="none" stroke="#dc2626" stroke-width="1.4"/>
+        <circle cx="102" cy="102" r="10" fill="none" stroke="#dc2626" stroke-width="1.4"/>
+        <text x="95" y="134" text-anchor="middle" font-size="8.5" fill="#dc2626" font-weight="700">Tomek link</text>
+
+        <g fill="#1a1d24"><circle cx="226" cy="46" r="5"/><circle cx="246" cy="78" r="5"/><circle cx="230" cy="112" r="5"/><circle cx="262" cy="56" r="5"/><circle cx="286" cy="94" r="5"/></g>
+        <g fill="#cbd5e1"><circle cx="364" cy="42" r="5"/><circle cx="342" cy="84" r="5"/><circle cx="370" cy="114" r="5"/><circle cx="324" cy="52" r="5"/></g>
+        <circle cx="302" cy="102" r="5" fill="none" stroke="#dc2626" stroke-dasharray="2 2"/>
+        <line x1="296" y1="96" x2="308" y2="108" stroke="#dc2626" stroke-width="1.4"/>
+        <line x1="308" y1="96" x2="296" y2="108" stroke="#dc2626" stroke-width="1.4"/>
+        <path d="M282 24 Q302 76 316 132" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="5 4"/>
+        <text x="295" y="164" text-anchor="middle" font-size="8.5" fill="#d97706" font-weight="700">margin widens · only 1 row removed</text>
+      </svg>
+    </div>
+
+    <div class="dia-card">
+      <h3>Balanced bagging / EasyEnsemble</h3>
+      <p>Under-sample <b>many times, differently</b>, and ensemble. RUS's speed — without throwing data away, because every majority row lands in <i>some</i> bag.</p>
+      <svg viewBox="0 0 390 170" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Balanced bagging: repeated random under-sampling produces several balanced subsets, each training one estimator, combined by majority vote.">
+        <defs>
+          <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+          </marker>
+        </defs>
+        <rect x="8" y="34" width="62" height="102" rx="8" fill="#f1f3f6" stroke="#64748b" stroke-width="1.8"/>
+        <text x="39" y="26" text-anchor="middle" font-size="9" font-weight="700" fill="#6b7280">full train</text>
+        <g fill="#cbd5e1">
+          <rect x="16" y="42" width="46" height="6"/><rect x="16" y="52" width="46" height="6"/><rect x="16" y="62" width="46" height="6"/>
+          <rect x="16" y="72" width="46" height="6"/><rect x="16" y="82" width="46" height="6"/><rect x="16" y="92" width="46" height="6"/>
+          <rect x="16" y="102" width="46" height="6"/>
+        </g>
+        <rect x="16" y="114" width="46" height="6" fill="#1a1d24"/>
+        <rect x="16" y="123" width="46" height="5" fill="#1a1d24"/>
+
+        <line x1="72" y1="56" x2="96" y2="40" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ab)"/>
+        <line x1="72" y1="86" x2="96" y2="86" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ab)"/>
+        <line x1="72" y1="116" x2="96" y2="132" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ab)"/>
+
+        <g>
+          <rect x="100" y="26" width="62" height="30" rx="7" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.8"/>
+          <rect x="107" y="33" width="20" height="7" fill="#cbd5e1"/><rect x="107" y="43" width="20" height="7" fill="#1a1d24"/>
+          <text x="146" y="46" text-anchor="middle" font-size="8.5" font-weight="700" fill="#4f46e5">1:1</text>
+          <rect x="100" y="71" width="62" height="30" rx="7" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.8"/>
+          <rect x="107" y="78" width="20" height="7" fill="#cbd5e1"/><rect x="107" y="88" width="20" height="7" fill="#1a1d24"/>
+          <text x="146" y="91" text-anchor="middle" font-size="8.5" font-weight="700" fill="#4f46e5">1:1</text>
+          <rect x="100" y="116" width="62" height="30" rx="7" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.8"/>
+          <rect x="107" y="123" width="20" height="7" fill="#cbd5e1"/><rect x="107" y="133" width="20" height="7" fill="#1a1d24"/>
+          <text x="146" y="136" text-anchor="middle" font-size="8.5" font-weight="700" fill="#4f46e5">1:1</text>
+        </g>
+        <text x="131" y="18" text-anchor="middle" font-size="8.5" font-weight="700" fill="#4f46e5">RUS × n_estimators</text>
+        <text x="131" y="162" text-anchor="middle" font-size="8" fill="#6b7280">a different majority subset each time</text>
+
+        <line x1="162" y1="41" x2="192" y2="72" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ab)"/>
+        <line x1="162" y1="86" x2="192" y2="86" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ab)"/>
+        <line x1="162" y1="131" x2="192" y2="100" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ab)"/>
+
+        <rect x="196" y="30" width="88" height="26" rx="7" fill="#fff" stroke="#4f46e5" stroke-width="1.6"/>
+        <text x="240" y="47" text-anchor="middle" font-size="9" fill="#4f46e5">estimator₁</text>
+        <rect x="196" y="73" width="88" height="26" rx="7" fill="#fff" stroke="#4f46e5" stroke-width="1.6"/>
+        <text x="240" y="90" text-anchor="middle" font-size="9" fill="#4f46e5">estimator₂</text>
+        <rect x="196" y="116" width="88" height="26" rx="7" fill="#fff" stroke="#4f46e5" stroke-width="1.6"/>
+        <text x="240" y="133" text-anchor="middle" font-size="9" fill="#4f46e5">estimatorₙ</text>
+
+        <line x1="284" y1="43" x2="314" y2="74" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ab)"/>
+        <line x1="284" y1="86" x2="314" y2="86" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ab)"/>
+        <line x1="284" y1="129" x2="314" y2="98" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ab)"/>
+        <rect x="318" y="66" width="64" height="40" rx="8" fill="#1a1d24"/>
+        <text x="350" y="83" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">majority</text>
+        <text x="350" y="96" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">vote</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ DECISION MAP ============ -->
+<section class="diagrams">
+  <h2>Decision map</h2>
+  <p class="sub">Follow the arrows. <b>Don't cargo-cult SMOTE</b> — the first three boxes are free, invent no data, and settle a surprising share of real problems on their own.</p>
+  <div class="mer-wrap">
+    <pre class="mermaid">
+flowchart LR
+  A["Imbalanced<br/>classification"] --> B{"Is accuracy<br/>the only problem?"}
+  B -->|"often yes"| C["Fix the METRIC<br/>balanced_accuracy · PR-AUC"]
+  C --> D["Tune the THRESHOLD<br/>TunedThresholdClassifierCV"]
+  D --> E{"Good enough?"}
+  E -->|yes| Z(["Ship it —<br/>you resampled nothing"])
+  E -->|no| F["class_weight='balanced'<br/>scale_pos_weight"]
+  F --> G{"Good enough?"}
+  G -->|yes| Z
+  G -->|no| H{"How much<br/>majority data?"}
+  H -->|"plenty — 100k+"| I["RandomUnderSampler<br/>fast · invents nothing"]
+  H -->|"scarce"| J["BalancedRandomForest<br/>BalancedBagging"]
+  H -->|"minority &lt; 50 rows"| K["Get more data.<br/>SMOTE will hallucinate."]
+  J --> L{"Still short<br/>on recall?"}
+  L -->|no| Z
+  L -->|yes| M{"Feature types?"}
+  M -->|"numeric, clean"| N["BorderlineSMOTE"]
+  M -->|"numeric, noisy"| O["SMOTEENN"]
+  M -->|"mixed cat + num"| P["SMOTENC"]
+  M -->|"all categorical"| Q["SMOTEN"]
+  M -->|"strings / messy"| R["RandomOverSampler"]
+  N --> Y["Wrap in imblearn Pipeline.<br/>Always."]
+  O --> Y
+  P --> Y
+  Q --> Y
+  R --> Y
+  I --> Y
+  Y --> Z
+  classDef free fill:#ecf7f2,stroke:#059669,color:#065f46,stroke-width:2px;
+  classDef warn fill:#fdf0ef,stroke:#dc2626,color:#991b1b,stroke-width:2px;
+  classDef gate fill:#ecf6fa,stroke:#0891b2,color:#155e75,stroke-width:2px;
+  classDef samp fill:#fdf6ec,stroke:#d97706,color:#92400e,stroke-width:2px;
+  classDef ship fill:#1a1d24,stroke:#1a1d24,color:#fbbf24,stroke-width:2px;
+  class C,D,F free;
+  class K,Y warn;
+  class B,E,G,H,L,M gate;
+  class I,J,N,O,P,Q,R samp;
+  class Z ship;
+    </pre>
+  </div>
+</section>
+
+<!-- ============ TRAPS ============ -->
+<section class="deck-wrap">
+  <h2>Traps</h2>
+  <p class="sub">Every one of these has cost somebody a production model. The first group produces <b>wrong numbers, silently</b>. The second just wastes your afternoon. The third is the set of conceptual limits nobody prints on the box.</p>
+  <div class="deck">
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">21</span><span class="card-title">Silently Wrong</span><span class="card-sub">these invalidate results</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">SMOTE().fit_resample(X, y) <b>→</b> train_test_split(…)</code><span class="badge-danger">leak</span><div class="desc">The cardinal sin. Always resample <i>inside</i> <code>imblearn.pipeline.Pipeline</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># resampling the TEST set</span></code><span class="badge-danger">never</span><div class="desc">You must evaluate on the natural distribution. A balanced test set answers a question nobody asked — and <b>precision becomes meaningless</b> once you've changed the base rate.</div></li>
+      <li class="danger"><code class="cmd">KFold(5) <span class="cm"># on a 1% minority</span></code><span class="badge-danger">nan</span><div class="desc">A fold with zero positives. <b>Always <code>StratifiedKFold</code></b>; with grouped data, <code>StratifiedGroupKFold</code>.</div></li>
+      <li class="danger"><code class="cmd">SMOTE() <b>→</b> StandardScaler()</code><span class="badge-danger">order</span><div class="desc">Backwards. Scale <i>first</i> — SMOTE is a Euclidean k-NN.</div></li>
+      <li class="danger"><code class="cmd">roc_auc on 1:1000 data</code><span class="badge-danger">flatters</span><div class="desc">Optimistic to the point of being decorative. Report <code>average_precision</code> and show the PR curve.</div></li>
+      <li class="danger"><code class="cmd">trusting predict_proba after SMOTE</code><span class="badge-danger">miscalibrated</span><div class="desc">Calibrated to a 50:50 world that doesn't exist.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">22</span><span class="card-title">Loud Errors</span><span class="card-sub">what the traceback means</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">TypeError: All intermediate steps should be transformers</code><div class="desc">You used <code>sklearn.pipeline.Pipeline</code>. Samplers have <code>fit_resample</code>, not <code>transform</code>. Swap the import.</div></li>
+      <li class="danger"><code class="cmd">ValueError: Expected n_neighbors &lt;= n_samples</code><div class="desc">Fewer minority samples than <code>k_neighbors + 1</code>. Lower <code>k</code> — or accept that you can't synthesise from 4 points.</div></li>
+      <li class="danger"><code class="cmd">ValueError: … ratio required to remove samples from the minority class</code><div class="desc">Your <code>float</code> target sits <i>below</i> the current ratio. Card 03.</div></li>
+      <li class="danger"><code class="cmd">ValueError: 'sampling_strategy' as a float is not supported for cleaning</code><div class="desc">Cleaning samplers take <code>str</code>/<code>list</code> only. Card 09.</div></li>
+      <li class="core"><code class="cmd">Counter(y_res) <span class="cm"># still imbalanced?!</span></code><div class="desc">You used a <b>cleaning</b> sampler. It was never going to balance. Working as designed.</div></li>
+      <li class="core"><code class="cmd"><span class="cm"># no sample_indices_ on my sampler</span></code><div class="desc">Only <i>selection</i> samplers have it. SMOTE / ADASYN / ClusterCentroids <b>generate</b> — there's no original row to point at.</div></li>
+      <li class="core"><code class="cmd"><span class="cm"># irreproducible runs</span></code><div class="desc">Set <code>random_state</code> on the <b>sampler</b>, the <b>estimator</b> <i>and</i> the <b>CV splitter</b>. Three places, all of them.</div></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head"><span class="card-num">23</span><span class="card-title">Where SMOTE Quietly Fails</span><span class="card-sub">the conceptual limits</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="cm"># high dimensionality</span></code><div class="desc">Distances <b>concentrate</b> as <i>d</i> grows — every point becomes equidistant, "nearest neighbour" stops meaning anything, and SMOTE degenerates toward noise. Reduce dimensions first, or don't use it. This is why it routinely underperforms on <b>text and genomics</b>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># label noise</span></code><div class="desc">A mislabelled minority point in majority territory gets <b>amplified</b> — SMOTE (and especially ADASYN) breeds a colony of synthetic points around your error. Clean first: <code>SMOTEENN</code>, or ENN as a pre-step.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># small disjuncts</span></code><div class="desc">If the minority is several tiny <i>separated</i> clusters, SMOTE interpolates <b>between</b> them — straight through majority space. <code>KMeansSMOTE</code> exists for exactly this. <b>Plot your data first.</b></div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># it cannot extrapolate</span></code><div class="desc">Every synthetic point lands <b>inside the convex hull</b> of the minority you already have. If the true minority region is bigger than your samples, no amount of SMOTE will find it. (<code>SVMSMOTE</code> is the one partial exception.)</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># it does not create information</span></code><div class="desc"><b>The deepest point.</b> SMOTE rearranges the density of what you already have; it adds no new signal. It shifts the <i>decision boundary</i> — which is often exactly what you wanted, but that's a job <code>class_weight</code> and a tuned threshold do more cheaply and more honestly.</div></li>
+    </ul>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">imblearn.pipeline</span><span class="v">not sklearn's — the difference between an honest CV score and a fantasy</span></div>
+    <div><span class="k">sampling_strategy=0.5</span><span class="v">minority ends at <b>half the majority</b> · binary only · cleaning samplers reject it</span></div>
+    <div><span class="k">'auto' flips</span><span class="v">over → <code>'not majority'</code> &nbsp;·&nbsp; under → <code>'not minority'</code></span></div>
+    <div><span class="k">fit_resample</span><span class="v">the only entry point — no <code>transform()</code>, which is why sklearn's Pipeline rejects it</span></div>
+    <div><span class="k">controlled ≠ cleaning</span><span class="v">cleaning samplers <b>don't balance</b> — stop waiting for 50:50</span></div>
+    <div><span class="k">scale → resample → fit</span><span class="v">SMOTE is a Euclidean k-NN; unscaled, one feature owns the metric</span></div>
+    <div><span class="k">BalancedRF</span><span class="v">pin <code>sampling_strategy="all"</code>, <code>replacement=True</code>, <code>bootstrap=False</code></span></div>
+    <div><span class="k">class_weight first</span><span class="v">the free baseline you must beat before claiming SMOTE helped</span></div>
+    <div><span class="k">PR-AUC, not ROC-AUC</span><span class="v">ROC's FPR denominator is enormous when negatives dominate</span></div>
+    <div><span class="k">StratifiedKFold</span><span class="v">always — plain <code>KFold</code> can hand you a fold with zero positives</span></div>
+    <div><span class="k">SMOTENC</span><span class="v">raw categorical columns in, one-hot encode <b>after</b> — never before</span></div>
+    <div><span class="k">test set stays skewed</span><span class="v">a balanced test set answers a question nobody asked</span></div>
+    <div><span class="k">predict_proba lies</span><span class="v">after SMOTE it's calibrated to a 50:50 world that doesn't exist</span></div>
+    <div><span class="k">threshold tuning</span><span class="v">free, invents nothing, often recovers all of it — <b>try it first</b></span></div>
+    <div><span class="k">no extrapolation</span><span class="v">SMOTE stays inside the convex hull — it redistributes, it never creates</span></div>
+    <div><span class="k">count &gt; ratio</span><span class="v">1:1000 with 5,000 positives is fine; 1:10 with 12 is a data problem</span></div>
+  </div>
+</section>
+
+<footer>
+  imbalanced-learn cheat sheet · grounded against the official <a href="https://imbalanced-learn.org/stable/references/index.html">API reference</a>, <a href="https://imbalanced-learn.org/stable/user_guide.html">User Guide</a> and <a href="https://imbalanced-learn.org/stable/common_pitfalls.html">Common Pitfalls</a>, cross-checked with scikit-learn's docs and the original JMLR paper.<br>
+  API shown for <b>imbalanced-learn 0.14.2</b> (current, re-verified 2026-08-28; requires scikit-learn ≥ 1.4.2, up to sklearn 1.9) · <span class="star">★</span> = everyday · <span style="color:#dc2626">red</span> = it will bite you.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+        fontSize: '12px',
+        primaryColor: '#fbfaf8',
+        primaryTextColor: '#1a1d24',
+        primaryBorderColor: '#64748b',
+        lineColor: '#94a3b8',
+        secondaryColor: '#f1f3f6',
+        tertiaryColor: '#ffffff'
+      },
+      flowchart: { curve: 'basis', nodeSpacing: 30, rankSpacing: 55, useMaxWidth: true }
+    });
+  }
+</script>
+
+</body>
+</html>

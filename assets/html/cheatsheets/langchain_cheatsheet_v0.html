@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LangChain Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Agent framework on the LangGraph runtime &middot; create_agent &middot; middleware &middot; content blocks &middot; verified against LangChain 1.x (2026)</div>
+  <h1><span class="mono">LangChain</span> cheat sheet</h1>
+  <p class="lede"><b>LangChain 1.x</b> is a focused, high-level API for building <b>agents</b>. Its centerpiece is <code>create_agent()</code> &mdash; a production agent loop that runs on the <b>LangGraph runtime</b> underneath, so you get durable execution, streaming, and checkpointed memory for free. Customize every step with <b>middleware</b>, get one unified <code>content_blocks</code> view across providers, and reach for <b>init_chat_model</b> to swap models by string. Legacy chains/retrievers now live in <code>langchain-classic</code>. Targets <b>langchain / langchain-core 1.x</b>, Python 3.10&ndash;3.14.</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>agents &amp; core</span>
+    <span><i class="dot c2"></i>models &amp; messages</span>
+    <span><i class="dot c3"></i>tools &amp; structured output</span>
+    <span><i class="dot c4"></i>middleware &amp; runtime</span>
+    <span><i class="dot c5"></i>streaming / memory / compose</span>
+    <span><i class="dot danger"></i>gotcha / migration</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-08-30 against the official docs at <b>docs.langchain.com</b> and <b>reference.langchain.com</b> (LangChain / langchain-core 1.x; latest <code>langchain</code> 1.3.18). LangChain 1.0 GA shipped Oct 2025; <code>create_agent</code> executes on the LangGraph 1.x runtime.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub">Learn <code>create_agent</code> first &mdash; models, tools, structured output, and middleware all plug into it. Streaming, memory, and LCEL composition sit on the same LangGraph runtime.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Getting started</h3>
+      <ol class="toc-list">
+        <li><span class="rk">1</span><a href="#install">Install &amp; imports</a> <span class="cap">&mdash; packages, keys</span></li>
+        <li><span class="rk">2</span><a href="#agent">create_agent &mdash; the core</a> <span class="cap">&mdash; build &amp; run</span></li>
+      </ol>
+      <h3 style="margin-top:1rem">Models &amp; messages</h3>
+      <ol class="toc-list">
+        <li><span class="rk">3</span><a href="#models">init_chat_model &amp; providers</a></li>
+        <li><span class="rk">4</span><a href="#messages">Messages &amp; content_blocks</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Tools &amp; output</h3>
+      <ol class="toc-list">
+        <li><span class="rk">5</span><a href="#tools">Tools with @tool</a></li>
+        <li><span class="rk">6</span><a href="#structured">Structured output</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">Middleware &amp; runtime</h3>
+      <ol class="toc-list">
+        <li><span class="rk">7</span><a href="#middleware">Middleware &amp; hooks</a></li>
+        <li><span class="rk">8</span><a href="#prebuilt">Prebuilt middleware</a></li>
+        <li><span class="rk">9</span><a href="#runtime">Runtime &amp; context</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Streaming / memory / compose</h3>
+      <ol class="toc-list">
+        <li><span class="rk">10</span><a href="#stream">Invoke &amp; stream</a></li>
+        <li><span class="rk">11</span><a href="#memory">Memory &amp; checkpointer</a></li>
+        <li><span class="rk">12</span><a href="#lcel">LCEL, Runnables &amp; prompts</a></li>
+        <li><span class="rk">13</span><a href="#rag">Retrieval / RAG</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">Ecosystem</h3>
+      <ol class="toc-list">
+        <li><span class="rk">14</span><a href="#ecosystem">LangGraph &amp; LangSmith</a></li>
+        <li><span class="rk">15</span><a href="#migration">v1 migration &amp; classic</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-start"><h2 style="color:var(--c1)">Getting Started</h2><p class="sub">Install the meta-package plus a provider integration, then build your first agent.</p></div>
+<main>
+  <article class="card" id="install">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Install &amp; imports</span><span class="card-sub">pip / keys</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">pip install <span class="arg">langchain</span> <span class="arg">langchain-openai</span></code><span class="star">&#9733;</span><div class="desc"><code>langchain</code> (v1 agent API) pulls in <code>langchain-core</code>. Add one provider package per backend: <code>langchain-anthropic</code>, <code>langchain-google-genai</code>, etc.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">export</span> OPENAI_API_KEY=<span class="str">"sk-..."</span>  <span class="cm"># or ANTHROPIC_API_KEY, ...</span></code><div class="desc">Provider packages read their own <code>*_API_KEY</code> env var. Python 3.10&ndash;3.14 supported.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">from</span> langchain.agents <span class="kw">import</span> create_agent
+<span class="kw">from</span> langchain.tools <span class="kw">import</span> tool
+<span class="kw">from</span> langchain.messages <span class="kw">import</span> HumanMessage, AIMessage</code><span class="star">&#9733;</span><div class="desc">The v1 surface is small &amp; flat: <code>langchain.agents</code>, <code>langchain.tools</code>, <code>langchain.messages</code>, <code>langchain.chat_models</code>.</div></li>
+      <li class="c1"><code class="cmd">pip install <span class="str">"langchain[anthropic]"</span></code><div class="desc">Extras install a matching provider package in one shot &mdash; handy for the model string <code>"anthropic:..."</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="agent">
+    <div class="card-head"><span class="card-num n1">2</span><span class="card-title">create_agent &mdash; the core</span><span class="card-sub">the whole loop</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">agent = create_agent(
+    model=<span class="str">"openai:gpt-4o"</span>,
+    tools=[get_weather],
+    system_prompt=<span class="str">"You are a helpful assistant."</span>)</code><span class="star">&#9733;</span><div class="desc">The standard way to build an agent in v1: a model + tools + instructions. Replaces the old <code>AgentExecutor</code> and <code>langgraph.prebuilt.create_react_agent</code>.</div></li>
+      <li class="c1"><code class="cmd">result = agent.invoke(
+    {<span class="str">"messages"</span>: [{<span class="str">"role"</span>:<span class="str">"user"</span>, <span class="str">"content"</span>:<span class="str">"Weather in NYC?"</span>}]})</code><span class="star">&#9733;</span><div class="desc">State is a dict with a <code>messages</code> list. The agent runs the model&rarr;tool loop until the model stops calling tools.</div></li>
+      <li class="c1"><code class="cmd">result[<span class="str">"messages"</span>][-1].content</code><div class="desc">Final answer is the last message. The full trajectory (tool calls + results) is in <code>result["messages"]</code>.</div></li>
+      <li class="c1"><code class="cmd">create_agent(model, tools, system_prompt,
+    middleware=[...], response_format=..., checkpointer=...)</code><div class="desc">Key params: <code>middleware</code> (customize the loop), <code>response_format</code> (structured output), <code>checkpointer</code> (memory), <code>context_schema</code> (typed runtime context).</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-models"><h2 style="color:var(--c2)">Models &amp; Messages</h2><p class="sub">Pick a model by string, and read modern LLM output through one content-block schema.</p></div>
+<main>
+  <article class="card" id="models">
+    <div class="card-head"><span class="card-num n2">3</span><span class="card-title">init_chat_model &amp; providers</span><span class="card-sub">swap by string</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd"><span class="kw">from</span> langchain.chat_models <span class="kw">import</span> init_chat_model
+model = init_chat_model(<span class="str">"anthropic:claude-sonnet-4-5"</span>)</code><span class="star">&#9733;</span><div class="desc">One factory for every provider. The <code>"provider:model"</code> string is also what <code>create_agent(model=...)</code> accepts directly.</div></li>
+      <li class="c2"><code class="cmd">init_chat_model(<span class="str">"gpt-4o"</span>, model_provider=<span class="str">"openai"</span>, temperature=0)</code><div class="desc">Split provider out explicitly, and pass model kwargs (<code>temperature</code>, <code>max_tokens</code>, <code>timeout</code>, <code>max_retries</code>).</div></li>
+      <li class="c2"><code class="cmd">resp = model.invoke(<span class="str">"Hello"</span>)  <span class="cm"># -> AIMessage</span>
+resp = model.invoke([HumanMessage(<span class="str">"Hi"</span>)])</code><span class="star">&#9733;</span><div class="desc">A model is a Runnable: <code>.invoke</code> / <code>.batch</code> / <code>.stream</code> and async <code>.ainvoke</code> / <code>.abatch</code> / <code>.astream</code>.</div></li>
+      <li class="c2"><code class="cmd">model.bind_tools([get_weather])  &middot;  init_chat_model(..., configurable_fields=<span class="str">"any"</span>)</code><div class="desc"><code>bind_tools</code> attaches tools to a bare model; <code>configurable</code> models let you switch model at call time via config.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="messages">
+    <div class="card-head"><span class="card-num n2">4</span><span class="card-title">Messages &amp; content_blocks</span><span class="card-sub">unified I/O</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd"><span class="kw">from</span> langchain.messages <span class="kw">import</span> (
+    SystemMessage, HumanMessage, AIMessage, ToolMessage)</code><span class="star">&#9733;</span><div class="desc">Dict form <code>{"role":"user","content":"..."}</code> works too and is auto-coerced. <code>role</code> values: <code>system</code>, <code>user</code>, <code>assistant</code>, <code>tool</code>.</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">for</span> block <span class="kw">in</span> resp.content_blocks:
+    <span class="kw">if</span> block[<span class="str">"type"</span>] == <span class="str">"text"</span>: print(block[<span class="str">"text"</span>])</code><span class="star">&#9733;</span><span class="badge-new">v1</span><div class="desc">Standard, provider-agnostic view of output: <code>text</code>, <code>reasoning</code>, <code>tool_call</code>, <code>image</code>, <code>citation</code> blocks &mdash; no more per-provider parsing.</div></li>
+      <li class="c2"><code class="cmd">HumanMessage(content=[
+    {<span class="str">"type"</span>:<span class="str">"text"</span>,<span class="str">"text"</span>:<span class="str">"describe"</span>},
+    {<span class="str">"type"</span>:<span class="str">"image"</span>,<span class="str">"url"</span>:<span class="str">"https://..."</span>}])</code><div class="desc">Multimodal input as a list of content parts for vision-capable models.</div></li>
+      <li class="c2"><code class="cmd">resp.tool_calls  <span class="cm"># [{'name','args','id'}]</span>
+resp.usage_metadata  <span class="cm"># input/output tokens</span></code><div class="desc">Convenience accessors on <code>AIMessage</code>. <code>ToolMessage(content=..., tool_call_id=...)</code> carries a tool result back.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-tools"><h2 style="color:var(--c3)">Tools &amp; Structured Output</h2><p class="sub">Turn any Python function into a tool; force the model to answer in your schema.</p></div>
+<main>
+  <article class="card" id="tools">
+    <div class="card-head"><span class="card-num n3">5</span><span class="card-title">Tools with @tool</span><span class="card-sub">give it hands</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="kw">from</span> langchain.tools <span class="kw">import</span> tool
+
+<span class="fn">@tool</span>
+<span class="kw">def</span> get_weather(city: str) -> str:
+    <span class="str">"""Get the weather for a city."""</span>
+    <span class="kw">return</span> f<span class="str">"Sunny in {city}"</span></code><span class="star">&#9733;</span><div class="desc">The docstring becomes the tool description; type hints become the args schema. Name defaults to the function name.</div></li>
+      <li class="c3"><code class="cmd"><span class="fn">@tool</span>(<span class="str">"search"</span>, description=<span class="str">"Web search"</span>)
+<span class="kw">def</span> s(q: str) -> str: ...</code><div class="desc">Override name/description, or pass <code>args_schema=</code> a Pydantic model for richer validation of arguments.</div></li>
+      <li class="c3"><code class="cmd"><span class="kw">from</span> langchain.tools <span class="kw">import</span> InjectedState, ToolRuntime</code><div class="desc">Inject agent state or runtime into a tool signature (not shown to the model) &mdash; e.g. read the message history or user context inside the tool.</div></li>
+      <li class="c3"><code class="cmd"><span class="kw">return</span> Command(update={<span class="str">"messages"</span>:[...]})</code><div class="desc">A tool may return a <code>Command</code> to update agent state or hand off control &mdash; the basis for multi-agent handoffs.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># tools without a docstring / hints = poor tool-calling</span></code><span class="badge-warn">tip</span><div class="desc">The model only sees name + description + schema. Vague descriptions are the #1 cause of an agent picking the wrong tool.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="structured">
+    <div class="card-head"><span class="card-num n3">6</span><span class="card-title">Structured output</span><span class="card-sub">typed answers</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+<span class="kw">class</span> Weather(BaseModel):
+    temperature: float
+    condition: str</code><span class="star">&#9733;</span><div class="desc">Define the shape you want with Pydantic (or a TypedDict / JSON schema).</div></li>
+      <li class="c3"><code class="cmd">agent = create_agent(model, tools,
+    response_format=Weather)
+r = agent.invoke({...})
+r[<span class="str">"structured_response"</span>]  <span class="cm"># -> Weather</span></code><span class="star">&#9733;</span><span class="badge-new">v1</span><div class="desc">The agent returns a validated object under <code>structured_response</code> alongside the messages.</div></li>
+      <li class="c3"><code class="cmd"><span class="kw">from</span> langchain.agents.structured_output <span class="kw">import</span> ToolStrategy, ProviderStrategy
+response_format=ToolStrategy(Weather)</code><div class="desc"><code>ToolStrategy</code> emits structured output via an artificial tool call (works anywhere); <code>ProviderStrategy</code> uses native provider structured-output where available.</div></li>
+      <li class="c3"><code class="cmd">model.with_structured_output(Weather).invoke(<span class="str">"..."</span>)</code><div class="desc">On a bare model (no agent), <code>with_structured_output</code> returns the parsed object directly.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-mw"><h2 style="color:var(--c4)">Middleware &amp; Runtime</h2><p class="sub">Middleware is the v1 way to customize the agent loop &mdash; hook any step without dropping to raw graph code.</p></div>
+<main>
+  <article class="card" id="middleware">
+    <div class="card-head"><span class="card-num n4">7</span><span class="card-title">Middleware &amp; hooks</span><span class="card-sub">control the loop</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="kw">from</span> langchain.agents.middleware <span class="kw">import</span> AgentMiddleware</code><span class="badge-new">v1</span><div class="desc">Subclass and override the hooks you need; pass instances via <code>create_agent(..., middleware=[...])</code>. They run in order around each step.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">class</span> M(AgentMiddleware):
+    <span class="kw">def</span> before_model(self, state, runtime): ...
+    <span class="kw">def</span> after_model(self, state, runtime): ...</code><span class="star">&#9733;</span><div class="desc">Lifecycle hooks: <code>before_agent</code>, <code>before_model</code>, <code>after_model</code>, <code>after_agent</code>. Return a state update dict to modify messages/state.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">def</span> wrap_model_call(self, request, handler):
+    <span class="kw">return</span> handler(request)  <span class="cm"># intercept the LLM call</span></code><div class="desc"><code>wrap_model_call</code> / <code>wrap_tool_call</code> wrap the actual call &mdash; retry, rewrite the request, cache, or post-process the response.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">from</span> langchain.agents.middleware <span class="kw">import</span> dynamic_prompt
+
+<span class="fn">@dynamic_prompt</span>
+<span class="kw">def</span> p(request): <span class="kw">return</span> f<span class="str">"System... {request.state}"</span></code><div class="desc">Decorator shortcuts (e.g. <code>@dynamic_prompt</code>, <code>@before_model</code>) build a one-hook middleware from a plain function.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="prebuilt">
+    <div class="card-head"><span class="card-num n4">8</span><span class="card-title">Prebuilt middleware</span><span class="card-sub">batteries included</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="kw">from</span> langchain.agents.middleware <span class="kw">import</span> SummarizationMiddleware
+SummarizationMiddleware(model, max_tokens_before_summary=4000)</code><span class="star">&#9733;</span><div class="desc">Auto-condenses old messages when history grows, keeping the agent under the context window.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">from</span> langchain.agents.middleware <span class="kw">import</span> HumanInTheLoopMiddleware</code><span class="star">&#9733;</span><div class="desc">Pauses for human approval before sensitive tool calls &mdash; the agent interrupts, you resume with an accept/edit/reject decision.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">from</span> langchain.agents.middleware <span class="kw">import</span> PIIMiddleware</code><div class="desc">Detects &amp; redacts PII (emails, cards, etc.) flowing through the agent.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">from</span> langchain.agents.middleware <span class="kw">import</span> ModelFallbackMiddleware</code><div class="desc">Also available: model fallback, tool-call limits, tool-retry, context-editing. Compose several in the <code>middleware=[...]</code> list.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="runtime">
+    <div class="card-head"><span class="card-num n4">9</span><span class="card-title">Runtime &amp; context</span><span class="card-sub">typed injection</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
+<span class="fn">@dataclass</span>
+<span class="kw">class</span> Ctx: user_id: str</code><div class="desc">Define a context schema, then <code>create_agent(..., context_schema=Ctx)</code>. Static, per-run data (not part of the message state).</div></li>
+      <li class="c4"><code class="cmd">agent.invoke({<span class="str">"messages"</span>:[...]}, context=Ctx(user_id=<span class="str">"u1"</span>))</code><span class="star">&#9733;</span><div class="desc">Pass runtime context per call. Reach it in tools/middleware via <code>runtime.context</code>.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">from</span> langgraph.runtime <span class="kw">import</span> Runtime
+<span class="kw">def</span> tool(x, runtime: Runtime[Ctx]): runtime.context.user_id</code><div class="desc">The <code>Runtime</code> object exposes <code>context</code>, <code>store</code>, and stream writers &mdash; the bridge to the LangGraph engine underneath.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-stream"><h2 style="color:var(--c5)">Streaming, Memory &amp; Composition</h2><p class="sub">The LangGraph runtime gives every agent streaming, durable memory, and LCEL composition.</p></div>
+<main>
+  <article class="card" id="stream">
+    <div class="card-head"><span class="card-num n5">10</span><span class="card-title">Invoke &amp; stream</span><span class="card-sub">sync / async</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="kw">for</span> chunk <span class="kw">in</span> agent.stream(
+        {<span class="str">"messages"</span>:[...]}, stream_mode=<span class="str">"values"</span>):
+    print(chunk[<span class="str">"messages"</span>][-1])</code><span class="star">&#9733;</span><div class="desc"><code>"values"</code> = full state after each step; <code>"updates"</code> = only the delta per node; <code>"messages"</code> = token-by-token LLM output; <code>"custom"</code> = your own writes.</div></li>
+      <li class="c5"><code class="cmd">agent.stream(..., stream_mode=[<span class="str">"updates"</span>, <span class="str">"messages"</span>])</code><div class="desc">Pass a list to multiplex modes; each yield is <code>(mode, chunk)</code>.</div></li>
+      <li class="c5"><code class="cmd">r = <span class="kw">await</span> agent.ainvoke({...})
+<span class="kw">async for</span> c <span class="kw">in</span> agent.astream({...}): ...</code><span class="star">&#9733;</span><div class="desc">Every agent/Runnable has full async twins: <code>ainvoke</code>, <code>astream</code>, <code>abatch</code>, <code>astream_events</code>.</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">async for</span> ev <span class="kw">in</span> agent.astream_events({...}, version=<span class="str">"v2"</span>): ...</code><div class="desc">Fine-grained event stream (model start/stream/end, tool start/end) for building rich UIs.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="memory">
+    <div class="card-head"><span class="card-num n5">11</span><span class="card-title">Memory &amp; checkpointer</span><span class="card-sub">threads</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="kw">from</span> langgraph.checkpoint.memory <span class="kw">import</span> InMemorySaver
+agent = create_agent(model, tools, checkpointer=InMemorySaver())</code><span class="star">&#9733;</span><div class="desc">A checkpointer persists state between turns. <code>InMemorySaver</code> for dev; <code>langgraph-checkpoint-postgres</code> / <code>-sqlite</code> for production.</div></li>
+      <li class="c5"><code class="cmd">cfg = {<span class="str">"configurable"</span>: {<span class="str">"thread_id"</span>: <span class="str">"user-42"</span>}}
+agent.invoke({<span class="str">"messages"</span>:[...]}, config=cfg)</code><span class="star">&#9733;</span><div class="desc">The <code>thread_id</code> is the conversation key &mdash; reuse it and history is loaded automatically; no need to resend past messages.</div></li>
+      <li class="c5"><code class="cmd">agent.get_state(cfg).values[<span class="str">"messages"</span>]</code><div class="desc">Inspect or rewind a thread. Time-travel &amp; resume-after-interrupt come from the same checkpointing.</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">from</span> langgraph.store.memory <span class="kw">import</span> InMemoryStore
+create_agent(..., store=InMemoryStore())</code><div class="desc"><b>Long-term</b> memory across threads: a <code>store</code> holds durable key&ndash;value facts (vs. the per-thread checkpointer).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="lcel">
+    <div class="card-head"><span class="card-num n5">12</span><span class="card-title">LCEL, Runnables &amp; prompts</span><span class="card-sub">compose</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="kw">from</span> langchain_core.prompts <span class="kw">import</span> ChatPromptTemplate
+prompt = ChatPromptTemplate.from_messages([
+    (<span class="str">"system"</span>,<span class="str">"You are {role}"</span>), (<span class="str">"user"</span>,<span class="str">"{q}"</span>)])</code><div class="desc">Prompt templates still live in <code>langchain_core.prompts</code>. <code>{var}</code> placeholders fill from the invoke input.</div></li>
+      <li class="c5"><code class="cmd">chain = prompt | model | StrOutputParser()
+chain.invoke({<span class="str">"role"</span>:<span class="str">"tutor"</span>, <span class="str">"q"</span>:<span class="str">"Explain X"</span>})</code><span class="star">&#9733;</span><div class="desc"><b>LCEL</b>: the <code>|</code> pipe composes Runnables. Great for deterministic prompt&rarr;model&rarr;parse chains where you don't need an agent loop.</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">from</span> langchain_core.runnables <span class="kw">import</span> RunnableParallel, RunnableLambda</code><div class="desc"><code>RunnableParallel</code> fans out, <code>RunnableLambda</code> wraps a function, <code>RunnablePassthrough</code> threads input through &mdash; all with <code>.invoke/.batch/.stream</code>.</div></li>
+      <li class="c5"><code class="cmd">chain.with_config(...) &middot; .with_retry() &middot; .with_fallbacks([...])</code><div class="desc">Cross-cutting behavior attaches to any Runnable &mdash; retries, fallbacks, config, and tags/metadata for tracing.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="rag">
+    <div class="card-head"><span class="card-num n5">13</span><span class="card-title">Retrieval / RAG</span><span class="card-sub">ground it</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="kw">from</span> langchain_openai <span class="kw">import</span> OpenAIEmbeddings
+<span class="kw">from</span> langchain_core.vectorstores <span class="kw">import</span> InMemoryVectorStore
+vs = InMemoryVectorStore(OpenAIEmbeddings())</code><span class="star">&#9733;</span><div class="desc">Or <code>init_embeddings("openai:text-embedding-3-small")</code>. Real backends: <code>langchain-chroma</code>, <code>-pinecone</code>, <code>-pgvector</code>, etc.</div></li>
+      <li class="c5"><code class="cmd">vs.add_texts([<span class="str">"..."</span>])  &middot;  retriever = vs.as_retriever(k=4)</code><div class="desc">A retriever is a Runnable: <code>retriever.invoke("query")</code> returns the top-k <code>Document</code>s.</div></li>
+      <li class="c5"><code class="cmd"><span class="fn">@tool</span>
+<span class="kw">def</span> search_docs(q: str) -> str:
+    <span class="kw">return</span> <span class="str">"\n"</span>.join(d.page_content <span class="kw">for</span> d <span class="kw">in</span> retriever.invoke(q))</code><span class="star">&#9733;</span><div class="desc"><b>Agentic RAG</b>: wrap the retriever as a tool and let <code>create_agent</code> decide when to search &mdash; the idiomatic v1 pattern.</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">from</span> langchain_text_splitters <span class="kw">import</span> RecursiveCharacterTextSplitter</code><div class="desc">Chunk documents before embedding. Loaders/splitters live in <code>langchain-text-splitters</code> and the community loader packages.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-eco"><h2 style="color:var(--danger)">Ecosystem &amp; Migration</h2><p class="sub">Where LangChain sits in the stack, and what moved in the 1.0 cutover.</p></div>
+<main>
+  <article class="card" id="ecosystem">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">LangGraph &amp; LangSmith</span><span class="card-sub">the stack</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="cm"># LangChain (high-level) --runs on--> LangGraph (runtime)</span></code><span class="star">&#9733;</span><div class="desc"><b>LangGraph</b> is the low-level durable execution engine; <b>LangChain</b>'s <code>create_agent</code> is a high-level API on top. Drop to LangGraph for custom multi-node graphs.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">from</span> langgraph.graph <span class="kw">import</span> StateGraph, START, END</code><div class="desc">Build arbitrary agent graphs by hand when the single-agent loop isn't enough (branching, multi-agent, cycles).</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">export</span> LANGSMITH_TRACING=<span class="str">true</span>
+<span class="kw">export</span> LANGSMITH_API_KEY=<span class="str">"..."</span></code><span class="star">&#9733;</span><div class="desc"><b>LangSmith</b> traces every run automatically once these are set &mdash; no code change. Debug, eval, and monitor agents.</div></li>
+      <li class="c5"><code class="cmd">langgraph dev  <span class="cm"># LangGraph Platform / Studio</span></code><div class="desc">Deploy agents as APIs and inspect them visually in Studio via the LangGraph CLI.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="migration">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">v1 migration &amp; classic</span><span class="card-sub">0.x &rarr; 1.x</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="cm"># AgentExecutor / create_react_agent -> create_agent</span></code><span class="badge-danger">changed</span><div class="desc">The old <code>AgentExecutor</code> and <code>initialize_agent</code> are gone from the core namespace. Rebuild agents with <code>create_agent</code>.</div></li>
+      <li class="danger"><code class="cmd">pip install <span class="arg">langchain-classic</span>
+<span class="kw">from</span> langchain_classic.chains <span class="kw">import</span> LLMChain</code><span class="badge-warn">legacy</span><div class="desc">Legacy chains (<code>LLMChain</code>, <code>ConversationChain</code>, <code>RetrievalQA</code>), the hub, and older retrievers moved to <code>langchain-classic</code>. Import from there to keep old code running.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># langchain.chat_models / .messages / .tools are the new home</span></code><div class="desc">The <code>langchain</code> namespace was slimmed to the agent essentials. Prefer these flat imports over deep <code>langchain_core</code> paths where a re-export exists.</div></li>
+      <li class="c2"><code class="cmd"><span class="cm"># content_blocks replaces per-provider content parsing</span></code><span class="badge-new">v1</span><div class="desc">If you parsed provider-specific response shapes in 0.x, switch to <code>msg.content_blocks</code> for a stable schema across models.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># pin your deps: langchain>=1,&lt;2</span></code><span class="badge-warn">tip</span><div class="desc">1.x follows semver; provider packages version independently. Pin majors and read each integration's changelog before upgrading.</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">create_agent</span><span class="v">model + tools + system_prompt + middleware</span></div>
+    <div><span class="k">state</span><span class="v">dict with a "messages" list; answer = last msg</span></div>
+    <div><span class="k">init_chat_model</span><span class="v">"provider:model" &mdash; swap backends by string</span></div>
+    <div><span class="k">content_blocks</span><span class="v">unified text/reasoning/tool_call/image view</span></div>
+    <div><span class="k">@tool</span><span class="v">docstring = description, type hints = schema</span></div>
+    <div><span class="k">response_format</span><span class="v">Pydantic &rarr; result["structured_response"]</span></div>
+    <div><span class="k">middleware</span><span class="v">before/after_model, wrap_model_call hooks</span></div>
+    <div><span class="k">thread_id</span><span class="v">config["configurable"] + a checkpointer = memory</span></div>
+    <div><span class="k">stream_mode</span><span class="v">values / updates / messages / custom</span></div>
+    <div><span class="k">LCEL</span><span class="v">prompt | model | parser (Runnable pipe)</span></div>
+    <div><span class="k">runtime</span><span class="v">create_agent runs on the LangGraph engine</span></div>
+    <div><span class="k">langchain-classic</span><span class="v">home of legacy chains / retrievers / hub</span></div>
+  </div>
+</section>
+
+<footer>
+  <b>LangChain cheat sheet</b> &middot; v0 &middot; content verified 2026-08-30 against docs.langchain.com &amp; reference.langchain.com (langchain / langchain-core 1.x; latest langchain 1.3.18, Python 3.10&ndash;3.14).<br>
+  LangChain 1.0 GA: Oct 2025. <code>create_agent</code> is the standard agent API and executes on the LangGraph 1.x runtime; <code>content_blocks</code> and middleware are the defining v1 additions. Legacy 0.x functionality lives in <code>langchain-classic</code>.<br>
+  Star (&#9733;) marks the most common operations. Always confirm exact provider-package versions &amp; model IDs against the current docs before shipping.
+</footer>
+</body>
+</html>

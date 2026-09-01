@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>h5py Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --file:#64748b;
+    --tree:#4f46e5;
+    --data:#059669;
+    --io:#d97706;
+    --dtype:#7c3aed;
+    --store:#0d9488;
+    --danger:#dc2626;  --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --brand:#0f6f9e;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem; font-family:var(--mono);
+  }
+  h1 .w1{color:var(--brand)}
+  h1 .w2{color:#4a4f5a}
+  h1 .tail{font-family:var(--sans); font-weight:600; font-size:.4em; color:var(--muted); letter-spacing:0}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .lede b{font-weight:600}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.file{background:var(--file)}   .dot.tree{background:var(--tree)}
+  .dot.data{background:var(--data)}   .dot.io{background:var(--io)}
+  .dot.dtype{background:var(--dtype)} .dot.store{background:var(--store)}
+  .dot.danger{background:var(--danger)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:'JetBrains Mono',monospace}
+
+  /* ---------- quickstart panel ---------- */
+  .quick{
+    max-width:1500px; margin:0 auto; padding:1.4rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .quick-box{
+    background:var(--ink); border-radius:10px; overflow:hidden; max-width:1120px;
+    margin:0 auto; box-shadow:0 2px 8px rgba(20,20,30,.10);
+  }
+  .quick-bar{
+    display:flex; align-items:baseline; gap:.6rem; padding:.6rem .95rem;
+    border-bottom:1px solid #33384a; font-family:var(--mono); font-size:.74rem;
+    color:#cbd5e1; letter-spacing:.06em; text-transform:uppercase;
+  }
+  .quick-bar b{color:#fbbf24; font-weight:700}
+  pre.quick-inner{
+    white-space:pre; margin:0; tab-size:2; overflow-x:auto;
+    padding:1rem 1.1rem 1.15rem; font-family:var(--mono);
+    font-size:.79rem; line-height:1.65; color:#e8e6e1;
+  }
+  pre.quick-inner .kw{color:#c586e8}
+  pre.quick-inner .fn{color:#82aaff}
+  pre.quick-inner .str{color:#7ee0a8}
+  pre.quick-inner .num{color:#fbbf24}
+  pre.quick-inner .cm{color:#7f8796; font-style:italic}
+  pre.quick-inner .mod{color:#7fd4c9}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem; column-fill:balance;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  @media(min-width:1620px){ main{column-count:4} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono); text-align:right}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.file{border-left-color:var(--file)}
+  ul.cmds li.tree{border-left-color:var(--tree)}
+  ul.cmds li.data{border-left-color:var(--data)}
+  ul.cmds li.io{border-left-color:var(--io)}
+  ul.cmds li.dtype{border-left-color:var(--dtype)}
+  ul.cmds li.store{border-left-color:var(--store)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.795rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .kw{color:#a626a4}
+  code.cmd .fn{color:var(--tree)}
+  code.cmd .str{color:var(--data)}
+  code.cmd .num{color:var(--star)}
+  code.cmd .mod{color:var(--file)}
+  code.cmd .arg{color:var(--tree); font-weight:400}
+  code.cmd .cm{color:#8a8f9a}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.775rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; color:#3f444f}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-new{
+    color:#fff; background:var(--brand); font-size:.62rem; font-weight:700;
+    font-family:var(--mono); letter-spacing:.04em; margin-left:.35rem;
+    padding:.05rem .3rem; border-radius:4px; vertical-align:.06em;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2, .appendix h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub, .appendix .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:'JetBrains Mono',monospace}
+
+  /* ---------- appendix ---------- */
+  .appendix{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 2rem}
+  .ver-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:820px){ .ver-grid{grid-template-columns:repeat(3,1fr)} }
+  .ver-card{border:1px solid var(--line); border-radius:10px; background:#fff; overflow:hidden}
+  .ver-head{padding:.75rem 1rem; border-bottom:1px solid var(--line); display:flex; align-items:baseline; gap:.5rem}
+  .ver-tag{font-family:var(--mono); font-size:.72rem; font-weight:700; color:#fff; border-radius:5px; padding:.1rem .4rem}
+  .ver-card.vh5 .ver-tag{background:var(--brand)}
+  .ver-card.vpt .ver-tag{background:var(--tree)}
+  .ver-card.vzr .ver-tag{background:var(--store)}
+  .ver-head b{font-size:.9rem}
+  .ver-body{padding:.5rem 0}
+  .ver-body h4{
+    font-family:var(--mono); font-size:.7rem; letter-spacing:.09em; text-transform:uppercase;
+    padding:.5rem 1rem .3rem; color:var(--muted);
+  }
+  .ver-body h4.adopt{color:var(--data)}
+  .ver-body h4.drop{color:var(--danger)}
+  .ver-body ul{list-style:none}
+  .ver-body li{padding:.32rem 1rem; font-size:.775rem; color:#3f444f; border-bottom:1px solid #f5f2ec}
+  .ver-body li:last-child{border-bottom:none}
+  .ver-body li code{font-family:var(--mono); font-size:.9em; color:var(--ink)}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference &middot; HDF5 for Python &middot; n-dimensional arrays on disk</div>
+  <h1><span class="w1">h5</span><span class="w2">py</span> <span class="tail">3.16 &middot; HDF5 2.0</span></h1>
+  <p class="lede">Two ideas carry the whole library. First, an HDF5 file is a <b>filesystem inside a file</b> &mdash; Groups are directories, Datasets are n-dimensional arrays, Attributes are metadata stuck to either, and everything is addressed by POSIX-style path. Second, a Dataset is a <b>lazy proxy, not a NumPy array</b>: it has <code>.shape</code> and <code>.dtype</code>, but no bytes move until you slice it. Get those two right and the rest is detail.</p>
+  <div class="legend">
+    <span><i class="dot file"></i>install &amp; File</span>
+    <span><i class="dot tree"></i>groups, links &amp; attrs</span>
+    <span><i class="dot data"></i>creating datasets</span>
+    <span><i class="dot io"></i>reading &amp; writing</span>
+    <span><i class="dot dtype"></i>dtypes, strings &amp; specials</span>
+    <span><i class="dot store"></i>chunks, filters &amp; advanced</span>
+    <span><i class="dot danger"></i>gotcha / hazard</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>docs.h5py.org</b> (Quick Start &middot; File Objects &middot; Groups &middot; Datasets &middot; Attributes &middot; Dimension Scales &middot; Special types &middot; <b>Strings in HDF5</b> &middot; References &middot; Parallel HDF5 &middot; Multi-threading &middot; SWMR &middot; Virtual Datasets &middot; FAQ) &middot; the <b>3.16 / 3.15 / 3.14 release notes</b> &middot; <b>github.com/h5py/h5py</b> &middot; PyPI &middot; The HDF Group's HDF5 documentation &middot; <b>re-verified 2026-08-30: h5py 3.16.0 (6 Mar 2026) still current; Python 3.10+</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">A filesystem in a file &mdash; and a proxy that reads nothing until asked</div>
+  <svg class="flow-svg" viewBox="0 0 1080 484" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Top band: an HDF5 file is a tree - the root group contains subgroups like experiment and run1, which contain datasets such as temperature with shape 1000 by 3, and attributes attach to any object. Bottom band: indexing a file returns a lazy Dataset proxy; reading shape and dtype touches only metadata, slicing reads just the needed chunks, and a full colon slice pulls everything into RAM.">
+    <defs>
+      <marker id="h5-arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="h5-arw-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+      </marker>
+      <marker id="h5-arw-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+      </marker>
+    </defs>
+
+    <!-- ===== BAND A ===== -->
+    <text x="24" y="26" font-size="9.5" letter-spacing="2.6" fill="#94a3b8">A &#183; ONE FILE, A WHOLE DIRECTORY TREE INSIDE IT</text>
+    <line x1="20" y1="34" x2="1060" y2="34" stroke="#e7e3db" stroke-width="1"/>
+
+    <!-- root -->
+    <rect x="24" y="58" width="126" height="38" rx="9" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+    <text x="87" y="76" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1d24">/</text>
+    <text x="87" y="89" text-anchor="middle" font-size="8.5" fill="#4f46e5">root Group = f</text>
+
+    <!-- experiment -->
+    <path d="M87 96 L87 130 L186 130" fill="none" stroke="#4f46e5" stroke-width="1.8" marker-end="url(#h5-arw)"/>
+    <rect x="188" y="112" width="150" height="38" rx="9" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+    <text x="263" y="130" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">experiment/</text>
+    <text x="263" y="143" text-anchor="middle" font-size="8.5" fill="#4f46e5">Group = a directory</text>
+
+    <!-- run1 -->
+    <path d="M263 150 L263 184 L362 184" fill="none" stroke="#4f46e5" stroke-width="1.8" marker-end="url(#h5-arw)"/>
+    <rect x="364" y="166" width="150" height="38" rx="9" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+    <text x="439" y="184" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1d24">run1/</text>
+    <text x="439" y="197" text-anchor="middle" font-size="8.5" fill="#4f46e5">Groups nest freely</text>
+
+    <!-- datasets -->
+    <path d="M439 204 L439 232 L538 232" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#h5-arw)"/>
+    <rect x="540" y="214" width="190" height="38" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <text x="635" y="231" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">temperature</text>
+    <text x="635" y="244" text-anchor="middle" font-size="8.5" fill="#059669">Dataset &#183; (1000, 3) float32</text>
+
+    <path d="M439 204 L439 280 L538 280" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#h5-arw)"/>
+    <rect x="540" y="262" width="190" height="38" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <text x="635" y="279" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1d24">pressure</text>
+    <text x="635" y="292" text-anchor="middle" font-size="8.5" fill="#059669">Dataset &#183; the actual array</text>
+
+    <!-- attrs -->
+    <path d="M730 233 L768 233" fill="none" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#h5-arw)"/>
+    <rect x="770" y="212" width="220" height="42" rx="9" fill="#f4effe" stroke="#7c3aed" stroke-width="1.8"/>
+    <text x="880" y="229" text-anchor="middle" font-size="11" font-weight="700" fill="#7c3aed">.attrs</text>
+    <text x="880" y="245" text-anchor="middle" font-size="8.5" fill="#7c3aed">units="celsius" &#183; sensor_id=7</text>
+
+    <text x="770" y="278" font-size="9" fill="#6b7280">Attributes attach to <tspan font-weight="700">any</tspan> object &#8212;</text>
+    <text x="770" y="291" font-size="9" fill="#6b7280">groups and datasets alike. Small</text>
+    <text x="770" y="304" font-size="9" fill="#6b7280">metadata only, not bulk data.</text>
+
+    <!-- the path -->
+    <rect x="24" y="130" width="126" height="118" rx="9" fill="#f1f3f6" stroke="#64748b" stroke-width="1.4" stroke-dasharray="5 3"/>
+    <text x="87" y="152" text-anchor="middle" font-size="9" letter-spacing="1.2" fill="#64748b">ADDRESSED BY</text>
+    <text x="87" y="166" text-anchor="middle" font-size="9" letter-spacing="1.2" fill="#64748b">POSIX PATH</text>
+    <text x="87" y="190" text-anchor="middle" font-size="8.5" fill="#1a1d24">f["experiment/</text>
+    <text x="87" y="203" text-anchor="middle" font-size="8.5" fill="#1a1d24">run1/temperature"]</text>
+    <text x="87" y="224" text-anchor="middle" font-size="8.5" fill="#64748b">absolute or</text>
+    <text x="87" y="237" text-anchor="middle" font-size="8.5" fill="#64748b">relative, like a shell</text>
+
+    <!-- ===== BAND B ===== -->
+    <text x="24" y="340" font-size="9.5" letter-spacing="2.6" fill="#94a3b8">B &#183; NOTHING IS READ UNTIL YOU SLICE &#8212; THE DATASET IS A PROXY</text>
+    <line x1="20" y1="348" x2="1060" y2="348" stroke="#e7e3db" stroke-width="1"/>
+
+    <rect x="24" y="366" width="196" height="42" rx="9" fill="#1a1d24"/>
+    <text x="122" y="384" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">ds = f["temperature"]</text>
+    <text x="122" y="399" text-anchor="middle" font-size="8.5" fill="#94a3b8">0 bytes of data read</text>
+
+    <path d="M220 387 L252 387 L252 372" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#h5-arw-g)"/>
+    <path d="M220 387 L252 387 L252 412" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#h5-arw-g)"/>
+    <path d="M220 387 L252 387 L252 440" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#h5-arw-g)"/>
+
+    <rect x="268" y="356" width="180" height="30" rx="7" fill="#f1f3f6" stroke="#64748b" stroke-width="1.5"/>
+    <text x="282" y="375" font-size="9.5" fill="#1a1d24">ds.shape &#183; ds.dtype</text>
+    <rect x="470" y="356" width="300" height="30" rx="7" fill="#fff" stroke="#64748b" stroke-width="1.3"/>
+    <text x="484" y="375" font-size="9" fill="#64748b">metadata only &#8212; still nothing read</text>
+
+    <rect x="268" y="398" width="180" height="30" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/>
+    <text x="282" y="417" font-size="9.5" font-weight="700" fill="#1a1d24">ds[0:100, 0]</text>
+    <rect x="470" y="398" width="300" height="30" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="1.3"/>
+    <text x="484" y="417" font-size="9" fill="#b45309">reads only the chunks that overlap the slice</text>
+
+    <rect x="268" y="440" width="180" height="30" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.5"/>
+    <text x="282" y="459" font-size="9.5" font-weight="700" fill="#dc2626">ds[:] &#183; ds[...]</text>
+    <rect x="470" y="440" width="300" height="30" rx="7" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.3"/>
+    <text x="484" y="459" font-size="9" fill="#dc2626">the ENTIRE dataset into RAM. Check .shape first.</text>
+
+    <rect x="800" y="372" width="256" height="76" rx="9" fill="#e9f6f4" stroke="#0d9488" stroke-width="1.6"/>
+    <text x="814" y="391" font-size="9.5" font-weight="700" fill="#0d9488">this is the whole point of HDF5</text>
+    <text x="814" y="408" font-size="8.5" fill="#1a1d24">a 500 GB dataset on disk, a 4 MB slice</text>
+    <text x="814" y="421" font-size="8.5" fill="#1a1d24">in memory &#8212; provided the file is chunked</text>
+    <text x="814" y="438" font-size="8.5" fill="#0d9488">ds is NOT an ndarray: np.asarray(ds) copies</text>
+  </svg>
+</section>
+
+<!-- ============ QUICKSTART ============ -->
+<section class="quick">
+  <div class="quick-box">
+    <div class="quick-bar"><b>quickstart</b> &mdash; write a chunked, compressed, growable dataset and read part of it back</div>
+<pre class="quick-inner"><span class="cm"># pip install h5py            # wheels bundle HDF5 2.0 as of h5py 3.16</span>
+<span class="kw">import</span> <span class="mod">h5py</span>, <span class="mod">numpy</span> <span class="kw">as</span> <span class="mod">np</span>
+
+<span class="kw">with</span> h5py.File(<span class="str">"run.h5"</span>, <span class="str">"w"</span>) <span class="kw">as</span> f:            <span class="cm"># 'w' TRUNCATES — 'a' to append</span>
+    g = f.create_group(<span class="str">"experiment/run1"</span>)      <span class="cm"># intermediate groups auto-created</span>
+
+    ds = g.create_dataset(
+        <span class="str">"temperature"</span>,
+        shape=(<span class="num">1000</span>, <span class="num">3</span>),
+        dtype=<span class="str">"f4"</span>,                            <span class="cm"># always name a dtype (3.16 deprecation)</span>
+        chunks=(<span class="num">100</span>, <span class="num">3</span>),                       <span class="cm"># required for compression AND resizing</span>
+        compression=<span class="str">"gzip"</span>, compression_opts=<span class="num">4</span>,
+        shuffle=<span class="kw">True</span>,                          <span class="cm"># big win on float data, costs nothing</span>
+        maxshape=(<span class="kw">None</span>, <span class="num">3</span>),                    <span class="cm"># None = growable along axis 0</span>
+    )
+    ds[:] = np.random.rand(<span class="num">1000</span>, <span class="num">3</span>)
+    ds.attrs[<span class="str">"units"</span>] = <span class="str">"celsius"</span>              <span class="cm"># metadata rides along</span>
+    ds.dims[<span class="num">0</span>].label = <span class="str">"sample"</span>
+
+<span class="kw">with</span> h5py.File(<span class="str">"run.h5"</span>) <span class="kw">as</span> f:                 <span class="cm"># mode defaults to 'r' since h5py 3.0</span>
+    ds = f[<span class="str">"experiment/run1/temperature"</span>]      <span class="cm"># lazy — no data read yet</span>
+    <span class="fn">print</span>(ds.shape, ds.dtype, ds.chunks)
+    block = ds[<span class="num">0</span>:<span class="num">100</span>, <span class="num">0</span>]                       <span class="cm"># NOW bytes move — just these chunks</span>
+    <span class="fn">print</span>(ds.attrs[<span class="str">"units"</span>])                   <span class="cm"># attribute strings come back as str</span></pre>
+  </div>
+</section>
+
+<!-- ============ REFERENCE CARDS ============ -->
+<main>
+
+  <!-- 01 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; Version</span><span class="card-sub">wheels bundle HDF5</span></div>
+    <ul class="cmds">
+      <li class="file"><code class="cmd">pip install h5py</code><span class="star">&#9733;</span><div class="desc">Wheels ship their own HDF5 &mdash; no system library needed. Python 3.10+.</div></li>
+      <li class="file"><code class="cmd">conda install h5py</code><div class="desc">Preferred if you also need MPI or a specific HDF5 build.</div></li>
+      <li class="file"><code class="cmd">h5py.__version__ &#183; h5py.version.hdf5_version</code><span class="star">&#9733;</span><div class="desc">Two versions that matter. Report both in bug reports.</div></li>
+      <li class="file"><code class="cmd">h5py.version.info</code><div class="desc">Everything at once: h5py, HDF5, NumPy, Python, platform.</div></li>
+      <li class="file"><code class="cmd">PyPI wheels now build against HDF5 2.0</code><span class="badge-new">3.16</span><div class="desc">Also: h5py now marks itself free-threading compatible &mdash; tested, but treat as experimental.</div></li>
+      <li class="file"><code class="cmd">HDF5_MPI=<span class="str">"ON"</span> pip install --no-binary=h5py h5py</code><div class="desc">The only way to get parallel support: build from source against a parallel HDF5.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Opening Files</span><span class="card-sub">six modes</span></div>
+    <ul class="cmds">
+      <li class="file"><code class="cmd">f = h5py.File(<span class="str">"d.h5"</span>, <span class="str">"r"</span>)</code><span class="star">&#9733;</span><div class="desc">Read-only, must exist. <b>The default since h5py 3.0</b> &mdash; it used to be <code>'a'</code>.</div></li>
+      <li class="file"><code class="cmd">h5py.File(f, <span class="str">"r+"</span>)</code><span class="star">&#9733;</span><div class="desc">Read/write, must exist. The safe way to modify.</div></li>
+      <li class="danger"><code class="cmd">h5py.File(f, <span class="str">"w"</span>)</code><span class="badge-danger">truncates</span><div class="desc">Creates, and <b>destroys an existing file without asking</b>.</div></li>
+      <li class="file"><code class="cmd">h5py.File(f, <span class="str">"x"</span>) <span class="cm"># or "w-"</span></code><span class="star">&#9733;</span><div class="desc">Create, but fail if it already exists. Use this instead of <code>'w'</code> when you can.</div></li>
+      <li class="file"><code class="cmd">h5py.File(f, <span class="str">"a"</span>)</code><span class="star">&#9733;</span><div class="desc">Read/write, creating if absent. The "just work" mode.</div></li>
+      <li class="file"><code class="cmd"><span class="kw">with</span> h5py.File(f, <span class="str">"r"</span>) <span class="kw">as</span> file: &#8230;</code><span class="star">&#9733;</span><div class="desc">Always. An unclosed file can leave data unflushed and the file locked.</div></li>
+      <li class="danger"><code class="cmd">ds = f[<span class="str">"x"</span>]; f.close(); ds[<span class="num">0</span>]</code><span class="badge-danger">ValueError</span><div class="desc">Datasets die with their file. Read what you need <i>before</i> closing.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">File Options &amp; Drivers</span><span class="card-sub">the useful keywords</span></div>
+    <ul class="cmds">
+      <li class="file"><code class="cmd">h5py.File(f, driver=<span class="str">"core"</span>, backing_store=<span class="kw">False</span>)</code><div class="desc">Entirely in memory. Great for tests and scratch files.</div></li>
+      <li class="file"><code class="cmd">driver=<span class="str">"ros3"</span></code><div class="desc">Read directly from S3 over HTTP. Also <code>sec2</code> (default), <code>stdio</code>, <code>family</code>, <code>fileobj</code>.</div></li>
+      <li class="file"><code class="cmd">h5py.File(bytes_io_obj, <span class="str">"r"</span>)</code><div class="desc">Any Python file-like object works via the <code>fileobj</code> driver.</div></li>
+      <li class="file"><code class="cmd">libver=<span class="str">"latest"</span></code><span class="star">&#9733;</span><div class="desc">Newer, faster on-disk structures &mdash; required for SWMR. Old readers may not cope.</div></li>
+      <li class="file"><code class="cmd">rdcc_nbytes=<span class="num">64</span>*<span class="num">1024</span>**<span class="num">2</span></code><span class="star">&#9733;</span><div class="desc">Chunk cache per dataset, default only <b>1 MiB</b>. Raising it fixes many "chunked is slow" reports.</div></li>
+      <li class="file"><code class="cmd">track_order=<span class="kw">True</span></code><span class="star">&#9733;</span><div class="desc">Preserve insertion order. Without it, <code>keys()</code> comes back <b>alphabetical</b>.</div></li>
+      <li class="file"><code class="cmd">locking=<span class="kw">False</span></code><div class="desc">Disable HDF5 file locking. See card 26 before you reach for this.</div></li>
+      <li class="file"><code class="cmd">userblock_size=<span class="num">512</span></code><div class="desc">Reserve leading bytes for your own header. Must be a power of 2, &#8805; 512.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Groups &amp; Paths</span><span class="card-sub">dict-like, path-addressed</span></div>
+    <ul class="cmds">
+      <li class="tree"><code class="cmd">g = f.create_group(<span class="str">"a/b/c"</span>)</code><span class="star">&#9733;</span><div class="desc">Intermediate groups are created automatically.</div></li>
+      <li class="tree"><code class="cmd">f[<span class="str">"a/b/c"</span>] &#183; f[<span class="str">"a"</span>][<span class="str">"b"</span>][<span class="str">"c"</span>]</code><span class="star">&#9733;</span><div class="desc">Equivalent. Paths behave like a shell &mdash; absolute or relative.</div></li>
+      <li class="tree"><code class="cmd">g = f.require_group(<span class="str">"a/b"</span>)</code><span class="star">&#9733;</span><div class="desc">Get it, or create it if missing. Idempotent scripts want this.</div></li>
+      <li class="tree"><code class="cmd">f.keys() &#183; f.values() &#183; f.items()</code><span class="star">&#9733;</span><div class="desc">Groups are mappings. Views, not lists &mdash; wrap in <code>list()</code> to snapshot.</div></li>
+      <li class="tree"><code class="cmd"><span class="str">"temperature"</span> <span class="kw">in</span> g</code><div class="desc">Membership test. Cheaper and clearer than catching <code>KeyError</code>.</div></li>
+      <li class="tree"><code class="cmd">g.name &#183; g.parent &#183; g.file</code><div class="desc">Full path, containing group, owning File. Every object knows where it lives.</div></li>
+      <li class="danger"><code class="cmd">keys() is alphabetical</code><span class="badge-danger">not insertion</span><div class="desc">Unless the group was made with <code>track_order=True</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Traversing the Tree</span><span class="card-sub">recursive walks</span></div>
+    <ul class="cmds">
+      <li class="tree"><code class="cmd">f.visit(<span class="kw">lambda</span> n: <span class="fn">print</span>(n))</code><span class="star">&#9733;</span><div class="desc">Every name below this group, recursively.</div></li>
+      <li class="tree"><code class="cmd">f.visititems(<span class="kw">lambda</span> n, o: <span class="fn">print</span>(n, o))</code><span class="star">&#9733;</span><div class="desc">Name <i>and</i> object &mdash; the one you usually want.</div></li>
+      <li class="tree"><code class="cmd">f.visit_links() &#183; f.visititems_links()</code><div class="desc">Visit the links themselves, so soft and external links aren't followed.</div></li>
+      <li class="tree"><code class="cmd">return non-<span class="kw">None</span> to stop early</code><div class="desc">The callback's return value ends the walk and is passed back to you.</div></li>
+      <li class="tree"><code class="cmd"><span class="kw">if</span> <span class="fn">isinstance</span>(o, h5py.Dataset): &#8230;</code><div class="desc">The standard filter inside a <code>visititems</code> callback.</div></li>
+      <li class="danger"><code class="cmd">visit() skips broken links</code><div class="desc">A soft link to a missing target is silently passed over.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Attributes</span><span class="card-sub">metadata, kept small</span></div>
+    <ul class="cmds">
+      <li class="tree"><code class="cmd">ds.attrs[<span class="str">"units"</span>] = <span class="str">"celsius"</span></code><span class="star">&#9733;</span><div class="desc">Dict-like, on any group or dataset.</div></li>
+      <li class="tree"><code class="cmd">ds.attrs[<span class="str">"units"</span>] &#183; .get() &#183; .keys()</code><span class="star">&#9733;</span><div class="desc">Reads like a dict too.</div></li>
+      <li class="tree"><code class="cmd">ds.attrs.create(<span class="str">"n"</span>, <span class="num">1</span>, dtype=<span class="str">"i8"</span>)</code><div class="desc">When you need to pin the exact dtype or shape.</div></li>
+      <li class="tree"><code class="cmd"><span class="kw">del</span> ds.attrs[<span class="str">"units"</span>]</code><div class="desc">Removes it cleanly.</div></li>
+      <li class="tree"><code class="cmd"><span class="fn">dict</span>(ds.attrs)</code><div class="desc">Snapshot them all in one go.</div></li>
+      <li class="danger"><code class="cmd">attribute strings read back as <span class="fn">str</span></code><span class="badge-danger">asymmetry</span><div class="desc">But <b>dataset</b> strings read back as <code>bytes</code>. See diagram 2 &mdash; this catches everyone.</div></li>
+      <li class="danger"><code class="cmd">large arrays in .attrs</code><span class="badge-danger">don't</span><div class="desc">Attributes live in the object header. Over ~64 KB they spill and slow everything down.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Links</span><span class="card-sub">three kinds</span></div>
+    <ul class="cmds">
+      <li class="tree"><code class="cmd">f[<span class="str">"alias"</span>] = f[<span class="str">"real/dataset"</span>]</code><span class="star">&#9733;</span><div class="desc">A <b>hard</b> link &mdash; two names, one object, no copy.</div></li>
+      <li class="tree"><code class="cmd">f[<span class="str">"soft"</span>] = h5py.SoftLink(<span class="str">"/real/dataset"</span>)</code><span class="star">&#9733;</span><div class="desc">Like a symlink: stores a path, breaks if the target moves.</div></li>
+      <li class="tree"><code class="cmd">f[<span class="str">"ext"</span>] = h5py.ExternalLink(<span class="str">"other.h5"</span>, <span class="str">"/data"</span>)</code><span class="star">&#9733;</span><div class="desc">Reach into a different file transparently.</div></li>
+      <li class="tree"><code class="cmd">f.get(<span class="str">"soft"</span>, getlink=<span class="kw">True</span>)</code><div class="desc">Inspect the link itself instead of following it.</div></li>
+      <li class="tree"><code class="cmd">f.get(<span class="str">"x"</span>, getclass=<span class="kw">True</span>)</code><div class="desc">Returns the <i>class</i> &mdash; check for Dataset vs Group without opening it.</div></li>
+      <li class="tree"><code class="cmd">f.get(<span class="str">"ext"</span>, elink_mode=&#8230;, elink_locking=&#8230;)</code><span class="badge-new">3.16</span><div class="desc">Control how external links are opened: mode, SWMR and locking.</div></li>
+      <li class="danger"><code class="cmd">hard links can't cross files</code><div class="desc">And deleting the last hard link is what actually removes an object.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Delete, Move &amp; Copy</span><span class="card-sub">and the space they don't free</span></div>
+    <ul class="cmds">
+      <li class="tree"><code class="cmd"><span class="kw">del</span> f[<span class="str">"old/dataset"</span>]</code><span class="star">&#9733;</span><div class="desc">Unlinks it. The object goes when its last link does.</div></li>
+      <li class="danger"><code class="cmd">the file does not shrink</code><span class="badge-danger">always</span><div class="desc">HDF5 rarely reclaims freed space. Run <code>h5repack in.h5 out.h5</code> to compact.</div></li>
+      <li class="tree"><code class="cmd">f.move(<span class="str">"a/x"</span>, <span class="str">"b/x"</span>)</code><div class="desc">Rename or relocate within the same file.</div></li>
+      <li class="tree"><code class="cmd">f.copy(<span class="str">"a/x"</span>, <span class="str">"b/x"</span>)</code><span class="star">&#9733;</span><div class="desc">A real copy, including attributes.</div></li>
+      <li class="tree"><code class="cmd">f.copy(src, other_file, <span class="str">"/dest"</span>)</code><div class="desc">Copies across files &mdash; the clean way to extract a subtree.</div></li>
+      <li class="tree"><code class="cmd">f.flush()</code><div class="desc">Push buffers to disk without closing. Essential in long-running writers.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Creating Datasets</span><span class="card-sub">the central call</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">ds = f.create_dataset(<span class="str">"x"</span>, shape=(<span class="num">100</span>, <span class="num">50</span>), dtype=<span class="str">"f4"</span>)</code><span class="star">&#9733;</span><div class="desc">Allocates space; contents start at the fill value.</div></li>
+      <li class="data"><code class="cmd">f.create_dataset(<span class="str">"x"</span>, data=arr)</code><span class="star">&#9733;</span><div class="desc">Shape and dtype are taken from the array.</div></li>
+      <li class="data"><code class="cmd">f[<span class="str">"x"</span>] = arr</code><span class="star">&#9733;</span><div class="desc">Shorthand for the above. No room for options, though.</div></li>
+      <li class="danger"><code class="cmd">create_dataset(<span class="str">"x"</span>, (<span class="num">100</span>,))</code><span class="badge-new">3.16</span><span class="badge-danger">deprecated</span><div class="desc">Neither <code>data</code> nor <code>dtype</code> given is deprecated and becomes an <b>error in 4.0</b>. Pass <code>dtype='f4'</code> to keep today's default.</div></li>
+      <li class="data"><code class="cmd">require_dataset(<span class="str">"x"</span>, shape, dtype)</code><div class="desc">Create or fetch, checking that an existing one matches.</div></li>
+      <li class="data"><code class="cmd">fillvalue=np.nan</code><span class="star">&#9733;</span><div class="desc">What unwritten elements read as. Defaults to zero &mdash; often the wrong sentinel.</div></li>
+      <li class="data"><code class="cmd">create_dataset(<span class="str">"e"</span>, data=h5py.Empty(<span class="str">"f"</span>))</code><div class="desc">A null dataspace: typed, but holds no elements at all.</div></li>
+      <li class="data"><code class="cmd">track_times=<span class="kw">False</span></code><div class="desc">Drop timestamps so identical data produces byte-identical files.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Dataset Properties</span><span class="card-sub">metadata, free to read</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">ds.shape &#183; ds.dtype &#183; ds.size &#183; ds.ndim</code><span class="star">&#9733;</span><div class="desc">NumPy-style, and none of them touch the data.</div></li>
+      <li class="data"><code class="cmd">ds.nbytes</code><span class="star">&#9733;</span><div class="desc">Uncompressed size. Check this <b>before</b> <code>ds[:]</code>.</div></li>
+      <li class="data"><code class="cmd">ds.chunks</code><span class="star">&#9733;</span><div class="desc">The chunk shape, or <code>None</code> for contiguous storage.</div></li>
+      <li class="data"><code class="cmd">ds.compression &#183; ds.compression_opts</code><div class="desc">Plus <code>ds.shuffle</code>, <code>ds.fletcher32</code>, <code>ds.scaleoffset</code>.</div></li>
+      <li class="data"><code class="cmd">ds.filter_ids &#183; ds.filter_names</code><span class="badge-new">3.16</span><div class="desc">Exact filter pipeline, including third-party filters the old attributes couldn't name.</div></li>
+      <li class="data"><code class="cmd">ds.maxshape</code><span class="star">&#9733;</span><div class="desc"><code>None</code> in a position means that axis can grow.</div></li>
+      <li class="data"><code class="cmd">ds.name &#183; ds.parent &#183; ds.file</code><div class="desc">Where it sits in the tree.</div></li>
+      <li class="data"><code class="cmd">ds.is_virtual &#183; ds.virtual_sources()</code><div class="desc">For virtual datasets &mdash; see card 23.</div></li>
+      <li class="data"><code class="cmd">ds.len() <span class="cm"># not len(ds)</span></code><div class="desc">Use it when the first axis exceeds 2<sup>32</sup>; <code>len()</code> overflows on some platforms.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Reading &amp; Slicing</span><span class="card-sub">where I/O happens</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd">ds[<span class="num">0</span>:<span class="num">100</span>, :<span class="num">5</span>]</code><span class="star">&#9733;</span><div class="desc">Standard NumPy slicing. Returns a real <code>ndarray</code>.</div></li>
+      <li class="danger"><code class="cmd">ds[:] &#183; ds[...]</code><span class="badge-danger">reads all</span><div class="desc">The whole dataset into memory. Fine at 10 MB, fatal at 100 GB.</div></li>
+      <li class="io"><code class="cmd">ds[<span class="num">5</span>]</code><div class="desc">Indexing the first axis. Returns a NumPy scalar for 1-D data.</div></li>
+      <li class="io"><code class="cmd">ds[<span class="str">"fieldname"</span>]</code><div class="desc">Read one field of a compound dtype without loading the rest.</div></li>
+      <li class="io"><code class="cmd">ds.fields([<span class="str">"a"</span>, <span class="str">"b"</span>])[:]</code><div class="desc">The multi-field version, as a lazy view.</div></li>
+      <li class="io"><code class="cmd"><span class="kw">for</span> row <span class="kw">in</span> ds: &#8230;</code><div class="desc">Iterates the first axis, one row per read. Convenient, not fast.</div></li>
+      <li class="io"><code class="cmd"><span class="kw">for</span> sl <span class="kw">in</span> ds.iter_chunks(): ds[sl]</code><span class="star">&#9733;</span><div class="desc">Walk the dataset chunk-aligned &mdash; the fastest full pass.</div></li>
+      <li class="danger"><code class="cmd">ds[<span class="kw">None</span>] &#183; ds[np.newaxis]</code><span class="badge-danger">unsupported</span><div class="desc">You can't add axes while slicing. Reshape after reading.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Writing</span><span class="card-sub">assignment is the write</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd">ds[<span class="num">0</span>:<span class="num">100</span>] = arr</code><span class="star">&#9733;</span><div class="desc">Shapes must broadcast. This is the write.</div></li>
+      <li class="io"><code class="cmd">ds[...] = <span class="num">0</span></code><div class="desc">Scalars broadcast across the whole selection.</div></li>
+      <li class="io"><code class="cmd">ds.write_direct(arr, source_sel, dest_sel)</code><span class="star">&#9733;</span><div class="desc">Write from a slice of an existing array with no temporary copy.</div></li>
+      <li class="io"><code class="cmd">ds.read_direct(arr, source_sel, dest_sel)</code><div class="desc">The read twin &mdash; fills a buffer you already allocated.</div></li>
+      <li class="danger"><code class="cmd">writing in <span class="str">"r"</span> mode</code><span class="badge-danger">OSError</span><div class="desc">Reopen with <code>'r+'</code> or <code>'a'</code>.</div></li>
+      <li class="danger"><code class="cmd">writes land chunk-at-a-time</code><div class="desc">A partial-chunk write forces a read-modify-write. Align writes to chunk edges when you can.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Fancy Indexing</span><span class="card-sub">narrower than NumPy</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd">ds[[<span class="num">1</span>, <span class="num">4</span>, <span class="num">9</span>]]</code><span class="star">&#9733;</span><div class="desc">A list of indices works &mdash; and got much faster for long lists.<span class="badge-new">3.16</span></div></li>
+      <li class="danger"><code class="cmd">indices must be increasing</code><span class="badge-danger">and unique</span><div class="desc">HDF5 selections are sets, so no repeats and no reordering.</div></li>
+      <li class="io"><code class="cmd">ds[mask] <span class="cm"># bool array</span></code><div class="desc">Boolean masks work, including along just the first axis.</div></li>
+      <li class="danger"><code class="cmd">ds[[<span class="num">1</span>,<span class="num">2</span>], [<span class="num">3</span>,<span class="num">4</span>]]</code><span class="badge-danger">one axis only</span><div class="desc">Only <b>one</b> axis may use a list. Read a bounding box and index it in NumPy.</div></li>
+      <li class="io"><code class="cmd">arr = ds[lo:hi]; arr[fancy]</code><span class="star">&#9733;</span><div class="desc">The general workaround, and usually faster anyway.</div></li>
+      <li class="io"><code class="cmd">ds[<span class="num">10</span>:<span class="num">2</span>] &#8594; empty</code><div class="desc">Slices with stop &lt; start return empty rather than raising.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Chunking</span><span class="card-sub">the performance decision</span></div>
+    <ul class="cmds">
+      <li class="store"><code class="cmd">chunks=(<span class="num">100</span>, <span class="num">100</span>)</code><span class="star">&#9733;</span><div class="desc">Storage is split into fixed blocks, each written and read whole.</div></li>
+      <li class="store"><code class="cmd">chunks=<span class="kw">True</span></code><div class="desc">Auto-chunking. A reasonable guess, but it can't know your access pattern.</div></li>
+      <li class="store"><code class="cmd">required for compression, resizing and SWMR</code><span class="star">&#9733;</span><div class="desc">Contiguous datasets support none of the three.</div></li>
+      <li class="store"><code class="cmd">aim for 10 KB &#8211; 1 MB per chunk</code><div class="desc">Too small and the B-tree dominates; too large and you read data you don't need.</div></li>
+      <li class="store"><code class="cmd">shape chunks like your reads</code><span class="star">&#9733;</span><div class="desc">Row-wise access wants <code>(1, ncols)</code>; column-wise wants <code>(nrows, 1)</code>. See diagram 1.</div></li>
+      <li class="danger"><code class="cmd">chunk cache defaults to 1 MiB</code><span class="badge-danger">per dataset</span><div class="desc">If one chunk exceeds it, every access re-reads and re-decompresses. Raise <code>rdcc_nbytes</code>.</div></li>
+      <li class="store"><code class="cmd">ds.id.read_direct_chunk(offset)</code><div class="desc">Grab a chunk still compressed &mdash; and <code>write_direct_chunk</code> to store pre-compressed bytes.</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Compression &amp; Filters</span><span class="card-sub">per chunk, transparent</span></div>
+    <ul class="cmds">
+      <li class="store"><code class="cmd">compression=<span class="str">"gzip"</span>, compression_opts=<span class="num">4</span></code><span class="star">&#9733;</span><div class="desc">Levels 0&ndash;9. Universally readable; 4 is a sane default.</div></li>
+      <li class="store"><code class="cmd">compression=<span class="str">"lzf"</span></code><span class="star">&#9733;</span><div class="desc">Much faster, weaker ratio. h5py-specific &mdash; other tools may not read it.</div></li>
+      <li class="store"><code class="cmd">shuffle=<span class="kw">True</span></code><span class="star">&#9733;</span><div class="desc">Reorders bytes by significance. Nearly free, and often a large gzip win on floats.</div></li>
+      <li class="store"><code class="cmd">fletcher32=<span class="kw">True</span></code><div class="desc">Per-chunk checksum. Cheap insurance against silent corruption.</div></li>
+      <li class="store"><code class="cmd">scaleoffset=<span class="num">3</span></code><div class="desc"><b>Lossy</b> &mdash; keeps 3 decimal places. Excellent ratios when you accept the precision loss.</div></li>
+      <li class="store"><code class="cmd">compression=<span class="num">32001</span> <span class="cm"># blosc</span></code><div class="desc">Any registered filter by numeric id. <code>hdf5plugin</code> supports blosc, zstd, bitshuffle and more.</div></li>
+      <li class="danger"><code class="cmd">compression without chunks</code><span class="badge-danger">ignored</span><div class="desc">h5py turns on auto-chunking for you &mdash; which may not be the shape you wanted.</div></li>
+      <li class="danger"><code class="cmd">filters run on every chunk touched</code><div class="desc">Reading one element decompresses its whole chunk.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Resizable Datasets</span><span class="card-sub">append as you go</span></div>
+    <ul class="cmds">
+      <li class="store"><code class="cmd">maxshape=(<span class="kw">None</span>, <span class="num">3</span>)</code><span class="star">&#9733;</span><div class="desc"><code>None</code> means unlimited on that axis. Requires chunking.</div></li>
+      <li class="store"><code class="cmd">ds.resize((<span class="num">2000</span>, <span class="num">3</span>))</code><span class="star">&#9733;</span><div class="desc">Grow (or shrink) to an explicit shape.</div></li>
+      <li class="store"><code class="cmd">ds.resize(ds.shape[<span class="num">0</span>] + n, axis=<span class="num">0</span>)</code><span class="star">&#9733;</span><div class="desc">The append idiom: resize, then write into the new tail.</div></li>
+      <li class="store"><code class="cmd">ds[-n:] = new_block</code><div class="desc">Fill the space you just made.</div></li>
+      <li class="danger"><code class="cmd">shrinking discards data</code><span class="badge-danger">no undo</span><div class="desc">And the space isn't returned to the file either.</div></li>
+      <li class="danger"><code class="cmd">resizing one row at a time</code><span class="badge-danger">slow</span><div class="desc">Grow in chunk-sized steps, not element-sized ones.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Dtypes</span><span class="card-sub">NumPy in, NumPy out</span></div>
+    <ul class="cmds">
+      <li class="dtype"><code class="cmd">dtype=<span class="str">"f4"</span> &#183; <span class="str">"i8"</span> &#183; np.float32</code><span class="star">&#9733;</span><div class="desc">Any NumPy dtype spec. HDF5 stores the equivalent native type.</div></li>
+      <li class="dtype"><code class="cmd">dtype=[(<span class="str">"x"</span>, <span class="str">"f4"</span>), (<span class="str">"id"</span>, <span class="str">"i8"</span>)]</code><span class="star">&#9733;</span><div class="desc">Compound dtypes become HDF5 compound types &mdash; a table in a dataset.</div></li>
+      <li class="dtype"><code class="cmd">ds.astype(<span class="str">"f8"</span>)[:]</code><span class="star">&#9733;</span><div class="desc">Convert during the read, without a second array in memory.</div></li>
+      <li class="dtype"><code class="cmd">complex &#8594; compound (r, i)</code><span class="badge-new">3.16</span><div class="desc">Still the default. With HDF5 2.0 you can opt into true C99 complex types instead.</div></li>
+      <li class="danger"><code class="cmd">no bool, no datetime64</code><span class="badge-danger">no native type</span><div class="desc">Store as <code>int8</code> or enum, and dates as epoch ints or ISO strings.</div></li>
+      <li class="danger"><code class="cmd">dtype=<span class="str">"U10"</span></code><span class="badge-danger">TypeError</span><div class="desc">HDF5 has no wide-character type. h5py refuses rather than fake it &mdash; see card 18.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Strings</span><span class="card-sub">the biggest gotcha</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">ds[<span class="num">0</span>] &#8594; b<span class="str">"hello"</span></code><span class="badge-danger">bytes</span><div class="desc">Dataset strings read as <b>bytes</b> by default. Redesigned in h5py 3.0; 2.x gave <code>str</code>.</div></li>
+      <li class="dtype"><code class="cmd">ds.asstr()[:]</code><span class="star">&#9733;</span><div class="desc">Read as Python <code>str</code>. The portable choice.</div></li>
+      <li class="dtype"><code class="cmd">ds.astype(<span class="str">"T"</span>)[:]</code><span class="badge-new">3.14</span><div class="desc">Read as native NumPy variable-width strings. Needs NumPy 2.0+.</div></li>
+      <li class="danger"><code class="cmd">ds[:].astype(<span class="str">"T"</span>)</code><span class="badge-danger">slow</span><div class="desc">Converts after reading, via an object array. Put <code>.astype</code> <b>before</b> the slice.</div></li>
+      <li class="dtype"><code class="cmd">h5py.string_dtype()</code><span class="star">&#9733;</span><div class="desc">Variable-length UTF-8 &mdash; the sensible default for new files.</div></li>
+      <li class="dtype"><code class="cmd">h5py.string_dtype(<span class="str">"ascii"</span>, <span class="num">30</span>)</code><div class="desc">Fixed length, in <b>bytes</b> &mdash; and multi-byte characters eat more than one.</div></li>
+      <li class="danger"><code class="cmd">fixed-length truncates silently</code><span class="badge-danger">no warning</span><div class="desc">Longer strings are simply cut. Prefer variable-length unless you need fixed records.</div></li>
+      <li class="dtype"><code class="cmd">ds.asstr(<span class="str">"latin-1"</span>)[:]</code><div class="desc">When the stored encoding metadata lies. Python error handlers work here too.</div></li>
+      <li class="dtype"><code class="cmd">attrs[<span class="str">"k"</span>] &#8594; <span class="fn">str</span></code><span class="star">&#9733;</span><div class="desc">Attributes decode to <code>str</code> automatically (UTF-8, surrogate-escaped). Datasets don't.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">Special Types</span><span class="card-sub">beyond plain arrays</span></div>
+    <ul class="cmds">
+      <li class="dtype"><code class="cmd">h5py.vlen_dtype(np.int32)</code><span class="star">&#9733;</span><div class="desc">Ragged arrays: each element is its own variable-length 1-D array.</div></li>
+      <li class="dtype"><code class="cmd">h5py.enum_dtype({<span class="str">"RED"</span>: <span class="num">0</span>}, basetype=<span class="str">"i"</span>)</code><div class="desc">Named integer constants, preserved for other HDF5 readers.</div></li>
+      <li class="dtype"><code class="cmd">h5py.opaque_dtype(np.dtype(<span class="str">"V10"</span>))</code><div class="desc">Fixed-size blobs HDF5 won't interpret.</div></li>
+      <li class="dtype"><code class="cmd">attrs[<span class="str">"blob"</span>] = np.void(raw_bytes)</code><span class="star">&#9733;</span><div class="desc">The right way to store binary that isn't text; recover with <code>.tobytes()</code>.</div></li>
+      <li class="dtype"><code class="cmd">h5py.check_string_dtype(ds.dtype)</code><div class="desc">Returns encoding and length, or <code>None</code>. Also <code>check_vlen_dtype</code>, <code>check_enum_dtype</code>.</div></li>
+      <li class="dtype"><code class="cmd">f[<span class="str">"mytype"</span>] = np.dtype(<span class="str">"f8"</span>)</code><div class="desc">A committed (named) datatype, shareable across datasets.</div></li>
+      <li class="danger"><code class="cmd">vlen data can't be compressed well</code><div class="desc">The payload lives in a heap outside the chunk, so filters barely touch it.</div></li>
+    </ul>
+  </article>
+
+  <!-- 20 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">20</span><span class="card-title">References</span><span class="card-sub">pointers inside the file</span></div>
+    <ul class="cmds">
+      <li class="dtype"><code class="cmd">ref = ds.ref; f[ref]</code><span class="star">&#9733;</span><div class="desc">An object reference &mdash; a portable pointer that survives renames.</div></li>
+      <li class="dtype"><code class="cmd">create_dataset(<span class="str">"r"</span>, shape, dtype=h5py.ref_dtype)</code><div class="desc">Store references as data: an array pointing at other objects.</div></li>
+      <li class="dtype"><code class="cmd">rr = ds.regionref[<span class="num">0</span>:<span class="num">10</span>, <span class="num">2</span>]</code><div class="desc">A region reference names a <i>selection</i>, not just an object.</div></li>
+      <li class="dtype"><code class="cmd">ds[rr] &#183; ds.regionref.shape(rr)</code><div class="desc">Read through it, or inspect the shape it covers.</div></li>
+      <li class="danger"><code class="cmd">region ref into a ref_dtype dataset</code><span class="badge-new">3.16</span><span class="badge-danger">TypeError</span><div class="desc">Now raises instead of silently dropping the region information.</div></li>
+      <li class="dtype"><code class="cmd">f[ref].name</code><div class="desc">Resolve a reference back to its path &mdash; handy when debugging.</div></li>
+    </ul>
+  </article>
+
+  <!-- 21 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">21</span><span class="card-title">Dimension Scales</span><span class="card-sub">axes with meaning</span></div>
+    <ul class="cmds">
+      <li class="dtype"><code class="cmd">ds.dims[<span class="num">0</span>].label = <span class="str">"time"</span></code><span class="star">&#9733;</span><div class="desc">Name an axis. Cheap, and enormously helpful later.</div></li>
+      <li class="dtype"><code class="cmd">f[<span class="str">"t"</span>].make_scale(<span class="str">"seconds"</span>)</code><span class="star">&#9733;</span><div class="desc">Promote a 1-D dataset to a dimension scale.</div></li>
+      <li class="dtype"><code class="cmd">ds.dims[<span class="num">0</span>].attach_scale(f[<span class="str">"t"</span>])</code><span class="star">&#9733;</span><div class="desc">Bind the coordinate values to that axis.</div></li>
+      <li class="dtype"><code class="cmd">ds.dims[<span class="num">0</span>][<span class="num">0</span>][:]</code><div class="desc">Read the attached scale's values back.</div></li>
+      <li class="dtype"><code class="cmd">ds.dims[<span class="num">0</span>].detach_scale(scale)</code><div class="desc">And <code>ds.dims[0].keys()</code> to list what's attached.</div></li>
+      <li class="dtype"><code class="cmd">this is what netCDF4 and xarray read</code><span class="star">&#9733;</span><div class="desc">Attach scales and your file opens as a labelled dataset elsewhere.</div></li>
+    </ul>
+  </article>
+
+  <!-- 22 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">22</span><span class="card-title">Efficient I/O</span><span class="card-sub">habits that pay</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd">one big read beats many small ones</code><span class="star">&#9733;</span><div class="desc">Every slice is a round trip through the HDF5 library.</div></li>
+      <li class="danger"><code class="cmd"><span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n): total += ds[i]</code><span class="badge-danger">slowest</span><div class="desc">n separate reads. Slice a block and loop in NumPy instead.</div></li>
+      <li class="io"><code class="cmd">arr = ds[<span class="num">0</span>:<span class="num">10000</span>]; arr.sum()</code><div class="desc">Read in chunk-aligned blocks, compute in memory.</div></li>
+      <li class="io"><code class="cmd">raise rdcc_nbytes above one chunk</code><span class="star">&#9733;</span><div class="desc">The single highest-value tuning knob for chunked reads.</div></li>
+      <li class="io"><code class="cmd">np.asarray(ds)</code><div class="desc">Reads everything &mdash; same as <code>ds[:]</code>. Explicit is better.</div></li>
+      <li class="io"><code class="cmd">ds.read_direct(buf)</code><div class="desc">Reuse one buffer across a loop instead of allocating per iteration.</div></li>
+      <li class="io"><code class="cmd">match chunk shape to access pattern</code><span class="star">&#9733;</span><div class="desc">The one decision that outweighs every other optimisation.</div></li>
+    </ul>
+  </article>
+
+  <!-- 23 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">23</span><span class="card-title">Virtual Datasets</span><span class="card-sub">many files, one array</span></div>
+    <ul class="cmds">
+      <li class="store"><code class="cmd">layout = h5py.VirtualLayout(shape=(<span class="num">4</span>, <span class="num">100</span>), dtype=<span class="str">"f4"</span>)</code><span class="star">&#9733;</span><div class="desc">Declare the shape of the array you <i>want</i>.</div></li>
+      <li class="store"><code class="cmd">vs = h5py.VirtualSource(<span class="str">"run0.h5"</span>, <span class="str">"data"</span>, shape=(<span class="num">100</span>,))</code><span class="star">&#9733;</span><div class="desc">Point at a real dataset in another file.</div></li>
+      <li class="store"><code class="cmd">layout[<span class="num">0</span>] = vs</code><div class="desc">Map the source into a slice of the virtual array.</div></li>
+      <li class="store"><code class="cmd">f.create_virtual_dataset(<span class="str">"all"</span>, layout, fillvalue=np.nan)</code><span class="star">&#9733;</span><div class="desc">The result reads like one ordinary dataset.</div></li>
+      <li class="store"><code class="cmd">sources are resolved at read time</code><div class="desc">Update a source file and the virtual dataset reflects it.</div></li>
+      <li class="danger"><code class="cmd">missing source &#8594; fillvalue</code><span class="badge-danger">silent</span><div class="desc">No error. Always set a distinctive <code>fillvalue</code> such as NaN.</div></li>
+      <li class="store"><code class="cmd">relative paths are relative to the VDS file</code><div class="desc">Move the file without its sources and it quietly returns fill values.</div></li>
+    </ul>
+  </article>
+
+  <!-- 24 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">24</span><span class="card-title">SWMR</span><span class="card-sub">write while others read</span></div>
+    <ul class="cmds">
+      <li class="store"><code class="cmd">f = h5py.File(p, <span class="str">"w"</span>, libver=<span class="str">"latest"</span>)</code><span class="star">&#9733;</span><div class="desc">SWMR needs the modern format. Create all objects <b>before</b> switching it on.</div></li>
+      <li class="store"><code class="cmd">f.swmr_mode = <span class="kw">True</span></code><span class="star">&#9733;</span><div class="desc">One-way switch. After this the structure is frozen.</div></li>
+      <li class="store"><code class="cmd">h5py.File(p, <span class="str">"r"</span>, swmr=<span class="kw">True</span>)</code><span class="star">&#9733;</span><div class="desc">How readers attach while the writer is still going.</div></li>
+      <li class="store"><code class="cmd">ds.flush() <span class="cm"># writer</span></code><span class="star">&#9733;</span><div class="desc">Publish what you've written so readers can see it.</div></li>
+      <li class="store"><code class="cmd">ds.refresh() <span class="cm"># reader</span></code><span class="star">&#9733;</span><div class="desc">Pick up the writer's changes, including a grown <code>shape</code>.</div></li>
+      <li class="danger"><code class="cmd">no new groups or datasets after swmr_mode</code><span class="badge-danger">by design</span><div class="desc">Only existing datasets may be appended to.</div></li>
+      <li class="danger"><code class="cmd">one writer, many readers &#8212; never two writers</code><span class="badge-danger">corruption</span><div class="desc">HDF5 has no multi-writer mode outside MPI.</div></li>
+    </ul>
+  </article>
+
+  <!-- 25 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">25</span><span class="card-title">Parallel HDF5</span><span class="card-sub">MPI</span></div>
+    <ul class="cmds">
+      <li class="store"><code class="cmd">h5py.File(p, <span class="str">"w"</span>, driver=<span class="str">"mpio"</span>, comm=MPI.COMM_WORLD)</code><span class="star">&#9733;</span><div class="desc">The genuine multi-writer path. Needs an MPI-enabled build.</div></li>
+      <li class="store"><code class="cmd">every rank must call it</code><span class="star">&#9733;</span><div class="desc">File open, dataset creation and resize are all <b>collective</b> &mdash; all ranks or deadlock.</div></li>
+      <li class="store"><code class="cmd"><span class="kw">with</span> ds.collective: ds[rank] = data</code><span class="star">&#9733;</span><div class="desc">Collective I/O. Usually much faster than independent writes.</div></li>
+      <li class="danger"><code class="cmd">compression + parallel writes</code><span class="badge-danger">unsupported</span><div class="desc">Filters can't be applied collectively. Write raw, compress afterwards with <code>h5repack</code>.</div></li>
+      <li class="store"><code class="cmd">mpiexec -n 4 python script.py</code><div class="desc">Requires <code>mpi4py</code>; h5py wants mpi4py 4.0+ on Python &#8804; 3.12.</div></li>
+      <li class="store"><code class="cmd">one file per rank + a VDS</code><span class="star">&#9733;</span><div class="desc">Often simpler and faster than true parallel HDF5. See card 23.</div></li>
+    </ul>
+  </article>
+
+  <!-- 26 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">26</span><span class="card-title">Locking &amp; Threads</span><span class="card-sub">where things go wrong</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">OSError: unable to lock file</code><span class="badge-danger">the classic</span><div class="desc">Something else has it open for writing &mdash; often a dead process or a stale NFS lock.</div></li>
+      <li class="danger"><code class="cmd">HDF5_USE_FILE_LOCKING=FALSE</code><span class="badge-danger">last resort</span><div class="desc">Silences the error and removes the protection. Only when you're certain nobody is writing.</div></li>
+      <li class="file"><code class="cmd">h5py.File(p, locking=<span class="kw">False</span>)</code><span class="star">&#9733;</span><div class="desc">Per-file, and far better than the global environment variable.</div></li>
+      <li class="danger"><code class="cmd">h5py holds one global lock</code><div class="desc">The HDF5 C library isn't thread-safe, so threads serialise. Use processes for parallelism.</div></li>
+      <li class="danger"><code class="cmd">an open File across fork()</code><span class="badge-danger">corruption</span><div class="desc">Open the file <b>inside</b> each worker, never before the fork.</div></li>
+      <li class="file"><code class="cmd">free-threaded Python marked compatible</code><span class="badge-new">3.16</span><div class="desc">Tested, but the release notes advise caution in critical code.</div></li>
+      <li class="danger"><code class="cmd">reader started before the writer's flush</code><div class="desc">Sees a stale or partial view unless you use SWMR properly.</div></li>
+    </ul>
+  </article>
+
+  <!-- 27 -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">27</span><span class="card-title">Tools &amp; Ecosystem</span><span class="card-sub">around the file</span></div>
+    <ul class="cmds">
+      <li class="file"><code class="cmd">h5ls -r file.h5</code><span class="star">&#9733;</span><div class="desc">Recursive listing from the command line. First thing to run on an unknown file.</div></li>
+      <li class="file"><code class="cmd">h5dump -H file.h5</code><div class="desc">Header only: structure, dtypes, filters, no data.</div></li>
+      <li class="file"><code class="cmd">h5repack -f GZIP=4 in.h5 out.h5</code><span class="star">&#9733;</span><div class="desc">Recompress, re-chunk, and reclaim space freed by deletes.</div></li>
+      <li class="file"><code class="cmd">h5diff a.h5 b.h5</code><div class="desc">Structural and numeric comparison.</div></li>
+      <li class="file"><code class="cmd">pip install hdf5plugin</code><span class="star">&#9733;</span><div class="desc">Adds blosc, zstd, bitshuffle, LZ4. Import it before opening the file.</div></li>
+      <li class="file"><code class="cmd">HDFView &#183; myHDF5 &#183; vitables</code><div class="desc">GUI browsers &mdash; myHDF5 runs in the browser with no install.</div></li>
+      <li class="file"><code class="cmd">xarray.open_dataset(p, engine=<span class="str">"h5netcdf"</span>)</code><div class="desc">Labelled arrays over the same file, if you attached dimension scales.</div></li>
+      <li class="file"><code class="cmd">kerchunk &#183; h5coro</code><div class="desc">Index an HDF5 file once, then read it efficiently from cloud object storage.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four pictures that prevent most h5py bugs</h2>
+  <p class="sub">Why chunk shape decides your read speed, what type a string comes back as, what the filter pipeline actually does, and who is allowed to open the file at once.</p>
+  <div class="merge-grid">
+
+    <div class="merge-card">
+      <h3>1 &#183; chunk shape must match your reads</h3>
+      <p>Same dataset, same query &mdash; <code>ds[:, 0]</code>, one column. Storage layout decides whether that touches the whole file or a sixteenth of it.</p>
+      <svg viewBox="0 0 440 258" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Reading one column from a contiguous dataset touches every block of the file, because rows are stored end to end. The same read from a dataset chunked into blocks touches only the chunks covering that column.">
+        <text x="8" y="16" font-size="9.5" font-weight="700" fill="#1a1d24">query: ds[:, 0] &#8212; a single column</text>
+
+        <text x="20" y="38" font-size="9" font-weight="700" fill="#dc2626">contiguous (chunks=None)</text>
+        <text x="250" y="38" font-size="9" font-weight="700" fill="#0d9488">chunks=(2, 1)</text>
+
+        <!-- LEFT: contiguous, everything read -->
+        <rect x="20" y="46" width="160" height="112" fill="#fdf0ef" stroke="#dc2626" stroke-width="2"/>
+        <line x1="60"  y1="46" x2="60"  y2="158" stroke="#f3b6b6"/>
+        <line x1="100" y1="46" x2="100" y2="158" stroke="#f3b6b6"/>
+        <line x1="140" y1="46" x2="140" y2="158" stroke="#f3b6b6"/>
+        <line x1="20" y1="74"  x2="180" y2="74"  stroke="#f3b6b6"/>
+        <line x1="20" y1="102" x2="180" y2="102" stroke="#f3b6b6"/>
+        <line x1="20" y1="130" x2="180" y2="130" stroke="#f3b6b6"/>
+        <rect x="20" y="46" width="40" height="112" fill="#dc2626" opacity="0.25"/>
+        <text x="100" y="176" text-anchor="middle" font-size="8.5" fill="#dc2626">rows stored end to end &#8212;</text>
+        <text x="100" y="188" text-anchor="middle" font-size="8.5" font-weight="700" fill="#dc2626">all 16 blocks are read</text>
+
+        <!-- RIGHT: chunked -->
+        <rect x="250" y="46" width="160" height="112" fill="#fff" stroke="#0d9488" stroke-width="2"/>
+        <rect x="250" y="46" width="40" height="56" fill="#0d9488" opacity="0.3"/>
+        <rect x="250" y="102" width="40" height="56" fill="#0d9488" opacity="0.3"/>
+        <line x1="290" y1="46" x2="290" y2="158" stroke="#0d9488" stroke-width="1.6"/>
+        <line x1="330" y1="46" x2="330" y2="158" stroke="#0d9488" stroke-width="1.6"/>
+        <line x1="370" y1="46" x2="370" y2="158" stroke="#0d9488" stroke-width="1.6"/>
+        <line x1="250" y1="102" x2="410" y2="102" stroke="#0d9488" stroke-width="1.6"/>
+        <text x="330" y="176" text-anchor="middle" font-size="8.5" fill="#0d9488">each chunk read whole &#8212;</text>
+        <text x="330" y="188" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0d9488">only 2 of 8 chunks touched</text>
+
+        <line x1="8" y1="200" x2="432" y2="200" stroke="#e7e3db"/>
+        <text x="8" y="217" font-size="9" fill="#3f444f">row-wise reads want <tspan font-weight="700" fill="#0d9488">chunks=(1, ncols)</tspan> &#183; column-wise want <tspan font-weight="700" fill="#0d9488">(nrows, 1)</tspan></text>
+        <text x="8" y="232" font-size="9" fill="#3f444f">mixed or unknown access &#8594; roughly square chunks, 10 KB to 1 MB each</text>
+        <rect x="8" y="240" width="424" height="16" rx="4" fill="#fdf0ef"/>
+        <text x="16" y="252" font-size="8.5" fill="#dc2626">and if one chunk exceeds the 1 MiB cache, every touch re-reads and re-decompresses it.</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>2 &#183; what type is my string?</h3>
+      <p>The question h5py is asked most. Datasets and attributes deliberately behave <b>differently</b>, and it surprises everyone once.</p>
+      <svg viewBox="0 0 440 258" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Reading a string from a dataset returns bytes by default, whether variable-length or fixed-length. Using asstr returns Python str, and astype T returns NumPy variable-width strings. Reading a string attribute returns str automatically.">
+        <text x="8"   y="16" font-size="9" letter-spacing="1.4" fill="#94a3b8">HOW YOU READ IT</text>
+        <text x="252" y="16" font-size="9" letter-spacing="1.4" fill="#94a3b8">WHAT YOU GET</text>
+        <line x1="8" y1="22" x2="432" y2="22" stroke="#cfd4dc"/>
+
+        <rect x="8" y="30" width="424" height="26" rx="5" fill="#fdf0ef"/>
+        <text x="18" y="47" font-size="9" font-weight="700" fill="#1a1d24">ds[0]  &#8212; vlen string dataset</text>
+        <text x="252" y="47" font-size="9.5" font-weight="700" fill="#dc2626">b"hello"  &#8594; bytes</text>
+
+        <rect x="8" y="60" width="424" height="26" rx="5" fill="#fdf0ef"/>
+        <text x="18" y="77" font-size="9" font-weight="700" fill="#1a1d24">ds[0]  &#8212; fixed "S10" dataset</text>
+        <text x="252" y="77" font-size="9.5" font-weight="700" fill="#dc2626">b"hello"  &#8594; bytes</text>
+
+        <rect x="8" y="90" width="424" height="26" rx="5" fill="#ecf7f2"/>
+        <text x="18" y="107" font-size="9" font-weight="700" fill="#1a1d24">ds.asstr()[:]</text>
+        <text x="252" y="107" font-size="9.5" font-weight="700" fill="#059669">"hello"  &#8594; str</text>
+
+        <rect x="8" y="120" width="424" height="26" rx="5" fill="#e9f6f4"/>
+        <text x="18" y="137" font-size="9" font-weight="700" fill="#1a1d24">ds.astype("T")[:]</text>
+        <text x="252" y="137" font-size="9.5" font-weight="700" fill="#0d9488">NumPy StringDType</text>
+
+        <rect x="8" y="150" width="424" height="26" rx="5" fill="#f4effe"/>
+        <text x="18" y="167" font-size="9" font-weight="700" fill="#1a1d24">ds.attrs["units"]</text>
+        <text x="252" y="167" font-size="9.5" font-weight="700" fill="#7c3aed">"celsius" &#8594; str, automatically</text>
+
+        <line x1="8" y1="186" x2="432" y2="186" stroke="#e7e3db"/>
+        <rect x="8" y="194" width="424" height="26" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.4"/>
+        <text x="18" y="211" font-size="8.8" fill="#dc2626"><tspan font-weight="700">the asymmetry:</tspan> datasets give bytes, attributes give str. Nobody expects this.</text>
+
+        <text x="8" y="236" font-size="8.5" fill="#6b7280">Order matters: <tspan font-weight="700" fill="#059669">ds.astype("T")[:]</tspan> is fast; <tspan font-weight="700" fill="#dc2626">ds[:].astype("T")</tspan> detours via object arrays.</text>
+        <text x="8" y="250" font-size="8.5" fill="#6b7280">Writing: <tspan font-weight="700">h5py.string_dtype()</tspan> for vlen UTF-8. Fixed length truncates without warning.</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>3 &#183; the filter pipeline</h3>
+      <p>Filters are applied to <b>each chunk</b> on the way out and reversed on the way in. That is why none of them work without chunking.</p>
+      <svg viewBox="0 0 440 244" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="On write, an array is split into chunks, then each chunk passes through shuffle, then a compressor such as gzip or lzf, then an optional fletcher32 checksum, before being stored. On read the pipeline runs in reverse for every chunk touched.">
+        <defs>
+          <marker id="h5f-arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"/>
+          </marker>
+        </defs>
+
+        <text x="8" y="16" font-size="9" letter-spacing="1.4" fill="#94a3b8">ON WRITE</text>
+
+        <rect x="8" y="26" width="76" height="38" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="1.6"/>
+        <text x="46" y="43" text-anchor="middle" font-size="9" font-weight="700" fill="#1a1d24">your array</text>
+        <text x="46" y="56" text-anchor="middle" font-size="8" fill="#059669">ds[:] = arr</text>
+
+        <line x1="84" y1="45" x2="104" y2="45" stroke="#0d9488" stroke-width="1.6" marker-end="url(#h5f-arw)"/>
+
+        <rect x="106" y="26" width="70" height="38" rx="7" fill="#e9f6f4" stroke="#0d9488" stroke-width="1.8"/>
+        <text x="141" y="43" text-anchor="middle" font-size="9" font-weight="700" fill="#1a1d24">split into</text>
+        <text x="141" y="56" text-anchor="middle" font-size="9" font-weight="700" fill="#0d9488">chunks</text>
+
+        <line x1="176" y1="45" x2="196" y2="45" stroke="#0d9488" stroke-width="1.6" marker-end="url(#h5f-arw)"/>
+
+        <rect x="198" y="26" width="66" height="38" rx="7" fill="#fff" stroke="#0d9488" stroke-width="1.5"/>
+        <text x="231" y="43" text-anchor="middle" font-size="9" font-weight="700" fill="#1a1d24">shuffle</text>
+        <text x="231" y="56" text-anchor="middle" font-size="7.5" fill="#0d9488">reorder bytes</text>
+
+        <line x1="264" y1="45" x2="284" y2="45" stroke="#0d9488" stroke-width="1.6" marker-end="url(#h5f-arw)"/>
+
+        <rect x="286" y="26" width="66" height="38" rx="7" fill="#fff" stroke="#0d9488" stroke-width="1.5"/>
+        <text x="319" y="43" text-anchor="middle" font-size="9" font-weight="700" fill="#1a1d24">compress</text>
+        <text x="319" y="56" text-anchor="middle" font-size="7.5" fill="#0d9488">gzip / lzf</text>
+
+        <line x1="352" y1="45" x2="368" y2="45" stroke="#0d9488" stroke-width="1.6" marker-end="url(#h5f-arw)"/>
+
+        <rect x="370" y="26" width="62" height="38" rx="7" fill="#1a1d24"/>
+        <text x="401" y="43" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">disk</text>
+        <text x="401" y="56" text-anchor="middle" font-size="7.5" fill="#94a3b8">+fletcher32</text>
+
+        <line x1="8" y1="80" x2="432" y2="80" stroke="#e7e3db"/>
+        <text x="8" y="98" font-size="9" letter-spacing="1.4" fill="#94a3b8">ON READ &#8212; EXACTLY THE SAME, BACKWARDS</text>
+        <text x="8" y="116" font-size="9" fill="#3f444f">Touch one element and its <tspan font-weight="700">whole chunk</tspan> is fetched, checksummed and decompressed.</text>
+
+        <line x1="8" y1="128" x2="432" y2="128" stroke="#e7e3db"/>
+
+        <rect x="8" y="138" width="424" height="24" rx="5" fill="#e9f6f4"/>
+        <text x="18" y="154" font-size="8.8" fill="#1a1d24"><tspan font-weight="700" fill="#0d9488">shuffle=True</tspan> &#8212; groups equal-significance bytes. Nearly free, big gzip win on floats.</text>
+
+        <rect x="8" y="166" width="424" height="24" rx="5" fill="#e9f6f4"/>
+        <text x="18" y="182" font-size="8.8" fill="#1a1d24"><tspan font-weight="700" fill="#0d9488">scaleoffset=3</tspan> &#8212; lossy. Keeps three decimals, discards the rest permanently.</text>
+
+        <rect x="8" y="194" width="424" height="24" rx="5" fill="#f1f3f6"/>
+        <text x="18" y="210" font-size="8.8" fill="#1a1d24"><tspan font-weight="700" fill="#64748b">compression=32001</tspan> &#8212; third-party filters by id; readers need <tspan font-weight="700">hdf5plugin</tspan> too.</text>
+
+        <rect x="8" y="222" width="424" height="20" rx="5" fill="#fdf0ef"/>
+        <text x="18" y="236" font-size="8.5" fill="#dc2626">Ask for compression without <tspan font-weight="700">chunks=</tspan> and h5py picks a chunk shape for you.</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>4 &#183; who may open the file at once</h3>
+      <p>HDF5 is not a database. The rules are strict, the failure modes are quiet, and <code>unable to lock file</code> is the message you will meet first.</p>
+      <svg viewBox="0 0 440 252" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Many readers together is fine. One writer alone is fine. A writer plus a plain reader fails to lock. A writer plus readers works only in SWMR mode. Two writers risks corruption and is never allowed. MPI ranks may write together using the mpio driver.">
+        <rect x="8" y="24" width="424" height="30" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+        <text x="20" y="37" font-size="9.5" font-weight="700" fill="#1a1d24">reader + reader + reader</text>
+        <text x="20" y="49" font-size="8.2" fill="#059669">any number of 'r' opens, same or different processes</text>
+        <text x="420" y="44" text-anchor="end" font-size="13" font-weight="700" fill="#059669">&#10003;</text>
+
+        <rect x="8" y="58" width="424" height="30" rx="6" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+        <text x="20" y="71" font-size="9.5" font-weight="700" fill="#1a1d24">one writer, alone</text>
+        <text x="20" y="83" font-size="8.2" fill="#059669">'r+', 'w' or 'a' with nothing else attached</text>
+        <text x="420" y="78" text-anchor="end" font-size="13" font-weight="700" fill="#059669">&#10003;</text>
+
+        <rect x="8" y="92" width="424" height="30" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.5"/>
+        <text x="20" y="105" font-size="9.5" font-weight="700" fill="#1a1d24">writer + plain reader</text>
+        <text x="20" y="117" font-size="8.2" fill="#dc2626">OSError: unable to lock file &#8212; the classic</text>
+        <text x="420" y="112" text-anchor="end" font-size="13" font-weight="700" fill="#dc2626">&#10007;</text>
+
+        <rect x="8" y="126" width="424" height="30" rx="6" fill="#e9f6f4" stroke="#0d9488" stroke-width="1.5"/>
+        <text x="20" y="139" font-size="9.5" font-weight="700" fill="#1a1d24">writer + readers, in SWMR mode</text>
+        <text x="20" y="151" font-size="8.2" fill="#0d9488">libver="latest", f.swmr_mode=True, readers pass swmr=True</text>
+        <text x="420" y="146" text-anchor="end" font-size="13" font-weight="700" fill="#0d9488">&#10003;</text>
+
+        <rect x="8" y="160" width="424" height="30" rx="6" fill="#fdf0ef" stroke="#dc2626" stroke-width="2"/>
+        <text x="20" y="173" font-size="9.5" font-weight="700" fill="#dc2626">writer + writer</text>
+        <text x="20" y="185" font-size="8.2" fill="#dc2626">silent corruption. There is no multi-writer mode outside MPI.</text>
+        <text x="420" y="180" text-anchor="end" font-size="13" font-weight="700" fill="#dc2626">&#10007;</text>
+
+        <rect x="8" y="194" width="424" height="30" rx="6" fill="#e9f6f4" stroke="#0d9488" stroke-width="1.5"/>
+        <text x="20" y="207" font-size="9.5" font-weight="700" fill="#1a1d24">many MPI ranks writing</text>
+        <text x="20" y="219" font-size="8.2" fill="#0d9488">driver="mpio" &#8212; the only genuine parallel-write path</text>
+        <text x="420" y="214" text-anchor="end" font-size="13" font-weight="700" fill="#0d9488">&#10003;</text>
+
+        <text x="8" y="240" font-size="8.5" fill="#6b7280">Threads don't help either: h5py serialises on one global lock. Use processes.</text>
+        <text x="8" y="250" font-size="8.5" fill="#dc2626">HDF5_USE_FILE_LOCKING=FALSE removes the guard rail, not the hazard.</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ APPENDIX ============ -->
+<section class="appendix">
+  <h2>Appendix &mdash; h5py and its neighbours</h2>
+  <p class="sub">All three store chunked n-dimensional arrays. They differ in what the file <i>is</i>, and in who can write to it at once.</p>
+  <div class="ver-grid">
+
+    <div class="ver-card vh5">
+      <div class="ver-head"><span class="ver-tag">h5py</span><b>a thin, faithful HDF5 wrapper</b></div>
+      <div class="ver-body">
+        <h4 class="adopt">&#10010; reach for it when</h4>
+        <ul>
+          <li>The format matters &mdash; HDF5 is the lingua franca in science and instrumentation</li>
+          <li>You want NumPy semantics with nothing between you and the C library</li>
+          <li>You need references, dimension scales, committed types or the low-level API</li>
+          <li>The consumer is MATLAB, IDL, netCDF4, Julia or a C++ pipeline</li>
+          <li>One writer at a time, or true MPI parallel writes</li>
+        </ul>
+        <h4 class="drop">&#9888; it can't</h4>
+        <ul>
+          <li>Let several ordinary processes write the same file</li>
+          <li>Query or index &mdash; there is no <code>where()</code></li>
+          <li>Reclaim space after a delete without <code>h5repack</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ver-card vpt">
+      <div class="ver-head"><span class="ver-tag">PyTables</span><b>HDF5 with a database accent</b></div>
+      <div class="ver-body">
+        <h4 class="adopt">&#10010; reach for it when</h4>
+        <ul>
+          <li>You want <code>table.where("(x &gt; 3) &amp; (y &lt; 7)")</code> evaluated out of core</li>
+          <li>Indexed columns and fast queries over very long tables</li>
+          <li>Built-in blosc compression without hunting for plugins</li>
+          <li>You think in rows and records rather than in arrays</li>
+        </ul>
+        <h4 class="drop">&#9888; trade-offs</h4>
+        <ul>
+          <li>A thicker abstraction &mdash; more of its own opinions on layout</li>
+          <li>Still one writer; the concurrency rules are HDF5's</li>
+          <li>Files are valid HDF5, but carry PyTables-specific attributes</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ver-card vzr">
+      <div class="ver-head"><span class="ver-tag">Zarr</span><b>chunks as objects, not one file</b></div>
+      <div class="ver-body">
+        <h4 class="adopt">&#10010; reach for it when</h4>
+        <ul>
+          <li>The data lives on S3, GCS or Azure &mdash; each chunk is its own object</li>
+          <li>You need <b>many processes writing concurrently</b>, the thing HDF5 won't do</li>
+          <li>You're already in Dask or xarray and want the storage to match</li>
+          <li>You want the spec readable without a C library</li>
+        </ul>
+        <h4 class="drop">&#9888; it can't</h4>
+        <ul>
+          <li>Hand someone a single self-contained file</li>
+          <li>Be read by the decades of existing HDF5 tooling</li>
+          <li>Offer HDF5's references, region refs or committed datatypes</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">filesystem in a file</span><span class="v">Groups are directories, Datasets are arrays, Attributes are metadata</span></div>
+    <div><span class="k">a Dataset is a proxy</span><span class="v">it has <code>.shape</code> and <code>.dtype</code>, but holds no data</span></div>
+    <div><span class="k">mode defaults to 'r'</span><span class="v">since h5py 3.0 &mdash; it used to be <code>'a'</code></span></div>
+    <div><span class="k">'w' truncates</span><span class="v">use <code>'x'</code> to create-or-fail, <code>'a'</code> to append</span></div>
+    <div><span class="k">ds[:] reads everything</span><span class="v">check <code>ds.nbytes</code> first</span></div>
+    <div><span class="k">dataset strings &#8594; bytes</span><span class="v">use <code>.asstr()</code> or <code>.astype("T")</code> &mdash; before the slice</span></div>
+    <div><span class="k">attribute strings &#8594; str</span><span class="v">the asymmetry that catches everyone</span></div>
+    <div><span class="k">fixed strings truncate</span><span class="v">silently, and length is counted in bytes</span></div>
+    <div><span class="k">no bool, no datetime64</span><span class="v">and NumPy <code>'U'</code> dtypes are rejected outright</span></div>
+    <div><span class="k">compression needs chunks</span><span class="v">so do resizing and SWMR</span></div>
+    <div><span class="k">chunk shape = access pattern</span><span class="v">the highest-leverage decision you'll make</span></div>
+    <div><span class="k">chunk cache is 1 MiB</span><span class="v">per dataset &mdash; raise <code>rdcc_nbytes</code> when chunks are big</span></div>
+    <div><span class="k">maxshape=(None, &#8230;)</span><span class="v">is what makes a dataset growable</span></div>
+    <div><span class="k">del doesn't shrink the file</span><span class="v">run <code>h5repack</code> to actually reclaim it</span></div>
+    <div><span class="k">keys() is alphabetical</span><span class="v">unless you passed <code>track_order=True</code></span></div>
+    <div><span class="k">one writer or many readers</span><span class="v">never two writers; SWMR needs <code>libver="latest"</code></span></div>
+    <div><span class="k">threads don't parallelise</span><span class="v">h5py holds a global lock &mdash; use processes, and open after the fork</span></div>
+    <div><span class="k">3.16 deprecation</span><span class="v">create_dataset with no <code>data</code> and no <code>dtype</code> becomes an error in 4.0</span></div>
+  </div>
+</section>
+
+<footer>
+  h5py cheat sheet &middot; synthesized from the official documentation at docs.h5py.org (Quick Start, File Objects, Groups, Datasets, Attributes, Dimension Scales, Special types, Strings in HDF5, Object and Region References, Parallel HDF5, Multi-threading, Single Writer Multiple Reader, Virtual Datasets, Tools and Related Projects, FAQ), the 3.16 / 3.15 / 3.14 release notes, github.com/h5py/h5py, PyPI, and The HDF Group's HDF5 documentation.<br>
+  Version shown: <code>h5py 3.16.0</code> (6 March 2026; re-verified 2026-08-30 as still current), whose PyPI wheels bundle <code>HDF5 2.0</code> &middot; requires Python 3.10+ and NumPy &middot; originally by Andrew Collette &middot; BSD 3-Clause licensed.
+</footer>
+
+</body>
+</html>

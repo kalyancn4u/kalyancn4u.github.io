@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Actions Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1a1d24; --paper:#fbfaf8; --paper2:#efece4; --muted:#6b7280; --line:#e7e3db;
+  --card:#ffffff;
+
+  --trigger:#2563eb;  --trigger-bg:#eff6ff;   /* on: events */
+  --job:#7c3aed;      --job-bg:#f5f3ff;       /* jobs / strategy */
+  --step:#059669;     --step-bg:#ecfdf5;      /* steps / actions */
+  --context:#d97706;  --context-bg:#fffbeb;   /* contexts / expressions */
+  --danger:#dc2626;   --danger-bg:#fef2f2;    /* security / destructive */
+  --star:#ea580c;                              /* most-common accent */
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:'Inter',system-ui,sans-serif; line-height:1.5;
+  padding:32px 20px 80px;
+}
+.wrap{max-width:1280px; margin:0 auto;}
+code, .mono{font-family:'JetBrains Mono',monospace;}
+
+/* ---------- Header ---------- */
+header{margin-bottom:36px;}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;
+  letter-spacing:.14em; color:var(--job); text-transform:uppercase;
+}
+h1{font-size:clamp(28px,4vw,42px); margin:6px 0 10px; font-weight:800; letter-spacing:-0.02em;}
+h1 .mono{font-family:'JetBrains Mono',monospace; color:var(--step); font-weight:700;}
+.lede{font-size:15.5px; color:#374151; max-width:820px; margin:0 0 16px;}
+.legend{display:flex; flex-wrap:wrap; gap:14px; font-size:12.5px; font-family:'JetBrains Mono',monospace; margin-bottom:10px;}
+.legend span{display:inline-flex; align-items:center; gap:6px;}
+.dot{width:9px; height:9px; border-radius:50%; display:inline-block;}
+.sources{font-size:11.5px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+.sources a{color:var(--muted);}
+
+/* ---------- Diagram panels ---------- */
+.panel{
+  background:var(--card); border:1px solid var(--line); border-radius:14px;
+  padding:22px 22px 16px; margin-bottom:34px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+}
+.panel h2{font-size:15px; margin:0 0 4px; font-weight:700;}
+.panel .sub{font-size:12.5px; color:var(--muted); margin:0 0 14px;}
+.panel svg{width:100%; height:auto; display:block;}
+
+/* ---------- Section labels ---------- */
+.section-label{
+  font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700; letter-spacing:.1em;
+  color:#fff; background:var(--ink); display:inline-block; padding:4px 10px; border-radius:5px;
+  margin:38px 0 14px;
+}
+
+/* ---------- Masonry grid of cards ---------- */
+.grid{column-count:3; column-gap:16px;}
+@media (max-width:1000px){.grid{column-count:2;}}
+@media (max-width:640px){.grid{column-count:1;}}
+.card{
+  break-inside:avoid; background:transparent; border:none; border-radius:12px;
+  padding:23px 16px 12px; margin:0 0 16px; position:relative;
+}
+.card::before{
+  content:''; position:absolute; left:0; right:0; top:9px; bottom:0;
+  background:var(--card); border:1px solid var(--line); border-radius:12px; z-index:0;
+}
+.card > *{position:relative; z-index:1;}
+.card .num{
+  position:absolute; top:0; left:14px; background:var(--ink); color:#fff;
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700;
+  padding:2px 7px; border-radius:5px;
+}
+.card h3{font-size:14px; margin:6px 0 1px; font-weight:700;}
+.card .subtitle{font-size:11.5px; color:var(--muted); margin:0 0 10px;}
+ul.cmds{list-style:none; margin:0; padding:0;}
+ul.cmds li{
+  border-left:3px solid var(--line); padding:5px 0 5px 10px; margin-bottom:5px;
+  font-size:12.6px; border-radius:0 4px 4px 0;
+}
+ul.cmds li .desc{color:#4b5563; display:block; font-size:11.3px; margin-top:1px; font-family:'Inter',sans-serif;}
+ul.cmds li code{background:var(--paper2); padding:1px 5px; border-radius:4px; font-size:12px;}
+.star::before{content:"★ "; color:var(--star); font-size:10px;}
+.badge{
+  font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; text-transform:uppercase;
+  padding:1px 5px; border-radius:4px; margin-left:6px; vertical-align:middle;
+}
+.badge.danger{background:var(--danger-bg); color:var(--danger);}
+.badge.new{background:var(--step-bg); color:var(--step);}
+
+li[data-cat="trigger"]{border-color:var(--trigger); background:linear-gradient(90deg,var(--trigger-bg),transparent 60%);}
+li[data-cat="job"]{border-color:var(--job); background:linear-gradient(90deg,var(--job-bg),transparent 60%);}
+li[data-cat="step"]{border-color:var(--step); background:linear-gradient(90deg,var(--step-bg),transparent 60%);}
+li[data-cat="context"]{border-color:var(--context); background:linear-gradient(90deg,var(--context-bg),transparent 60%);}
+li[data-cat="danger"]{border-color:var(--danger); background:linear-gradient(90deg,var(--danger-bg),transparent 60%);}
+
+/* yaml key coloring inside code */
+.k-trigger{color:var(--trigger); font-weight:600;}
+.k-job{color:var(--job); font-weight:600;}
+.k-step{color:var(--step); font-weight:600;}
+.k-ctx{color:var(--context); font-weight:600;}
+.k-danger{color:var(--danger); font-weight:600;}
+.k-val{color:#334155;}
+
+/* ---------- Diagram comparison grid ---------- */
+.diagrid{display:grid; grid-template-columns:repeat(2,1fr); gap:16px;}
+@media (max-width:800px){.diagrid{grid-template-columns:1fr;}}
+.diacard{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px;}
+.diacard h4{font-size:13px; margin:2px 0 8px; font-weight:700;}
+.diacard p{font-size:11.8px; color:#4b5563; margin:8px 0 0;}
+
+/* ---------- Memorize strip ---------- */
+.memorize{
+  background:var(--ink); color:#f5f3ee; border-radius:14px; padding:24px 26px; margin:40px 0 10px;
+}
+.memorize h2{font-size:14px; margin:0 0 16px; font-family:'JetBrains Mono',monospace; letter-spacing:.08em; color:#fbbf24; text-transform:uppercase;}
+.mem-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px 26px;}
+@media (max-width:700px){.mem-grid{grid-template-columns:1fr;}}
+.mem-item{font-size:13px; padding:9px 0; border-bottom:1px solid #33334a; display:flex; justify-content:space-between; gap:12px;}
+.mem-item b{color:#fff; font-family:'JetBrains Mono',monospace; font-weight:600; font-size:12.5px;}
+.mem-item span{color:#a8a6c0; text-align:right; font-size:11.8px;}
+
+footer{margin-top:30px; font-size:11.5px; color:var(--muted); font-family:'JetBrains Mono',monospace; text-align:center;}
+footer a{color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">CI/CD &middot; AUTOMATION</div>
+  <h1>GitHub Actions <span class="mono">Cheat Sheet</span></h1>
+  <p class="lede">Mental model: an <b>event</b> triggers a <b>workflow</b> (YAML in <code class="mono">.github/workflows/</code>); a workflow runs one or more <b>jobs</b> in parallel (or sequenced via <code class="mono">needs</code>) on <b>runners</b>; each job runs an ordered list of <b>steps</b>, which are either shell commands or reusable <b>actions</b>.</p>
+  <div class="legend">
+    <span><i class="dot" style="background:var(--trigger)"></i>triggers / on:</span>
+    <span><i class="dot" style="background:var(--job)"></i>jobs / strategy</span>
+    <span><i class="dot" style="background:var(--step)"></i>steps / actions</span>
+    <span><i class="dot" style="background:var(--context)"></i>contexts / expressions</span>
+    <span><i class="dot" style="background:var(--danger)"></i>security / danger</span>
+    <span><span class="star"></span>most common</span>
+  </div>
+  <div class="sources">Sources: docs.github.com/actions (workflow syntax, contexts, expressions, security, OIDC, reusable workflows) &middot; GitHub Changelog &middot; actions/checkout, actions/cache, actions/upload-artifact release notes</div>
+</header>
+
+<!-- ================= SIGNATURE FLOW DIAGRAM ================= -->
+<div class="panel">
+  <h2>Lifecycle of a Workflow Run</h2>
+  <p class="sub">Event &rarr; workflow file match &rarr; job scheduling &rarr; runner execution &rarr; artifacts / status</p>
+  <svg viewBox="0 0 1180 300" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"/>
+      </marker>
+    </defs>
+    <!-- Event -->
+    <rect x="10" y="90" width="140" height="70" rx="10" fill="var(--trigger-bg)" stroke="var(--trigger)" stroke-width="1.5"/>
+    <text x="80" y="118" text-anchor="middle" font-family="Inter" font-size="12.5" font-weight="700" fill="var(--trigger)">Event</text>
+    <text x="80" y="136" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#374151">push / PR / cron /</text>
+    <text x="80" y="149" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#374151">dispatch</text>
+
+    <path d="M150,125 L200,125" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <!-- Workflow -->
+    <rect x="200" y="85" width="150" height="80" rx="10" fill="var(--paper2)" stroke="var(--ink)" stroke-width="1.5"/>
+    <text x="275" y="112" text-anchor="middle" font-family="Inter" font-size="12.5" font-weight="700" fill="var(--ink)">Workflow YAML</text>
+    <text x="275" y="130" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#374151">.github/workflows/</text>
+    <text x="275" y="143" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#374151">*.yml matched by on:</text>
+
+    <path d="M350,125 L400,125" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <!-- Jobs (parallel + needs) -->
+    <rect x="400" y="20" width="160" height="55" rx="10" fill="var(--job-bg)" stroke="var(--job)" stroke-width="1.5"/>
+    <text x="480" y="43" text-anchor="middle" font-family="Inter" font-size="11.5" font-weight="700" fill="var(--job)">job: build</text>
+    <text x="480" y="58" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#374151">runs-on: ubuntu-latest</text>
+
+    <rect x="400" y="90" width="160" height="55" rx="10" fill="var(--job-bg)" stroke="var(--job)" stroke-width="1.5"/>
+    <text x="480" y="113" text-anchor="middle" font-family="Inter" font-size="11.5" font-weight="700" fill="var(--job)">job: test</text>
+    <text x="480" y="128" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#374151">matrix strategy</text>
+
+    <rect x="400" y="160" width="160" height="55" rx="10" fill="var(--job-bg)" stroke="var(--job)" stroke-width="1.5"/>
+    <text x="480" y="183" text-anchor="middle" font-family="Inter" font-size="11.5" font-weight="700" fill="var(--job)">job: deploy</text>
+    <text x="480" y="198" text-anchor="middle" font-family="JetBrains Mono" font-size="8.3" fill="#374151">needs: [build, test]</text>
+
+    <path d="M350,125 L400,47" stroke="#9ca3af" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <path d="M350,125 L400,187" stroke="#9ca3af" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <path d="M480,75 L480,90" stroke="#c4b5fd" stroke-width="1.2" stroke-dasharray="3,2"/>
+    <path d="M480,145 L480,188" stroke="#c4b5fd" stroke-width="1.2" marker-end="url(#arrow)" stroke-dasharray="3,2"/>
+    <text x="565" y="180" font-family="JetBrains Mono" font-size="9" fill="var(--muted)">needs</text>
+
+    <path d="M560,47 L610,110" stroke="#9ca3af" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <path d="M560,117 L610,117" stroke="#9ca3af" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+    <!-- Runner -->
+    <rect x="610" y="80" width="150" height="90" rx="10" fill="var(--step-bg)" stroke="var(--step)" stroke-width="1.5"/>
+    <text x="685" y="105" text-anchor="middle" font-family="Inter" font-size="12.5" font-weight="700" fill="var(--step)">Runner</text>
+    <text x="685" y="122" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#374151">fresh VM / container</text>
+    <text x="685" y="136" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#374151">GitHub-hosted or</text>
+    <text x="685" y="150" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#374151">self-hosted</text>
+
+    <path d="M760,125 L810,125" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <!-- Steps -->
+    <rect x="810" y="55" width="150" height="35" rx="8" fill="#fff" stroke="var(--step)" stroke-width="1.2"/>
+    <text x="885" y="77" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="var(--step)">uses: checkout</text>
+    <rect x="810" y="97" width="150" height="35" rx="8" fill="#fff" stroke="var(--step)" stroke-width="1.2"/>
+    <text x="885" y="119" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="var(--step)">run: build/test</text>
+    <rect x="810" y="139" width="150" height="35" rx="8" fill="#fff" stroke="var(--step)" stroke-width="1.2"/>
+    <text x="885" y="161" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="var(--step)">uses: upload-artifact</text>
+    <path d="M885,90 L885,97" stroke="#9ca3af" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <path d="M885,132 L885,139" stroke="#9ca3af" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+    <path d="M960,105 L1010,105" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <!-- Output -->
+    <rect x="1010" y="70" width="160" height="90" rx="10" fill="var(--context-bg)" stroke="var(--context)" stroke-width="1.5"/>
+    <text x="1090" y="95" text-anchor="middle" font-family="Inter" font-size="12" font-weight="700" fill="var(--context)">Result</text>
+    <text x="1090" y="113" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#374151">check status</text>
+    <text x="1090" y="127" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#374151">artifacts / logs</text>
+    <text x="1090" y="141" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#374151">GITHUB_STEP_SUMMARY</text>
+
+    <text x="480" y="250" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="var(--muted)">contexts (github &middot; env &middot; vars &middot; secrets &middot; needs &middot; matrix &middot; steps) flow through every stage &rarr;</text>
+  </svg>
+</div>
+
+<div class="section-label">01 &middot; CORE STRUCTURE</div>
+<div class="grid">
+
+  <div class="card">
+    <span class="num">1</span>
+    <h3>Minimal Workflow Skeleton</h3>
+    <p class="subtitle">Every workflow file needs these top-level keys</p>
+    <ul class="cmds">
+      <li data-cat="trigger" class="star"><code><span class="k-trigger">name:</span> <span class="k-val">CI</span></code><span class="desc">shown in the Actions tab</span></li>
+      <li data-cat="trigger" class="star"><code><span class="k-trigger">on:</span> [push, pull_request]</code><span class="desc">event(s) that trigger the run</span></li>
+      <li data-cat="job" class="star"><code><span class="k-job">jobs:</span></code><span class="desc">map of job_id &rarr; job config</span></li>
+      <li data-cat="job" class="star"><code>&nbsp;&nbsp;<span class="k-job">runs-on:</span> ubuntu-latest</code><span class="desc">required per job</span></li>
+      <li data-cat="step" class="star"><code>&nbsp;&nbsp;<span class="k-step">steps:</span></code><span class="desc">ordered list, run top to bottom</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">2</span>
+    <h3>Where Files Live</h3>
+    <p class="subtitle">Repository layout conventions</p>
+    <ul class="cmds">
+      <li data-cat="job"><code>.github/workflows/*.yml</code><span class="desc">workflow definitions (must be on default branch for some events)</span></li>
+      <li data-cat="step"><code>action.yml</code> / <code>action.yaml</code><span class="desc">metadata file for a custom action</span></li>
+      <li data-cat="job"><code>.github/CODEOWNERS</code>, issue/PR templates<span class="desc">not Actions, but same directory family</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">3</span>
+    <h3>Triggers &mdash; Common Events</h3>
+    <p class="subtitle"><code>on:</code> keys, single event, list, or map with filters</p>
+    <ul class="cmds">
+      <li data-cat="trigger" class="star"><code>push:</code><span class="desc">commits pushed; filter with <code>branches</code>, <code>tags</code>, <code>paths</code></span></li>
+      <li data-cat="trigger" class="star"><code>pull_request:</code><span class="desc">PR opened/sync/etc; filter with <code>types</code></span></li>
+      <li data-cat="trigger" class="star"><code>workflow_dispatch:</code><span class="desc">manual run button; supports typed <code>inputs</code></span></li>
+      <li data-cat="trigger"><code>schedule:</code> <code>cron: '0 3 * * *'</code><span class="desc">UTC cron; min interval ~5 min, may be delayed under load</span></li>
+      <li data-cat="trigger"><code>release:</code> <code>types: [published]</code><span class="desc">release lifecycle events</span></li>
+      <li data-cat="trigger"><code>workflow_call:</code><span class="desc">makes this workflow reusable by others</span></li>
+      <li data-cat="trigger"><code>repository_dispatch:</code><span class="desc">custom event fired via REST API</span></li>
+      <li data-cat="danger"><code>pull_request_target:</code> <span class="badge danger">danger</span><span class="desc">runs with base-repo secrets against fork code &mdash; never checkout + run untrusted PR code here</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">4</span>
+    <h3>workflow_dispatch Inputs</h3>
+    <p class="subtitle">Typed parameters for manual runs</p>
+    <ul class="cmds">
+      <li data-cat="trigger"><code>type: choice</code> / <code>string</code> / <code>boolean</code> / <code>environment</code><span class="desc">supported input types</span></li>
+      <li data-cat="trigger"><code>required: true</code>, <code>default: 'x'</code><span class="desc">standard input fields</span></li>
+      <li data-cat="context"><code>${{ github.event.inputs.name }}</code><span class="desc">or the shorter <code>${{ inputs.name }}</code></span></li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="section-label">02 &middot; JOBS &amp; RUNNERS</div>
+<div class="grid">
+
+  <div class="card">
+    <span class="num">5</span>
+    <h3>Job-Level Keys</h3>
+    <p class="subtitle">Configured per entry under <code>jobs:</code></p>
+    <ul class="cmds">
+      <li data-cat="job" class="star"><code>runs-on:</code><span class="desc">required &mdash; runner label or expression</span></li>
+      <li data-cat="job" class="star"><code>needs: [job_a, job_b]</code><span class="desc">run only after listed jobs succeed; enables sequencing</span></li>
+      <li data-cat="job" class="star"><code>if:</code><span class="desc">skip the whole job unless condition is true</span></li>
+      <li data-cat="job"><code>timeout-minutes: 15</code><span class="desc">default is 360; always set explicitly</span></li>
+      <li data-cat="job"><code>continue-on-error: true</code><span class="desc">job/step failure won't fail the run</span></li>
+      <li data-cat="job"><code>environment: production</code><span class="desc">ties job to protection rules &amp; env secrets</span></li>
+      <li data-cat="job"><code>outputs:</code><span class="desc">map job_output &rarr; <code>${{ steps.id.outputs.x }}</code></span></li>
+      <li data-cat="job"><code>container: node:20</code><span class="desc">run job steps inside a Docker container</span></li>
+      <li data-cat="job"><code>services:</code><span class="desc">sidecar containers (e.g. postgres, redis) for the job</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">6</span>
+    <h3>Matrix Strategy</h3>
+    <p class="subtitle">Fan a job out across a combination grid</p>
+    <ul class="cmds">
+      <li data-cat="job" class="star"><code>strategy: matrix:</code><span class="desc">define axes, e.g. <code>os: [ubuntu-latest, macos-latest]</code></span></li>
+      <li data-cat="job"><code>include:</code> / <code>exclude:</code><span class="desc">add one-off combos or remove specific ones</span></li>
+      <li data-cat="job"><code>fail-fast: false</code><span class="desc">default true cancels the whole matrix on first failure</span></li>
+      <li data-cat="job"><code>max-parallel: 2</code><span class="desc">throttle concurrent matrix jobs</span></li>
+      <li data-cat="context"><code>${{ matrix.os }}</code>, <code>${{ matrix.node }}</code><span class="desc">reference axis values anywhere in the job</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">7</span>
+    <h3>Runners</h3>
+    <p class="subtitle">Where the job actually executes</p>
+    <ul class="cmds">
+      <li data-cat="job" class="star"><code>ubuntu-latest</code>, <code>windows-latest</code>, <code>macos-latest</code><span class="desc">GitHub-hosted, fresh VM per job</span></li>
+      <li data-cat="job"><code>ubuntu-24.04-arm</code><span class="desc">Arm-based hosted runner</span></li>
+      <li data-cat="job"><code>ubuntu-latest-16-cores</code><span class="desc">larger hosted runner (paid, org/enterprise)</span></li>
+      <li data-cat="job"><code>[self-hosted, linux, gpu]</code><span class="desc">label set routes to self-hosted fleet</span></li>
+      <li data-cat="context"><code>runner.os</code>, <code>runner.arch</code>, <code>runner.temp</code><span class="desc">runner context, available once job is scheduled</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">8</span>
+    <h3>Concurrency</h3>
+    <p class="subtitle">Prevent overlapping runs</p>
+    <ul class="cmds">
+      <li data-cat="job" class="star"><code>concurrency: group: ${{ github.ref }}</code><span class="desc">only one run per group at a time</span></li>
+      <li data-cat="job" class="star"><code>cancel-in-progress: true</code><span class="desc">auto-cancel superseded runs (great for PR pushes)</span></li>
+      <li data-cat="job"><code>queue: single | max</code><span class="desc">how many pending runs may wait in the group</span></li>
+      <li data-cat="job"><code>concurrency</code> can be workflow- or job-level<span class="desc">job-level = only that job is serialized</span></li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="section-label">03 &middot; STEPS &amp; ACTIONS</div>
+<div class="grid">
+
+  <div class="card">
+    <span class="num">9</span>
+    <h3>Step-Level Keys</h3>
+    <p class="subtitle">Each list item under <code>steps:</code></p>
+    <ul class="cmds">
+      <li data-cat="step" class="star"><code>uses: owner/repo@ref</code><span class="desc">run a published or local action</span></li>
+      <li data-cat="step" class="star"><code>run: echo hi</code><span class="desc">shell command; multi-line via <code>|</code></span></li>
+      <li data-cat="step" class="star"><code>with:</code><span class="desc">input parameters passed to the action</span></li>
+      <li data-cat="step"><code>id: build</code><span class="desc">reference this step's outputs later</span></li>
+      <li data-cat="step"><code>env:</code><span class="desc">environment variables for this step only</span></li>
+      <li data-cat="step"><code>if:</code><span class="desc">skip this one step conditionally</span></li>
+      <li data-cat="step"><code>shell: bash</code><span class="desc">bash, pwsh, python, sh, cmd, powershell</span></li>
+      <li data-cat="step"><code>working-directory: ./app</code><span class="desc">cwd for the <code>run:</code> command</span></li>
+      <li data-cat="step"><code>continue-on-error: true</code><span class="desc">let this step fail without failing the job</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">10</span>
+    <h3>Essential Marketplace Actions</h3>
+    <p class="subtitle">The 90%-of-workflows toolkit</p>
+    <ul class="cmds">
+      <li data-cat="step" class="star"><code>actions/checkout@v4</code><span class="desc">clone the repo; needed before most git-aware steps</span></li>
+      <li data-cat="step" class="star"><code>actions/setup-node@v4</code>, <code>setup-python@v5</code>, <code>setup-java@v4</code><span class="desc">install a language runtime, with built-in caching option</span></li>
+      <li data-cat="step" class="star"><code>actions/cache@v4</code><span class="desc">restore/save dependency cache by key</span></li>
+      <li data-cat="step"><code>actions/upload-artifact@v4</code> / <code>download-artifact@v4</code><span class="desc">persist files between jobs / for later download</span></li>
+      <li data-cat="step"><code>actions/github-script@v7</code><span class="desc">run JS with an authenticated Octokit client inline</span></li>
+      <li data-cat="step"><code>actions/create-release</code>, <code>softprops/action-gh-release</code><span class="desc">publish GitHub Releases</span></li>
+      <li data-cat="step"><code>docker/build-push-action@v6</code><span class="desc">build &amp; push container images</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">11</span>
+    <h3>Checkout Options</h3>
+    <p class="subtitle">Common <code>with:</code> tweaks for <code>actions/checkout</code></p>
+    <ul class="cmds">
+      <li data-cat="step"><code>fetch-depth: 0</code><span class="desc">full history (default is depth 1, shallow)</span></li>
+      <li data-cat="step"><code>ref: ${{ github.event.pull_request.head.sha }}</code><span class="desc">check out a specific ref/SHA</span></li>
+      <li data-cat="danger"><code>persist-credentials: false</code> <span class="badge danger">security</span><span class="desc">avoid leaving the token usable by later steps/scripts</span></li>
+      <li data-cat="step"><code>submodules: true</code><span class="desc">also check out submodules</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">12</span>
+    <h3>Caching (actions/cache)</h3>
+    <p class="subtitle">Speed up installs; best-effort, not guaranteed</p>
+    <ul class="cmds">
+      <li data-cat="step" class="star"><code>key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}</code><span class="desc">exact-match key, usually hash of a lockfile</span></li>
+      <li data-cat="step"><code>restore-keys:</code><span class="desc">fallback prefixes for a partial cache hit</span></li>
+      <li data-cat="step"><code>path:</code><span class="desc">directory/directories to cache</span></li>
+      <li data-cat="step"><code>setup-node: cache: 'npm'</code><span class="desc">many setup-* actions wrap cache automatically</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">13</span>
+    <h3>Artifacts</h3>
+    <p class="subtitle">Durable output files (cache &ne; artifact)</p>
+    <ul class="cmds">
+      <li data-cat="step" class="star"><code>upload-artifact: name / path</code><span class="desc">store build output, test reports, binaries</span></li>
+      <li data-cat="step"><code>retention-days: 7</code><span class="desc">default 90; shorten to save storage</span></li>
+      <li data-cat="step"><code>if-no-files-found: warn|error|ignore</code><span class="desc">behavior when the path matches nothing</span></li>
+      <li data-cat="step"><code>download-artifact: pattern:</code><span class="desc">pull one or many artifacts into a later job</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">14</span>
+    <h3>Workflow Commands (from a step)</h3>
+    <p class="subtitle">Talk back to the runner via files/echo</p>
+    <ul class="cmds">
+      <li data-cat="step" class="star"><code>echo "x=1" >> $GITHUB_OUTPUT</code><span class="desc">set a step output (replaces deprecated <code>::set-output::</code>)</span></li>
+      <li data-cat="step" class="star"><code>echo "VAR=1" >> $GITHUB_ENV</code><span class="desc">export an env var to subsequent steps</span></li>
+      <li data-cat="step"><code>echo "..." >> $GITHUB_STEP_SUMMARY</code><span class="desc">markdown shown on the run summary page</span></li>
+      <li data-cat="step"><code>echo "::error file=a.js::msg"</code><span class="desc">annotate; also <code>::warning::</code>, <code>::notice::</code></span></li>
+      <li data-cat="step"><code>echo "::group::name" ... "::endgroup::"</code><span class="desc">collapsible log sections</span></li>
+      <li data-cat="danger"><code>echo "::add-mask::$VALUE"</code> <span class="badge danger">security</span><span class="desc">redact a runtime-computed secret in logs</span></li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="section-label">04 &middot; CONTEXTS &amp; EXPRESSIONS</div>
+<div class="grid">
+
+  <div class="card">
+    <span class="num">15</span>
+    <h3>Core Contexts</h3>
+    <p class="subtitle">Objects available inside <code>${{ }}</code></p>
+    <ul class="cmds">
+      <li data-cat="context" class="star"><code>github.*</code><span class="desc">event payload, sha, ref, actor, repository, token</span></li>
+      <li data-cat="context" class="star"><code>env.*</code>, <code>vars.*</code><span class="desc">workflow/job env vars &amp; configuration variables</span></li>
+      <li data-cat="context" class="star"><code>secrets.*</code><span class="desc">encrypted secrets; not printed to logs (masked)</span></li>
+      <li data-cat="context"><code>needs.&lt;job&gt;.outputs.*</code>, <code>needs.&lt;job&gt;.result</code><span class="desc">read another job's outputs/status</span></li>
+      <li data-cat="context"><code>matrix.*</code><span class="desc">current combination in a matrix job</span></li>
+      <li data-cat="context"><code>steps.&lt;id&gt;.outputs.*</code>, <code>steps.&lt;id&gt;.outcome</code><span class="desc">read a prior step's outputs/status</span></li>
+      <li data-cat="context"><code>job.status</code>, <code>runner.*</code>, <code>inputs.*</code><span class="desc">job status; runner info; workflow_call/dispatch inputs</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">16</span>
+    <h3>Expression Functions</h3>
+    <p class="subtitle">Built-ins usable inside <code>${{ }}</code></p>
+    <ul class="cmds">
+      <li data-cat="context" class="star"><code>contains()</code>, <code>startsWith()</code>, <code>endsWith()</code><span class="desc">string/array matching</span></li>
+      <li data-cat="context" class="star"><code>format('{0}-{1}', a, b)</code><span class="desc">string templating</span></li>
+      <li data-cat="context"><code>join(array, sep)</code><span class="desc">array to string</span></li>
+      <li data-cat="context" class="star"><code>toJSON()</code>, <code>fromJSON()</code><span class="desc">debug a context / parse a JSON string or matrix</span></li>
+      <li data-cat="context" class="star"><code>hashFiles('**/lock')</code><span class="desc">deterministic hash, common for cache keys</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">17</span>
+    <h3>Status-Check Functions (for <code>if:</code>)</h3>
+    <p class="subtitle">Control step/job execution around failures</p>
+    <ul class="cmds">
+      <li data-cat="context" class="star"><code>success()</code><span class="desc">default implicit condition &mdash; all previous steps passed</span></li>
+      <li data-cat="context"><code>failure()</code><span class="desc">true if any previous step failed</span></li>
+      <li data-cat="context"><code>always()</code><span class="desc">runs even if cancelled &mdash; risky for checkout-dependent steps</span></li>
+      <li data-cat="context" class="star"><code>!cancelled()</code><span class="desc">preferred over <code>always()</code> to still skip on cancellation</span></li>
+      <li data-cat="context"><code>cancelled()</code><span class="desc">true only if the run was cancelled</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">18</span>
+    <h3>Secrets &amp; Variables</h3>
+    <p class="subtitle">Config vs. sensitive values</p>
+    <ul class="cmds">
+      <li data-cat="danger" class="star"><code>secrets.GITHUB_TOKEN</code><span class="desc">auto-generated per run; scope set via <code>permissions:</code></span></li>
+      <li data-cat="danger"><code>secrets.MY_TOKEN</code><span class="desc">repo / environment / org-level secret</span></li>
+      <li data-cat="context"><code>vars.MY_VAR</code><span class="desc">non-sensitive configuration variable, same scoping tiers</span></li>
+      <li data-cat="danger"><code>secrets:</code> not usable in <code>if:</code> directly<span class="desc">copy to an env var first, then check the env var</span></li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="section-label">05 &middot; SECURITY, ENVIRONMENTS &amp; REUSE</div>
+<div class="grid">
+
+  <div class="card">
+    <span class="num">19</span>
+    <h3>Permissions (GITHUB_TOKEN)</h3>
+    <p class="subtitle">Least-privilege scoping</p>
+    <ul class="cmds">
+      <li data-cat="danger" class="star"><code>permissions: read-all</code> is <b>not</b> the default<span class="desc">new repos default to read-only contents since 2023</span></li>
+      <li data-cat="danger"><code>permissions: contents: write</code><span class="desc">grant only the scopes a job actually needs</span></li>
+      <li data-cat="danger"><code>permissions: {}</code><span class="desc">explicitly deny everything as a safe baseline</span></li>
+      <li data-cat="danger"><code>id-token: write</code><span class="desc">required to mint an OIDC token for cloud auth</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">20</span>
+    <h3>Environments &amp; Protection Rules</h3>
+    <p class="subtitle">Gate deploys behind approvals</p>
+    <ul class="cmds">
+      <li data-cat="job" class="star"><code>jobs.&lt;id&gt;.environment: production</code><span class="desc">ties the job to an environment's rules &amp; secrets</span></li>
+      <li data-cat="job"><code>required reviewers</code><span class="desc">manual approval before the job proceeds</span></li>
+      <li data-cat="job"><code>wait timer</code><span class="desc">mandatory delay before deployment</span></li>
+      <li data-cat="job"><code>deployment branch/tag policy</code><span class="desc">restrict which refs may deploy</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">21</span>
+    <h3>Reusable Workflows</h3>
+    <p class="subtitle"><code>workflow_call</code> vs plain <code>workflow_dispatch</code></p>
+    <ul class="cmds">
+      <li data-cat="trigger" class="star"><code>on: workflow_call: inputs / secrets / outputs</code><span class="desc">defines the called workflow's contract</span></li>
+      <li data-cat="job" class="star"><code>jobs.&lt;id&gt;.uses: org/repo/.github/&hellip;/x.yml@main</code><span class="desc">invoke it from a caller workflow</span></li>
+      <li data-cat="job"><code>with: / secrets:</code><span class="desc">pass inputs and secrets down to the callee</span></li>
+      <li data-cat="job"><code>secrets: inherit</code><span class="desc">pass all caller secrets through (convenient, less explicit)</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">22</span>
+    <h3>Custom Action Types</h3>
+    <p class="subtitle"><code>action.yml</code> &rarr; <code>runs.using</code></p>
+    <ul class="cmds">
+      <li data-cat="step" class="star"><code>using: composite</code><span class="desc">wraps existing steps; simplest, runs on the caller's runner</span></li>
+      <li data-cat="step"><code>using: node20</code><span class="desc">JavaScript/TypeScript action; fast, cross-platform</span></li>
+      <li data-cat="step"><code>using: docker</code><span class="desc">packages a Dockerfile; heavier but full OS control (Linux runners only)</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">23</span>
+    <h3>Security Best Practices</h3>
+    <p class="subtitle">Reduce supply-chain &amp; secret-leak risk</p>
+    <ul class="cmds">
+      <li data-cat="danger" class="star"><code>uses: owner/action@&lt;full-SHA&gt;</code><span class="desc">pin third-party actions by commit SHA, not a mutable tag</span></li>
+      <li data-cat="danger" class="star">Never checkout PR code in <code>pull_request_target</code><span class="desc">that job runs with base-repo secrets &mdash; classic fork attack vector</span></li>
+      <li data-cat="danger"><code>id-token: write</code> + OIDC<span class="desc">prefer short-lived federated tokens over long-lived cloud secrets</span></li>
+      <li data-cat="danger">Treat event payload fields as untrusted input<span class="desc">e.g. issue titles/PR titles injected into <code>run:</code> can execute arbitrary shell</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="num">24</span>
+    <h3>Common Gotchas</h3>
+    <p class="subtitle">Frequent points of confusion</p>
+    <ul class="cmds">
+      <li data-cat="danger"><code>secrets</code> are unavailable to workflows triggered from forks<span class="desc">by design, for <code>pull_request</code> (not <code>_target</code>)</span></li>
+      <li data-cat="danger">360-minute default job timeout<span class="desc">set <code>timeout-minutes</code> explicitly to fail fast &amp; control cost</span></li>
+      <li data-cat="danger">Cache key with no <code>restore-keys</code> fallback<span class="desc">a pure lockfile-hash key misses on every dependency bump</span></li>
+      <li data-cat="danger">Multiline YAML in <code>run:</code> needs <code>|</code><span class="desc">and watch indentation &mdash; YAML is whitespace-sensitive</span></li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- ================= OIDC / SECRET-LESS AUTH DIAGRAM ================= -->
+<div class="panel">
+  <h2>OIDC &mdash; Secret-less Cloud Authentication</h2>
+  <p class="sub">Trade long-lived cloud keys for a short-lived token minted per run</p>
+  <svg viewBox="0 0 900 170" xmlns="http://www.w3.org/2000/svg">
+    <rect x="10" y="50" width="170" height="70" rx="10" fill="var(--step-bg)" stroke="var(--step)" stroke-width="1.5"/>
+    <text x="95" y="80" text-anchor="middle" font-family="Inter" font-size="12" font-weight="700" fill="var(--step)">Workflow job</text>
+    <text x="95" y="97" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#374151">permissions:</text>
+    <text x="95" y="110" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#374151">id-token: write</text>
+
+    <path d="M180,85 L250,85" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="215" y="78" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="var(--muted)">requests</text>
+
+    <rect x="250" y="50" width="180" height="70" rx="10" fill="var(--context-bg)" stroke="var(--context)" stroke-width="1.5"/>
+    <text x="340" y="80" text-anchor="middle" font-family="Inter" font-size="12" font-weight="700" fill="var(--context)">GitHub OIDC provider</text>
+    <text x="340" y="97" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#374151">mints short-lived</text>
+    <text x="340" y="110" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#374151">signed JWT</text>
+
+    <path d="M430,85 L500,85" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="465" y="78" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="var(--muted)">presents</text>
+
+    <rect x="500" y="50" width="180" height="70" rx="10" fill="var(--job-bg)" stroke="var(--job)" stroke-width="1.5"/>
+    <text x="590" y="80" text-anchor="middle" font-family="Inter" font-size="12" font-weight="700" fill="var(--job)">Cloud IdP</text>
+    <text x="590" y="97" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#374151">AWS STS / Azure AD /</text>
+    <text x="590" y="110" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#374151">GCP Workload Identity</text>
+
+    <path d="M680,85 L750,85" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="715" y="78" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="var(--muted)">validates trust</text>
+
+    <rect x="750" y="50" width="140" height="70" rx="10" fill="var(--trigger-bg)" stroke="var(--trigger)" stroke-width="1.5"/>
+    <text x="820" y="80" text-anchor="middle" font-family="Inter" font-size="12" font-weight="700" fill="var(--trigger)">Temp credentials</text>
+    <text x="820" y="97" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#374151">minutes-scoped,</text>
+    <text x="820" y="110" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#374151">repo/branch-scoped</text>
+
+    <text x="450" y="150" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="var(--muted)">no cloud secret ever stored in GitHub &mdash; trust configured once on the cloud side by repo/ref condition</text>
+  </svg>
+</div>
+
+<!-- ================= COMPARISON DIAGRAM GRID ================= -->
+<div class="section-label">06 &middot; VISUAL COMPARISONS</div>
+<div class="diagrid">
+
+  <div class="diacard">
+    <h4>Matrix Expansion</h4>
+    <svg viewBox="0 0 380 190" xmlns="http://www.w3.org/2000/svg">
+      <text x="10" y="16" font-family="JetBrains Mono" font-size="10" fill="var(--muted)">matrix: os:[ubuntu,windows] &times; node:[18,20]</text>
+      <g font-family="JetBrains Mono" font-size="9">
+        <rect x="6" y="30" width="86" height="34" rx="6" fill="var(--job-bg)" stroke="var(--job)"/>
+        <text x="49" y="51" text-anchor="middle" fill="var(--job)">ubuntu+18</text>
+        <rect x="98" y="30" width="86" height="34" rx="6" fill="var(--job-bg)" stroke="var(--job)"/>
+        <text x="141" y="51" text-anchor="middle" fill="var(--job)">ubuntu+20</text>
+        <rect x="190" y="30" width="90" height="34" rx="6" fill="var(--job-bg)" stroke="var(--job)"/>
+        <text x="235" y="51" text-anchor="middle" fill="var(--job)">windows+18</text>
+        <rect x="286" y="30" width="90" height="34" rx="6" fill="var(--job-bg)" stroke="var(--job)"/>
+        <text x="331" y="51" text-anchor="middle" fill="var(--job)">windows+20</text>
+      </g>
+      <text x="10" y="90" font-family="Inter" font-size="10.5" fill="#374151">4 parallel jobs from one job definition &mdash; each</text>
+      <text x="10" y="105" font-family="Inter" font-size="10.5" fill="#374151">gets its own <tspan font-family="JetBrains Mono" fill="var(--context)">matrix.os</tspan> / <tspan font-family="JetBrains Mono" fill="var(--context)">matrix.node</tspan> values.</text>
+      <text x="10" y="128" font-family="Inter" font-size="10.5" fill="#374151"><tspan font-weight="700">fail-fast: true</tspan> (default) cancels the rest</text>
+      <text x="10" y="142" font-family="Inter" font-size="10.5" fill="#374151">of the grid on the first failure.</text>
+    </svg>
+  </div>
+
+  <div class="diacard">
+    <h4>Reusable Workflow Call</h4>
+    <svg viewBox="0 0 380 190" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="20" width="150" height="55" rx="8" fill="var(--trigger-bg)" stroke="var(--trigger)"/>
+      <text x="85" y="42" text-anchor="middle" font-family="Inter" font-size="11" font-weight="700" fill="var(--trigger)">Caller workflow</text>
+      <text x="85" y="58" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#374151">jobs.x.uses: ...yml@main</text>
+      <path d="M160,47 L220,47" stroke="#9ca3af" stroke-width="1.3" marker-end="url(#arrow)"/>
+      <text x="190" y="40" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="var(--muted)">with / secrets</text>
+      <rect x="220" y="20" width="150" height="55" rx="8" fill="var(--step-bg)" stroke="var(--step)"/>
+      <text x="295" y="42" text-anchor="middle" font-family="Inter" font-size="11" font-weight="700" fill="var(--step)">Called workflow</text>
+      <text x="295" y="58" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#374151">on: workflow_call</text>
+      <path d="M220,68 L160,68" stroke="#9ca3af" stroke-width="1.3" stroke-dasharray="3,2" marker-end="url(#arrow)"/>
+      <text x="190" y="82" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="var(--muted)">outputs</text>
+      <text x="10" y="110" font-family="Inter" font-size="10.5" fill="#374151">Centralizes shared CI logic (lint/test/build)</text>
+      <text x="10" y="126" font-family="Inter" font-size="10.5" fill="#374151">across many repos &mdash; version-pinned like any action.</text>
+      <text x="10" y="150" font-family="Inter" font-size="10.5" fill="#374151"><tspan font-weight="700">workflow_call</tspan> = called by other workflows.</text>
+      <text x="10" y="164" font-family="Inter" font-size="10.5" fill="#374151"><tspan font-weight="700">workflow_dispatch</tspan> = triggered manually by a person.</text>
+    </svg>
+  </div>
+
+  <div class="diacard">
+    <h4>Custom Action Types</h4>
+    <svg viewBox="0 0 380 190" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="15" width="360" height="42" rx="7" fill="var(--step-bg)" stroke="var(--step)"/>
+      <text x="20" y="32" font-family="Inter" font-size="10.5" font-weight="700" fill="var(--step)">Composite</text>
+      <text x="20" y="47" font-family="Inter" font-size="9.5" fill="#374151">Wraps steps you'd otherwise repeat. Fastest to build, runs inline.</text>
+
+      <rect x="10" y="65" width="360" height="42" rx="7" fill="var(--job-bg)" stroke="var(--job)"/>
+      <text x="20" y="82" font-family="Inter" font-size="10.5" font-weight="700" fill="var(--job)">JavaScript / Node20</text>
+      <text x="20" y="97" font-family="Inter" font-size="9.5" fill="#374151">Full logic in JS/TS, uses @actions/core &amp; @actions/github SDKs.</text>
+
+      <rect x="10" y="115" width="360" height="42" rx="7" fill="var(--context-bg)" stroke="var(--context)"/>
+      <text x="20" y="132" font-family="Inter" font-size="10.5" font-weight="700" fill="var(--context)">Docker container</text>
+      <text x="20" y="147" font-family="Inter" font-size="9.5" fill="#374151">Any language, full OS deps &mdash; slower cold start, Linux-only.</text>
+
+      <text x="10" y="178" font-family="Inter" font-size="10" fill="var(--muted)">Pick composite first; reach for JS/Docker for real logic or portability.</text>
+    </svg>
+  </div>
+
+  <div class="diacard">
+    <h4>Event Danger Zones</h4>
+    <svg viewBox="0 0 380 190" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="15" width="360" height="55" rx="7" fill="var(--step-bg)" stroke="var(--step)"/>
+      <text x="20" y="35" font-family="Inter" font-size="10.5" font-weight="700" fill="var(--step)">pull_request</text>
+      <text x="20" y="50" font-family="Inter" font-size="9.5" fill="#374151">Runs with fork's code, read-only token,</text>
+      <text x="20" y="63" font-family="Inter" font-size="9.5" fill="#374151">no access to repo secrets. Safe default.</text>
+
+      <rect x="10" y="80" width="360" height="70" rx="7" fill="var(--danger-bg)" stroke="var(--danger)"/>
+      <text x="20" y="100" font-family="Inter" font-size="10.5" font-weight="700" fill="var(--danger)">pull_request_target</text>
+      <text x="20" y="115" font-family="Inter" font-size="9.5" fill="#374151">Runs against the base repo with full</text>
+      <text x="20" y="128" font-family="Inter" font-size="9.5" fill="#374151">secret access &mdash; if it also checks out</text>
+      <text x="20" y="141" font-family="Inter" font-size="9.5" fill="#374151">and executes the fork's code, secrets leak.</text>
+
+      <text x="10" y="172" font-family="Inter" font-size="10" fill="var(--muted)">Rule of thumb: never combine _target + fork checkout + run.</text>
+    </svg>
+  </div>
+
+</div>
+
+<!-- ================= WORTH MEMORIZING ================= -->
+<div class="memorize">
+  <h2>Worth Memorizing</h2>
+  <div class="mem-grid">
+    <div class="mem-item"><b>cache &ne; artifact</b><span>cache = best-effort speed-up, may be evicted; artifact = guaranteed durable output</span></div>
+    <div class="mem-item"><b>workflow_dispatch &ne; repository_dispatch</b><span>manual UI/API trigger for this repo vs. custom event fired from anywhere via API</span></div>
+    <div class="mem-item"><b>needs &ne; if</b><span><code>needs</code> sequences jobs; <code>if</code> conditionally skips regardless of order</span></div>
+    <div class="mem-item"><b>secrets &ne; vars</b><span>same scoping tiers, but secrets are encrypted &amp; masked, vars are plain config</span></div>
+    <div class="mem-item"><b>always() &ne; !cancelled()</b><span><code>always()</code> can hang a cancelled run; <code>!cancelled()</code> is the safer idiom</span></div>
+    <div class="mem-item"><b>pull_request &ne; pull_request_target</b><span>the latter runs with base-repo secrets against fork content &mdash; handle with care</span></div>
+    <div class="mem-item"><b>on.workflow_call &ne; on.workflow_dispatch</b><span>reusable-by-other-workflows vs. manually-triggered-by-a-human</span></div>
+    <div class="mem-item"><b>GITHUB_TOKEN default</b><span>read-only permissions on repos created since 2023 &mdash; opt in to write scopes explicitly</span></div>
+    <div class="mem-item"><b>::set-output:: is deprecated</b><span>use <code>$GITHUB_OUTPUT</code> / <code>$GITHUB_ENV</code> environment files instead</span></div>
+    <div class="mem-item"><b>Pin third-party actions by SHA</b><span>a mutable tag like <code>@v4</code> can be moved by the action's maintainer (or an attacker)</span></div>
+  </div>
+</div>
+
+<footer>
+  Compiled from docs.github.com/actions (workflow syntax, contexts, expressions, security &amp; OIDC reference, reusable workflows) and current action release notes &middot; verify version pins against your org's policy before use
+</footer>
+
+</div>
+</body>
+</html>

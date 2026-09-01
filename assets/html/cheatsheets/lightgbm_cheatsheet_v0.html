@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LightGBM Cheat Sheet (Python)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --data:#64748b;  --data-bg:#f1f3f6;
+    --core:#d97706;  --core-bg:#fdf6ec;
+    --reg:#059669;   --reg-bg:#ecf7f2;
+    --api:#4f46e5;   --api-bg:#eef0fd;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .lgbm{font-family:var(--mono); color:var(--core)}
+  .lede{max-width:64ch; color:#3f444f; font-size:1.02rem}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.data{background:var(--data)} .dot.core{background:var(--core)}
+  .dot.reg{background:var(--reg)} .dot.api{background:var(--api)}
+  .dot.danger{background:var(--danger)} .dot.star{background:var(--star)}
+
+  /* ---------- flow diagram ---------- */
+  .flow-wrap{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem;
+  }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1150px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.data{border-left-color:var(--data)}
+  ul.cmds li.core{border-left-color:var(--core)}
+  ul.cmds li.reg{border-left-color:var(--reg)}
+  ul.cmds li.api{border-left-color:var(--api)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .arg{color:var(--api); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .val{color:var(--reg); font-weight:400}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge-danger{
+    color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+  }
+  .badge-default{
+    color:var(--muted); font-size:.66rem; font-weight:600; font-family:var(--mono);
+    letter-spacing:.02em; margin-left:.35rem;
+  }
+
+  /* ---------- diagram section ---------- */
+  .diagrams{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem;
+  }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1150px){ .merge-grid.three{grid-template-columns:1fr 1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+
+  /* ---------- refs strip ---------- */
+  .refs{
+    max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem;
+  }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · gradient-boosted decision trees (Python)</div>
+  <h1><span class="lgbm">lightgbm</span> cheat sheet</h1>
+  <p class="lede">LightGBM grows trees <b>leaf-wise (best-first)</b> instead of level-wise, and buckets continuous features into histogram bins for speed. Almost every tuning knob works on one of three axes: <b>how many leaves</b> a tree gets, <b>how much data</b> each leaf needs, and <b>how much of the data/features</b> each tree sees.</p>
+  <div class="legend">
+    <span><i class="dot data"></i>data &amp; I/O</span>
+    <span><i class="dot core"></i>core training</span>
+    <span><i class="dot reg"></i>regularize / sample</span>
+    <span><i class="dot api"></i>sklearn API &amp; eval</span>
+    <span><i class="dot danger"></i>pitfall</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; cross-checked against: <b>lightgbm.readthedocs.io</b> — Python API · Parameters · Parameters Tuning · Features &nbsp;·&nbsp; <b>github.com/microsoft/LightGBM</b></p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">Two ways in, one booster out</div>
+  <svg class="flow-svg" viewBox="0 0 1120 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of how raw data moves through lgb.Dataset, lgb.train, and into a Booster used for prediction, alongside the scikit-learn wrapper that does all of this in one fit call.">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+    </defs>
+
+    <!-- boxes -->
+    <g>
+      <rect x="15"  y="90" width="230" height="120" rx="12" fill="#f1f3f6" stroke="#64748b" stroke-width="2"/>
+      <text x="130" y="120" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Raw Data</text>
+      <text x="130" y="142" text-anchor="middle" font-size="11" fill="#64748b">numpy · pandas · csv · sparse</text>
+      <text x="130" y="180" text-anchor="middle" font-size="11" fill="#64748b">X, y</text>
+    </g>
+    <g>
+      <rect x="300" y="90" width="230" height="120" rx="12" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+      <text x="415" y="120" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">lgb.Dataset</text>
+      <text x="415" y="142" text-anchor="middle" font-size="11" fill="#b45309">values → histogram bins</text>
+      <text x="415" y="180" text-anchor="middle" font-size="11" fill="#b45309">categorical_feature=[…]</text>
+    </g>
+    <g>
+      <rect x="585" y="90" width="230" height="120" rx="12" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+      <text x="700" y="120" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">lgb.train()</text>
+      <text x="700" y="142" text-anchor="middle" font-size="11" fill="#059669">leaf-wise boosting loop</text>
+      <text x="700" y="180" text-anchor="middle" font-size="11" fill="#059669">valid_sets, callbacks=[…]</text>
+    </g>
+    <g>
+      <rect x="870" y="90" width="235" height="120" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+      <text x="987" y="120" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1d24">Booster</text>
+      <text x="987" y="142" text-anchor="middle" font-size="11" fill="#4f46e5">ensemble of trees</text>
+      <text x="987" y="180" text-anchor="middle" font-size="11" fill="#4f46e5">bst.predict(X)</text>
+    </g>
+
+    <!-- forward arrows -->
+    <line x1="245" y1="150" x2="298" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="530" y1="150" x2="583" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="815" y1="150" x2="868" y2="150" stroke="#1a1d24" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- sklearn wrapper spanning arrow -->
+    <line x1="245" y1="260" x2="868" y2="260" stroke="#4f46e5" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+    <text x="557" y="248" text-anchor="middle" font-size="12" font-weight="700" fill="#4f46e5">LGBMClassifier / LGBMRegressor / LGBMRanker . fit(X, y)</text>
+    <text x="557" y="280" text-anchor="middle" font-size="10.5" fill="#6b7280">wraps Dataset + train() into one scikit-learn-style call</text>
+
+    <text x="130" y="70" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#94a3b8">YOU BRING</text>
+    <text x="987" y="70" text-anchor="middle" font-size="9.5" letter-spacing="2.5" fill="#4f46e5">YOU GET</text>
+  </svg>
+</section>
+
+<main>
+
+  <!-- 01 INSTALL & IMPORT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Install &amp; Import</span><span class="card-sub">setup</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">pip install lightgbm</code><span class="star">★</span><div class="desc">Prebuilt CPU wheels for all major platforms.</div></li>
+      <li class="data"><code class="cmd">import lightgbm <span class="flag">as</span> lgb</code><span class="star">★</span><div class="desc">Core module — Dataset, train, cv, plotting.</div></li>
+      <li class="data"><code class="cmd">from lightgbm <span class="flag">import</span> <span class="arg">LGBMClassifier, LGBMRegressor</span></code><span class="star">★</span><div class="desc">scikit-learn-compatible estimators.</div></li>
+      <li class="data"><code class="cmd">lgb.__version__</code><div class="desc">Check installed version.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 DATASET -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">Build a Dataset</span><span class="card-sub">core API · binning</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">lgb.Dataset(<span class="arg">X</span>, label=<span class="arg">y</span>)</code><span class="star">★</span><div class="desc">Wraps data; discretizes features into bins.</div></li>
+      <li class="data"><code class="cmd">lgb.Dataset(<span class="arg">X_val</span>, <span class="arg">y_val</span>, reference=<span class="arg">train_set</span>)</code><span class="star">★</span><div class="desc">Validation set aligned to training bins.</div></li>
+      <li class="data"><code class="cmd">lgb.Dataset(<span class="arg">X</span>, label=<span class="arg">y</span>, categorical_feature=<span class="arg">['c1','c2']</span>)</code><div class="desc">Native categorical handling — no one-hot.</div></li>
+      <li class="data"><code class="cmd">lgb.Dataset(<span class="arg">X</span>, label=<span class="arg">y</span>, weight=<span class="arg">w</span>)</code><div class="desc">Per-row sample weights.</div></li>
+      <li class="data"><code class="cmd">train_set.set_weight(<span class="arg">w</span>)</code><div class="desc">Set weight after construction.</div></li>
+      <li class="data"><code class="cmd">lgb.Dataset(<span class="arg">csr_matrix</span>)</code><div class="desc">Accepts scipy sparse matrices directly.</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 TRAIN (Booster API) -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Train — Booster API</span><span class="card-sub">functional / low-level</span></div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd">bst = lgb.train(<span class="arg">params</span>, <span class="arg">train_set</span>, num_boost_round=<span class="val">100</span>)</code><span class="star">★</span><div class="desc">Core training loop; returns a Booster.</div></li>
+      <li class="core"><code class="cmd">lgb.train(…, valid_sets=<span class="arg">[val_set]</span>, valid_names=<span class="arg">['valid']</span>)</code><span class="star">★</span><div class="desc">Track metrics on held-out data each round.</div></li>
+      <li class="core"><code class="cmd">lgb.train(…, callbacks=<span class="arg">[…]</span>)</code><span class="star">★</span><div class="desc">Modern way to attach early stopping / logging.</div></li>
+      <li class="core"><code class="cmd">bst.predict(<span class="arg">X_test</span>)</code><span class="star">★</span><div class="desc">Predict using all trees (or best_iteration).</div></li>
+      <li class="core"><code class="cmd">bst.predict(<span class="arg">X</span>, num_iteration=bst.best_iteration)</code><div class="desc">Predict up to the best early-stopped round.</div></li>
+      <li class="core"><code class="cmd">bst.predict(<span class="arg">X</span>, pred_contrib=<span class="val">True</span>)</code><div class="desc">SHAP-style per-feature contributions.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 SKLEARN API -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Train — scikit-learn API</span><span class="card-sub">high-level</span></div>
+    <ul class="cmds">
+      <li class="api"><code class="cmd">LGBMRegressor(**<span class="arg">params</span>).fit(<span class="arg">X, y</span>)</code><span class="star">★</span><div class="desc">Regression estimator; default objective 'regression'.</div></li>
+      <li class="api"><code class="cmd">LGBMClassifier(**<span class="arg">params</span>).fit(<span class="arg">X, y</span>)</code><span class="star">★</span><div class="desc">Binary/multiclass; default objective 'binary'.</div></li>
+      <li class="api"><code class="cmd">model.fit(<span class="arg">X, y</span>, eval_set=<span class="arg">[(X_val,y_val)]</span>)</code><span class="star">★</span><div class="desc">Enables validation tracking + early stopping.</div></li>
+      <li class="api"><code class="cmd">model.predict(<span class="arg">X_test</span>)</code><span class="star">★</span><div class="desc">Class labels (classifier) or values (regressor).</div></li>
+      <li class="api"><code class="cmd">model.predict_proba(<span class="arg">X_test</span>)</code><div class="desc">Class probabilities — classifier only.</div></li>
+      <li class="api"><code class="cmd">LGBMRanker(**<span class="arg">params</span>).fit(<span class="arg">X, y</span>, group=<span class="arg">train_groups</span>)</code><div class="desc">Learning-to-rank; needs query group sizes.</div></li>
+      <li class="api"><code class="cmd">model.booster_ &nbsp;/&nbsp; model.feature_importances_</code><div class="desc">Underlying Booster and importances array.</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 CORE BOOSTING PARAMS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Core Boosting Params</span><span class="card-sub">shape of every tree</span></div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd">num_leaves</code><span class="badge-default">31</span><span class="star">★</span><div class="desc">Max leaves per tree — the <b>main</b> complexity knob.</div></li>
+      <li class="core"><code class="cmd">max_depth</code><span class="badge-default">-1</span><span class="star">★</span><div class="desc">Cap tree depth; <code>-1</code> = no limit. Tree still grows leaf-wise.</div></li>
+      <li class="core"><code class="cmd">learning_rate</code><span class="badge-default">0.1</span><span class="star">★</span><div class="desc">Shrinkage per tree (alias <code>eta</code>).</div></li>
+      <li class="core"><code class="cmd">n_estimators</code><span class="badge-default">100</span><span class="star">★</span><div class="desc">Boosting rounds — <code>num_boost_round</code> in native API.</div></li>
+      <li class="core"><code class="cmd">boosting_type</code><span class="badge-default">'gbdt'</span><div class="desc"><code>gbdt</code> · <code>dart</code> (dropout trees) · <code>rf</code> (random forest).</div></li>
+      <li class="core"><code class="cmd">objective</code><span class="badge-default">'regression'</span><div class="desc">Task + loss function — see card 09.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 REGULARIZATION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">Regularize a Leaf-wise Tree</span><span class="card-sub">fight over-fitting</span></div>
+    <ul class="cmds">
+      <li class="reg"><code class="cmd">min_data_in_leaf</code><span class="badge-default">20</span><span class="star">★</span><div class="desc">Min samples per leaf — <b>the</b> anti-overfit knob (alias <code>min_child_samples</code>).</div></li>
+      <li class="reg"><code class="cmd">min_sum_hessian_in_leaf</code><span class="badge-default">1e-3</span><div class="desc">Min Hessian sum per leaf (alias <code>min_child_weight</code>).</div></li>
+      <li class="reg"><code class="cmd">lambda_l1</code> / <code class="cmd">lambda_l2</code><span class="badge-default">0.0</span><div class="desc">L1/L2 leaf-weight penalties (aliases <code>reg_alpha</code>/<code>reg_lambda</code>).</div></li>
+      <li class="reg"><code class="cmd">min_gain_to_split</code><span class="badge-default">0.0</span><div class="desc">Minimum gain to accept a split (alias <code>min_split_gain</code>).</div></li>
+      <li class="reg"><code class="cmd">max_bin</code><span class="badge-default">255</span><div class="desc">Fewer bins → coarser splits → more regularization.</div></li>
+      <li class="reg"><code class="cmd">path_smooth</code><span class="badge-default">0.0</span><div class="desc">Shrinks leaf output toward its parent's — helps sparse leaves.</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 SAMPLING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Sub-sample Rows &amp; Columns</span><span class="card-sub">speed + variance control</span></div>
+    <ul class="cmds">
+      <li class="reg"><code class="cmd">feature_fraction</code><span class="badge-default">1.0</span><span class="star">★</span><div class="desc">Fraction of features sampled per tree (alias <code>colsample_bytree</code>).</div></li>
+      <li class="reg"><code class="cmd">bagging_fraction</code> + <code class="cmd">bagging_freq</code><span class="star">★</span><div class="desc">Row sub-sampling every <i>k</i> rounds (alias <code>subsample</code>). Needs <code>bagging_freq&gt;0</code> to activate.</div></li>
+      <li class="reg"><code class="cmd">feature_fraction_bynode</code><span class="badge-default">1.0</span><div class="desc">Re-sample features at every split, not just per tree.</div></li>
+      <li class="reg"><code class="cmd">extra_trees</code><span class="badge-default">False</span><div class="desc">Extremely-randomized trees — one random threshold per feature.</div></li>
+      <li class="reg"><code class="cmd">data_sample_strategy=<span class="val">'goss'</span></code><div class="desc">Gradient-based One-Side Sampling instead of bagging.</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 CATEGORICAL FEATURES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">Categorical Features</span><span class="card-sub">native, no one-hot</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">categorical_feature=<span class="arg">['c1','c2']</span></code><span class="star">★</span><div class="desc">By name (Dataset) or index; ~8× faster than one-hot.</div></li>
+      <li class="data"><code class="cmd">df['col'].astype(<span class="val">'category'</span>)</code><span class="star">★</span><div class="desc">pandas categorical dtype is auto-detected.</div></li>
+      <li class="data"><code class="cmd">max_cat_to_onehot</code><span class="badge-default">4</span><div class="desc">≤ this many categories → one-vs-rest split.</div></li>
+      <li class="data"><code class="cmd">max_cat_threshold</code><span class="badge-default">32</span><div class="desc">Cap on split points searched for larger categoricals.</div></li>
+      <li class="data"><code class="cmd">cat_smooth</code> / <code class="cmd">cat_l2</code><span class="badge-default">10.0</span><div class="desc">Smoothing/L2 to reduce noise in low-count categories.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 OBJECTIVES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">Objectives</span><span class="card-sub">what the tree optimizes</span></div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd">objective=<span class="val">'regression'</span></code><span class="star">★</span><div class="desc">L2 loss (default); also <code>l1</code>, <code>huber</code>, <code>quantile</code>, <code>poisson</code>, <code>gamma</code>, <code>tweedie</code>.</div></li>
+      <li class="core"><code class="cmd">objective=<span class="val">'binary'</span></code><span class="star">★</span><div class="desc">Log-loss classification; labels must be {0, 1}.</div></li>
+      <li class="core"><code class="cmd">objective=<span class="val">'multiclass'</span>, num_class=<span class="arg">k</span></code><span class="star">★</span><div class="desc">Softmax over <i>k</i> classes.</div></li>
+      <li class="core"><code class="cmd">objective=<span class="val">'lambdarank'</span></code><div class="desc">Pairwise ranking; needs <code>group</code>/query data.</div></li>
+      <li class="core"><code class="cmd">objective=<span class="val">'rank_xendcg'</span></code><div class="desc">Faster ranking loss, similar accuracy to lambdarank.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 METRICS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Evaluation Metrics</span><span class="card-sub">what gets logged</span></div>
+    <ul class="cmds">
+      <li class="core"><code class="cmd">metric=<span class="val">'rmse'</span></code> / <code class="cmd"><span class="val">'l1'</span></code> / <code class="cmd"><span class="val">'mape'</span></code><div class="desc">Regression metrics.</div></li>
+      <li class="core"><code class="cmd">metric=<span class="val">'binary_logloss'</span></code> / <code class="cmd"><span class="val">'auc'</span></code><span class="star">★</span><div class="desc">Binary classification metrics.</div></li>
+      <li class="core"><code class="cmd">metric=<span class="val">'multi_logloss'</span></code><div class="desc">Multiclass log-loss.</div></li>
+      <li class="core"><code class="cmd">metric=<span class="val">'ndcg'</span></code> / <code class="cmd"><span class="val">'map'</span></code><div class="desc">Ranking metrics; use with <code>eval_at</code>.</div></li>
+      <li class="core"><code class="cmd">metric=<span class="arg">['auc','binary_logloss']</span></code><div class="desc">Multiple metrics — all logged, first used for early stopping if <code>first_metric_only</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 CALLBACKS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Callbacks &amp; Early Stopping</span><span class="card-sub">control the loop</span></div>
+    <ul class="cmds">
+      <li class="api"><code class="cmd">lgb.early_stopping(stopping_rounds=<span class="val">50</span>)</code><span class="star">★</span><div class="desc">Stop if a metric hasn't improved in N rounds.</div></li>
+      <li class="api"><code class="cmd">lgb.log_evaluation(period=<span class="val">10</span>)</code><span class="star">★</span><div class="desc">Print validation metrics every N rounds.</div></li>
+      <li class="api"><code class="cmd">lgb.record_evaluation(<span class="arg">eval_result</span>)</code><div class="desc">Capture metric history into a dict for plotting.</div></li>
+      <li class="api"><code class="cmd">callbacks=<span class="arg">[lgb.early_stopping(50), lgb.log_evaluation(10)]</span></code><span class="star">★</span><div class="desc">Pass a list to <code>train()</code> or <code>.fit()</code>.</div></li>
+      <li class="api"><code class="cmd">bst.best_iteration &nbsp;/&nbsp; model.best_iteration_</code><div class="desc">Round selected by early stopping.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 CROSS-VALIDATION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Cross-Validation</span><span class="card-sub">lgb.cv</span></div>
+    <ul class="cmds">
+      <li class="api"><code class="cmd">lgb.cv(<span class="arg">params</span>, <span class="arg">train_set</span>, nfold=<span class="val">5</span>)</code><span class="star">★</span><div class="desc">Returns per-round mean/stdv of each metric.</div></li>
+      <li class="api"><code class="cmd">lgb.cv(…, stratified=<span class="val">True</span>, shuffle=<span class="val">True</span>)</code><div class="desc">Stratified folds for classification (default True).</div></li>
+      <li class="api"><code class="cmd">lgb.cv(…, callbacks=<span class="arg">[lgb.early_stopping(50)]</span>)</code><div class="desc">Early stop each fold consistently.</div></li>
+      <li class="api"><code class="cmd">lgb.cv(…, return_cvbooster=<span class="val">True</span>)</code><div class="desc">Get the fitted per-fold boosters back.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 IMPORTANCE & PLOTTING -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">Importance &amp; Plots</span><span class="card-sub">inspect the model</span></div>
+    <ul class="cmds">
+      <li class="api"><code class="cmd">bst.feature_importance(importance_type=<span class="val">'split'</span>)</code><span class="star">★</span><div class="desc">Counts of times a feature was split on (or <code>'gain'</code>).</div></li>
+      <li class="api"><code class="cmd">lgb.plot_importance(<span class="arg">bst</span>)</code><span class="star">★</span><div class="desc">Bar chart of feature importances.</div></li>
+      <li class="api"><code class="cmd">lgb.plot_metric(<span class="arg">eval_result</span>)</code><div class="desc">Training/validation curve over rounds.</div></li>
+      <li class="api"><code class="cmd">lgb.plot_tree(<span class="arg">bst</span>, tree_index=<span class="val">0</span>)</code><div class="desc">Render one tree's structure.</div></li>
+      <li class="api"><code class="cmd">lgb.create_tree_digraph(<span class="arg">bst</span>)</code><div class="desc">Graphviz digraph of a single tree.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 SAVE / LOAD -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Save &amp; Load</span><span class="card-sub">persistence</span></div>
+    <ul class="cmds">
+      <li class="data"><code class="cmd">bst.save_model(<span class="val">'model.txt'</span>)</code><span class="star">★</span><div class="desc">Human-readable native format.</div></li>
+      <li class="data"><code class="cmd">lgb.Booster(model_file=<span class="val">'model.txt'</span>)</code><span class="star">★</span><div class="desc">Reload a native Booster for prediction.</div></li>
+      <li class="data"><code class="cmd">bst.model_to_string()</code><div class="desc">Serialize to an in-memory string.</div></li>
+      <li class="data"><code class="cmd">joblib.dump(<span class="arg">model</span>, <span class="val">'model.pkl'</span>)</code><span class="star">★</span><div class="desc">Pickle the sklearn-wrapper estimator instead.</div></li>
+      <li class="data"><code class="cmd">lgb.train(…, init_model=<span class="val">'model.txt'</span>)</code><div class="desc">Continue training from a saved model.</div></li>
+    </ul>
+  </article>
+
+  <!-- PITFALLS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">★</span><span class="card-title">Common Pitfalls</span><span class="card-sub">handle with care</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">num_leaves = 2**max_depth</code><span class="badge-danger">overfits</span><div class="desc">Full-depth leaf count is <b>too many</b> for leaf-wise growth — use fewer.</div></li>
+      <li class="danger"><code class="cmd">pd.get_dummies(<span class="arg">df</span>)</code><span class="badge-danger">avoid</span><div class="desc">Don't one-hot categoricals — pass <code>categorical_feature</code> instead.</div></li>
+      <li class="danger"><code class="cmd">callbacks=[lgb.early_stopping(50)]</code><span class="badge-danger">needs valid_sets</span><div class="desc">Errors without a validation set + metric; no effect under <code>dart</code>.</div></li>
+      <li class="danger"><code class="cmd">feature_pre_filter</code><span class="badge-danger">default True</span><div class="desc">Silently drops features when re-tuning <code>min_data_in_leaf</code> on a reused Dataset — set <code>False</code>.</div></li>
+      <li class="danger"><code class="cmd">zero_as_missing</code><span class="badge-danger">default False</span><div class="desc">Zeros are <i>not</i> treated as missing unless you opt in.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ LEAF-WISE VS LEVEL-WISE + GOSS DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>How LightGBM grows &amp; samples</h2>
+  <p class="sub">The signature ideas behind LightGBM's speed: best-first (leaf-wise) tree growth instead of level-wise, and gradient-based sampling instead of plain row subsampling. Based on the official Features reference.</p>
+  <div class="merge-grid three">
+
+    <div class="merge-card">
+      <h3>Leaf-wise growth (LightGBM default)</h3>
+      <p>Always splits the leaf with the largest loss reduction, regardless of depth. Fewer leaves reach the same accuracy — but depth can run away, so pair <code>num_leaves</code> with <code>min_data_in_leaf</code>.</p>
+      <svg viewBox="0 0 390 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Leaf-wise tree: one branch splits repeatedly deeper while a sibling stays shallow, producing four leaves at uneven depths">
+        <g stroke="#d97706" stroke-width="2">
+          <line x1="195" y1="30" x2="100" y2="75"/>
+          <line x1="195" y1="30" x2="290" y2="75"/>
+          <line x1="290" y1="75" x2="230" y2="120"/>
+          <line x1="290" y1="75" x2="350" y2="120"/>
+          <line x1="350" y1="120" x2="310" y2="165"/>
+          <line x1="350" y1="120" x2="390" y2="165"/>
+        </g>
+        <g font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">
+          <circle cx="195" cy="30" r="8" fill="#1a1d24"/>
+          <circle cx="100" cy="75" r="9" fill="#059669"/><text x="100" y="79" fill="#fff">L1</text>
+          <circle cx="290" cy="75" r="8" fill="#1a1d24"/>
+          <circle cx="230" cy="120" r="9" fill="#059669"/><text x="230" y="124" fill="#fff">L2</text>
+          <circle cx="350" cy="120" r="8" fill="#1a1d24"/>
+          <circle cx="310" cy="165" r="9" fill="#059669"/><text x="310" y="169" fill="#fff">L3</text>
+          <circle cx="390" cy="165" r="9" fill="#059669"/><text x="386" y="169" fill="#fff">L4</text>
+        </g>
+        <text x="10" y="185" font-size="9.5" fill="#94a3b8" font-family="JetBrains Mono, monospace">4 leaves · uneven depth (1–3)</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>Level-wise growth (contrast)</h3>
+      <p>Splits every node at the current depth before going deeper — the strategy most other GBM libraries default to. Same leaf count, more balanced, but reaches it in more total splits.</p>
+      <svg viewBox="0 0 390 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Level-wise tree: every node at each depth splits together, producing four leaves all at the same depth">
+        <g stroke="#64748b" stroke-width="2">
+          <line x1="195" y1="30" x2="100" y2="80"/>
+          <line x1="195" y1="30" x2="290" y2="80"/>
+          <line x1="100" y1="80" x2="55" y2="140"/>
+          <line x1="100" y1="80" x2="145" y2="140"/>
+          <line x1="290" y1="80" x2="245" y2="140"/>
+          <line x1="290" y1="80" x2="335" y2="140"/>
+        </g>
+        <g font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">
+          <circle cx="195" cy="30" r="8" fill="#1a1d24"/>
+          <circle cx="100" cy="80" r="8" fill="#1a1d24"/>
+          <circle cx="290" cy="80" r="8" fill="#1a1d24"/>
+          <circle cx="55"  cy="140" r="9" fill="#059669"/><text x="55"  y="144" fill="#fff">L1</text>
+          <circle cx="145" cy="140" r="9" fill="#059669"/><text x="145" y="144" fill="#fff">L2</text>
+          <circle cx="245" cy="140" r="9" fill="#059669"/><text x="245" y="144" fill="#fff">L3</text>
+          <circle cx="335" cy="140" r="9" fill="#059669"/><text x="331" y="144" fill="#fff">L4</text>
+        </g>
+        <text x="10" y="185" font-size="9.5" fill="#94a3b8" font-family="JetBrains Mono, monospace">4 leaves · uniform depth (2)</text>
+      </svg>
+    </div>
+
+    <div class="merge-card">
+      <h3>GOSS sampling</h3>
+      <p>Gradient-based One-Side Sampling: always keeps the highest-gradient (under-trained) rows, and randomly samples a small slice of the rest instead of scanning every row every round.</p>
+      <svg viewBox="0 0 390 190" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bar showing rows sorted by gradient magnitude: top twenty percent always kept, next slice randomly sampled, remainder discarded for that round">
+        <g font-family="JetBrains Mono, monospace" font-size="10">
+          <rect x="20" y="35" width="70"  height="34" fill="#059669"/>
+          <rect x="90" y="35" width="35"  height="34" fill="#d97706"/>
+          <rect x="125" y="35" width="245" height="34" fill="#e7e3db"/>
+          <text x="55"  y="90" text-anchor="middle" fill="#059669">top_rate</text>
+          <text x="55"  y="103" text-anchor="middle" fill="#059669" font-size="9">0.2 · kept</text>
+          <text x="107" y="90" text-anchor="middle" fill="#b45309">other_rate</text>
+          <text x="107" y="103" text-anchor="middle" fill="#b45309" font-size="9">0.1 · sampled</text>
+          <text x="247" y="90" text-anchor="middle" fill="#6b7280">discarded this round</text>
+          <text x="20" y="130" fill="#1a1d24" font-size="10.5" font-weight="700">rows sorted by |gradient|, descending →</text>
+          <text x="10" y="185" font-size="9.5" fill="#94a3b8">data_sample_strategy='goss'</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ QUICK REFS STRIP ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">num_leaves &lt; 2^max_depth</span><span class="v">leaf-wise trees overfit fast if leaves aren't capped below full depth</span></div>
+    <div><span class="k">leaf-wise ≠ level-wise</span><span class="v">LightGBM's default growth strategy; converges faster, needs tighter regularization</span></div>
+    <div><span class="k">min_data_in_leaf</span><span class="v">the single most effective anti-overfit knob for leaf-wise trees</span></div>
+    <div><span class="k">categorical_feature</span><span class="v">pass native ints/category dtype — no one-hot, ~8× faster</span></div>
+    <div><span class="k">reg_alpha / reg_lambda</span><span class="v">sklearn aliases for native <code>lambda_l1</code> / <code>lambda_l2</code></span></div>
+    <div><span class="k">early stopping</span><span class="v">requires valid_sets + a metric; disabled under boosting_type='dart'</span></div>
+    <div><span class="k">feature_fraction ≈ colsample_bytree</span><span class="v">bagging_fraction ≈ subsample — same knob, different library's naming</span></div>
+    <div><span class="k">GOSS vs bagging</span><span class="v">GOSS keeps high-gradient rows deterministically; bagging samples uniformly at random</span></div>
+  </div>
+</section>
+
+<footer>
+  LightGBM (Python) cheat sheet · synthesized from the official references of lightgbm.readthedocs.io (Python API, Parameters, Parameters Tuning, Features) and github.com/microsoft/LightGBM.<br>
+  Commands shown for LightGBM ≈ 4.x · defaults noted reflect the library's built-in values, not tuning recommendations.
+</footer>
+
+</body>
+</html>

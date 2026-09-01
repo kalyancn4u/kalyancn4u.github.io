@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hyperopt Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --setup:#64748b;  --setup-bg:#f1f3f6;
+    --space:#d97706;  --space-bg:#fdf6ec;
+    --obj:#059669;    --obj-bg:#ecf7f2;
+    --fmin:#4f46e5;   --fmin-bg:#eef0fd;
+    --algo:#7c3aed;   --algo-bg:#f3eefd;
+    --io:#0d9488;     --io-bg:#e8f6f4;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --brand:#a3238e;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:2px solid var(--ink);
+    padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem;
+    max-width:1500px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;
+  }
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em;
+    line-height:1; margin-bottom:.7rem;
+  }
+  h1 .ho{font-family:var(--mono); color:var(--brand)}
+  h1 .ho .o{color:#c44bb0}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .lede b{color:var(--ink)}
+  .sources{
+    font-family:var(--mono); font-size:.7rem; color:var(--muted);
+    margin-top:1rem; line-height:1.7;
+  }
+  .sources b{color:var(--ink); font-weight:500}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem;
+    font-family:var(--mono); font-size:.74rem;
+  }
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.setup{background:var(--setup)} .dot.space{background:var(--space)}
+  .dot.obj{background:var(--obj)} .dot.fmin{background:var(--fmin)}
+  .dot.algo{background:var(--algo)} .dot.io{background:var(--io)}
+  .dot.danger{background:var(--danger)}
+
+  /* ---------- hero diagram ---------- */
+  .flow-wrap{ max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) .5rem; }
+  .flow-title{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:1rem;
+  }
+  .flow-svg{width:100%; height:auto; max-width:1120px; display:block; margin:0 auto}
+  .flow-svg text{font-family:var(--mono)}
+
+  /* ---------- quickstart panel ---------- */
+  .quick{
+    max-width:1120px; margin:1.4rem auto 0; background:var(--ink);
+    border-radius:10px; overflow:hidden;
+  }
+  .quick-head{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.06em;
+    color:#cbd5e1; padding:.55rem .95rem; border-bottom:1px solid #333a46;
+    display:flex; justify-content:space-between;
+  }
+  .quick-head .tag{color:#fbbf24}
+  pre.quick-inner{
+    margin:0; padding:.9rem 1.1rem; white-space:pre; overflow-x:auto;
+    font-family:var(--mono); font-size:.79rem; line-height:1.65; color:#e8e6e1; tab-size:2;
+  }
+  pre.quick-inner .kw{color:#c792ea} pre.quick-inner .fn{color:#82aaff}
+  pre.quick-inner .mod{color:#4fd1c5} pre.quick-inner .str{color:#c3e88d}
+  pre.quick-inner .num{color:#f7c66a} pre.quick-inner .cm{color:#8792a2; font-style:italic}
+  pre.quick-inner .arg{color:#f78c6c}
+
+  /* ---------- main grid ---------- */
+  main{
+    max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem;
+    column-gap:1.4rem;
+  }
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+
+  .card{
+    break-inside:avoid; background:#fff; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,30,.03);
+  }
+  .card-head{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);
+  }
+  .card-num{
+    font-family:var(--mono); font-size:.78rem; font-weight:700;
+    color:#fff; background:var(--ink); border-radius:5px;
+    padding:.12rem .42rem; letter-spacing:.02em;
+  }
+  .card-title{font-size:.96rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+
+  ul.cmds{list-style:none}
+  ul.cmds li{
+    padding:.5rem 1rem; border-bottom:1px solid #f1eee8;
+    border-left:3px solid transparent;
+  }
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.setup{border-left-color:var(--setup)}
+  ul.cmds li.space{border-left-color:var(--space)}
+  ul.cmds li.obj{border-left-color:var(--obj)}
+  ul.cmds li.fmin{border-left-color:var(--fmin)}
+  ul.cmds li.algo{border-left-color:var(--algo)}
+  ul.cmds li.io{border-left-color:var(--io)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+
+  code.cmd{
+    font-family:var(--mono); font-size:.8rem; font-weight:500;
+    color:var(--ink); display:block; word-break:break-word;
+  }
+  code.cmd .mod{color:var(--io)}
+  code.cmd .fn{color:var(--fmin); font-weight:600}
+  code.cmd .arg{color:var(--star)}
+  code.cmd .str{color:var(--obj)}
+  code.cmd .num{color:var(--space)}
+  code.cmd .kw{color:#a626a4}
+  code.cmd .cm{color:#9ca3af; font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  li.danger code.cmd .fn,li.danger code.cmd .mod{color:var(--danger)}
+  .desc{font-size:.77rem; color:#525761; margin-top:.2rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f3f0ea; padding:0 .2em; border-radius:3px}
+  .star{
+    color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono);
+    margin-left:.35rem; letter-spacing:.03em;
+  }
+  .badge{
+    font-size:.62rem; font-weight:700; font-family:var(--mono);
+    text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;
+    padding:.05rem .3rem; border-radius:4px;
+  }
+  .badge-danger{color:var(--danger); background:var(--danger-bg)}
+  .badge-new{color:var(--algo); background:var(--algo-bg)}
+  .badge-io{color:var(--io); background:var(--io-bg)}
+
+  /* ---------- diagram section ---------- */
+  .diagrams{ max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 3rem; }
+  .diagrams h2{
+    font-size:1.4rem; font-weight:700; letter-spacing:-.01em;
+    margin-bottom:.3rem; padding-top:1.5rem; border-top:2px solid var(--ink);
+  }
+  .diagrams .sub{color:var(--muted); font-size:.9rem; margin-bottom:1.5rem}
+  .merge-grid{display:grid; gap:1.2rem; grid-template-columns:1fr}
+  @media(min-width:780px){ .merge-grid{grid-template-columns:1fr 1fr} }
+  .merge-card{border:1px solid var(--line); border-radius:10px; background:#fff; padding:1rem 1.1rem}
+  .merge-card h3{font-size:.95rem; font-family:var(--mono); margin-bottom:.15rem}
+  .merge-card p{font-size:.78rem; color:var(--muted); margin-bottom:.7rem}
+  .merge-card .bsvg{width:100%; height:auto; display:block}
+  .merge-card .bsvg text{font-family:var(--mono)}
+
+  /* ---------- refs strip ---------- */
+  .refs{ max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem; }
+  .refs h2{
+    font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem;
+    border-top:2px solid var(--ink);
+  }
+  .refs-inner{
+    background:var(--ink); color:#e8e6e1; border-radius:10px;
+    padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem;
+    display:grid; gap:.55rem; grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  .refs-inner code{color:#7fd8c4}
+
+  footer{
+    max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem;
+    border-top:1px solid var(--line); font-size:.76rem; color:var(--muted);
+    font-family:var(--mono); line-height:1.7;
+  }
+  footer code{color:var(--brand)}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Quick Reference · distributed hyperparameter optimization · v0.3</div>
+  <h1><span class="ho">hyper<span class="o">opt</span></span> cheat sheet</h1>
+  <p class="lede">Hand <code>fmin</code> four things: an <b>objective</b> (config → loss), a <b>search space</b> written as <b>probability distributions</b> (<code>hp.*</code>), an <b>algorithm</b> (TPE by default choice), and a <b>Trials</b> database. It runs <b>SMBO</b> — TPE learns which regions look promising and samples there. One quirk to burn in: <code>hp.choice</code> returns an <b>index</b>, so call <code>space_eval(space, best)</code> to get real values back.</p>
+  <div class="legend">
+    <span><i class="dot setup"></i>setup</span>
+    <span><i class="dot space"></i>search space (hp.*)</span>
+    <span><i class="dot obj"></i>objective</span>
+    <span><i class="dot fmin"></i>fmin driver</span>
+    <span><i class="dot algo"></i>algorithms &amp; trials</span>
+    <span><i class="dot io"></i>scale · persist · integrate</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">★</span> most common</span>
+  </div>
+  <p class="sources">Distilled &amp; verified against <b>hyperopt.github.io</b> (docs · FMin wiki) · the SciPy&nbsp;2013 paper (Bergstra et&nbsp;al.) · live-introspected from Hyperopt&nbsp;0.3.0. Verified 2026-08-27 against Hyperopt 0.3.0 (revived Jul 2026 after years at 0.2.7).</p>
+</header>
+
+<!-- ============ SIGNATURE FLOW DIAGRAM ============ -->
+<section class="flow-wrap">
+  <div class="flow-title">objective + space + algo + trials → fmin → best → space_eval</div>
+  <svg class="flow-svg" viewBox="0 0 1120 468" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hyperopt pipeline: a search space and an objective feed fmin along with an algorithm and a Trials database; each iteration TPE proposes a point, the objective returns a loss, Trials records it; after max_evals fmin returns best, which must be passed through space_eval to recover real parameter values.">
+    <defs>
+      <marker id="hoArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1a1d24"/>
+      </marker>
+      <marker id="hoArrowV" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+      </marker>
+      <marker id="hoArrowR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+      </marker>
+    </defs>
+
+    <!-- band A label -->
+    <text x="24" y="24" font-size="10.5" letter-spacing="2.5" fill="#94a3b8">THE fmin LOOP</text>
+
+    <!-- inputs -->
+    <rect x="20" y="40" width="170" height="42" rx="10" fill="#fdf6ec" stroke="#d97706" stroke-width="2"/>
+    <text x="105" y="60" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">space (hp.*)</text>
+    <text x="105" y="75" text-anchor="middle" font-size="9" fill="#b45309">distributions, not bounds</text>
+
+    <rect x="20" y="90" width="170" height="42" rx="10" fill="#ecf7f2" stroke="#059669" stroke-width="2"/>
+    <text x="105" y="110" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1d24">objective(params)</text>
+    <text x="105" y="125" text-anchor="middle" font-size="9" fill="#059669">returns a loss to minimize</text>
+
+    <!-- fmin -->
+    <line x1="190" y1="61" x2="236" y2="80" stroke="#1a1d24" stroke-width="2" marker-end="url(#hoArrow)"/>
+    <line x1="190" y1="111" x2="236" y2="92" stroke="#1a1d24" stroke-width="2" marker-end="url(#hoArrow)"/>
+    <rect x="240" y="56" width="128" height="60" rx="12" fill="#eef0fd" stroke="#4f46e5" stroke-width="2"/>
+    <text x="304" y="80" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1d24">fmin</text>
+    <text x="304" y="97" text-anchor="middle" font-size="8.5" fill="#4f46e5">algo=tpe.suggest</text>
+    <text x="304" y="109" text-anchor="middle" font-size="8.5" fill="#4f46e5">max_evals=N</text>
+
+    <!-- loop region -->
+    <rect x="400" y="30" width="386" height="150" rx="14" fill="none" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="4 4"/>
+    <text x="416" y="24" font-size="10" fill="#64748b">each of max_evals iterations</text>
+
+    <rect x="416" y="46" width="150" height="40" rx="9" fill="#f3eefd" stroke="#7c3aed" stroke-width="1.8"/>
+    <text x="491" y="63" text-anchor="middle" font-size="10" font-weight="700" fill="#1a1d24">TPE proposes</text>
+    <text x="491" y="77" text-anchor="middle" font-size="8.5" fill="#7c3aed">a point from the space</text>
+
+    <rect x="416" y="94" width="150" height="38" rx="9" fill="#ecf7f2" stroke="#059669" stroke-width="1.8"/>
+    <text x="491" y="110" text-anchor="middle" font-size="10" font-weight="700" fill="#1a1d24">objective → loss</text>
+    <text x="491" y="124" text-anchor="middle" font-size="8.5" fill="#059669">{'loss', 'status'}</text>
+
+    <rect x="416" y="140" width="150" height="32" rx="9" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.4"/>
+    <text x="491" y="160" text-anchor="middle" font-size="10" fill="#475569">Trials records it</text>
+
+    <!-- TPE learns callout -->
+    <rect x="600" y="60" width="170" height="102" rx="10" fill="#fff" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <text x="685" y="82" text-anchor="middle" font-size="10" font-weight="700" fill="#7c3aed">TPE learns</text>
+    <text x="685" y="100" text-anchor="middle" font-size="8.5" fill="#475569">splits past trials into</text>
+    <text x="685" y="113" text-anchor="middle" font-size="8.5" fill="#475569">good l(x) vs bad g(x),</text>
+    <text x="685" y="126" text-anchor="middle" font-size="8.5" fill="#475569">samples where l(x)/g(x)</text>
+    <text x="685" y="139" text-anchor="middle" font-size="8.5" fill="#475569">is highest</text>
+    <text x="685" y="155" text-anchor="middle" font-size="8" fill="#94a3b8">warm-up: random first</text>
+
+    <!-- loopback -->
+    <path d="M491 172 L491 190 L305 190 L305 118" fill="none" stroke="#4f46e5" stroke-width="1.6" stroke-dasharray="6 5" marker-end="url(#hoArrow)"/>
+    <text x="398" y="204" text-anchor="middle" font-size="9" fill="#4f46e5">next trial ×N</text>
+
+    <!-- best + space_eval -->
+    <line x1="786" y1="93" x2="820" y2="93" stroke="#1a1d24" stroke-width="2" marker-end="url(#hoArrow)"/>
+    <rect x="824" y="62" width="128" height="62" rx="12" fill="#1a1d24"/>
+    <text x="888" y="86" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">best</text>
+    <text x="888" y="103" text-anchor="middle" font-size="8.5" fill="#fbbf24">argmin (indices!)</text>
+    <text x="888" y="116" text-anchor="middle" font-size="8" fill="#cbd5e1">{'opt': 1, 'x': 2.0}</text>
+
+    <line x1="952" y1="93" x2="986" y2="93" stroke="#dc2626" stroke-width="2" marker-end="url(#hoArrowR)"/>
+    <rect x="990" y="58" width="118" height="70" rx="12" fill="#fdf0ef" stroke="#dc2626" stroke-width="2"/>
+    <text x="1049" y="82" text-anchor="middle" font-size="10.5" font-weight="700" fill="#dc2626">space_eval</text>
+    <text x="1049" y="98" text-anchor="middle" font-size="8" fill="#7f1d1d">(space, best)</text>
+    <text x="1049" y="114" text-anchor="middle" font-size="8" fill="#7f1d1d">→ real values</text>
+
+    <!-- band B: two objective protocols + trials -->
+    <text x="24" y="228" font-size="10.5" letter-spacing="2.5" fill="#94a3b8">TWO WAYS TO WRITE THE OBJECTIVE</text>
+    <rect x="20" y="244" width="1088" height="150" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+
+    <!-- simple -->
+    <rect x="42" y="266" width="300" height="106" rx="10" fill="#fff" stroke="#059669" stroke-width="1.6"/>
+    <text x="58" y="288" font-size="10" font-weight="700" fill="#059669">SIMPLE — just a float</text>
+    <text x="58" y="312" font-size="10" fill="#1a1d24" font-family="JetBrains Mono, monospace">def objective(p):</text>
+    <text x="58" y="330" font-size="10" fill="#6b7280" font-family="JetBrains Mono, monospace">    return (p['x']-2)**2</text>
+    <text x="58" y="356" font-size="8.5" fill="#94a3b8">quick · can't store extras</text>
+
+    <!-- rich -->
+    <rect x="360" y="266" width="330" height="106" rx="10" fill="#fff" stroke="#4f46e5" stroke-width="1.6"/>
+    <text x="376" y="288" font-size="10" font-weight="700" fill="#4f46e5">RICH — a dict</text>
+    <text x="376" y="310" font-size="9.5" fill="#1a1d24" font-family="JetBrains Mono, monospace">return {'loss': L,</text>
+    <text x="376" y="326" font-size="9.5" fill="#1a1d24" font-family="JetBrains Mono, monospace">        'status': STATUS_OK,</text>
+    <text x="376" y="342" font-size="9.5" fill="#6b7280" font-family="JetBrains Mono, monospace">        'model': clf}   # extras</text>
+    <text x="376" y="362" font-size="8.5" fill="#94a3b8">stores anything per trial</text>
+
+    <!-- trials strip -->
+    <text x="710" y="284" font-size="10" font-weight="700" fill="#7c3aed">Trials() — the history</text>
+    <g font-size="8.5" font-family="JetBrains Mono, monospace">
+      <rect x="710" y="294" width="376" height="20" rx="5" fill="#fff" stroke="#7c3aed" stroke-width="1.1"/>
+      <text x="720" y="308" fill="#475569">tid 0 · loss 12.4 · STATUS_OK · vals {x:5.1}</text>
+      <rect x="710" y="318" width="376" height="20" rx="5" fill="#fff" stroke="#7c3aed" stroke-width="1.1"/>
+      <text x="720" y="332" fill="#475569">tid 1 · loss  3.1 · STATUS_OK · vals {x:0.7}</text>
+      <rect x="710" y="342" width="376" height="20" rx="5" fill="#1a1d24" stroke="#b45309" stroke-width="1.6"/>
+      <text x="720" y="356" fill="#fbbf24">tid 2 · loss  0.0 · ★ best_trial · argmin</text>
+    </g>
+    <text x="898" y="382" text-anchor="middle" font-size="8" fill="#94a3b8">trials.losses() · trials.best_trial · trials.results</text>
+  </svg>
+
+  <!-- quickstart -->
+  <div class="quick">
+    <div class="quick-head"><span>the whole thing</span><span class="tag">fmin minimizes — negate to maximize</span></div>
+<pre class="quick-inner"><span class="kw">import</span> <span class="mod">numpy</span> <span class="kw">as</span> np
+<span class="kw">from</span> <span class="mod">hyperopt</span> <span class="kw">import</span> fmin, tpe, hp, Trials, STATUS_OK, space_eval
+
+space = {                                            <span class="cm"># 1 · space as distributions</span>
+    <span class="str">"lr"</span>:  hp.<span class="fn">loguniform</span>(<span class="str">"lr"</span>, np.<span class="fn">log</span>(<span class="num">1e-5</span>), np.<span class="fn">log</span>(<span class="num">1e-1</span>)),  <span class="cm"># log-space bounds!</span>
+    <span class="str">"opt"</span>: hp.<span class="fn">choice</span>(<span class="str">"opt"</span>, [<span class="str">"adam"</span>, <span class="str">"sgd"</span>]),
+}
+
+<span class="kw">def</span> <span class="fn">objective</span>(p):                                    <span class="cm"># 2 · config -> loss</span>
+    loss = train_and_eval(p[<span class="str">"lr"</span>], p[<span class="str">"opt"</span>])
+    <span class="kw">return</span> {<span class="str">"loss"</span>: loss, <span class="str">"status"</span>: STATUS_OK}
+
+trials = <span class="fn">Trials</span>()                                    <span class="cm"># 3 · the database</span>
+best = <span class="fn">fmin</span>(objective, space, <span class="arg">algo</span>=tpe.suggest,      <span class="cm"># 4 · search</span>
+            <span class="arg">max_evals</span>=<span class="num">100</span>, <span class="arg">trials</span>=trials, <span class="arg">rstate</span>=np.random.<span class="fn">default_rng</span>(<span class="num">0</span>))
+
+<span class="fn">print</span>(<span class="fn">space_eval</span>(space, best))                     <span class="cm"># decode choice indices -> values</span></pre>
+  </div>
+</section>
+
+<main>
+
+  <!-- 01 SETUP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">01</span><span class="card-title">Setup &amp; Import</span><span class="card-sub">install</span></div>
+    <ul class="cmds">
+      <li class="setup"><code class="cmd">pip install hyperopt</code><span class="star">★</span><div class="desc">Core library (pulls in numpy, scipy, networkx, tqdm).</div></li>
+      <li class="setup"><code class="cmd">pip install <span class="str">"hyperopt[mongotrials]"</span></code><div class="desc">Extra for the Mongo-backed distributed backend.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">from</span> <span class="mod">hyperopt</span> <span class="kw">import</span> fmin, tpe, hp, Trials</code><span class="star">★</span><div class="desc">The four names you reach for every time.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">from</span> <span class="mod">hyperopt</span> <span class="kw">import</span> STATUS_OK, space_eval</code><span class="star">★</span><div class="desc">Return-status flag + the index decoder.</div></li>
+      <li class="setup"><code class="cmd"><span class="kw">import</span> <span class="mod">numpy</span> <span class="kw">as</span> np</code><div class="desc">Needed for <code>log()</code> bounds &amp; <code>rstate</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 02 WORKFLOW -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">02</span><span class="card-title">The Workflow</span><span class="card-sub">space → fmin → decode</span></div>
+    <ul class="cmds">
+      <li class="space"><code class="cmd">space = {<span class="str">"x"</span>: hp.<span class="fn">uniform</span>(<span class="str">"x"</span>, -<span class="num">5</span>, <span class="num">5</span>)}</code><span class="star">★</span><div class="desc">1 · describe the space with <code>hp.*</code>.</div></li>
+      <li class="obj"><code class="cmd"><span class="kw">def</span> <span class="fn">objective</span>(p): <span class="kw">return</span> (p[<span class="str">"x"</span>]-<span class="num">2</span>)**<span class="num">2</span></code><span class="star">★</span><div class="desc">2 · map a config to a loss.</div></li>
+      <li class="fmin"><code class="cmd">best = <span class="fn">fmin</span>(objective, space, <span class="arg">algo</span>=tpe.suggest, <span class="arg">max_evals</span>=<span class="num">100</span>)</code><span class="star">★</span><div class="desc">3 · search — returns the argmin.</div></li>
+      <li class="danger"><code class="cmd"><span class="fn">space_eval</span>(space, best)</code><span class="star">★</span><div class="desc">4 · decode indices → real values (always do this).</div></li>
+    </ul>
+  </article>
+
+  <!-- 03 SEARCH SPACE CORE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">03</span><span class="card-title">Search Space · Core</span><span class="card-sub">hp.* domains</span></div>
+    <ul class="cmds">
+      <li class="space"><code class="cmd">hp.<span class="fn">uniform</span>(<span class="str">"x"</span>, low, high)</code><div class="desc">Continuous float, flat over the range.</div></li>
+      <li class="space"><code class="cmd">hp.<span class="fn">loguniform</span>(<span class="str">"lr"</span>, np.<span class="fn">log</span>(<span class="num">1e-4</span>), np.<span class="fn">log</span>(<span class="num">1e-1</span>))</code><span class="star">★</span><div class="desc">Log scale — <b>bounds are in log space</b>.</div></li>
+      <li class="space"><code class="cmd">hp.<span class="fn">quniform</span>(<span class="str">"n"</span>, <span class="num">1</span>, <span class="num">100</span>, <span class="num">1</span>)</code><div class="desc">Quantized float (returns a float — cast to int).</div></li>
+      <li class="space"><code class="cmd">hp.<span class="fn">choice</span>(<span class="str">"opt"</span>, [<span class="str">"adam"</span>, <span class="str">"sgd"</span>])</code><span class="star">★</span><div class="desc">Categorical — <b>best gives its index</b>.</div></li>
+      <li class="space"><code class="cmd">hp.<span class="fn">randint</span>(<span class="str">"k"</span>, <span class="num">10</span>)</code><div class="desc">Integer in <code>[0, 10)</code>.</div></li>
+    </ul>
+  </article>
+
+  <!-- 04 SEARCH SPACE MORE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">04</span><span class="card-title">Search Space · More</span><span class="card-sub">the rest of hp.*</span></div>
+    <ul class="cmds">
+      <li class="space"><code class="cmd">hp.<span class="fn">normal</span>(<span class="str">"m"</span>, mu, sigma)</code><div class="desc">Gaussian — unbounded, centered on <code>mu</code>.</div></li>
+      <li class="space"><code class="cmd">hp.<span class="fn">lognormal</span>(<span class="str">"s"</span>, mu, sigma)</code><div class="desc">Positive, heavy-tailed.</div></li>
+      <li class="space"><code class="cmd">hp.<span class="fn">uniformint</span>(<span class="str">"u"</span>, low, high)</code><div class="desc">Integer, uniform &amp; inclusive.</div></li>
+      <li class="space"><code class="cmd">hp.<span class="fn">qloguniform</span> · hp.<span class="fn">qnormal</span> · hp.<span class="fn">qlognormal</span></code><div class="desc">Quantized log / normal variants.</div></li>
+      <li class="space"><code class="cmd">hp.<span class="fn">pchoice</span>(<span class="str">"c"</span>, [(<span class="num">0.3</span>, <span class="str">"a"</span>), (<span class="num">0.7</span>, <span class="str">"b"</span>)])</code><div class="desc">Weighted categorical (custom prior probabilities).</div></li>
+    </ul>
+  </article>
+
+  <!-- 05 CONDITIONAL SPACES -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">05</span><span class="card-title">Conditional / Nested Spaces</span><span class="card-sub">hyperopt's superpower</span></div>
+    <ul class="cmds">
+      <li class="space"><code class="cmd">hp.<span class="fn">choice</span>(<span class="str">"model"</span>, [svm_branch, rf_branch])</code><span class="star">★</span><div class="desc">Each branch is a dict with its <i>own</i> hp.* params.</div></li>
+      <li class="space"><code class="cmd">{<span class="str">"type"</span>: <span class="str">"svm"</span>, <span class="str">"C"</span>: hp.<span class="fn">loguniform</span>(<span class="str">"C"</span>, …)}</code><div class="desc">Sub-params only sampled when the branch is chosen.</div></li>
+      <li class="space"><code class="cmd">hp.<span class="fn">choice</span>(<span class="str">"a"</span>, [(<span class="str">"c1"</span>, hp.<span class="fn">uniform</span>(…)), (<span class="str">"c2"</span>, …)])</code><div class="desc">Tuple branches work too — unpack in the objective.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># every hp label must be globally UNIQUE</span></code><span class="badge badge-danger">rule</span><div class="desc">Reusing a label across branches silently breaks the space.</div></li>
+    </ul>
+  </article>
+
+  <!-- 06 OBJECTIVE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">06</span><span class="card-title">The Objective</span><span class="card-sub">config → loss</span></div>
+    <ul class="cmds">
+      <li class="obj"><code class="cmd"><span class="kw">def</span> <span class="fn">objective</span>(params): …</code><span class="star">★</span><div class="desc">One arg — the sampled point (dict / list / value).</div></li>
+      <li class="obj"><code class="cmd"><span class="kw">return</span> loss</code><span class="star">★</span><div class="desc">Simplest protocol: a single float to minimize.</div></li>
+      <li class="obj"><code class="cmd"><span class="kw">return</span> -accuracy</code><div class="desc">fmin only minimizes — negate to maximize.</div></li>
+      <li class="obj"><code class="cmd">params[<span class="str">"lr"</span>], params[<span class="str">"model"</span>][<span class="str">"C"</span>]</code><div class="desc">Read hyperparameters (nested for conditional spaces).</div></li>
+    </ul>
+  </article>
+
+  <!-- 07 RICH RETURN -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">07</span><span class="card-title">Rich Return Dict</span><span class="card-sub">store more per trial</span></div>
+    <ul class="cmds">
+      <li class="obj"><code class="cmd"><span class="kw">return</span> {<span class="str">"loss"</span>: L, <span class="str">"status"</span>: STATUS_OK}</code><span class="star">★</span><div class="desc">The two required keys of the rich protocol.</div></li>
+      <li class="obj"><code class="cmd"><span class="str">"status"</span>: STATUS_FAIL</code><div class="desc">Flag a bad config so it's ignored, not counted as best.</div></li>
+      <li class="obj"><code class="cmd"><span class="str">"loss_variance"</span>: v · <span class="str">"true_loss"</span>: t</code><div class="desc">Optional stats for noisy / held-out losses.</div></li>
+      <li class="obj"><code class="cmd"><span class="str">"attachments"</span>: {<span class="str">"model"</span>: pickled}</code><div class="desc">Stash big artefacts on the trial (retrieve later).</div></li>
+    </ul>
+  </article>
+
+  <!-- 08 FMIN DRIVER -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">08</span><span class="card-title">fmin · The Driver</span><span class="card-sub">runs the search</span></div>
+    <ul class="cmds">
+      <li class="fmin"><code class="cmd"><span class="fn">fmin</span>(fn, space, <span class="arg">algo</span>=tpe.suggest, <span class="arg">max_evals</span>=<span class="num">100</span>)</code><span class="star">★</span><div class="desc">The four essentials — returns <code>best</code> (the argmin).</div></li>
+      <li class="fmin"><code class="cmd"><span class="arg">trials</span>=Trials()</code><span class="star">★</span><div class="desc">Pass one to keep the full evaluation history.</div></li>
+      <li class="fmin"><code class="cmd"><span class="arg">rstate</span>=np.random.<span class="fn">default_rng</span>(<span class="num">42</span>)</code><div class="desc">Seed for reproducible runs.</div></li>
+      <li class="fmin"><code class="cmd"><span class="arg">return_argmin</span>=<span class="kw">False</span></code><div class="desc">Return the best <i>trial</i> instead of the argmin dict.</div></li>
+    </ul>
+  </article>
+
+  <!-- 09 FMIN OPTIONS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">09</span><span class="card-title">fmin · More Options</span><span class="card-sub">budgets &amp; warm starts</span></div>
+    <ul class="cmds">
+      <li class="fmin"><code class="cmd"><span class="arg">timeout</span>=<span class="num">300</span></code><div class="desc">Stop after 300 s of wall-clock.</div></li>
+      <li class="fmin"><code class="cmd"><span class="arg">loss_threshold</span>=<span class="num">0.01</span></code><div class="desc">Stop once any trial beats this loss.</div></li>
+      <li class="fmin"><code class="cmd"><span class="arg">early_stop_fn</span>=no_progress_loss(<span class="num">20</span>)</code><span class="star">★</span><div class="desc">Stop after 20 evals with no improvement.</div></li>
+      <li class="fmin"><code class="cmd"><span class="arg">points_to_evaluate</span>=[{<span class="str">"x"</span>: <span class="num">2.0</span>}]</code><div class="desc">Warm-start with known-good configs.</div></li>
+      <li class="fmin"><code class="cmd"><span class="arg">show_progressbar</span>=<span class="kw">False</span>, <span class="arg">verbose</span>=<span class="kw">False</span></code><div class="desc">Quiet the tqdm bar / logging.</div></li>
+    </ul>
+  </article>
+
+  <!-- 10 ALGORITHMS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">10</span><span class="card-title">Algorithms</span><span class="card-sub">the algo= arg</span></div>
+    <ul class="cmds">
+      <li class="algo"><code class="cmd">tpe.suggest</code><span class="star">★</span><div class="desc">Tree-of-Parzen-Estimators — the smart default.</div></li>
+      <li class="algo"><code class="cmd">rand.suggest</code><div class="desc">Random search — the honest baseline.</div></li>
+      <li class="algo"><code class="cmd">anneal.suggest</code><div class="desc">Simulated annealing — simple adaptive search.</div></li>
+      <li class="algo"><code class="cmd">atpe.suggest</code><div class="desc">Adaptive TPE (auto-tunes TPE's own knobs).</div></li>
+      <li class="algo"><code class="cmd">mix.suggest</code><div class="desc">Mix algorithms probabilistically.</div></li>
+    </ul>
+  </article>
+
+  <!-- 11 TUNING TPE -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">11</span><span class="card-title">Tuning TPE</span><span class="card-sub">partial(...)</span></div>
+    <ul class="cmds">
+      <li class="algo"><code class="cmd"><span class="kw">from</span> <span class="mod">hyperopt</span> <span class="kw">import</span> partial</code><div class="desc">Wrap the suggester to set its params.</div></li>
+      <li class="algo"><code class="cmd"><span class="arg">algo</span>=partial(tpe.suggest, <span class="arg">n_startup_jobs</span>=<span class="num">20</span>)</code><span class="star">★</span><div class="desc">Random warm-up trials before TPE kicks in.</div></li>
+      <li class="algo"><code class="cmd">partial(tpe.suggest, <span class="arg">gamma</span>=<span class="num">0.25</span>)</code><div class="desc">The good/bad split quantile.</div></li>
+      <li class="algo"><code class="cmd">partial(tpe.suggest, <span class="arg">n_EI_candidates</span>=<span class="num">24</span>)</code><div class="desc">Candidates scored by expected improvement each step.</div></li>
+    </ul>
+  </article>
+
+  <!-- 12 RECOVER BEST -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">12</span><span class="card-title">Recovering the Best</span><span class="card-sub">the #1 gotcha</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd"><span class="fn">space_eval</span>(space, best)</code><span class="star">★</span><div class="desc"><code>hp.choice</code> puts an <b>index</b> in <code>best</code> — this decodes it.</div></li>
+      <li class="algo"><code class="cmd">trials.<span class="fn">argmin</span></code><div class="desc">Same argmin dict fmin returns (still indices).</div></li>
+      <li class="algo"><code class="cmd">trials.best_trial[<span class="str">"result"</span>][<span class="str">"loss"</span>]</code><div class="desc">The winning loss value.</div></li>
+      <li class="algo"><code class="cmd"><span class="fn">space_eval</span>(space, trials.argmin)</code><div class="desc">Full real-valued winning config.</div></li>
+    </ul>
+  </article>
+
+  <!-- 13 TRIALS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">13</span><span class="card-title">The Trials Object</span><span class="card-sub">the history db</span></div>
+    <ul class="cmds">
+      <li class="algo"><code class="cmd">trials = <span class="fn">Trials</span>()</code><span class="star">★</span><div class="desc">In-memory database of every evaluation.</div></li>
+      <li class="algo"><code class="cmd">trials.<span class="fn">losses</span>()</code><div class="desc">List of losses in trial order — plot the curve.</div></li>
+      <li class="algo"><code class="cmd">trials.best_trial</code><span class="star">★</span><div class="desc">Full record of the winning trial.</div></li>
+      <li class="algo"><code class="cmd">trials.results</code><div class="desc">Every return dict you produced.</div></li>
+      <li class="algo"><code class="cmd">trials.vals · trials.trials</code><div class="desc">Sampled param values · raw trial documents.</div></li>
+    </ul>
+  </article>
+
+  <!-- 14 INSPECT -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">14</span><span class="card-title">Inspecting Trials</span><span class="card-sub">dig into results</span></div>
+    <ul class="cmds">
+      <li class="algo"><code class="cmd"><span class="kw">for</span> t <span class="kw">in</span> trials.trials: t[<span class="str">"result"</span>], t[<span class="str">"misc"</span>][<span class="str">"vals"</span>]</code><div class="desc">Per-trial result + the values that produced it.</div></li>
+      <li class="algo"><code class="cmd">trials.statuses()</code><div class="desc">OK / FAIL per trial.</div></li>
+      <li class="algo"><code class="cmd">pd.<span class="fn">DataFrame</span>(trials.vals)</code><div class="desc">Turn the search history into a DataFrame.</div></li>
+      <li class="algo"><code class="cmd">trials.<span class="fn">trial_attachments</span>(trial)</code><div class="desc">Retrieve stashed artefacts (models, arrays).</div></li>
+    </ul>
+  </article>
+
+  <!-- 15 EARLY STOP -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">15</span><span class="card-title">Early Stopping</span><span class="card-sub">stop when stuck</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd"><span class="kw">from</span> <span class="mod">hyperopt.early_stop</span> <span class="kw">import</span> no_progress_loss</code><span class="star">★</span><div class="desc">The built-in patience stopper.</div></li>
+      <li class="io"><code class="cmd"><span class="arg">early_stop_fn</span>=no_progress_loss(<span class="num">30</span>)</code><div class="desc">Halt after 30 evals without improvement.</div></li>
+      <li class="io"><code class="cmd"><span class="kw">def</span> <span class="fn">stop</span>(trials, *a): <span class="kw">return</span> cond, {}</code><div class="desc">Custom stopper — returns <code>(stop?, state)</code>.</div></li>
+      <li class="io"><code class="cmd"><span class="arg">timeout</span>=<span class="num">600</span> · <span class="arg">loss_threshold</span>=<span class="num">0.0</span></code><div class="desc">Or bound by wall-clock / target loss.</div></li>
+    </ul>
+  </article>
+
+  <!-- 16 PERSIST -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">16</span><span class="card-title">Persistence &amp; Resume</span><span class="card-sub">save the history</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd">pickle.<span class="fn">dump</span>(trials, f)</code><div class="desc">A <code>Trials</code> object pickles cleanly.</div></li>
+      <li class="io"><code class="cmd"><span class="arg">trials_save_file</span>=<span class="str">"t.pkl"</span></code><div class="desc">Let fmin checkpoint the trials itself.</div></li>
+      <li class="io"><code class="cmd"><span class="fn">fmin</span>(…, <span class="arg">trials</span>=old, <span class="arg">max_evals</span>=len(old)+<span class="num">50</span>)</code><span class="star">★</span><div class="desc">Resume: reuse trials &amp; raise the budget.</div></li>
+      <li class="io"><code class="cmd"><span class="arg">points_to_evaluate</span>=prev_best</code><div class="desc">Carry known-good configs into a new run.</div></li>
+    </ul>
+  </article>
+
+  <!-- 17 SPARKTRIALS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">17</span><span class="card-title">Parallel · SparkTrials</span><span class="card-sub">scale on Spark</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd"><span class="kw">from</span> <span class="mod">hyperopt</span> <span class="kw">import</span> SparkTrials</code><span class="star">★</span><div class="desc">Run trials across a Spark cluster.</div></li>
+      <li class="io"><code class="cmd">spark_trials = <span class="fn">SparkTrials</span>(<span class="arg">parallelism</span>=<span class="num">8</span>)</code><div class="desc">Up to 8 concurrent trials.</div></li>
+      <li class="io"><code class="cmd"><span class="fn">fmin</span>(…, <span class="arg">trials</span>=spark_trials)</code><span class="star">★</span><div class="desc">Same fmin — just swap the trials backend.</div></li>
+      <li class="io"><code class="cmd"><span class="cm"># TPE is sequential; parallelism trades off info</span></code><div class="desc">Higher parallelism ≈ more random-like search.</div></li>
+    </ul>
+  </article>
+
+  <!-- 18 MONGOTRIALS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">18</span><span class="card-title">Parallel · MongoTrials</span><span class="card-sub">async cluster</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd"><span class="kw">from</span> <span class="mod">hyperopt.mongoexp</span> <span class="kw">import</span> MongoTrials</code><div class="desc">Async distributed search via a MongoDB queue.</div></li>
+      <li class="io"><code class="cmd">MongoTrials(<span class="str">"mongo://host:27017/db/jobs"</span>, <span class="arg">exp_key</span>=<span class="str">"e1"</span>)</code><div class="desc">Point trials at a Mongo collection.</div></li>
+      <li class="io"><code class="cmd">$ hyperopt-mongo-worker --mongo=host:27017/db</code><div class="desc">Launch workers that pull &amp; evaluate jobs.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># objective must be importable, not a closure</span></code><span class="badge badge-danger">note</span><div class="desc">Workers re-import your function by reference.</div></li>
+    </ul>
+  </article>
+
+  <!-- 19 ML INTEGRATION -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">19</span><span class="card-title">ML Integration</span><span class="card-sub">the common pattern</span></div>
+    <ul class="cmds">
+      <li class="io"><code class="cmd"><span class="kw">return</span> -cross_val_score(clf, X, y).<span class="fn">mean</span>()</code><span class="star">★</span><div class="desc">Minimize negative CV score = maximize accuracy.</div></li>
+      <li class="io"><code class="cmd">clf = SVC(<span class="arg">C</span>=p[<span class="str">"C"</span>], <span class="arg">gamma</span>=p[<span class="str">"gamma"</span>])</code><div class="desc">Build the estimator from the sampled config.</div></li>
+      <li class="io"><code class="cmd"><span class="kw">from</span> <span class="mod">hpsklearn</span> <span class="kw">import</span> HyperoptEstimator</code><div class="desc">Auto-sklearn-style wrapper over Hyperopt.</div></li>
+      <li class="io"><code class="cmd"><span class="cm"># xgboost: cast quniform depth to int</span></code><div class="desc"><code>int(p["max_depth"])</code> — quniform returns a float.</div></li>
+    </ul>
+  </article>
+
+  <!-- 20 GOTCHAS -->
+  <article class="card">
+    <div class="card-head"><span class="card-num">20</span><span class="card-title">Gotchas &amp; Tips</span><span class="card-sub">what bites people</span></div>
+    <ul class="cmds">
+      <li class="danger"><code class="cmd">hp.<span class="fn">choice</span> → index in best</code><span class="star">★</span><div class="desc">Always <code>space_eval</code>; never index the list yourself.</div></li>
+      <li class="danger"><code class="cmd">fmin minimizes only</code><span class="star">★</span><div class="desc">Return <code>-metric</code> to maximize.</div></li>
+      <li class="danger"><code class="cmd">loguniform bounds are log-space</code><span class="star">★</span><div class="desc">Pass <code>np.log(lo), np.log(hi)</code>, not raw values.</div></li>
+      <li class="danger"><code class="cmd">labels must be globally unique</code><div class="desc">Duplicate <code>hp.*</code> labels corrupt the space.</div></li>
+      <li class="danger"><code class="cmd">quniform returns a float</code><div class="desc">Cast to <code>int()</code> for counts / depths.</div></li>
+    </ul>
+  </article>
+
+</main>
+
+<!-- ============ CONCEPT DIAGRAMS ============ -->
+<section class="diagrams">
+  <h2>Four ideas worth a picture</h2>
+  <p class="sub">Describing a space as distributions, the conditional-space tree that sets Hyperopt apart, how TPE actually chooses, and the choice-index trap that catches everyone.</p>
+  <div class="merge-grid">
+
+    <!-- D1 distributions gallery -->
+    <div class="merge-card">
+      <h3>A space is distributions, not bounds</h3>
+      <p>Each <code>hp.*</code> encodes not just a range but where to look. Giving the search a shape is what lets TPE beat a plain grid.</p>
+      <svg viewBox="0 0 390 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Five small distribution sketches: uniform is a flat block, loguniform is skewed toward small values, normal is a bell, quniform is stepped bars, and choice is three equal discrete bars.">
+        <!-- uniform -->
+        <text x="52" y="20" text-anchor="middle" font-size="8.5" fill="#d97706">uniform</text>
+        <rect x="20" y="52" width="64" height="30" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+        <line x1="20" y1="82" x2="84" y2="82" stroke="#94a3b8" stroke-width="1"/>
+        <!-- loguniform -->
+        <text x="150" y="20" text-anchor="middle" font-size="8.5" fill="#d97706">loguniform</text>
+        <path d="M118 82 Q126 34 134 46 Q150 66 182 79 L182 82 Z" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+        <line x1="118" y1="82" x2="182" y2="82" stroke="#94a3b8" stroke-width="1"/>
+        <text x="150" y="95" text-anchor="middle" font-size="7" fill="#94a3b8">small values favored</text>
+        <!-- normal -->
+        <text x="248" y="20" text-anchor="middle" font-size="8.5" fill="#d97706">normal</text>
+        <path d="M216 82 Q240 26 264 82 Z" fill="#fdf6ec" stroke="#d97706" stroke-width="1.6"/>
+        <line x1="216" y1="82" x2="280" y2="82" stroke="#94a3b8" stroke-width="1"/>
+        <!-- quniform -->
+        <text x="345" y="20" text-anchor="middle" font-size="8.5" fill="#d97706">quniform</text>
+        <g fill="#fdf6ec" stroke="#d97706" stroke-width="1.4">
+          <rect x="316" y="66" width="10" height="16"/><rect x="328" y="58" width="10" height="24"/>
+          <rect x="340" y="62" width="10" height="20"/><rect x="352" y="70" width="10" height="12"/>
+        </g>
+        <line x1="314" y1="82" x2="366" y2="82" stroke="#94a3b8" stroke-width="1"/>
+        <!-- choice -->
+        <text x="150" y="128" text-anchor="middle" font-size="8.5" fill="#d97706">choice — discrete, equal weight</text>
+        <g fill="#fdf6ec" stroke="#d97706" stroke-width="1.5">
+          <rect x="70" y="150" width="34" height="34"/><rect x="134" y="150" width="34" height="34"/><rect x="198" y="150" width="34" height="34"/>
+        </g>
+        <text x="87" y="172" text-anchor="middle" font-size="9" fill="#475569">adam</text>
+        <text x="151" y="172" text-anchor="middle" font-size="9" fill="#475569">sgd</text>
+        <text x="215" y="172" text-anchor="middle" font-size="9" fill="#475569">rms</text>
+        <!-- pchoice note -->
+        <text x="300" y="150" font-size="8" fill="#94a3b8">pchoice adds</text>
+        <text x="300" y="162" font-size="8" fill="#94a3b8">custom weights</text>
+        <text x="300" y="178" font-size="8" fill="#94a3b8">lognormal for</text>
+        <text x="300" y="190" font-size="8" fill="#94a3b8">positive tails</text>
+      </svg>
+    </div>
+
+    <!-- D2 conditional tree -->
+    <div class="merge-card">
+      <h3>Conditional search spaces</h3>
+      <p>An <code>hp.choice</code> can branch into whole sub-spaces. Each branch's params exist <b>only</b> when that branch is picked — impossible to express as a flat grid.</p>
+      <svg viewBox="0 0 390 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A tree: hp.choice model branches to SVM and RandomForest; the SVM branch has a C parameter, the RandomForest branch has a depth parameter, each active only on its branch.">
+        <rect x="140" y="20" width="110" height="30" rx="8" fill="#fdf6ec" stroke="#d97706" stroke-width="1.8"/>
+        <text x="195" y="39" text-anchor="middle" font-size="10" font-weight="700" fill="#1a1d24">hp.choice("model")</text>
+        <line x1="160" y1="50" x2="95" y2="82" stroke="#d97706" stroke-width="1.5"/>
+        <line x1="230" y1="50" x2="295" y2="82" stroke="#d97706" stroke-width="1.5"/>
+        <rect x="40" y="84" width="110" height="28" rx="7" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.5"/>
+        <text x="95" y="102" text-anchor="middle" font-size="9.5" fill="#1a1d24">"type": "svm"</text>
+        <rect x="240" y="84" width="120" height="28" rx="7" fill="#eef0fd" stroke="#4f46e5" stroke-width="1.5"/>
+        <text x="300" y="102" text-anchor="middle" font-size="9.5" fill="#1a1d24">"type": "rf"</text>
+        <line x1="95" y1="112" x2="95" y2="140" stroke="#4f46e5" stroke-width="1.4"/>
+        <line x1="300" y1="112" x2="300" y2="140" stroke="#4f46e5" stroke-width="1.4"/>
+        <rect x="42" y="142" width="106" height="30" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+        <text x="95" y="161" text-anchor="middle" font-size="9.5" fill="#059669">C = loguniform</text>
+        <rect x="244" y="142" width="112" height="30" rx="7" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+        <text x="300" y="161" text-anchor="middle" font-size="9.5" fill="#059669">depth = quniform</text>
+        <text x="195" y="192" text-anchor="middle" font-size="8.5" fill="#94a3b8">only the chosen branch's params are sampled</text>
+      </svg>
+    </div>
+
+    <!-- D3 TPE -->
+    <div class="merge-card">
+      <h3>How TPE chooses (born here)</h3>
+      <p>TPE — first shipped in Hyperopt — splits finished trials into <b>good</b> and <b>bad</b> by loss, models each as a density, and proposes where <code>l(x)/g(x)</code> is largest.</p>
+      <svg viewBox="0 0 390 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two overlapping densities over a parameter axis: a green good density peaked near the optimum and a grey bad density elsewhere; TPE samples where the good-to-bad ratio is highest.">
+        <line x1="30" y1="150" x2="365" y2="150" stroke="#cbd5e1" stroke-width="1.5"/>
+        <text x="330" y="167" font-size="8.5" fill="#94a3b8">param x →</text>
+        <path d="M30 150 C90 150, 110 74, 160 74 C210 74, 250 150, 365 150" fill="#f1f3f6" stroke="#94a3b8" stroke-width="1.8"/>
+        <text x="120" y="64" font-size="9" fill="#64748b">g(x) — bad</text>
+        <path d="M30 150 C200 150, 235 44, 275 44 C315 44, 330 150, 365 150" fill="rgba(124,58,237,.12)" stroke="#7c3aed" stroke-width="2.2"/>
+        <text x="272" y="36" font-size="9" fill="#7c3aed" text-anchor="middle">l(x) — good</text>
+        <line x1="283" y1="44" x2="283" y2="150" stroke="#d97706" stroke-width="1.6" stroke-dasharray="4 3"/>
+        <circle cx="283" cy="150" r="4.5" fill="#d97706"/>
+        <text x="283" y="176" font-size="8.5" fill="#b45309" text-anchor="middle">next: max l(x)/g(x)</text>
+        <g><circle cx="90" cy="150" r="3" fill="#94a3b8"/><circle cx="150" cy="150" r="3" fill="#94a3b8"/>
+          <circle cx="265" cy="150" r="3" fill="#7c3aed"/><circle cx="300" cy="150" r="3" fill="#7c3aed"/><circle cx="278" cy="150" r="3" fill="#7c3aed"/></g>
+        <text x="200" y="196" font-size="8" fill="#94a3b8" text-anchor="middle">gamma sets the good/bad cutoff · n_startup_jobs random first</text>
+      </svg>
+    </div>
+
+    <!-- D4 choice-index trap -->
+    <div class="merge-card">
+      <h3>The choice-index trap</h3>
+      <p>The most common Hyperopt bug: <code>best</code> stores the <b>position</b> a category had in the list, not the category. <code>space_eval</code> is the only correct decoder.</p>
+      <svg viewBox="0 0 390 210" class="bsvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="hp.choice of adam, sgd, rmsprop; fmin returns opt equals 1; naive indexing looks wrong while space_eval maps 1 to sgd correctly.">
+        <rect x="20" y="24" width="350" height="30" rx="7" fill="#fdf6ec" stroke="#d97706" stroke-width="1.5"/>
+        <text x="30" y="43" font-size="9.5" fill="#1a1d24" font-family="JetBrains Mono, monospace">hp.choice("opt", ["adam", "sgd", "rmsprop"])</text>
+        <g font-family="JetBrains Mono, monospace" font-size="8">
+          <text x="92" y="66" fill="#94a3b8">idx 0</text><text x="200" y="66" fill="#94a3b8">idx 1</text><text x="300" y="66" fill="#94a3b8">idx 2</text>
+        </g>
+        <line x1="195" y1="70" x2="195" y2="92" stroke="#1a1d24" stroke-width="1.4" marker-end="url(#hoArrow)"/>
+        <rect x="120" y="94" width="150" height="28" rx="7" fill="#1a1d24"/>
+        <text x="195" y="112" text-anchor="middle" font-size="9.5" fill="#fbbf24" font-family="JetBrains Mono, monospace">best = {"opt": 1}</text>
+        <!-- wrong path -->
+        <rect x="20" y="140" width="170" height="52" rx="8" fill="#fdf0ef" stroke="#dc2626" stroke-width="1.5"/>
+        <text x="105" y="158" text-anchor="middle" font-size="8.5" font-weight="700" fill="#dc2626">✗ best["opt"] → 1</text>
+        <text x="105" y="174" text-anchor="middle" font-size="8" fill="#7f1d1d">an int, not "sgd" —</text>
+        <text x="105" y="185" text-anchor="middle" font-size="8" fill="#7f1d1d">silently wrong downstream</text>
+        <!-- right path -->
+        <rect x="200" y="140" width="170" height="52" rx="8" fill="#ecf7f2" stroke="#059669" stroke-width="1.5"/>
+        <text x="285" y="158" text-anchor="middle" font-size="8.5" font-weight="700" fill="#059669">✓ space_eval(space, best)</text>
+        <text x="285" y="174" text-anchor="middle" font-size="8" fill="#166534">→ {"opt": "sgd"}</text>
+        <text x="285" y="185" text-anchor="middle" font-size="8" fill="#166534">the actual category</text>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ WORTH MEMORIZING ============ -->
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">hp.choice → index</span><span class="v">always <code>space_eval(space, best)</code> to get real values</span></div>
+    <div><span class="k">fmin minimizes</span><span class="v">return <code>-metric</code> to maximize</span></div>
+    <div><span class="k">loguniform bounds</span><span class="v">are in LOG space — pass <code>np.log(lo), np.log(hi)</code></span></div>
+    <div><span class="k">unique labels</span><span class="v">every <code>hp.*</code> label must be unique across the whole space</span></div>
+    <div><span class="k">pass a Trials()</span><span class="v">to keep the full history — <code>best</code> alone is just the argmin</span></div>
+    <div><span class="k">tpe.suggest</span><span class="v">is the smart default; <code>rand.suggest</code> for a baseline</span></div>
+    <div><span class="k">rich return</span><span class="v"><code>{'loss':…, 'status': STATUS_OK}</code> stores extras per trial</span></div>
+    <div><span class="k">rstate</span><span class="v"><code>np.random.default_rng(seed)</code> for reproducibility</span></div>
+    <div><span class="k">early_stop_fn</span><span class="v"><code>no_progress_loss(N)</code> stops when improvement stalls</span></div>
+    <div><span class="k">SparkTrials / MongoTrials</span><span class="v">swap the backend to parallelize — fmin is unchanged</span></div>
+    <div><span class="k">quniform is a float</span><span class="v">cast <code>int()</code> for counts, depths, estimators</span></div>
+    <div><span class="k">points_to_evaluate</span><span class="v">warm-starts fmin with known-good configs</span></div>
+  </div>
+</section>
+
+<footer>
+  Hyperopt cheat sheet · synthesized from the official docs at <code>hyperopt.github.io</code> (Basic / Multiple-parameter tutorials · the FMin wiki) and the SciPy&nbsp;2013 paper (Bergstra, Yamins &amp; Cox).<br>
+  Verified 2026-08-27 · API shown for Hyperopt ≈ 0.3.0 (0.3.0 released 24 Jul 2026, first release since 0.2.7 in 2021). TPE originated in Hyperopt (Bergstra et&nbsp;al. 2011). Distributed backends: <code>SparkTrials</code>, <code>MongoTrials</code>. Live-introspected from Hyperopt 0.3.0. For new projects, <b>Optuna</b> is the more actively-developed alternative (see the Optuna sheet).
+</footer>
+
+</body>
+</html>
