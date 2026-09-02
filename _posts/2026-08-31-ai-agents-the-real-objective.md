@@ -1,12 +1,15 @@
 ---
+layout: post
 title: "AI Agents: The Real Objective"
 description: An agent is not a goal in itself. It is a design choice you make when flexible, model-driven decisions are worth the cost — and a mistake when they are not.
-author: kalyan
+author: technical_notes
 date: 2026-08-31 09:30:00 +0530
 categories: [AI Engineering, Agents]
 tags: [ai-agents, llm, tool-calling, system-design, guardrails, evaluation]
 toc: true
 mermaid: true
+math: false
+pin: false
 ---
 
 Most writing about AI agents starts with architecture — orchestrators, memory layers, agent swarms. That is the wrong end of the problem. The useful question is not *how do I build an agent?* but *what outcome am I trying to produce, and is an agent the cheapest reliable way to produce it?*
