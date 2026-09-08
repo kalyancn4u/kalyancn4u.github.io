@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dagster Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Asset-centric data orchestration &middot; @asset · Definitions · dg CLI &amp; Components (GA) &middot; verified against Dagster 1.13.x (2026)</div>
+  <h1><span class="mono">Dagster</span> cheat sheet</h1>
+  <p class="lede"><b>Dagster</b> orchestrates data pipelines around <b>assets</b> &mdash; the tables, files, and models you actually produce &mdash; rather than opaque tasks. Declare each asset as a Python function with <code>@asset</code>; Dagster infers the dependency graph from the arguments, giving lineage, materialization history, data-quality <b>asset checks</b>, and a rich UI. Wire everything into <code>Definitions</code>, develop with the now-GA <b><code>dg</code> CLI</b> and reusable <b>Components</b>, and schedule with schedules, sensors, or <b>declarative automation</b> (now including freshness). This edition adds the dg CLI &amp; Components section, partitioned asset checks, asset options/virtual assets, and deeper automation. Targets <b>Dagster 1.13.x</b>, Python 3.9+.</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>assets</span>
+    <span><i class="dot c2"></i>resources &amp; IO</span>
+    <span><i class="dot c3"></i>automation &amp; partitions</span>
+    <span><i class="dot c4"></i>dg CLI &amp; Components</span>
+    <span><i class="dot c5"></i>ops, dev &amp; ecosystem</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-09-08 against the official docs at <b>docs.dagster.io</b> (Dagster <b>1.13.21</b> / libraries 0.29.21; Python 3.9+). Import root is <code>import dagster as dg</code>. Assets are the primary abstraction; ops/jobs are the lower-level layer. The <b><code>dg</code> CLI + Components are now GA</b> and the recommended default for new projects. Companion to <b>Airflow 3</b> &amp; <b>Prefect</b> in this collection.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub">Declare <code>@asset</code>s (deps inferred from args), attach resources &amp; IO managers, add checks, collect into <code>Definitions</code>, scaffold with the <code>dg</code> CLI/Components, then schedule/observe in the UI.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Assets</h3>
+      <ol class="toc-list">
+        <li><span class="rk">1</span><a href="#install">Install &amp; first asset</a></li>
+        <li><span class="rk">2</span><a href="#deps">Dependencies &amp; graph</a></li>
+        <li><span class="rk">3</span><a href="#checks">Metadata &amp; asset checks</a></li>
+        <li><span class="rk">4</span><a href="#options">Asset options</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">Resources &amp; IO</h3>
+      <ol class="toc-list">
+        <li><span class="rk">5</span><a href="#resources">Resources &amp; config</a></li>
+        <li><span class="rk">6</span><a href="#io">IO managers</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Automation</h3>
+      <ol class="toc-list">
+        <li><span class="rk">7</span><a href="#defs">Definitions</a></li>
+        <li><span class="rk">8</span><a href="#schedules">Schedules &amp; sensors</a></li>
+        <li><span class="rk">9</span><a href="#declarative">Declarative automation</a></li>
+        <li><span class="rk">10</span><a href="#partitions">Partitions &amp; backfills</a></li>
+      </ol>
+      <h3 style="margin-top:1rem">dg CLI &amp; Components</h3>
+      <ol class="toc-list">
+        <li><span class="rk">11</span><a href="#dg">The dg CLI</a></li>
+        <li><span class="rk">12</span><a href="#components">Components</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Ops, dev &amp; ecosystem</h3>
+      <ol class="toc-list">
+        <li><span class="rk">13</span><a href="#ops">Ops &amp; jobs</a></li>
+        <li><span class="rk">14</span><a href="#test">Test &amp; materialize</a></li>
+        <li><span class="rk">15</span><a href="#ecosystem">Integrations</a></li>
+        <li><span class="rk">16</span><a href="#compare">vs Airflow / Prefect</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-asset"><h2 style="color:var(--c1)">Assets</h2><p class="sub">Declare what you produce; Dagster figures out the graph and tracks lineage.</p></div>
+<main>
+  <article class="card" id="install">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Install &amp; first asset</span><span class="card-sub">@asset</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">uvx create-dagster@latest project my_proj   <span class="cm"># scaffold (GA)</span></code><span class="star">&#9733;</span><span class="badge-new">GA</span><div class="desc">Create a project with <code>create-dagster</code> (also <code>pip install create-dagster</code>). It lays out a <code>defs/</code> folder (auto-loaded definitions) + <code>pyproject.toml</code>. The bare library is <code>pip install dagster dagster-webserver</code>.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">import</span> dagster <span class="kw">as</span> dg
+
+<span class="fn">@dg.asset</span>
+<span class="kw">def</span> raw_users() -> list[dict]:
+    <span class="kw">return</span> fetch_users()</code><span class="star">&#9733;</span><div class="desc">An <b>asset</b> is a function that produces a persistent object (a table/file/model). The function name is the asset key; its return value is the data.</div></li>
+      <li class="c1"><code class="cmd"><span class="fn">@dg.asset</span>(group_name=<span class="str">"ingest"</span>, kinds={<span class="str">"python"</span>, <span class="str">"s3"</span>},
+    description=<span class="str">"raw user records"</span>)</code><div class="desc">Organize the graph with <code>group_name</code>, tag technologies with <code>kinds</code> (icons in the UI), and document with <code>description</code>.</div></li>
+      <li class="c1"><code class="cmd">dg dev   <span class="cm"># or: dagster dev — UI at http://127.0.0.1:3000</span></code><span class="star">&#9733;</span><div class="desc">Launches the webserver + daemon (and schema-checks your <code>defs.yaml</code> first). Click an asset &rarr; <b>Materialize</b> to run it and see lineage, runs, and metadata.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="deps">
+    <div class="card-head"><span class="card-num n1">2</span><span class="card-title">Dependencies &amp; graph</span><span class="card-sub">inferred lineage</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd"><span class="fn">@dg.asset</span>
+<span class="kw">def</span> clean_users(raw_users):   <span class="cm"># arg name = upstream asset</span>
+    <span class="kw">return</span> [normalize(u) <span class="kw">for</span> u <span class="kw">in</span> raw_users]</code><span class="star">&#9733;</span><div class="desc">Depend on another asset by <b>naming it as a parameter</b> &mdash; Dagster passes the upstream's loaded value and draws the edge automatically. This is the core idea.</div></li>
+      <li class="c1"><code class="cmd"><span class="fn">@dg.asset</span>(deps=[raw_events])   <span class="cm"># dependency without loading the value</span>
+<span class="kw">def</span> report(): ...</code><div class="desc">Use <code>deps=</code> for an ordering dependency when you don't need the upstream's Python value (e.g. it wrote to a DB the SQL reads).</div></li>
+      <li class="c1"><code class="cmd"><span class="fn">@dg.multi_asset</span>(specs=[dg.AssetSpec(<span class="str">"a"</span>), dg.AssetSpec(<span class="str">"b"</span>)])
+<span class="kw">def</span> both(): ...</code><div class="desc">Produce several assets from one computation with <code>@multi_asset</code>. <code>dg.AssetSpec</code> also declares external/source assets you don't compute.</div></li>
+      <li class="c1"><code class="cmd">dg.load_assets_from_modules([my_pkg.assets])</code><div class="desc">Auto-collect every asset in a module/package instead of listing them &mdash; or let the <code>defs/</code> folder auto-load them (card 11).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="checks">
+    <div class="card-head"><span class="card-num n1">3</span><span class="card-title">Metadata &amp; asset checks</span><span class="card-sub">quality</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd"><span class="kw">return</span> dg.MaterializeResult(metadata={
+    <span class="str">"rows"</span>: len(df), <span class="str">"preview"</span>: dg.MetadataValue.md(df.head().to_markdown())})</code><span class="star">&#9733;</span><div class="desc">Attach run metadata (row counts, previews, plots, links) to a materialization &mdash; it shows on the asset in the UI over time.</div></li>
+      <li class="c1"><code class="cmd"><span class="fn">@dg.asset_check</span>(asset=clean_users)
+<span class="kw">def</span> no_nulls(clean_users):
+    <span class="kw">return</span> dg.AssetCheckResult(passed=all(u[<span class="str">"id"</span>] <span class="kw">for</span> u <span class="kw">in</span> clean_users))</code><span class="star">&#9733;</span><div class="desc"><b>Asset checks</b> are data-quality tests bound to an asset (nulls, ranges, freshness, row counts) &mdash; they run with the asset and can block downstreams.</div></li>
+      <li class="c1"><code class="cmd"><span class="fn">@dg.asset_check</span>(asset=events, partitions_def=daily)   <span class="cm"># per-partition</span></code><span class="star">&#9733;</span><span class="badge-new">1.13</span><div class="desc"><b>Partitioned asset checks</b>: <code>@asset_check</code> and <code>AssetCheckSpec</code> now take <code>partitions_def</code>, so a check runs against a specific partition of its upstream rather than the whole asset.</div></li>
+      <li class="c1"><code class="cmd"><span class="fn">@dg.asset</span>(check_specs=[dg.AssetCheckSpec(<span class="str">"rowcount"</span>, asset=<span class="str">"t"</span>)])</code><div class="desc">Emit checks from inside the asset function too (yield <code>AssetCheckResult</code>s alongside the data).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="options">
+    <div class="card-head"><span class="card-num n1">4</span><span class="card-title">Asset options</span><span class="card-sub">ownership · versioning · virtual</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd"><span class="fn">@dg.asset</span>(owners=[<span class="str">"team:data"</span>, <span class="str">"jane@co.com"</span>], tags={<span class="str">"tier"</span>:<span class="str">"gold"</span>})</code><span class="star">&#9733;</span><div class="desc"><b>Owners</b> &amp; <b>tags</b> power the catalog: filter, search, and route alerts by team. <code>kinds</code> adds tech icons.</div></li>
+      <li class="c1"><code class="cmd"><span class="fn">@dg.asset</span>(code_version=<span class="str">"v2"</span>)   <span class="cm"># stale-data detection when the code changes</span></code><span class="star">&#9733;</span><div class="desc"><code>code_version</code> lets Dagster mark downstreams <b>stale</b> when the logic (not just data) changes &mdash; pairs with declarative automation.</div></li>
+      <li class="c1"><code class="cmd"><span class="fn">@dg.asset</span>(retry_policy=dg.RetryPolicy(max_retries=3, delay=10),
+    backfill_policy=dg.BackfillPolicy.single_run())</code><div class="desc">Per-asset retries; <code>backfill_policy</code> lets a partitioned asset backfill many partitions in <b>one</b> run instead of one-run-per-partition.</div></li>
+      <li class="c1"><code class="cmd"><span class="fn">@dg.asset</span>(is_virtual=<span class="kw">True</span>)   <span class="cm"># a view / derived table — not materialized</span></code><span class="badge-warn">preview</span><div class="desc"><b>Virtual assets</b> (preview) model things like DB views or derived tables that appear in the graph &amp; lineage but don't need materializing. Also on <code>AssetSpec(is_virtual=True)</code>. ⚠️ Preview API &mdash; confirm before relying on it.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-res"><h2 style="color:var(--c2)">Resources &amp; IO</h2><p class="sub">Inject external systems; let IO managers handle read/write &amp; storage.</p></div>
+<main>
+  <article class="card" id="resources">
+    <div class="card-head"><span class="card-num n2">5</span><span class="card-title">Resources &amp; config</span><span class="card-sub">dependency injection</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd"><span class="kw">class</span> Api(dg.ConfigurableResource):
+    base_url: str
+    token: str
+
+<span class="fn">@dg.asset</span>
+<span class="kw">def</span> data(api: Api):
+    <span class="kw">return</span> httpx.get(api.base_url, headers={...}).json()</code><span class="star">&#9733;</span><div class="desc"><b>Resources</b> are injected external systems (DB clients, APIs, warehouses). Declare a typed <code>ConfigurableResource</code>, request it as a parameter &mdash; testable &amp; swappable.</div></li>
+      <li class="c2"><code class="cmd">Api(base_url=<span class="str">"..."</span>, token=dg.EnvVar(<span class="str">"API_TOKEN"</span>))</code><span class="star">&#9733;</span><div class="desc">Pull secrets from the environment with <code>EnvVar</code> &mdash; never hardcode credentials. Hide sensitive fields with <code>json_schema_extra={"dagster__is_secret": True}</code>.</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">class</span> Cfg(dg.Config): batch_size: int = 500
+<span class="fn">@dg.asset</span>
+<span class="kw">def</span> a(config: Cfg): ...</code><div class="desc">Per-run <b>config</b> via a Pydantic <code>Config</code> schema &mdash; set it at materialize time / in a schedule.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="io">
+    <div class="card-head"><span class="card-num n2">6</span><span class="card-title">IO managers</span><span class="card-sub">read/write for you</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd"><span class="cm"># return a value; the IO manager persists it &amp; loads it downstream</span>
+<span class="fn">@dg.asset</span>
+<span class="kw">def</span> clean(raw): <span class="kw">return</span> transform(raw)</code><span class="star">&#9733;</span><div class="desc">An <b>IO manager</b> handles where/how an asset's return value is stored and reloaded &mdash; so your function just returns a DataFrame and Dagster does the persistence.</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">from</span> dagster_aws.s3 <span class="kw">import</span> S3PickleIOManager
+defs = dg.Definitions(assets=[...],
+    resources={<span class="str">"io_manager"</span>: S3PickleIOManager(...)})</code><div class="desc">Swap storage without touching asset code: local files (default), S3, GCS, a warehouse (<code>dagster-duckdb</code>, <code>-snowflake</code>, <code>-gcp</code> Parquet/BigQuery).</div></li>
+      <li class="c2"><code class="cmd"><span class="fn">@dg.asset</span>(io_manager_key=<span class="str">"warehouse_io"</span>)</code><div class="desc">Per-asset IO manager selection &mdash; some assets to the warehouse, others to blob storage.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># huge asset? don't return it through an IO manager — write in-fn + deps=</span></code><span class="badge-warn">tip</span><div class="desc">For very large data or external side effects (SQL that materializes a table), skip the IO-manager round-trip: write inside the asset and use <code>deps=</code> for ordering.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-auto"><h2 style="color:var(--c3)">Automation &amp; Partitions</h2><p class="sub">Collect definitions, then run assets on a schedule, on events, declaratively, or by partition.</p></div>
+<main>
+  <article class="card" id="defs">
+    <div class="card-head"><span class="card-num n3">7</span><span class="card-title">Definitions</span><span class="card-sub">the entry point</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">defs = dg.Definitions(
+    assets=[raw_users, clean_users],
+    asset_checks=[no_nulls],
+    resources={<span class="str">"api"</span>: Api(...)},
+    schedules=[daily], sensors=[on_file])</code><span class="star">&#9733;</span><div class="desc"><code>Definitions</code> ties assets, checks, resources, schedules, sensors &amp; jobs together &mdash; it's what Dagster loads. Merge modules with <code>dg.Definitions.merge(a, b)</code>.</div></li>
+      <li class="c3"><code class="cmd"><span class="cm"># dg projects auto-load everything under defs/ — no import lists</span>
+[tool.dagster]
+module_name = <span class="str">"my_proj.definitions"</span></code><span class="star">&#9733;</span><div class="desc">In a <code>dg</code> project the <code>defs/</code> folder is discovered automatically (no manual imports). Dagster still finds the top-level module via <code>pyproject.toml</code> (or <code>-m</code>/<code>-f</code>).</div></li>
+      <li class="c3"><code class="cmd">dg.materialize([raw_users, clean_users])   <span class="cm"># run in-process, e.g. in a test</span></code><div class="desc"><code>materialize()</code> executes assets directly in Python &mdash; handy for tests &amp; scripts (card 14).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="schedules">
+    <div class="card-head"><span class="card-num n3">8</span><span class="card-title">Schedules &amp; sensors</span><span class="card-sub">when to run</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">daily = dg.ScheduleDefinition(
+    target=dg.AssetSelection.assets(<span class="str">"clean_users"</span>), cron_schedule=<span class="str">"0 * * * *"</span>)</code><span class="star">&#9733;</span><div class="desc"><b>Schedules</b> run a selection of assets (or a job) on a cron cadence. <code>AssetSelection</code> picks assets by name, group, or downstream/upstream (<code>.downstream()</code>).</div></li>
+      <li class="c3"><code class="cmd"><span class="fn">@dg.sensor</span>(target=<span class="str">"clean_users"</span>)
+<span class="kw">def</span> on_file(context):
+    <span class="kw">if</span> new_file(): <span class="kw">yield</span> dg.RunRequest()</code><span class="star">&#9733;</span><div class="desc"><b>Sensors</b> poll for external events (a new S3 file, an upstream run) and fire runs &mdash; event-driven pipelines. Use a cursor to track what you've seen.</div></li>
+      <li class="c3"><code class="cmd"><span class="fn">@dg.asset_sensor</span>(target=<span class="str">"report"</span>, monitored_asset=dg.AssetKey(<span class="str">"clean_users"</span>))</code><div class="desc"><b>Asset sensors</b> trigger when a monitored asset materializes &mdash; cross-job/cross-code-location dependencies without a shared graph.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="declarative">
+    <div class="card-head"><span class="card-num n3">9</span><span class="card-title">Declarative automation</span><span class="card-sub">conditions &amp; freshness</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="fn">@dg.asset</span>(automation_condition=dg.AutomationCondition.eager())</code><span class="star">&#9733;</span><span class="badge-new">declarative</span><div class="desc"><b>Declarative Automation</b>: the asset rematerializes automatically when its condition holds &mdash; <code>eager()</code> (upstream updated), <code>on_cron("0 * * * *")</code>, <code>on_missing()</code>. Replaces most hand-written sensors; the daemon evaluates it.</div></li>
+      <li class="c3"><code class="cmd">cond = dg.AutomationCondition.eager() &amp; ~dg.AutomationCondition.in_progress()</code><div class="desc">Compose conditions with <code>&amp;</code> / <code>|</code> / <code>~</code> to express precise rules (e.g. "eager, but not while a run is in progress").</div></li>
+      <li class="c3"><code class="cmd">dg.AutomationCondition.freshness_passed()   &middot;   .freshness_warned()   &middot;   .freshness_failed()</code><span class="star">&#9733;</span><span class="badge-new">1.13</span><div class="desc">New <b>freshness</b> conditions gate automation on whether an asset meets its freshness policy &mdash; drive refreshes off staleness. Automation can now also be set at the <b>job</b> level.</div></li>
+      <li class="c3"><code class="cmd"><span class="fn">@dg.asset</span>(freshness_policy=dg.InternalFreshnessPolicy.time_window(fail_window=...))</code><div class="desc">Freshness policies define the SLA the conditions/checks measure against &mdash; flag assets that fall behind.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="partitions">
+    <div class="card-head"><span class="card-num n3">10</span><span class="card-title">Partitions &amp; backfills</span><span class="card-sub">slice by time/key</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="fn">@dg.asset</span>(partitions_def=dg.DailyPartitionsDefinition(start_date=<span class="str">"2026-01-01"</span>))
+<span class="kw">def</span> daily_metrics(context):
+    day = context.partition_key</code><span class="star">&#9733;</span><div class="desc"><b>Partitions</b> slice an asset (by day/hour/static keys). Each partition materializes independently &mdash; the basis for incremental pipelines. <code>context.partition_key</code> (or <code>partition_time_window</code>) gives the current slice.</div></li>
+      <li class="c3"><code class="cmd"><span class="cm"># UI: select an asset -> Materialize -> pick a partition range = a backfill</span></code><span class="star">&#9733;</span><div class="desc"><b>Backfills</b> materialize many partitions at once (reprocess history) &mdash; launched from the UI/CLI, tracked as one operation. <code>backfill_policy</code> (card 4) can collapse them into a single run.</div></li>
+      <li class="c3"><code class="cmd">dg.MultiPartitionsDefinition({<span class="str">"date"</span>: ..., <span class="str">"region"</span>: ...})</code><div class="desc">Combine dimensions (date &times; region) for multi-partitioned assets. <code>context.multi_partition_key</code> reads the combined key.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-dg"><h2 style="color:var(--c4)">dg CLI &amp; Components</h2><p class="sub">The GA developer workflow: scaffold, inspect, and assemble pipelines from reusable building blocks.</p></div>
+<main>
+  <article class="card" id="dg">
+    <div class="card-head"><span class="card-num n4">11</span><span class="card-title">The dg CLI</span><span class="card-sub">GA workflow</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">dg scaffold defs dagster.asset assets/customers.py</code><span class="star">&#9733;</span><span class="badge-new">GA</span><div class="desc"><code>dg scaffold</code> generates assets, schedules, sensors, resources &amp; components with zero boilerplate into the <code>defs/</code> tree &mdash; which loads automatically, no import statements.</div></li>
+      <li class="c4"><code class="cmd">dg dev   &middot;   dg list defs   &middot;   dg list components</code><span class="star">&#9733;</span><div class="desc"><code>dg dev</code> runs the full instance + UI; <code>dg list</code> enumerates your definitions/components without launching the UI.</div></li>
+      <li class="c4"><code class="cmd">dg check defs   &middot;   dg check yaml</code><span class="star">&#9733;</span><div class="desc"><b>Validate before you run</b>: <code>dg check</code> verifies all definitions (and <code>defs.yaml</code> schemas) and reports clean errors without framework stack traces &mdash; fast feedback in CI.</div></li>
+      <li class="c4"><code class="cmd">dg launch <span class="flag">--assets</span> clean_users   &middot;   dg api asset list</code><div class="desc"><code>dg launch</code> kicks off assets/jobs ad-hoc from the terminal. <code>dg api</code> (assets, asset-checks, jobs, runs, schedules — <code>list</code>/<code>get</code>) gives scriptable JSON for programmatic inspection.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="components">
+    <div class="card-head"><span class="card-num n4">12</span><span class="card-title">Components</span><span class="card-sub">reusable building blocks</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="cm"># defs/my_dbt/defs.yaml — declare definitions from a component, no Python</span>
+type: dagster_dbt.DbtProjectComponent
+attributes:
+  project: <span class="str">"{{ project_root }}/dbt"</span></code><span class="star">&#9733;</span><span class="badge-new">GA</span><div class="desc"><b>Components</b> turn a whole integration into a few lines of <b>YAML</b> (<code>defs.yaml</code>): pick a component <code>type</code>, set <code>attributes</code>, and it emits the assets/checks/schedules for you.</div></li>
+      <li class="c4"><code class="cmd">dg scaffold defs dagster_sling.SlingReplicationCollectionComponent ingest/</code><div class="desc">Scaffold a component instance with <code>dg scaffold</code>. Integration components exist for dbt, Sling, dlt, Fivetran, Airbyte, Tableau, Looker &amp; more (state-backed ones default to local-filesystem state).</div></li>
+      <li class="c4"><code class="cmd">attributes:
+  key: <span class="str">"{{ dg.env('TABLE') }}"</span>   <span class="cm"># template vars: {{ dg.* }}, {{ project_root }}</span></code><div class="desc">YAML supports Jinja-style template variables (<code>{{ dg.env(...) }}</code>, run-context values) so one component is reusable across environments.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">class</span> MyComponent(dg.Component, dg.Model, dg.Resolvable): ...</code><div class="desc">Author your <b>own</b> component type in Python (subclass <code>Component</code>) to package a team pattern &mdash; then everyone consumes it via a small <code>defs.yaml</code>.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-eco"><h2 style="color:var(--c5)">Ops, Dev &amp; Ecosystem</h2><p class="sub">The lower-level layer, testing, integrations, and where Dagster sits.</p></div>
+<main>
+  <article class="card" id="ops">
+    <div class="card-head"><span class="card-num n5">13</span><span class="card-title">Ops &amp; jobs</span><span class="card-sub">the lower level</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="fn">@dg.op</span>
+<span class="kw">def</span> step(context, x): <span class="kw">return</span> x + 1
+
+<span class="fn">@dg.job</span>
+<span class="kw">def</span> pipe(): step(step(start()))</code><div class="desc"><b>Ops</b> are computation units and <b>jobs</b> are graphs of ops &mdash; the imperative, non-asset layer. Use them for task-style work that doesn't produce a persistent asset.</div></li>
+      <li class="c5"><code class="cmd">job = dg.define_asset_job(<span class="str">"nightly"</span>, selection=<span class="str">"clean_users*"</span>)</code><span class="star">&#9733;</span><div class="desc">Most teams use <b>asset jobs</b> (a named selection of assets) rather than op jobs &mdash; schedule these.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># prefer assets; reach for ops only for pure task orchestration</span></code><div class="desc">Assets are the recommended default; ops/jobs remain for the minority of pure-task cases.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="test">
+    <div class="card-head"><span class="card-num n5">14</span><span class="card-title">Test &amp; materialize</span><span class="card-sub">local runs</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="kw">def</span> test_clean():
+    result = clean_users(raw_users=[{<span class="str">"id"</span>:1}])
+    assert result[0][<span class="str">"id"</span>] == 1</code><span class="star">&#9733;</span><div class="desc">Assets are just functions &mdash; unit-test them by calling directly. <code>dg.build_asset_context()</code> when a <code>context</code>/resources are needed.</div></li>
+      <li class="c5"><code class="cmd">result = dg.materialize([raw_users, clean_users], resources={...})
+assert result.success</code><div class="desc"><code>materialize()</code> runs a set of assets in-process end-to-end &mdash; integration-test a slice of the graph, resources and all.</div></li>
+      <li class="c5"><code class="cmd">dagster asset materialize <span class="flag">--select</span> clean_users <span class="flag">-m</span> my_proj.definitions
+dg launch <span class="flag">--assets</span> clean_users</code><div class="desc">Materialize from the CLI without the UI &mdash; the classic <code>dagster</code> command, or the newer <code>dg launch</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="ecosystem">
+    <div class="card-head"><span class="card-num n5">15</span><span class="card-title">Integrations</span><span class="card-sub">the toolbox</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd">pip install dagster-dbt dagster-duckdb dagster-aws dagster-k8s dagster-dlt</code><span class="star">&#9733;</span><div class="desc">Integration packages add resources/IO managers/asset factories (and now <b>Components</b>) for dbt, warehouses, clouds, Kubernetes, Spark, dlt, and more.</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">from</span> dagster_dbt <span class="kw">import</span> dbt_assets, DbtCliResource</code><div class="desc"><b>dbt integration</b> turns every dbt model into a Dagster asset with lineage &mdash; a very common pairing (or use the <code>DbtProjectComponent</code>, card 12).</div></li>
+      <li class="c5"><code class="cmd"><span class="kw">from</span> dagster_pipes <span class="kw">import</span> ...   <span class="cm"># run external code (Spark/k8s) as assets</span></code><div class="desc"><b>Dagster Pipes</b> runs code in external environments (PySpark, Kubernetes, Databricks) while streaming logs/metadata back. <code>dagster-io/skills</code> ships AI-agent skills for Claude Code/Codex.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># Dagster+ (cloud) adds hosting, branch deployments, insights, alerts</span></code><div class="desc">Self-host the open-source Dagster, or use <b>Dagster+</b> for managed hosting, CI branch deployments &amp; observability.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="compare">
+    <div class="card-head"><span class="card-num n5">16</span><span class="card-title">vs Airflow / Prefect</span><span class="card-sub">choosing</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="cm"># Dagster: asset/data-centric, strong lineage, typed IO, testability</span></code><span class="star">&#9733;</span><div class="desc">Best when you think in <b>data assets</b> and want lineage, data-quality checks, and local testability first-class.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># Airflow: task/DAG-centric, huge operator ecosystem, the incumbent</span></code><div class="desc"><b>Airflow 3</b> orchestrates tasks/DAGs &mdash; ubiquitous, operator-rich, ops-heavy. <b>Prefect</b> is imperative Python-first with minimal ceremony (and now has assets too).</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># all three schedule pipelines; the difference is the mental model</span></code><div class="desc">Pick by how you model work: assets (Dagster), plain-Python flows (Prefect), or DAGs of tasks (Airflow).</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">import dagster as dg</span><span class="v">assets are the primary abstraction</span></div>
+    <div><span class="k">@dg.asset</span><span class="v">function = a produced table/file/model</span></div>
+    <div><span class="k">deps via arg name</span><span class="v">graph inferred; deps= for order-only</span></div>
+    <div><span class="k">@dg.asset_check (partitions_def=)</span><span class="v">quality tests, now per-partition</span></div>
+    <div><span class="k">owners / code_version / is_virtual</span><span class="v">catalog, staleness, views (preview)</span></div>
+    <div><span class="k">ConfigurableResource + EnvVar</span><span class="v">injected, testable, secret-safe</span></div>
+    <div><span class="k">dg.Definitions(...)</span><span class="v">entry point; defs/ auto-loads</span></div>
+    <div><span class="k">AutomationCondition.eager()/on_cron()/freshness_*</span><span class="v">declarative</span></div>
+    <div><span class="k">partitions_def + backfill_policy</span><span class="v">incremental; single-run backfills</span></div>
+    <div><span class="k">create-dagster · dg scaffold/dev/check/launch/api</span><span class="v">GA CLI</span></div>
+    <div><span class="k">defs.yaml + component type</span><span class="v">Components: integrations in YAML</span></div>
+    <div><span class="k">dagster-dbt</span><span class="v">dbt models become assets</span></div>
+  </div>
+</section>
+
+<footer>
+  <b>Dagster cheat sheet</b> &middot; v1 &middot; content verified 2026-09-08 against docs.dagster.io (Dagster 1.13.21 / libraries 0.29.21, Python 3.9+).<br>
+  Asset-centric orchestration: <code>@dg.asset</code> functions declare what you produce and dependencies are inferred from arguments, giving lineage, materialization history &amp; data-quality <code>@asset_check</code>s (now partitionable). Inject systems with <code>ConfigurableResource</code>, let <b>IO managers</b> handle storage, wire everything into <code>Definitions</code>, and automate with schedules, sensors, or <b>declarative automation</b> (incl. freshness) + partitions/backfills. Build with the now-GA <code>dg</code> CLI &amp; reusable <b>Components</b> (<code>create-dagster</code>, <code>dg scaffold/dev/check/launch/api</code>, <code>defs.yaml</code>); integrate dbt/warehouses/clouds. Choose Dagster when you model work as data assets.<br>
+  Star (&#9733;) marks the most common operations. <code>is_virtual</code> is a preview API. Confirm APIs against the current docs before shipping.
+</footer>
+</body>
+</html>

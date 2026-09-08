@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude API Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Anthropic API &amp; Python SDK &middot; Messages · tools · files · streaming · thinking &middot; verified against the Anthropic API (2026)</div>
+  <h1><span class="mono">Claude</span> API cheat sheet</h1>
+  <p class="lede">Build with <b>Claude</b> through the Anthropic <b>Messages API</b> and the official <code>anthropic</code> SDK. One endpoint (<code>client.messages.create</code>) does chat, vision, tool use, structured output, and extended thinking. This edition adds the <b>Files API</b> (PDFs/images + <b>citations</b>), <b>Anthropic-schema client tools</b> (bash, text-editor, computer use, <b>memory</b>), <b>server tools</b> (web search/fetch, code execution), the <b>MCP connector</b> &amp; <b>Skills</b>, and <b>context management</b> for long agent runs. Python-first (the SDK is nearly identical in TS/Go/Java/Ruby/C#/PHP). Defaults target <b>Claude Opus 5</b>. Model IDs, prices &amp; API shapes verified 2026.</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>setup &amp; models</span>
+    <span><i class="dot c2"></i>core requests</span>
+    <span><i class="dot c3"></i>cost &amp; context</span>
+    <span><i class="dot c4"></i>tools</span>
+    <span><i class="dot c5"></i>files, output &amp; ecosystem</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-09-08 against the Anthropic API docs (platform.claude.com) &amp; the <code>anthropic</code> Python SDK (1.x). Everything goes through <code>POST /v1/messages</code>; tools, files &amp; output constraints are features of that one endpoint. <b>Model strings are complete as-is</b> &mdash; never append a date suffix. <b>Tool <code>type</code> strings DO carry dated suffixes</b> (e.g. <code>web_search_20260209</code>) &mdash; use the exact string. Prices are first-party API rates per 1M tokens.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub">Create a client, call <code>messages.create</code>, read content blocks. Then stream, think, cache, manage context, call tools (yours, Anthropic's, MCP), attach files, and constrain output &mdash; all on the one Messages endpoint.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Setup &amp; core</h3>
+      <ol class="toc-list">
+        <li><span class="rk">1</span><a href="#install">Install, client &amp; auth</a></li>
+        <li><span class="rk">2</span><a href="#first">First message &amp; blocks</a></li>
+        <li><span class="rk">3</span><a href="#models">Models &amp; pricing</a></li>
+        <li><span class="rk">4</span><a href="#params">System, turns &amp; params</a></li>
+        <li><span class="rk">5</span><a href="#stream">Streaming</a></li>
+        <li><span class="rk">6</span><a href="#thinking">Thinking &amp; effort</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Cost, context &amp; tools</h3>
+      <ol class="toc-list">
+        <li><span class="rk">7</span><a href="#caching">Prompt caching</a></li>
+        <li><span class="rk">8</span><a href="#batch">Batches &amp; token counting</a></li>
+        <li><span class="rk">9</span><a href="#context">Context management</a></li>
+        <li><span class="rk">10</span><a href="#tools">Tool use &amp; Tool Runner</a></li>
+        <li><span class="rk">11</span><a href="#clienttools">Anthropic client tools</a></li>
+        <li><span class="rk">12</span><a href="#server">Server tools</a></li>
+        <li><span class="rk">13</span><a href="#mcp">MCP connector &amp; Skills</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Files, output &amp; ecosystem</h3>
+      <ol class="toc-list">
+        <li><span class="rk">14</span><a href="#files">Files, documents &amp; citations</a></li>
+        <li><span class="rk">15</span><a href="#structured">Structured output &amp; vision</a></li>
+        <li><span class="rk">16</span><a href="#errors">Errors &amp; robustness</a></li>
+        <li><span class="rk">17</span><a href="#ecosystem">The Claude ecosystem</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-setup"><h2 style="color:var(--c1)">Setup &amp; Core Requests</h2><p class="sub">Install the SDK, call the endpoint, pick a model, then stream &amp; think.</p></div>
+<main>
+  <article class="card" id="install">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Install, client &amp; auth</span><span class="card-sub">anthropic SDK</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">pip install <span class="arg">anthropic</span></code><span class="star">&#9733;</span><div class="desc">Official Python SDK. Also <code>@anthropic-ai/sdk</code> (TS), plus Go/Java/Ruby/C#/PHP.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">import</span> anthropic
+client = anthropic.Anthropic()   <span class="cm"># reads ANTHROPIC_API_KEY</span></code><span class="star">&#9733;</span><div class="desc">The zero-arg client resolves credentials from the environment &mdash; don't hardcode keys. <code>anthropic.AsyncAnthropic()</code> for asyncio. Auto-retries 429/5xx (<code>max_retries=2</code>).</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">export</span> ANTHROPIC_API_KEY=<span class="str">"sk-ant-..."</span></code><div class="desc">Get a key from console.anthropic.com. Same <code>messages.create</code> surface on <code>AnthropicBedrock</code>, <code>AnthropicVertex</code> &amp; Foundry client classes (partner pricing).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="first">
+    <div class="card-head"><span class="card-num n1">2</span><span class="card-title">First message &amp; blocks</span><span class="card-sub">messages.create</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">resp = client.messages.create(
+    model=<span class="str">"claude-opus-5"</span>, max_tokens=16000,
+    messages=[{<span class="str">"role"</span>:<span class="str">"user"</span>, <span class="str">"content"</span>:<span class="str">"Capital of France?"</span>}])</code><span class="star">&#9733;</span><div class="desc">The one call you use everywhere. <code>messages</code> is a list of <code>{"role","content"}</code>; <code>max_tokens</code> is required.</div></li>
+      <li class="c1"><code class="cmd"><span class="kw">for</span> block <span class="kw">in</span> resp.content:
+    <span class="kw">if</span> block.type == <span class="str">"text"</span>: print(block.text)</code><span class="star">&#9733;</span><div class="desc"><code>resp.content</code> is a <b>list of content blocks</b> (<code>text</code>, <code>thinking</code>, <code>tool_use</code>, ...). Check <code>.type</code> &mdash; don't assume <code>content[0].text</code>.</div></li>
+      <li class="c1"><code class="cmd">resp.stop_reason   &middot;   resp.usage.input_tokens / .output_tokens</code><span class="star">&#9733;</span><div class="desc"><code>stop_reason</code>: <code>end_turn</code>, <code>max_tokens</code>, <code>tool_use</code>, <code>pause_turn</code>, <code>refusal</code>. <code>usage</code> reports billed tokens.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># don't lowball max_tokens — hitting the cap truncates mid-thought</span></code><span class="badge-warn">tip</span><div class="desc">Model max output is 128K (Opus/Sonnet 5) / 64K (Haiku 4.5). Hitting the cap gives <code>stop_reason: "max_tokens"</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="models">
+    <div class="card-head"><span class="card-num n1">3</span><span class="card-title">Models &amp; pricing</span><span class="card-sub">pick a string</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd"><span class="str">"claude-opus-5"</span>        <span class="cm"># 1M ctx · $5 / $25 per 1M · the default</span></code><span class="star">&#9733;</span><div class="desc">Anthropic's flagship general model &mdash; use it unless you have a reason not to. Adaptive thinking on by default. 128K max output.</div></li>
+      <li class="c1"><code class="cmd"><span class="str">"claude-sonnet-5"</span>      <span class="cm"># 1M ctx · $2 / $10 · high-volume workhorse</span></code><span class="star">&#9733;</span><div class="desc">Cheaper, still very capable &mdash; good for production volume. <code>"claude-haiku-4-5"</code> (200K, $1/$5) for simple, speed-critical tasks.</div></li>
+      <li class="c1"><code class="cmd"><span class="str">"claude-fable-5-1"</span>     <span class="cm"># 1M ctx · $10 / $50 · most capable</span></code><div class="desc">The most capable widely-released model for the hardest reasoning/agentic work. <code>"claude-opus-4-8"</code> is the prior Opus ($5/$25).</div></li>
+      <li class="c1"><code class="cmd">m = client.models.retrieve(<span class="str">"claude-opus-5"</span>); m.max_input_tokens
+[x <span class="kw">for</span> x <span class="kw">in</span> client.models.list() <span class="kw">if</span> x.capabilities[<span class="str">"thinking"</span>]...]</code><div class="desc">Query live capabilities (context window, vision, thinking, effort, structured outputs) instead of hardcoding. ⚠️ Model IDs are complete &mdash; never append a date suffix.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="params">
+    <div class="card-head"><span class="card-num n2">4</span><span class="card-title">System, turns &amp; params</span><span class="card-sub">shape the request</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">client.messages.create(..., max_tokens=16000,
+    system=<span class="str">"You are a terse Python expert."</span>, messages=[...])</code><span class="star">&#9733;</span><div class="desc">The <code>system</code> prompt is a <b>top-level</b> parameter (not a message). Set behavior/persona/format there.</div></li>
+      <li class="c2"><code class="cmd">messages = [
+    {<span class="str">"role"</span>:<span class="str">"user"</span>, <span class="str">"content"</span>:<span class="str">"My name is Alice."</span>},
+    {<span class="str">"role"</span>:<span class="str">"assistant"</span>, <span class="str">"content"</span>:<span class="str">"Hi Alice!"</span>},
+    {<span class="str">"role"</span>:<span class="str">"user"</span>, <span class="str">"content"</span>:<span class="str">"What's my name?"</span>}]</code><span class="star">&#9733;</span><div class="desc">The API is <b>stateless</b> &mdash; send the full history each turn. First message must be <code>user</code>; append the model's replies as <code>assistant</code>.</div></li>
+      <li class="c2"><code class="cmd">..., temperature=1.0, stop_sequences=[<span class="str">"\n\n"</span>]</code><div class="desc">Standard sampling &amp; stop controls. (Thinking models restrict <code>temperature</code>/<code>top_p</code> &mdash; leave them default there.)</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># assistant prefill returns 400 on current models</span></code><span class="badge-warn">changed</span><div class="desc">Prefilling the last assistant turn is rejected on Opus 5 / Sonnet 5 / Fable / the 4.6+ family. Use structured outputs or a system instruction to control format instead.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="stream">
+    <div class="card-head"><span class="card-num n2">5</span><span class="card-title">Streaming</span><span class="card-sub">for long output</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd"><span class="kw">with</span> client.messages.stream(model=<span class="str">"claude-opus-5"</span>,
+        max_tokens=64000, messages=[...]) <span class="kw">as</span> stream:
+    <span class="kw">for</span> text <span class="kw">in</span> stream.text_stream: print(text, end=<span class="str">""</span>)</code><span class="star">&#9733;</span><div class="desc"><code>text_stream</code> yields text deltas &mdash; the chat-UI pattern. <b>Stream anything with long input/output or high <code>max_tokens</code></b> to avoid HTTP timeouts.</div></li>
+      <li class="c2"><code class="cmd">final = stream.get_final_message()   <span class="cm"># complete Message when done</span></code><span class="star">&#9733;</span><div class="desc">Use the helper to get the full assembled response instead of hand-collecting events. (Async: <code>async with</code>.)</div></li>
+      <li class="c2"><code class="cmd"><span class="kw">for</span> event <span class="kw">in</span> stream:
+    <span class="kw">if</span> event.type == <span class="str">"content_block_delta"</span>: ...</code><div class="desc">Iterate raw events (<code>message_start</code>, <code>content_block_delta</code> incl. <code>input_json_delta</code> for streaming tool args) for fine-grained handling.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="thinking">
+    <div class="card-head"><span class="card-num n2">6</span><span class="card-title">Thinking &amp; effort</span><span class="card-sub">reasoning depth</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">client.messages.create(...,
+    thinking={<span class="str">"type"</span>:<span class="str">"adaptive"</span>, <span class="str">"display"</span>:<span class="str">"summarized"</span>},
+    output_config={<span class="str">"effort"</span>:<span class="str">"high"</span>}, messages=[...])</code><span class="star">&#9733;</span><div class="desc"><b>Adaptive thinking</b> lets Claude decide when/how much to reason (on by default on Opus 5). <code>display:"summarized"</code> streams a readable summary.</div></li>
+      <li class="c2"><code class="cmd">output_config={<span class="str">"effort"</span>: <span class="str">"low"</span>|<span class="str">"medium"</span>|<span class="str">"high"</span>|<span class="str">"xhigh"</span>|<span class="str">"max"</span>}</code><span class="star">&#9733;</span><div class="desc"><b>Effort</b> (default <code>high</code>) trades thoroughness for token spend. <code>xhigh</code> for coding/agentic; <code>low</code> for simple/high-volume routes.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># budget_tokens is removed on current models (400 if sent)</span></code><span class="badge-warn">changed</span><div class="desc">The old fixed thinking-budget is gone on Opus 5 / Sonnet 5 / Fable / 4.7-4.8 &mdash; use adaptive thinking + <code>effort</code>. Echo <code>thinking</code> blocks back unchanged when continuing on the same model.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-cost"><h2 style="color:var(--c3)">Cost &amp; Context</h2><p class="sub">Cache prefixes, batch offline work, and keep long agent runs under the window.</p></div>
+<main>
+  <article class="card" id="caching">
+    <div class="card-head"><span class="card-num n3">7</span><span class="card-title">Prompt caching</span><span class="card-sub">up to ~90% off</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">client.messages.create(..., cache_control={<span class="str">"type"</span>:<span class="str">"ephemeral"</span>},
+    system=large_document, messages=[...])</code><span class="star">&#9733;</span><div class="desc">Auto-caches the last cacheable block. Reuse a big system prompt/context: first call full price, later calls ~90% cheaper for the cached prefix.</div></li>
+      <li class="c3"><code class="cmd">system=[{<span class="str">"type"</span>:<span class="str">"text"</span>, <span class="str">"text"</span>: doc,
+    <span class="str">"cache_control"</span>:{<span class="str">"type"</span>:<span class="str">"ephemeral"</span>, <span class="str">"ttl"</span>:<span class="str">"1h"</span>}}]</code><div class="desc">Fine-grained: mark specific blocks (default TTL 5 min, or <code>"1h"</code>). Order is <code>tools</code> &rarr; <code>system</code> &rarr; <code>messages</code>; keep stable content first.</div></li>
+      <li class="c3"><code class="cmd">resp.usage.cache_read_input_tokens   <span class="cm"># &gt;0 means a cache hit</span></code><span class="star">&#9733;</span><div class="desc">Verify hits. Zero across identical-prefix requests means a silent invalidator: <code>datetime.now()</code> in the prompt, unsorted <code>json.dumps</code>, or a varying tool set.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># caching is a PREFIX match — put volatile content last</span></code><span class="badge-warn">gotcha</span><div class="desc">Any byte change in the prefix invalidates everything after it. Put timestamps/IDs/the question <b>after</b> the cached prefix.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="batch">
+    <div class="card-head"><span class="card-num n3">8</span><span class="card-title">Batches &amp; token counting</span><span class="card-sub">offline &amp; estimates</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">batch = client.messages.batches.create(requests=[
+    {<span class="str">"custom_id"</span>:<span class="str">"a"</span>, <span class="str">"params"</span>:{...}}, ...])</code><span class="star">&#9733;</span><div class="desc"><b>Message Batches</b> run asynchronously at <b>50% cost</b> &mdash; ideal for bulk, non-latency-sensitive jobs.</div></li>
+      <li class="c3"><code class="cmd"><span class="kw">for</span> r <span class="kw">in</span> client.messages.batches.results(batch.id): ...   <span class="cm"># when ended</span></code><div class="desc">Poll <code>batches.retrieve(id).processing_status</code> to <code>ended</code>, then stream results. ⚠️ Results arrive in <b>any order</b> &mdash; key by <code>custom_id</code>, not position.</div></li>
+      <li class="c3"><code class="cmd">n = client.messages.count_tokens(model=<span class="str">"claude-opus-5"</span>,
+    system=system, messages=messages).input_tokens</code><span class="star">&#9733;</span><div class="desc">Count tokens before sending (don't use <code>tiktoken</code> &mdash; wrong tokenizer). Multiply by the input rate to estimate cost.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="context">
+    <div class="card-head"><span class="card-num n3">9</span><span class="card-title">Context management</span><span class="card-sub">long agent runs</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="cm"># 1M-token window on Opus/Sonnet 5; 200K on Haiku 4.5</span></code><span class="star">&#9733;</span><div class="desc">Long context lets you inline whole codebases/docs. Watch cost: every token in the window is billed each turn &mdash; pair with prompt caching.</div></li>
+      <li class="c3"><code class="cmd">m.capabilities[<span class="str">"context_management"</span>][<span class="str">"compact_20260112"</span>][<span class="str">"supported"</span>]</code><span class="badge-new">2026</span><div class="desc"><b>Context compaction</b> summarizes earlier turns automatically so a long agent loop stays under the window &mdash; a model capability you can check via the Models API and enable per the docs.</div></li>
+      <li class="c3"><code class="cmd"><span class="cm"># context editing: auto-clear stale tool_results to reclaim tokens</span></code><div class="desc"><b>Context editing</b> drops old tool results/turns mid-run so a tool-heavy agent doesn't blow the budget. Pairs with the <b>memory tool</b> (card 11) to persist what matters. Confirm the current beta header in the docs.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-tools"><h2 style="color:var(--c4)">Tools</h2><p class="sub">Your functions, Anthropic-schema client tools, server tools, and MCP.</p></div>
+<main>
+  <article class="card" id="tools">
+    <div class="card-head"><span class="card-num n4">10</span><span class="card-title">Tool use &amp; Tool Runner</span><span class="card-sub">function calling</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">tools = [{<span class="str">"name"</span>:<span class="str">"get_weather"</span>, <span class="str">"description"</span>:<span class="str">"..."</span>,
+    <span class="str">"input_schema"</span>:{<span class="str">"type"</span>:<span class="str">"object"</span>, <span class="str">"properties"</span>:{...}, <span class="str">"required"</span>:[...]}}]
+resp = client.messages.create(..., tools=tools)</code><span class="star">&#9733;</span><div class="desc">Define tools with JSON Schema. When <code>stop_reason == "tool_use"</code>, run your function and send a <code>tool_result</code> back in a new <code>user</code> message &mdash; loop until <code>end_turn</code>.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">from</span> anthropic <span class="kw">import</span> beta_tool
+<span class="fn">@beta_tool</span>
+<span class="kw">def</span> get_weather(city: str) -> str: <span class="kw">return</span> f<span class="str">"sunny in {city}"</span>
+runner = client.beta.messages.tool_runner(model=<span class="str">"claude-opus-5"</span>,
+    max_tokens=16000, tools=[get_weather], messages=[...])</code><span class="star">&#9733;</span><div class="desc">The <b>Tool Runner</b> (beta) drives the whole call&rarr;execute&rarr;loop cycle &mdash; you just write the tool functions. <code>for message in runner:</code> to iterate.</div></li>
+      <li class="c4"><code class="cmd">{<span class="str">"name"</span>:<span class="str">"..."</span>, ..., <span class="str">"strict"</span>: <span class="kw">True</span>}   <span class="cm"># schema-valid arguments</span></code><div class="desc"><code>strict: true</code> (needs <code>additionalProperties: false</code> + <code>required</code>) guarantees tool inputs validate. Always <code>json.loads</code> tool inputs.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># parallel tool_use blocks -> return ALL tool_results in ONE user msg</span></code><span class="badge-warn">gotcha</span><div class="desc">Splitting parallel results trains Claude to stop making parallel calls. Return a failed tool as <code>tool_result</code> with <code>is_error: true</code>. The Python runner won't auto-resume <code>pause_turn</code> &mdash; handle it.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="clienttools">
+    <div class="card-head"><span class="card-num n4">11</span><span class="card-title">Anthropic client tools</span><span class="card-sub">memory · bash · editor</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">tools=[{<span class="str">"type"</span>:<span class="str">"memory_20250818"</span>, <span class="str">"name"</span>:<span class="str">"memory"</span>}]</code><span class="star">&#9733;</span><span class="badge-new">memory</span><div class="desc">The <b>memory tool</b> lets Claude store/recall info across turns in files <b>you</b> control. Anthropic defines the schema; <b>your app executes the ops</b> (return a <code>tool_result</code>). Subclass <code>BetaAbstractMemoryTool</code> to plug it into the Tool Runner.</div></li>
+      <li class="c4"><code class="cmd"><span class="cm"># Anthropic-schema client tools (you run them, Claude is trained on them):</span>
+<span class="cm"># bash · text_editor · computer use · browser use</span></code><span class="star">&#9733;</span><div class="desc"><b>bash</b> (persistent shell), <b>text editor</b> (view/edit files), <b>computer use</b> (screenshot + mouse/keyboard), <b>browser use</b>. Add the tool by its dated <code>type</code> &mdash; the string is model-specific, so copy it from the <b>Tool reference</b>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># these are CLIENT tools — your code executes them, in YOUR sandbox</span></code><span class="badge-warn">note</span><div class="desc">Unlike server tools (card 12), Anthropic only supplies the schema &mdash; you implement the shell/editor/desktop and return results. Sandbox computer/bash use carefully.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="server">
+    <div class="card-head"><span class="card-num n4">12</span><span class="card-title">Server tools</span><span class="card-sub">Anthropic-hosted</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">tools=[{<span class="str">"type"</span>:<span class="str">"web_search_20260209"</span>, <span class="str">"name"</span>:<span class="str">"web_search"</span>, <span class="str">"max_uses"</span>:5}]</code><span class="star">&#9733;</span><div class="desc"><b>Web search</b> runs on Anthropic's side &mdash; results (with citations) come back as content blocks in the same response, no client loop. <code>allowed_domains</code>/<code>blocked_domains</code> to scope. <code>web_fetch_20260209</code> retrieves a page/PDF.</div></li>
+      <li class="c4"><code class="cmd">tools=[{<span class="str">"type"</span>:<span class="str">"code_execution_20260120"</span>, <span class="str">"name"</span>:<span class="str">"code_execution"</span>}]</code><span class="star">&#9733;</span><div class="desc"><b>Code execution</b>: Claude writes &amp; runs Python/bash in a sandbox (data analysis, generating <code>.xlsx</code>/charts). Feed inputs via <code>container_upload</code> (file_id); reuse the sandbox with <code>container=&lt;id&gt;</code>. Also <b>advisor</b> &amp; <b>tool search</b> tools.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># server-tool errors return HTTP 200, not an exception</span></code><span class="badge-warn">gotcha</span><div class="desc">A failed server tool returns a result block whose content is an error object &mdash; branch on it. A long server-tool turn can end with <code>stop_reason: "pause_turn"</code>; re-send to continue.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="mcp">
+    <div class="card-head"><span class="card-num n4">13</span><span class="card-title">MCP connector &amp; Skills</span><span class="card-sub">connect &amp; extend</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">client.messages.create(..., mcp_servers=[
+    {<span class="str">"type"</span>:<span class="str">"url"</span>, <span class="str">"url"</span>:<span class="str">"https://mcp.example.com"</span>, <span class="str">"name"</span>:<span class="str">"docs"</span>}])</code><span class="star">&#9733;</span><span class="badge-new">MCP</span><div class="desc">The <b>MCP connector</b> lets Claude use a <b>remote MCP server</b>'s tools straight from a Messages request &mdash; no separate MCP client. (Beta &mdash; confirm the current beta header.)</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">from</span> anthropic.lib.tools.mcp <span class="kw">import</span> mcp_tool   <span class="cm"># local MCP -> Tool Runner</span></code><div class="desc">For <b>local</b> MCP servers, convert their tools/prompts/resources with the SDK helpers (<code>mcp_tool</code>/<code>async_mcp_tool</code>, <code>mcp_message</code>) and pass them to the Tool Runner. Needs <code>pip install anthropic[mcp]</code>.</div></li>
+      <li class="c4"><code class="cmd">client.skills   <span class="cm"># Agent Skills — packaged instructions + code, run via code execution</span></code><div class="desc"><b>Skills</b> (out of beta) bundle instructions/scripts Claude loads on demand &mdash; e.g. produce <code>.docx</code>/<code>.pptx</code>/<code>.xlsx</code> through the code-execution sandbox.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-eco"><h2 style="color:var(--c5)">Files, Output &amp; Ecosystem</h2><p class="sub">Attach documents, constrain output, handle errors, and see the wider platform.</p></div>
+<main>
+  <article class="card" id="files">
+    <div class="card-head"><span class="card-num n5">14</span><span class="card-title">Files, documents &amp; citations</span><span class="card-sub">Files API</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd">up = client.files.upload(file=(<span class="str">"report.pdf"</span>, open(<span class="str">"report.pdf"</span>,<span class="str">"rb"</span>), <span class="str">"application/pdf"</span>))
+up.id   <span class="cm"># reference by file_id across many requests</span></code><span class="star">&#9733;</span><span class="badge-new">files</span><div class="desc">The <b>Files API</b> (out of beta) uploads a PDF/image/data file once (up to 500 MB) and references it by <code>file_id</code> &mdash; no re-upload per call. <code>files.list/retrieve_metadata/delete/download</code>.</div></li>
+      <li class="c5"><code class="cmd">{<span class="str">"type"</span>:<span class="str">"document"</span>, <span class="str">"source"</span>:{<span class="str">"type"</span>:<span class="str">"file"</span>, <span class="str">"file_id"</span>: up.id},
+ <span class="str">"citations"</span>:{<span class="str">"enabled"</span>: <span class="kw">True</span>}}</code><span class="star">&#9733;</span><div class="desc">Put a <code>document</code> block (from a <code>file_id</code>, <code>base64</code>, or <code>url</code>) in the user content. With <code>citations.enabled</code>, replies carry <b>cited</b> spans pointing back to the source &mdash; grounded, verifiable answers.</div></li>
+      <li class="c5"><code class="cmd">{<span class="str">"type"</span>:<span class="str">"image"</span>, <span class="str">"source"</span>:{<span class="str">"type"</span>:<span class="str">"file"</span>, <span class="str">"file_id"</span>: img.id}}</code><div class="desc"><b>Vision</b> takes images the same way (or inline <code>base64</code>/<code>url</code>). ⚠️ Only files created by code execution/Skills can be <code>download</code>ed back; user uploads can't.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="structured">
+    <div class="card-head"><span class="card-num n5">15</span><span class="card-title">Structured output &amp; vision</span><span class="card-sub">typed JSON</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+<span class="kw">class</span> Person(BaseModel): name: str; age: int
+msg = client.messages.parse(model=<span class="str">"claude-opus-5"</span>, max_tokens=1024,
+    messages=[...], output_format=Person)
+msg.parsed_output   <span class="cm"># a validated Person</span></code><span class="star">&#9733;</span><div class="desc"><code>messages.parse()</code> validates the response against your schema and returns typed data via <code>parsed_output</code>. Pass a Pydantic model as <code>output_format</code>.</div></li>
+      <li class="c5"><code class="cmd">output_config={<span class="str">"format"</span>:{<span class="str">"type"</span>:<span class="str">"json_schema"</span>, <span class="str">"schema"</span>:{...}}}</code><span class="star">&#9733;</span><div class="desc">Raw form on <code>messages.create</code> &mdash; guarantees the first block is JSON matching your schema (<code>additionalProperties:false</code> + <code>required</code>). Combine with <code>strict</code> tools for validated tool args too.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># the old top-level output_format on create() is deprecated -> output_config</span></code><div class="desc">On <code>create()</code> use <code>output_config.format</code>; <code>output_format=</code> is the <code>parse()</code> convenience. Don't mix them up.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="errors">
+    <div class="card-head"><span class="card-num n5">16</span><span class="card-title">Errors &amp; robustness</span><span class="card-sub">handle failure</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="kw">try</span>: ...
+<span class="kw">except</span> anthropic.RateLimitError <span class="kw">as</span> e: e.response.headers.get(<span class="str">"retry-after"</span>)
+<span class="kw">except</span> anthropic.APIStatusError <span class="kw">as</span> e: ...</code><span class="star">&#9733;</span><div class="desc">Catch <b>typed exceptions</b> most-specific-first (<code>BadRequestError</code>, <code>AuthenticationError</code>, <code>NotFoundError</code>, <code>RateLimitError</code>, <code>APIStatusError</code>, <code>APIConnectionError</code>) &mdash; not one broad class.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># the SDK auto-retries 429/5xx/network with backoff (max_retries=2)</span></code><div class="desc">Bump <code>anthropic.Anthropic(max_retries=5)</code> or set per-request <code>timeout</code>. Honor <code>retry-after</code> on rate limits.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># stop_reason == "refusal" -> Claude declined; don't retry blindly</span></code><div class="desc">Handle <code>refusal</code> and <code>pause_turn</code> explicitly. Log <code>usage</code> for cost/observability.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="ecosystem">
+    <div class="card-head"><span class="card-num n5">17</span><span class="card-title">The Claude ecosystem</span><span class="card-sub">beyond the API</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="cm"># Claude Code — agentic coding in the terminal/IDE</span></code><span class="star">&#9733;</span><div class="desc">Anthropic's coding agent; also embeddable as the <b>Claude Agent SDK</b> (<code>claude-agent-sdk</code> / <code>@anthropic-ai/claude-agent-sdk</code>) &mdash; Claude Code as a library with built-in file/bash/search tools.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># Managed Agents — Anthropic runs the loop + hosts the tool sandbox</span></code><div class="desc">Server-hosted, stateful agents with a per-session workspace, Skills &amp; MCP &mdash; no loop code to own. Use when you want Anthropic to run and host the agent.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># prefer the official SDK over OpenAI-compat shims for Claude</span></code><div class="desc">Use the Anthropic SDK (or raw HTTP to <code>/v1/messages</code>) to get thinking, tools, caching, files &amp; structured output right. MCP connects external tools/data.</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">anthropic.Anthropic()</span><span class="v">reads ANTHROPIC_API_KEY</span></div>
+    <div><span class="k">messages.create(model, max_tokens, messages)</span><span class="v">the one endpoint</span></div>
+    <div><span class="k">resp.content = [blocks]</span><span class="v">check block.type before .text</span></div>
+    <div><span class="k">claude-opus-5 default · model IDs are complete</span><span class="v">no date suffix</span></div>
+    <div><span class="k">thinking adaptive + effort</span><span class="v">budget_tokens removed on new models</span></div>
+    <div><span class="k">cache_control ephemeral</span><span class="v">prefix match; check cache_read_input_tokens</span></div>
+    <div><span class="k">batches = 50% · count_tokens</span><span class="v">key results by custom_id</span></div>
+    <div><span class="k">tools + tool_runner (@beta_tool)</span><span class="v">strict:true; json.loads inputs</span></div>
+    <div><span class="k">memory_20250818 · bash · text_editor · computer</span><span class="v">client tools you run</span></div>
+    <div><span class="k">web_search_20260209 · code_execution_20260120</span><span class="v">server tools (dated type!)</span></div>
+    <div><span class="k">mcp_servers=[...] · client.skills</span><span class="v">connect &amp; extend</span></div>
+    <div><span class="k">files.upload -> document + citations</span><span class="v">grounded answers</span></div>
+    <div><span class="k">messages.parse(output_format=)</span><span class="v">typed structured output</span></div>
+    <div><span class="k">context compaction (compact_20260112)</span><span class="v">long agent runs</span></div>
+  </div>
+</section>
+
+<footer>
+  <b>Claude API cheat sheet</b> &middot; v1 &middot; content verified 2026-09-08 against the Anthropic API docs (platform.claude.com) &amp; the <code>anthropic</code> Python SDK (1.x). Model IDs/prices from the current line (Opus 5 $5/$25, Sonnet 5 $2/$10, Haiku 4.5 $1/$5, Fable 5.1 $10/$50, Opus 4.8 $5/$25, per 1M tokens).<br>
+  One endpoint, <code>client.messages.create</code>, does it all: chat, vision, tools, structured output, adaptive thinking. Cache big prefixes, stream long responses, batch offline at 50%, manage context for long runs. Call your own tools (Tool Runner), Anthropic client tools (memory/bash/editor/computer), server tools (web search, <code>code_execution_20260120</code>), or remote MCP servers. Attach files by <code>file_id</code> and get cited answers. Beyond the API sit Claude Code, the Claude Agent SDK, Managed Agents, and MCP.<br>
+  Star (&#9733;) marks the most common operations. <b>Tool <code>type</code> strings carry dated suffixes</b> (unlike model IDs) &mdash; copy the exact current string from the Tool reference before shipping.
+</footer>
+</body>
+</html>

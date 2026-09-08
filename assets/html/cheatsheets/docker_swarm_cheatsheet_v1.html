@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docker Swarm Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Docker's built-in orchestrator &middot; services · jobs · stacks · overlay · secrets · CSI volumes &middot; verified against Docker Engine 29 (2026)</div>
+  <h1><span class="mono">Docker Swarm</span> cheat sheet</h1>
+  <p class="lede"><b>Swarm mode</b> is built into the Docker Engine &mdash; no extra install. Turn a set of Docker hosts into one cluster with <code>docker swarm init</code>, then run <b>services</b> (replicated or global) across it, connect them over <b>overlay networks</b>, deploy multi-service apps from a Compose file as a <b>stack</b>, and ship config &amp; secrets securely. The built-in <b>routing mesh</b> load-balances a published port across every node. This edition adds <b>service jobs</b> (run-to-completion), <b>service templating</b>, cluster <b>security</b> (autolock, CA &amp; token rotation), and <b>CSI cluster volumes</b> for portable storage. It's the simplest path to multi-host orchestration when Kubernetes is more than you need.</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>cluster · nodes · security</span>
+    <span><i class="dot c2"></i>services · jobs · updates</span>
+    <span><i class="dot c3"></i>networks &amp; routing</span>
+    <span><i class="dot c4"></i>stacks · secrets · storage</span>
+    <span><i class="dot c5"></i>ops &amp; ecosystem</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-09-07 against the official docs at <b>docs.docker.com/engine/swarm</b> &amp; the <code>docker service</code>/<code>volume</code> CLI reference, on <b>Docker Engine 29.x</b>. Swarm ships inside the Docker Engine (CE) &mdash; <code>docker swarm/node/service/stack/secret/config</code> are core commands. Service <b>jobs</b> since Engine 20.10; <b>CSI cluster volumes</b> since Engine 23. See also the companion <b>Docker</b>, <b>Docker Compose</b> &amp; <b>Dockerfile</b> sheets.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub">Init a swarm, join &amp; secure nodes, then declare services or jobs (or deploy a stack). Overlay networks connect them; the routing mesh publishes ports; secrets/configs/CSI volumes supply data safely.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Cluster &amp; services</h3>
+      <ol class="toc-list">
+        <li><span class="rk">1</span><a href="#init">Init &amp; join</a></li>
+        <li><span class="rk">2</span><a href="#nodes">Managing nodes</a></li>
+        <li><span class="rk">3</span><a href="#security">Cluster security</a></li>
+        <li><span class="rk">4</span><a href="#services">Services</a></li>
+        <li><span class="rk">5</span><a href="#jobs">Service jobs</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Services &amp; networking</h3>
+      <ol class="toc-list">
+        <li><span class="rk">6</span><a href="#scale">Scale &amp; update</a></li>
+        <li><span class="rk">7</span><a href="#templating">Service templating</a></li>
+        <li><span class="rk">8</span><a href="#overlay">Overlay networks</a></li>
+        <li><span class="rk">9</span><a href="#routing">Routing mesh &amp; ports</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Storage &amp; ops</h3>
+      <ol class="toc-list">
+        <li><span class="rk">10</span><a href="#stacks">Stacks</a></li>
+        <li><span class="rk">11</span><a href="#secrets">Secrets &amp; configs</a></li>
+        <li><span class="rk">12</span><a href="#volumes">Cluster volumes (CSI)</a></li>
+        <li><span class="rk">13</span><a href="#placement">Placement &amp; resources</a></li>
+        <li><span class="rk">14</span><a href="#rollout">Rolling updates &amp; health</a></li>
+        <li><span class="rk">15</span><a href="#debug">Inspect &amp; debug</a></li>
+        <li><span class="rk">16</span><a href="#ecosystem">Swarm vs Kubernetes</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-cluster"><h2 style="color:var(--c1)">Cluster, Nodes &amp; Security</h2><p class="sub">Form the cluster, manage nodes, and lock it down.</p></div>
+<main>
+  <article class="card" id="init">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">Init &amp; join</span><span class="card-sub">form the swarm</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">docker swarm init <span class="flag">--advertise-addr</span> 10.0.0.1</code><span class="star">&#9733;</span><div class="desc">Run on the first node &mdash; it becomes a <b>manager</b>. <code>--advertise-addr</code> is the IP other nodes reach it on. Prints the worker join command.</div></li>
+      <li class="c1"><code class="cmd">docker swarm join <span class="flag">--token</span> SWMTKN-... 10.0.0.1:2377</code><span class="star">&#9733;</span><div class="desc">Run on each other host to join as a <b>worker</b>. Port 2377 = cluster management (TCP).</div></li>
+      <li class="c1"><code class="cmd">docker swarm join-token manager   &middot;   worker</code><div class="desc">Print the token to add more managers or workers. Rotate a leaked token with <code>join-token --rotate</code> (card 3).</div></li>
+      <li class="c1"><code class="cmd">docker swarm leave <span class="flag">--force</span>   <span class="cm"># --force on a manager</span></code><div class="desc">Remove a node from the swarm. <code>docker node rm &lt;id&gt;</code> from a manager to evict a downed node.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="nodes">
+    <div class="card-head"><span class="card-num n1">2</span><span class="card-title">Managing nodes</span><span class="card-sub">managers &amp; workers</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">docker node ls</code><span class="star">&#9733;</span><div class="desc">List nodes with role (manager/worker), status, and availability. Run only on a <b>manager</b>.</div></li>
+      <li class="c1"><code class="cmd">docker node promote &lt;node&gt;   &middot;   docker node demote &lt;node&gt;</code><div class="desc">Change a node between worker and manager. Keep an <b>odd</b> number of managers (3 or 5) for Raft quorum.</div></li>
+      <li class="c1"><code class="cmd">docker node update <span class="flag">--availability</span> drain &lt;node&gt;</code><span class="star">&#9733;</span><div class="desc"><b>Drain</b> moves tasks off a node (for maintenance). <code>active</code> to return it; <code>pause</code> to stop new tasks only.</div></li>
+      <li class="c1"><code class="cmd">docker node update <span class="flag">--label-add</span> zone=eu &lt;node&gt;</code><div class="desc">Add labels used later by placement constraints (card 13).</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># losing manager quorum = the cluster can't schedule</span></code><span class="badge-warn">gotcha</span><div class="desc">Managers use Raft; if more than half are down you lose quorum. Spread 3/5 managers across failure domains; keep workers plentiful. Recover from backup or <code>swarm init --force-new-cluster</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="security">
+    <div class="card-head"><span class="card-num n1">3</span><span class="card-title">Cluster security</span><span class="card-sub">autolock · CA · tokens</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">docker swarm init <span class="flag">--autolock</span>   &middot;   docker swarm update <span class="flag">--autolock</span>=true</code><span class="star">&#9733;</span><span class="badge-new">harden</span><div class="desc"><b>Autolock</b> encrypts the Raft logs (which hold secrets/configs) at rest; after a daemon restart the swarm stays locked until you supply the unlock key. Prints the key on enable.</div></li>
+      <li class="c1"><code class="cmd">docker swarm unlock                <span class="cm"># paste key after a restart</span>
+docker swarm unlock-key <span class="flag">--rotate</span>       <span class="cm"># rotate the unlock key</span></code><span class="star">&#9733;</span><div class="desc"><code>unlock</code> re-enables an autolocked manager; <code>unlock-key</code> prints (or rotates) the current key. ⚠️ Store the key in a password manager &mdash; lose it and a fully-restarted autolocked swarm can't recover.</div></li>
+      <li class="c1"><code class="cmd">docker swarm join-token <span class="flag">--rotate</span> worker</code><div class="desc">Invalidate a leaked join token and issue a new one (existing members stay joined). Do this if a token ever leaks.</div></li>
+      <li class="c1"><code class="cmd">docker swarm ca <span class="flag">--rotate</span>   &middot;   docker swarm update <span class="flag">--cert-expiry</span> 720h</code><div class="desc">Rotate the cluster <b>CA</b> and re-issue every node's TLS cert (mutual TLS is automatic). Node certs auto-renew (default 90 days); tune with <code>--cert-expiry</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="services">
+    <div class="card-head"><span class="card-num n2">4</span><span class="card-title">Services</span><span class="card-sub">the unit of work</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">docker service create <span class="flag">--name</span> web <span class="flag">--replicas</span> 3 <span class="flag">-p</span> 80:80 nginx:alpine</code><span class="star">&#9733;</span><div class="desc">A <b>service</b> = the desired state of a containerized app across the cluster. Swarm schedules <code>--replicas</code> tasks and keeps them running.</div></li>
+      <li class="c2"><code class="cmd">docker service create <span class="flag">--mode</span> global <span class="flag">--name</span> agent monitoring:latest</code><div class="desc"><b>global</b> mode runs exactly one long-running task on <b>every</b> node (log/metrics agents). Default is <code>replicated</code>.</div></li>
+      <li class="c2"><code class="cmd">docker service ls   &middot;   docker service ps web</code><span class="star">&#9733;</span><div class="desc"><code>ls</code> shows services &amp; replica counts; <code>ps &lt;svc&gt;</code> shows each task, its node, and state (running/failed/rejected).</div></li>
+      <li class="c2"><code class="cmd">docker service logs <span class="flag">-f</span> web   &middot;   docker service rm web</code><div class="desc">Aggregate logs across replicas; remove the service.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="jobs">
+    <div class="card-head"><span class="card-num n2">5</span><span class="card-title">Service jobs</span><span class="card-sub">run to completion</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">docker service create <span class="flag">--mode</span> replicated-job \
+  <span class="flag">--replicas</span> 10 <span class="flag">--max-concurrent</span> 2 <span class="flag">--name</span> migrate migrate:latest</code><span class="star">&#9733;</span><span class="badge-new">jobs</span><div class="desc">A <b>replicated job</b> runs <code>--replicas</code> tasks <b>to completion</b> (not forever), <code>--max-concurrent</code> at a time (default = replicas). For batch work: DB migrations, imports, one-off scripts.</div></li>
+      <li class="c2"><code class="cmd">docker service create <span class="flag">--mode</span> global-job <span class="flag">--name</span> cleanup cleanup:latest</code><div class="desc">A <b>global job</b> runs exactly one task on every current node, once &mdash; e.g. a node-local cleanup/backup pass. No <code>--replicas</code>.</div></li>
+      <li class="c2"><code class="cmd">docker service ps migrate   <span class="cm"># tasks show state "Complete", not "Running"</span></code><div class="desc">Jobs differ from services: a service restarts finished tasks; a job's tasks finish and stay <b>Complete</b>. Re-run by <code>service update --force</code>.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># jobs need Engine 20.10+; older engines reject the *-job modes</span></code><span class="badge-warn">version</span><div class="desc">Service jobs landed in Docker Engine 20.10. On older daemons use a one-shot <code>replicated</code> service with <code>--restart-condition none</code> instead.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-svc"><h2 style="color:var(--c2)">Services &amp; Networking</h2><p class="sub">Update &amp; template services; connect them across hosts.</p></div>
+<main>
+  <article class="card" id="scale">
+    <div class="card-head"><span class="card-num n2">6</span><span class="card-title">Scale &amp; update</span><span class="card-sub">change desired state</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">docker service scale web=5</code><span class="star">&#9733;</span><div class="desc">Change replica count (or <code>service update --replicas 5</code>). Swarm converges to the new desired state.</div></li>
+      <li class="c2"><code class="cmd">docker service update <span class="flag">--image</span> nginx:1.27 <span class="flag">--update-order</span> start-first web</code><span class="star">&#9733;</span><div class="desc">Roll out a new image. <code>--update-order start-first</code> starts the new task <b>before</b> stopping the old &mdash; true zero-downtime when you have spare capacity (default is <code>stop-first</code>).</div></li>
+      <li class="c2"><code class="cmd">docker service update <span class="flag">--env-add</span> KEY=val <span class="flag">--publish-add</span> 443:443 web</code><div class="desc">Add/remove env, ports, mounts, labels, limits with <code>--*-add</code>/<code>--*-rm</code> flags. <code>--force</code> redistributes tasks with no spec change.</div></li>
+      <li class="c2"><code class="cmd">docker service rollback web</code><span class="star">&#9733;</span><div class="desc">Revert to the previous spec if an update goes wrong (rollout controls in card 14).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="templating">
+    <div class="card-head"><span class="card-num n2">7</span><span class="card-title">Service templating</span><span class="card-sub">per-task values</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">docker service create <span class="flag">--hostname</span> <span class="str">"{{.Node.Hostname}}"</span> <span class="flag">--name</span> app app:latest</code><span class="star">&#9733;</span><span class="badge-new">templates</span><div class="desc">Swarm expands Go-template placeholders per task at schedule time &mdash; give each replica a hostname derived from its node. Works in <code>--hostname</code>, <code>--env</code>, and <code>--mount</code>.</div></li>
+      <li class="c2"><code class="cmd"><span class="flag">--env</span> NODE=<span class="str">"{{.Node.ID}}"</span>  <span class="flag">--mount</span> ...,target=/data/<span class="str">"{{.Task.Slot}}"</span></code><div class="desc">Give each replica a unique path/identity &mdash; useful for per-replica data dirs or node-aware config.</div></li>
+      <li class="c2"><code class="cmd"><span class="cm"># placeholders: .Service.ID/.Name/.Labels · .Node.ID/.Hostname · .Task.ID/.Name/.Slot</span></code><div class="desc">The full set of template variables. <code>.Task.Slot</code> is the stable 1..N replica index &mdash; handy for sharding.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="overlay">
+    <div class="card-head"><span class="card-num n3">8</span><span class="card-title">Overlay networks</span><span class="card-sub">multi-host</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">docker network create <span class="flag">-d</span> overlay backend</code><span class="star">&#9733;</span><div class="desc"><b>Overlay</b> is the network type for cross-node service traffic. Attach services and they resolve each other by <b>service name</b> via built-in DNS.</div></li>
+      <li class="c3"><code class="cmd">docker service create <span class="flag">--network</span> backend <span class="flag">--name</span> api api:latest</code><span class="star">&#9733;</span><div class="desc">A service on <code>backend</code> reaches <code>web</code> at <code>http://web</code> &mdash; Swarm gives each service a <b>virtual IP</b> that load-balances to its tasks.</div></li>
+      <li class="c3"><code class="cmd">docker network create <span class="flag">-d</span> overlay <span class="flag">--opt</span> encrypted secure
+docker network create <span class="flag">-d</span> overlay <span class="flag">--attachable</span> shared</code><div class="desc"><code>--opt encrypted</code> turns on IPsec encryption of the data plane between nodes; <code>--attachable</code> lets standalone containers join the overlay (handy for debugging).</div></li>
+      <li class="c3"><code class="cmd"><span class="cm"># open 7946 (tcp/udp) + 4789 (udp) between nodes; 2377 (tcp) to managers</span></code><span class="badge-warn">firewall</span><div class="desc">Overlay needs 7946 (control) and 4789 (VXLAN data) open between hosts. The built-in <code>ingress</code> overlay carries routing-mesh traffic.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="routing">
+    <div class="card-head"><span class="card-num n3">9</span><span class="card-title">Routing mesh &amp; ports</span><span class="card-sub">publish</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd">docker service create <span class="flag">-p</span> 8080:80 web</code><span class="star">&#9733;</span><div class="desc"><b>Routing mesh</b>: the published port 8080 is reachable on <b>every</b> node's IP &mdash; requests are load-balanced to the service's tasks wherever they run.</div></li>
+      <li class="c3"><code class="cmd">docker service create <span class="flag">--publish</span> mode=host,target=80,published=8080 web</code><div class="desc"><code>mode=host</code> bypasses the mesh &mdash; the port maps only on nodes running a task (for an external LB / high-perf paths).</div></li>
+      <li class="c3"><code class="cmd"><span class="cm"># front the mesh with an external LB / Traefik for TLS &amp; routing</span></code><div class="desc">Put nginx/Traefik/HAProxy in front for TLS termination, host/path routing, and sticky sessions.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-storage"><h2 style="color:var(--c4)">Stacks, Secrets &amp; Storage</h2><p class="sub">Deploy whole apps, inject data, and attach portable volumes.</p></div>
+<main>
+  <article class="card" id="stacks">
+    <div class="card-head"><span class="card-num n4">10</span><span class="card-title">Stacks</span><span class="card-sub">Compose in prod</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">docker stack deploy <span class="flag">-c</span> docker-compose.yml myapp</code><span class="star">&#9733;</span><div class="desc">Deploy a whole multi-service app from a Compose file to the swarm. A <b>stack</b> groups services, networks &amp; volumes under one name.</div></li>
+      <li class="c4"><code class="cmd"><span class="cm"># compose file uses the `deploy:` key (swarm-only)</span>
+deploy: {replicas: 3, restart_policy: {condition: on-failure},
+  update_config: {parallelism: 1, delay: 10s, order: start-first}}</code><span class="star">&#9733;</span><div class="desc">The <code>deploy:</code> block sets replicas, placement, resources, rollout &amp; restart policy &mdash; it's <b>ignored</b> by <code>docker compose up</code>, used only by <code>stack deploy</code>.</div></li>
+      <li class="c4"><code class="cmd">docker stack ls   &middot;   stack services myapp   &middot;   stack ps myapp</code><div class="desc">List stacks, their services, and tasks. <code>docker stack rm myapp</code> to tear down.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># `build:` is not supported by stack deploy — push a pre-built image</span></code><span class="badge-warn">gotcha</span><div class="desc">Stacks can't build images; build &amp; push to a registry first, reference the tag in the Compose file. Add <code>--with-registry-auth</code> to ship your registry creds to the nodes.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="secrets">
+    <div class="card-head"><span class="card-num n4">11</span><span class="card-title">Secrets &amp; configs</span><span class="card-sub">inject data safely</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">echo <span class="str">"s3cr3t"</span> | docker secret create db_pw -</code><span class="star">&#9733;</span><div class="desc"><b>Secrets</b> are encrypted at rest &amp; in transit, and mounted in-memory at <code>/run/secrets/&lt;name&gt;</code> &mdash; never in env vars or the image.</div></li>
+      <li class="c4"><code class="cmd">docker service create <span class="flag">--secret</span> db_pw <span class="flag">--name</span> api api:latest</code><span class="star">&#9733;</span><div class="desc">Grant a service access; the app reads the file at <code>/run/secrets/db_pw</code>. Target path/uid/gid/mode are tunable via the long <code>--secret source=...,target=...</code> form.</div></li>
+      <li class="c4"><code class="cmd">docker config create nginx_conf ./nginx.conf</code><div class="desc"><b>Configs</b> are the non-secret twin &mdash; ship config files to services (mounted at a path you choose) without baking them into images.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># secrets/configs are immutable — rotate by creating a new one</span></code><span class="badge-warn">gotcha</span><div class="desc">You can't edit a secret in place. Create <code>db_pw_v2</code>, then <code>service update --secret-rm db_pw --secret-add db_pw_v2</code>.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="volumes">
+    <div class="card-head"><span class="card-num n4">12</span><span class="card-title">Cluster volumes (CSI)</span><span class="card-sub">portable storage</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">docker volume create <span class="flag">--driver</span> &lt;csi-plugin&gt; <span class="flag">--type</span> mount \
+  <span class="flag">--sharing</span> all <span class="flag">--scope</span> multi <span class="flag">--required-bytes</span> 1G <span class="flag">--limit-bytes</span> 10G data</code><span class="star">&#9733;</span><span class="badge-new">CSI</span><div class="desc"><b>Cluster volumes</b> use the <b>CSI</b> standard so a service's storage follows it to whatever node it lands on (cloud disks, NFS, Ceph). <code>--scope multi</code> + <code>--sharing all</code> allow multi-node access; <code>--type mount</code> (filesystem) or <code>block</code>.</div></li>
+      <li class="c4"><code class="cmd">docker service create <span class="flag">--mount</span> type=cluster,src=data,dst=/srv/www <span class="flag">--name</span> web nginx</code><span class="star">&#9733;</span><div class="desc">Consume it with <code>type=cluster</code>. Swarm places tasks where the volume's topology allows and (re)attaches the volume on failover &mdash; unlike a per-node local volume.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># the CSI plugin must be installed on ALL manager nodes (+ workers that use it)</span></code><span class="badge-warn">gotcha</span><div class="desc">Swarm ships the CSI <b>framework</b> (since Engine 23) but <b>no built-in provider</b> &mdash; install a CSI plugin yourself. Missing it on a manager breaks the driver after a leadership change.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-ops"><h2 style="color:var(--c5)">Ops &amp; Ecosystem</h2><p class="sub">Place tasks, roll out safely, debug, and know when to reach for Kubernetes.</p></div>
+<main>
+  <article class="card" id="placement">
+    <div class="card-head"><span class="card-num n5">13</span><span class="card-title">Placement &amp; resources</span><span class="card-sub">where tasks run</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd">docker service create <span class="flag">--constraint</span> <span class="str">'node.role==worker'</span> web</code><span class="star">&#9733;</span><div class="desc">Restrict scheduling by node role, hostname, or labels (<code>node.labels.zone==eu</code>). Keep app workloads off managers.</div></li>
+      <li class="c5"><code class="cmd">docker service create <span class="flag">--placement-pref</span> <span class="str">'spread=node.labels.zone'</span> \
+  <span class="flag">--replicas-max-per-node</span> 2 web</code><div class="desc">Spread replicas evenly across a label (zones/racks); <code>--replicas-max-per-node</code> caps how many tasks land on any one node.</div></li>
+      <li class="c5"><code class="cmd">docker service create <span class="flag">--reserve-memory</span> 256M <span class="flag">--limit-cpu</span> 0.5 web</code><div class="desc"><b>Reserve</b> (for scheduling) and <b>limit</b> (hard cap) resources per task. Unschedulable reservations leave tasks <code>pending</code>.</div></li>
+      <li class="c5"><code class="cmd">docker service create <span class="flag">--mount</span> type=volume,source=data,target=/data web</code><div class="desc">Local/driver volumes are <b>per-node</b>; for storage that moves with the task use a <b>cluster volume</b> (card 12).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="rollout">
+    <div class="card-head"><span class="card-num n5">14</span><span class="card-title">Rolling updates &amp; health</span><span class="card-sub">safe deploys</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd">docker service update <span class="flag">--update-parallelism</span> 1 <span class="flag">--update-delay</span> 10s web</code><span class="star">&#9733;</span><div class="desc">Update N tasks at a time with a pause between batches &mdash; the core of zero-downtime deploys. Pair with <code>--update-order start-first</code> (card 6).</div></li>
+      <li class="c5"><code class="cmd"><span class="flag">--update-failure-action</span> rollback <span class="flag">--update-monitor</span> 30s</code><span class="star">&#9733;</span><div class="desc">Auto-rollback if updated tasks fail within the monitor window &mdash; combine with a healthcheck.</div></li>
+      <li class="c5"><code class="cmd"><span class="flag">--rollback-parallelism</span> 2 <span class="flag">--rollback-monitor</span> 20s <span class="flag">--rollback-order</span> start-first</code><div class="desc">Rollbacks have their own controls, distinct from updates: <code>--rollback-parallelism/-delay/-monitor/-failure-action/-order</code>. Tune how fast a bad deploy unwinds.</div></li>
+      <li class="c5"><code class="cmd">docker service create <span class="flag">--health-cmd</span> <span class="str">'curl -f localhost/health'</span> \
+  <span class="flag">--health-interval</span> 5s <span class="flag">--health-retries</span> 3 <span class="flag">--health-start-period</span> 20s web</code><span class="star">&#9733;</span><div class="desc">Healthchecks gate rollouts &amp; restarts &mdash; a task isn't "ready" until healthy, so bad versions don't take traffic. <code>--health-start-period</code> covers slow boots.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="debug">
+    <div class="card-head"><span class="card-num n5">15</span><span class="card-title">Inspect &amp; debug</span><span class="card-sub">what's wrong</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd">docker service ps <span class="flag">--no-trunc</span> web</code><span class="star">&#9733;</span><div class="desc">See why tasks failed &mdash; the <b>error</b> column (image pull, constraint unsatisfiable, OOM) is truncated by default.</div></li>
+      <li class="c5"><code class="cmd">docker service inspect <span class="flag">--pretty</span> web   &middot;   docker events <span class="flag">-f</span> type=service</code><div class="desc">Full resolved spec (image, networks, mounts, env, update policy); <code>docker events</code> streams cluster activity live.</div></li>
+      <li class="c5"><code class="cmd">docker node inspect <span class="flag">--pretty</span> &lt;node&gt;   &middot;   docker system df</code><div class="desc">Node capacity/labels/plugins; disk usage across the host.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># task stuck "pending"? no node satisfies constraints/resources/topology</span></code><span class="badge-warn">gotcha</span><div class="desc">A task that won't schedule usually means an unsatisfiable constraint, insufficient resources, a missing volume/secret, or (for CSI) no node in the volume's topology.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="ecosystem">
+    <div class="card-head"><span class="card-num n5">16</span><span class="card-title">Swarm vs Kubernetes</span><span class="card-sub">choosing</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="cm"># Swarm: simple, batteries-included, same Docker CLI &amp; Compose</span></code><span class="star">&#9733;</span><div class="desc">Best for small/medium clusters, homelabs, and teams that want orchestration without the Kubernetes learning curve &mdash; secrets, overlay networking, rolling updates all built in.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># Kubernetes: bigger ecosystem, autoscaling, operators, huge scale</span></code><div class="desc">Reach for K8s when you need horizontal pod autoscaling, a rich operator/Helm ecosystem, or very large multi-team clusters. Swarm has no built-in autoscaler.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># Portainer / Traefik / keel are common Swarm companions</span></code><div class="desc"><b>Portainer</b> (GUI), <b>Traefik</b> (ingress/TLS), and auto-update tools round out a Swarm stack.</div></li>
+      <li class="c5"><code class="cmd">docker compose up   <span class="cm"># single host</span>   vs   docker stack deploy   <span class="cm"># swarm</span></code><div class="desc">Same Compose file, two runtimes: Compose for one host/dev, Swarm stacks for the cluster.</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">swarm init --advertise-addr</span><span class="v">first node = manager</span></div>
+    <div><span class="k">swarm join --token ...:2377</span><span class="v">add workers</span></div>
+    <div><span class="k">3 or 5 managers</span><span class="v">odd count for Raft quorum</span></div>
+    <div><span class="k">swarm --autolock / unlock-key</span><span class="v">encrypt Raft at rest; save the key</span></div>
+    <div><span class="k">--mode replicated-job / global-job</span><span class="v">run to completion</span></div>
+    <div><span class="k">service create --replicas / --mode global</span><span class="v">the unit of work</span></div>
+    <div><span class="k">"{{.Node.Hostname}}" / .Task.Slot</span><span class="v">per-task templating</span></div>
+    <div><span class="k">--update-order start-first</span><span class="v">zero-downtime rollout</span></div>
+    <div><span class="k">network create -d overlay [--opt encrypted]</span><span class="v">cross-node; DNS by name</span></div>
+    <div><span class="k">stack deploy -c compose.yml</span><span class="v">uses deploy:; no build:</span></div>
+    <div><span class="k">secret create -> /run/secrets/</span><span class="v">encrypted, in-memory; immutable</span></div>
+    <div><span class="k">volume create --driver &lt;csi&gt; · --mount type=cluster</span><span class="v">portable storage</span></div>
+    <div><span class="k">--rollback-parallelism/-monitor/-order</span><span class="v">tune how a bad deploy unwinds</span></div>
+    <div><span class="k">service ps --no-trunc</span><span class="v">see the real failure reason</span></div>
+  </div>
+</section>
+
+<footer>
+  <b>Docker Swarm cheat sheet</b> &middot; v1 &middot; content verified 2026-09-07 against docs.docker.com/engine/swarm + the docker service/volume CLI reference, on Docker Engine 29.x. Swarm mode ships inside the Docker Engine (CE) &mdash; no separate install.<br>
+  Flow: <code>swarm init</code> &rarr; <code>swarm join</code> &rarr; secure it (<code>--autolock</code>, rotate tokens/CA) &rarr; <code>service create</code> / <code>--mode replicated-job</code> (or <code>stack deploy</code> a Compose file). Overlay networks connect services by name; the routing mesh publishes ports cluster-wide; secrets/configs/CSI cluster volumes supply data safely; rolling updates + healthchecks + rollback-config give zero-downtime deploys. Keep 3/5 managers for quorum. Choose Swarm for simplicity, Kubernetes for scale/ecosystem.<br>
+  Star (&#9733;) marks the most common operations. Service jobs need Engine 20.10+, CSI cluster volumes Engine 23+. Confirm flags against your Docker Engine version (<code>docker service create --help</code>) before shipping.
+</footer>
+</body>
+</html>

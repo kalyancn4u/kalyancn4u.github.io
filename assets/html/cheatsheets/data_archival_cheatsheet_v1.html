@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Archival &amp; Compression Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1d24; --paper:#fbfaf8; --line:#e7e3db; --muted:#6b7280;
+    --c1:#2563eb; --c1bg:#eaf0fe;
+    --c2:#059669; --c2bg:#ecf7f2;
+    --c3:#d97706; --c3bg:#fdf6ec;
+    --c4:#7c3aed; --c4bg:#f4f0fd;
+    --c5:#0d9488; --c5bg:#e6f7f5;
+    --danger:#dc2626; --danger-bg:#fdf0ef;
+    --star:#b45309;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{border-bottom:2px solid var(--ink); padding:2.2rem clamp(1rem,4vw,3rem) 1.6rem; max-width:1500px; margin:0 auto;}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;}
+  h1{font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.02em; line-height:1; margin-bottom:.7rem;}
+  h1 .mono{font-family:var(--mono); color:var(--c1)}
+  .lede{max-width:66ch; color:#3f444f; font-size:1.02rem}
+  .sources{font-family:var(--mono); font-size:.7rem; color:var(--muted); margin-top:1rem; line-height:1.7;}
+  .sources b{color:var(--ink); font-weight:500}
+  .legend{display:flex; flex-wrap:wrap; gap:.5rem .9rem; margin-top:1.2rem; font-family:var(--mono); font-size:.74rem;}
+  .legend span{display:inline-flex; align-items:center; gap:.4rem}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .dot.c1{background:var(--c1)} .dot.c2{background:var(--c2)} .dot.c3{background:var(--c3)}
+  .dot.c4{background:var(--c4)} .dot.c5{background:var(--c5)} .dot.danger{background:var(--danger)}
+  main{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) 4rem; column-gap:1.4rem;}
+  @media(min-width:760px){ main{column-count:2} }
+  @media(min-width:1200px){ main{column-count:3} }
+  .section-break{max-width:1500px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem);}
+  .section-break h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .section-break .sub{color:var(--muted); font-size:.9rem}
+  .card{break-inside:avoid; background:#fff; border:1px solid var(--line); border-radius:10px; margin-bottom:1.4rem; overflow:hidden; box-shadow:0 1px 2px rgba(20,20,30,.03);}
+  .card-head{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; padding:.85rem 1rem .7rem; border-bottom:1px solid var(--line);}
+  .card-num{font-family:var(--mono); font-size:.78rem; font-weight:700; color:#fff; background:var(--ink); border-radius:5px; padding:.12rem .42rem; letter-spacing:.02em;}
+  .card-num.n1{background:var(--c1)} .card-num.n2{background:var(--c2)} .card-num.n3{background:var(--c3)}
+  .card-num.n4{background:var(--c4)} .card-num.n5{background:var(--c5)}
+  .card-title{font-size:.95rem; font-weight:700; letter-spacing:-.01em}
+  .card-sub{font-size:.72rem; color:var(--muted); margin-left:auto; font-family:var(--mono)}
+  ul.cmds{list-style:none}
+  ul.cmds li{padding:.5rem 1rem; border-bottom:1px solid #f1eee8; border-left:3px solid transparent;}
+  ul.cmds li:last-child{border-bottom:none}
+  ul.cmds li.c1{border-left-color:var(--c1)} ul.cmds li.c2{border-left-color:var(--c2)}
+  ul.cmds li.c3{border-left-color:var(--c3)} ul.cmds li.c4{border-left-color:var(--c4)}
+  ul.cmds li.c5{border-left-color:var(--c5)}
+  ul.cmds li.danger{border-left-color:var(--danger); background:var(--danger-bg)}
+  code.cmd{font-family:var(--mono); font-size:.8rem; font-weight:500; color:var(--ink); display:block; word-break:break-word; white-space:pre-wrap;}
+  code.cmd .arg{color:var(--c1); font-weight:400}
+  code.cmd .flag{color:var(--star)}
+  code.cmd .kw{color:var(--c3); font-weight:600}
+  code.cmd .fn{color:var(--c4); font-weight:600}
+  code.cmd .str{color:var(--c2)}
+  code.cmd .cm{color:var(--muted); font-style:italic}
+  li.danger code.cmd{color:var(--danger)}
+  .desc{font-size:.78rem; color:#525761; margin-top:.18rem}
+  .desc code{font-family:var(--mono); font-size:.92em; background:#f4f2ee; padding:0 .18em; border-radius:3px}
+  .star{color:var(--star); font-size:.7rem; font-weight:700; font-family:var(--mono); margin-left:.35rem; letter-spacing:.03em;}
+  .badge-danger{color:var(--danger); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-warn{color:var(--c3); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .badge-new{color:var(--c2); font-size:.66rem; font-weight:700; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; margin-left:.35rem;}
+  .toc-wrap{max-width:1500px; margin:0 auto; padding:1.5rem clamp(1rem,4vw,3rem) .5rem}
+  .toc-wrap h2{font-size:1.4rem; font-weight:700; letter-spacing:-.01em; margin:0 0 .3rem; padding-top:1.5rem; border-top:2px solid var(--ink);}
+  .toc-wrap .sub{color:var(--muted); font-size:.9rem; margin-bottom:1rem}
+  .toc-grid{display:grid; gap:1.2rem; grid-template-columns:1fr; background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem;}
+  @media(min-width:760px){ .toc-grid{grid-template-columns:1fr 1fr} }
+  @media(min-width:1120px){ .toc-grid{grid-template-columns:1fr 1fr 1fr} }
+  .toc-grid h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.55rem;}
+  ol.toc-list{list-style:none}
+  ol.toc-list li{margin-bottom:.3rem; font-size:.82rem; line-height:1.4}
+  ol.toc-list a{color:var(--ink); text-decoration:none; border-bottom:1px solid transparent}
+  ol.toc-list a:hover{border-bottom-color:var(--c1); color:var(--c1)}
+  ol.toc-list .rk{display:inline-block; min-width:1.6em; font-family:var(--mono); font-weight:700; color:var(--c4); font-size:.76rem;}
+  ol.toc-list .cap{color:var(--muted); font-size:.74rem}
+  .refs{max-width:1500px; margin:0 auto; padding:1rem clamp(1rem,4vw,3rem) 4rem}
+  .refs h2{font-size:1.4rem; font-weight:700; margin-bottom:1rem; padding-top:1.5rem; border-top:2px solid var(--ink)}
+  .refs-inner{background:var(--ink); color:#e8e6e1; border-radius:10px; padding:1.2rem 1.4rem; font-family:var(--mono); font-size:.82rem; display:grid; gap:.55rem; grid-template-columns:1fr;}
+  @media(min-width:680px){ .refs-inner{grid-template-columns:1fr 1fr} }
+  .refs-inner div{display:flex; gap:.7rem; align-items:baseline}
+  .refs-inner .k{color:#fbbf24; white-space:nowrap; font-weight:700}
+  .refs-inner .v{color:#cbd5e1}
+  footer{max-width:1500px; margin:0 auto; padding:2rem clamp(1rem,4vw,3rem) 3rem; border-top:1px solid var(--line); font-size:.76rem; color:var(--muted); font-family:var(--mono); line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Archive formats &middot; compression algorithms &middot; backup &amp; dedup · columnar storage &middot; Python APIs &middot; verified 2026</div>
+  <h1><span class="mono">Data</span> archival &amp; compression</h1>
+  <p class="lede">Package, shrink, back up, and preserve data for the long haul. <b>Bundle</b> with <code>tar</code>/<code>zip</code>; <b>compress</b> with the right algorithm &mdash; <code>gzip</code> for compatibility, <code>xz</code> for max ratio, <b><code>zstd</code></b> for the modern speed/ratio sweet spot, <code>lz4</code> when speed is everything. This edition adds a <b>backup &amp; deduplication</b> section (incremental <code>tar</code>/<code>rsync</code>, <b>restic</b> &amp; <b>Borg</b>, delta &amp; content-defined chunking), deeper <b>zstd 1.5.7</b> &amp; <code>compression.zstd</code>, and <b>Parquet internals</b>. Pairs CLI tools with their Python APIs &mdash; including Python&nbsp;3.14's <code>compression.zstd</code>.</p>
+  <div class="legend">
+    <span><i class="dot c1"></i>formats &amp; algorithms</span>
+    <span><i class="dot c2"></i>backup &amp; dedup</span>
+    <span><i class="dot c3"></i>Python APIs</span>
+    <span><i class="dot c4"></i>columnar storage</span>
+    <span><i class="dot c5"></i>choose, store &amp; verify</span>
+    <span><i class="dot danger"></i>gotcha</span>
+    <span><span class="star">&#9733;</span> most common</span>
+  </div>
+  <p class="sources">Verified 2026-09-08 against GNU tar/coreutils &amp; rsync, <code>zstd</code> <b>1.5.7</b>/<code>xz</code>/<code>lz4</code> docs, restic &amp; BorgBackup docs, the CPython stdlib (incl. <b>PEP&nbsp;784</b>'s <code>compression.zstd</code>, new in 3.14), and the Apache Parquet/ORC/Avro specs. <b>tar bundles; the algorithm compresses; backup tools add incrementals &amp; dedup</b> &mdash; distinct jobs.</p>
+</header>
+
+<section class="toc-wrap" id="top">
+  <h2>Outline</h2>
+  <p class="sub">Bundle &amp; compress, then back up incrementally with dedup, drive it all from Python, pick durable columnar formats, and choose an algorithm by access pattern &mdash; always with a checksum.</p>
+  <div class="toc-grid">
+    <div>
+      <h3>Formats, algorithms &amp; backup</h3>
+      <ol class="toc-list">
+        <li><span class="rk">1</span><a href="#tar">tar — bundle files</a></li>
+        <li><span class="rk">2</span><a href="#zip">zip &amp; the classics</a></li>
+        <li><span class="rk">3</span><a href="#zstd">zstd — the modern default</a></li>
+        <li><span class="rk">4</span><a href="#xz">xz, lz4, brotli</a></li>
+        <li><span class="rk">5</span><a href="#incremental">Incremental backup</a></li>
+        <li><span class="rk">6</span><a href="#dedup">Dedup backup tools</a></li>
+        <li><span class="rk">7</span><a href="#delta">Delta &amp; chunking</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Python APIs</h3>
+      <ol class="toc-list">
+        <li><span class="rk">8</span><a href="#pystd">gzip / bz2 / lzma</a></li>
+        <li><span class="rk">9</span><a href="#pytar">tarfile &amp; zipfile</a></li>
+        <li><span class="rk">10</span><a href="#pyzstd">compression.zstd (3.14)</a></li>
+        <li><span class="rk">11</span><a href="#shutil">shutil archives</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>Columnar &amp; durability</h3>
+      <ol class="toc-list">
+        <li><span class="rk">12</span><a href="#columnar">Parquet / ORC / Avro</a></li>
+        <li><span class="rk">13</span><a href="#internals">Parquet internals</a></li>
+        <li><span class="rk">14</span><a href="#choose">Choosing an algorithm</a></li>
+        <li><span class="rk">15</span><a href="#cold">Cold storage &amp; lifecycle</a></li>
+        <li><span class="rk">16</span><a href="#integrity">Integrity &amp; practice</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="section-break" id="sec-fmt"><h2 style="color:var(--c1)">Archive Formats &amp; Algorithms</h2><p class="sub">Bundle with tar/zip; compress with the algorithm that fits.</p></div>
+<main>
+  <article class="card" id="tar">
+    <div class="card-head"><span class="card-num n1">1</span><span class="card-title">tar — bundle files</span><span class="card-sub">tape archive</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">tar <span class="flag">-czf</span> archive.tar.gz dir/</code><span class="star">&#9733;</span><div class="desc"><b>C</b>reate, g<b>z</b>ip, to <b>f</b>ile. tar bundles the tree into one stream; <code>z</code> pipes it through gzip. Mnemonic: "<b>c</b>reate <b>z</b>e <b>f</b>ile."</div></li>
+      <li class="c1"><code class="cmd">tar <span class="flag">-xzf</span> archive.tar.gz <span class="flag">-C</span> /dest   &middot;   tar <span class="flag">-tf</span> archive.tar.gz</code><span class="star">&#9733;</span><div class="desc"><b>x</b>tract into <code>/dest</code> (auto-detects the compressor); <code>-tf</code> lists contents without extracting &mdash; verify before you unpack.</div></li>
+      <li class="c1"><code class="cmd">tar <span class="flag">-cJf</span> a.tar.xz dir/   &middot;   tar <span class="flag">--zstd -cf</span> a.tar.zst dir/</code><span class="star">&#9733;</span><div class="desc">Swap the compressor: <code>-J</code>=xz, <code>-j</code>=bzip2, <code>--zstd</code>=zstd (GNU tar). ⚠️ <code>tar czf</code> compresses the whole set together (solid) &mdash; great ratio, but you can't extract one file cheaply.</div></li>
+      <li class="c1"><code class="cmd">tar <span class="flag">-czg</span> snapshot.snar <span class="flag">-f</span> backup.tgz /data   <span class="cm"># see card 5</span></code><div class="desc"><code>-g</code> (<code>--listed-incremental</code>) turns tar into an incremental backup engine &mdash; covered in the Backup section.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="zip">
+    <div class="card-head"><span class="card-num n1">2</span><span class="card-title">zip &amp; the classics</span><span class="card-sub">gzip · bzip2</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">zip <span class="flag">-r</span> archive.zip dir/   &middot;   unzip archive.zip <span class="flag">-d</span> /dest</code><span class="star">&#9733;</span><div class="desc"><b>zip</b> compresses each file independently (random access to any entry) &mdash; the universal cross-platform choice, esp. on Windows. Weaker ratio than solid tarballs.</div></li>
+      <li class="c1"><code class="cmd">gzip file        <span class="cm"># → file.gz (removes original)</span>
+gunzip file.gz   &middot;   gzip <span class="flag">-k</span> file   <span class="cm"># -k keeps original</span></code><span class="star">&#9733;</span><div class="desc"><b>gzip</b> (DEFLATE) is the compatibility baseline &mdash; everywhere, single-file, streamable. ⚠️ It <b>deletes the source</b> by default; use <code>-k</code> to keep it.</div></li>
+      <li class="c1"><code class="cmd">bzip2 file   <span class="cm"># → file.bz2 · better ratio, slower than gzip</span></code><div class="desc"><b>bzip2</b> (Burrows-Wheeler) beats gzip on ratio but is slow and largely superseded by zstd/xz today.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="zstd">
+    <div class="card-head"><span class="card-num n1">3</span><span class="card-title">zstd — the modern default</span><span class="card-sub">Zstandard 1.5.7</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">zstd file          <span class="cm"># → file.zst</span>
+zstd <span class="flag">-d</span> file.zst   <span class="cm"># decompress (or: unzstd)</span></code><span class="star">&#9733;</span><div class="desc"><b>Zstandard</b> gives near-gzip speed with better-than-gzip ratios, and decompresses very fast regardless of level &mdash; the best all-rounder for new work. CLI now uses multiple threads by default (up to 4).</div></li>
+      <li class="c1"><code class="cmd">zstd <span class="flag">-19</span> file   &middot;   zstd <span class="flag">--ultra -22</span> file   &middot;   zstd <span class="flag">--max</span> file</code><span class="star">&#9733;</span><span class="badge-new">1.5.7</span><div class="desc">Levels <b>1&ndash;19</b> (up to <b>22</b> with <code>--ultra</code>); negative levels (<code>--fast</code>) trade ratio for speed. The new <code>--max</code> maximizes ratio at the cost of time/memory. High levels (18+) got much faster in 1.5.7.</div></li>
+      <li class="c1"><code class="cmd">zstd <span class="flag">-T0</span> <span class="flag">--long</span> <span class="flag">-19</span> bigfile   <span class="cm"># all cores + long-range matching</span></code><div class="desc"><code>-T0</code> uses every core; <code>--long</code> widens the match window for large/repetitive files. ⚠️ Decompressing <code>--long</code> data needs the same flag.</div></li>
+      <li class="c1"><code class="cmd">zstd <span class="flag">--train</span> samples/* <span class="flag">-o</span> dict   &middot;   zstd <span class="flag">-D</span> dict small.json</code><div class="desc"><b>Dictionaries</b> dramatically improve compression of many <b>small, similar</b> records &mdash; zstd's signature feature. Train once, reuse (large dicts can be memory-mapped).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="xz">
+    <div class="card-head"><span class="card-num n1">4</span><span class="card-title">xz, lz4, brotli</span><span class="card-sub">the specialists</span></div>
+    <ul class="cmds">
+      <li class="c1"><code class="cmd">xz <span class="flag">-9</span> file   <span class="cm"># → file.xz · LZMA2, highest ratio, slow</span></code><span class="star">&#9733;</span><div class="desc"><b>xz/LZMA</b> squeezes the most out of data &mdash; ideal for write-once archives &amp; distro packages where compress time doesn't matter. Slow both ways, RAM-hungry at high levels.</div></li>
+      <li class="c1"><code class="cmd">lz4 file   <span class="cm"># extremely fast, modest ratio</span></code><div class="desc"><b>LZ4</b> compresses/decompresses at GB/s &mdash; for hot paths, real-time streams, and DB internals where CPU, not size, is the constraint.</div></li>
+      <li class="c1"><code class="cmd">brotli <span class="flag">-q 11</span> file   <span class="cm"># → file.br · great for text/web assets</span></code><div class="desc"><b>Brotli</b> excels on text/HTTP responses (built-in dictionary) &mdash; standard for <code>Content-Encoding: br</code>. <b>Snappy</b> (like LZ4) is the fast in-datastore choice for Parquet/Cassandra.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># already-compressed data (jpg, mp4, zip) barely shrinks — don't double-compress</span></code><span class="badge-warn">gotcha</span><div class="desc">Media &amp; encrypted blobs are near-incompressible; re-compressing wastes CPU and can slightly <b>grow</b> the file. Store those as-is.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-backup"><h2 style="color:var(--c2)">Backup &amp; Deduplication</h2><p class="sub">Store only what changed &mdash; incrementals, dedup, and deltas.</p></div>
+<main>
+  <article class="card" id="incremental">
+    <div class="card-head"><span class="card-num n2">5</span><span class="card-title">Incremental backup</span><span class="card-sub">tar · rsync</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">tar <span class="flag">-czg</span> /snap.snar <span class="flag">-f</span> full.tgz /data     <span class="cm"># level 0 (full)</span>
+tar <span class="flag">-czg</span> /snap.snar <span class="flag">-f</span> inc1.tgz /data     <span class="cm"># later: only changes</span></code><span class="star">&#9733;</span><span class="badge-new">backup</span><div class="desc"><code>--listed-incremental</code> (<code>-g</code>) keeps a <b>snapshot file</b> (<code>.snar</code>) of prior state; each run archives only what changed since. Restore = extract the full, then each incremental <b>in order</b>.</div></li>
+      <li class="c2"><code class="cmd">rsync <span class="flag">-av</span> <span class="flag">--link-dest</span>=/bak/prev /src/ /bak/new/</code><span class="star">&#9733;</span><div class="desc"><b>rsync snapshots</b>: unchanged files become <b>hard links</b> to the previous backup, so each dated folder is a full, browsable tree but only new/changed files use disk. The classic space-cheap rotating backup.</div></li>
+      <li class="c2"><code class="cmd">rsync <span class="flag">-a</span> <span class="flag">--delete</span> /src/ /mirror/   <span class="cm"># exact mirror (no history)</span></code><div class="desc">Plain rsync mirrors a tree efficiently (delta-transfer sends only changed blocks over the wire). Add <code>--link-dest</code> for history; <code>--delete</code> to prune removed files.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># incrementals chain — lose one and later ones can't fully restore</span></code><span class="badge-warn">gotcha</span><div class="desc">A tar incremental chain depends on every prior level. Take periodic new level-0 fulls, and test the whole restore path (card 16).</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="dedup">
+    <div class="card-head"><span class="card-num n2">6</span><span class="card-title">Dedup backup tools</span><span class="card-sub">restic · Borg</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">restic <span class="flag">-r</span> s3:s3.amazonaws.com/bucket init
+restic <span class="flag">-r</span> ... backup <span class="flag">--compression</span> max /srv
+restic <span class="flag">-r</span> ... snapshots   &middot;   restore latest <span class="flag">--target</span> /r</code><span class="star">&#9733;</span><span class="badge-new">dedup</span><div class="desc"><b>restic</b>: encrypted, deduplicated, incremental-forever backups. Speaks <b>S3</b>/object storage natively (nothing installed at the far end). zstd compression since 0.14 (<code>--compression max</code>). <code>restic prune</code> reclaims space.</div></li>
+      <li class="c2"><code class="cmd">borg init <span class="flag">--encryption</span>=repokey repo
+borg create <span class="flag">--compression</span> zstd,10 repo::<span class="str">'{now}'</span> /srv
+borg prune <span class="flag">--keep-daily</span>=7 <span class="flag">--keep-weekly</span>=4   &middot;   borg mount</code><span class="star">&#9733;</span><div class="desc"><b>BorgBackup</b>: same idea, per-archive compression, and often finer dedup. ⚠️ Needs the <code>borg</code> binary <b>on the repo host</b> (a repo is served by a process, not a plain filesystem/API). <code>borg mount</code> browses a backup as a FUSE filesystem.</div></li>
+      <li class="c2"><code class="cmd"><span class="cm"># both: content-defined chunking → store each unique chunk once</span></code><div class="desc">Files are split into content-defined chunks, hashed, and only unseen chunks are stored &mdash; so re-backing-up mostly-unchanged data is tiny <b>and</b> deduplicated across snapshots/machines.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="delta">
+    <div class="card-head"><span class="card-num n2">7</span><span class="card-title">Delta &amp; chunking</span><span class="card-sub">diffs &amp; CDC</span></div>
+    <ul class="cmds">
+      <li class="c2"><code class="cmd">zstd <span class="flag">--patch-from</span>=old.bin new.bin <span class="flag">-o</span> patch.zst
+zstd <span class="flag">-d</span> <span class="flag">--patch-from</span>=old.bin patch.zst <span class="flag">-o</span> new.bin</code><span class="star">&#9733;</span><span class="badge-new">1.5.7</span><div class="desc"><b>Differential compression</b>: <code>--patch-from</code> encodes a file as a delta against an older version (like bsdiff) &mdash; tiny patches for near-identical files. 1.5.7 made high-level <code>--patch-from</code> 3&ndash;5&times; faster.</div></li>
+      <li class="c2"><code class="cmd">bsdiff old new patch   &middot;   xdelta3 -e -s old new patch.vcdiff</code><div class="desc">Dedicated binary-diff tools for release/OTA updates &mdash; ship a small patch instead of the whole file. Great for versioned binaries &amp; images.</div></li>
+      <li class="c2"><code class="cmd"><span class="cm"># content-defined chunking (CDC): rolling-hash boundaries</span></code><div class="desc"><b>CDC</b> is the dedup primitive behind restic/Borg: a rolling hash sets chunk boundaries on content, so an insertion shifts only nearby chunks &mdash; unlike fixed-size blocks, most chunks stay identical and dedupe.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-py"><h2 style="color:var(--c3)">Python APIs</h2><p class="sub">Every major format has a stdlib module &mdash; including the new <code>compression</code> package.</p></div>
+<main>
+  <article class="card" id="pystd">
+    <div class="card-head"><span class="card-num n3">8</span><span class="card-title">gzip / bz2 / lzma</span><span class="card-sub">stdlib compressors</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="kw">import</span> gzip
+<span class="kw">with</span> gzip.open(<span class="str">"out.txt.gz"</span>, <span class="str">"wt"</span>, compresslevel=6) <span class="kw">as</span> f:
+    f.write(text)</code><span class="star">&#9733;</span><div class="desc"><code>gzip.open</code> gives a file object &mdash; use <code>"wt"</code>/<code>"rt"</code> for text, <code>"wb"</code>/<code>"rb"</code> for bytes. Same API in <code>bz2</code> and <code>lzma</code>.</div></li>
+      <li class="c3"><code class="cmd">gzip.compress(data, compresslevel=9)   &middot;   gzip.decompress(blob)</code><span class="star">&#9733;</span><div class="desc">One-shot bytes&rarr;bytes helpers when the whole payload fits in memory. Present in <code>gzip</code>, <code>bz2</code>, <code>lzma</code>, and <code>zlib</code>.</div></li>
+      <li class="c3"><code class="cmd"><span class="kw">import</span> lzma
+lzma.open(<span class="str">"a.xz"</span>, <span class="str">"wb"</span>, preset=9 | lzma.PRESET_EXTREME)</code><div class="desc"><code>lzma</code> writes <code>.xz</code> (highest ratio). <code>bz2</code> writes <code>.bz2</code>. All three share the <code>open</code>/<code>compress</code>/<code>decompress</code> shape, so swapping is a one-line change.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="pytar">
+    <div class="card-head"><span class="card-num n3">9</span><span class="card-title">tarfile &amp; zipfile</span><span class="card-sub">bundles in Python</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="kw">import</span> tarfile
+<span class="kw">with</span> tarfile.open(<span class="str">"a.tar.gz"</span>, <span class="str">"w:gz"</span>) <span class="kw">as</span> t:
+    t.add(<span class="str">"dir/"</span>, arcname=<span class="str">"dir"</span>)</code><span class="star">&#9733;</span><div class="desc">Mode picks the codec: <code>w:gz</code>, <code>w:bz2</code>, <code>w:xz</code>, <code>w:zst</code> (3.14), or <code>w</code> (uncompressed). Read with <code>r:*</code> (auto-detect).</div></li>
+      <li class="c3"><code class="cmd">t.extractall(<span class="str">"/dest"</span>, filter=<span class="str">"data"</span>)</code><span class="star">&#9733;</span><div class="desc">⚠️ Always pass a <code>filter</code> (e.g. <code>"data"</code>) on extract &mdash; it blocks path-traversal / absolute-path entries ("tarbomb"). It's the safe default in modern Python and a hard requirement soon.</div></li>
+      <li class="c3"><code class="cmd"><span class="kw">import</span> zipfile
+<span class="kw">with</span> zipfile.ZipFile(<span class="str">"a.zip"</span>, <span class="str">"w"</span>, zipfile.ZIP_DEFLATED) <span class="kw">as</span> z:
+    z.write(<span class="str">"file.csv"</span>)</code><span class="star">&#9733;</span><div class="desc"><code>ZipFile</code> with <code>ZIP_DEFLATED</code> (gzip-class), <code>ZIP_BZIP2</code>, or <code>ZIP_LZMA</code>. Per-entry compression = pull one file without unpacking the rest.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="pyzstd">
+    <div class="card-head"><span class="card-num n3">10</span><span class="card-title">compression.zstd</span><span class="card-sub">Python 3.14 · PEP 784</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="kw">from</span> compression <span class="kw">import</span> zstd
+blob = zstd.compress(data, level=19)
+data = zstd.decompress(blob)</code><span class="star">&#9733;</span><span class="badge-new">new 3.14</span><div class="desc"><b>Zstandard in the stdlib</b> at last (PEP&nbsp;784) &mdash; no third-party package on 3.14+. One-shot <code>compress</code>/<code>decompress</code> plus a full streaming API.</div></li>
+      <li class="c3"><code class="cmd"><span class="kw">with</span> zstd.open(<span class="str">"a.zst"</span>, <span class="str">"wb"</span>, level=19) <span class="kw">as</span> f: f.write(data)</code><span class="star">&#9733;</span><div class="desc"><code>zstd.open</code> / <code>ZstdFile</code> mirror the <code>gzip</code>/<code>lzma</code> file API, so existing code ports cleanly.</div></li>
+      <li class="c3"><code class="cmd"><span class="kw">from</span> compression.zstd <span class="kw">import</span> ZstdCompressor, train_dict, CompressionParameter
+c = ZstdCompressor(level=19, zstd_dict=train_dict(samples, 100*1024))</code><div class="desc">Full advanced API: streaming <code>ZstdCompressor</code>/<code>ZstdDecompressor</code>, dictionaries (<code>train_dict</code>/<code>finalize_dict</code>), and tuning via <code>CompressionParameter</code> (window log, threads, ...).</div></li>
+      <li class="c3"><code class="cmd"><span class="kw">from</span> compression <span class="kw">import</span> gzip, bz2, lzma, zlib   <span class="cm"># new home for all</span></code><div class="desc">3.14 groups every compressor under the <code>compression</code> package (old top-level <code>import gzip</code> still works). On &lt;3.14, use the PyPI <code>zstandard</code> package for zstd.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="shutil">
+    <div class="card-head"><span class="card-num n3">11</span><span class="card-title">shutil archives</span><span class="card-sub">one-liners</span></div>
+    <ul class="cmds">
+      <li class="c3"><code class="cmd"><span class="kw">import</span> shutil
+shutil.make_archive(<span class="str">"backup"</span>, <span class="str">"gztar"</span>, root_dir=<span class="str">"data/"</span>)</code><span class="star">&#9733;</span><div class="desc">Whole-directory archive in one call &mdash; formats: <code>zip</code>, <code>tar</code>, <code>gztar</code>, <code>bztar</code>, <code>xztar</code>. Produces <code>backup.tar.gz</code> here.</div></li>
+      <li class="c3"><code class="cmd">shutil.unpack_archive(<span class="str">"backup.tar.gz"</span>, <span class="str">"/dest"</span>)</code><div class="desc">The inverse &mdash; auto-detects the format from the extension. Great for quick backup/restore scripts.</div></li>
+      <li class="c3"><code class="cmd"><span class="cm"># stream compress a huge file without loading it into RAM:</span>
+<span class="kw">with</span> open(<span class="str">"big"</span>,<span class="str">"rb"</span>) <span class="kw">as</span> i, gzip.open(<span class="str">"big.gz"</span>,<span class="str">"wb"</span>) <span class="kw">as</span> o: shutil.copyfileobj(i, o)</code><div class="desc"><code>copyfileobj</code> streams in fixed-size chunks &mdash; the memory-safe pattern for files bigger than RAM.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-col"><h2 style="color:var(--c4)">Columnar Storage</h2><p class="sub">Formats built for analytics &mdash; and why they compress so well.</p></div>
+<main>
+  <article class="card" id="columnar">
+    <div class="card-head"><span class="card-num n4">12</span><span class="card-title">Parquet / ORC / Avro</span><span class="card-sub">data-lake formats</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd">df.to_parquet(<span class="str">"data.parquet"</span>, compression=<span class="str">"zstd"</span>)</code><span class="star">&#9733;</span><div class="desc"><b>Parquet</b> stores data <b>by column</b>, so similar values sit together and compress far better than CSV/JSON &mdash; plus readers skip columns they don't need. The de-facto analytics archive format.</div></li>
+      <li class="c4"><code class="cmd"><span class="kw">ORC</span>  <span class="cm"># columnar, Hive/Spark ecosystem</span>     <span class="kw">Avro</span>  <span class="cm"># row-based, schema-carrying</span></code><div class="desc"><b>ORC</b> is Parquet's columnar cousin in the Hadoop/Hive world. <b>Avro</b> is <b>row</b>-oriented with an embedded schema &mdash; better for streaming/write-heavy &amp; record-at-a-time, with strong schema evolution.</div></li>
+      <li class="c4"><code class="cmd"><span class="cm"># open table formats add ACID + time-travel on top of Parquet:</span>
+<span class="kw">Apache Iceberg</span> &middot; <span class="kw">Delta Lake</span> &middot; <span class="kw">Apache Hudi</span></code><div class="desc">For evolving datasets, table formats wrap Parquet files with a transaction log &mdash; schema evolution, snapshots, and safe concurrent writes over an archive.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="internals">
+    <div class="card-head"><span class="card-num n4">13</span><span class="card-title">Parquet internals</span><span class="card-sub">why it's small &amp; fast</span></div>
+    <ul class="cmds">
+      <li class="c4"><code class="cmd"><span class="cm"># layout: file → row groups → column chunks → pages</span></code><span class="star">&#9733;</span><span class="badge-new">deep</span><div class="desc">A Parquet file is split into <b>row groups</b>; within each, every column is a <b>column chunk</b> of <b>pages</b>. Tune with <code>row_group_size</code> &mdash; bigger groups compress better, smaller groups allow finer skipping.</div></li>
+      <li class="c4"><code class="cmd"><span class="cm"># encodings run BEFORE the codec: dictionary · RLE/bit-pack · delta · byte-stream-split</span></code><span class="star">&#9733;</span><div class="desc">Lightweight per-column encodings (<code>DICTIONARY</code>, <code>RLE</code>, <code>DELTA_BINARY_PACKED</code>, <code>BYTE_STREAM_SPLIT</code> for floats) shrink data first; <b>then</b> a block codec (zstd/snappy/gzip) runs. That two-stage scheme is why Parquet dwarfs a gzipped CSV.</div></li>
+      <li class="c4"><code class="cmd">df.to_parquet(..., row_group_size=256_000, use_dictionary=<span class="kw">True</span>)</code><div class="desc">Per-column min/max <b>statistics</b> (+ optional page indexes / bloom filters) let engines do <b>predicate &amp; projection pushdown</b> &mdash; skip whole row groups/pages that can't match a filter, reading far less.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># many tiny Parquet files kill read performance ("small files problem")</span></code><span class="badge-warn">gotcha</span><div class="desc">Aim for ~128MB&ndash;1GB files / sensible row groups. Compact small files (table-format <code>OPTIMIZE</code>/compaction) rather than writing thousands of tiny ones.</div></li>
+    </ul>
+  </article>
+</main>
+
+<div class="section-break" id="sec-dur"><h2 style="color:var(--c5)">Choose, Store &amp; Verify</h2><p class="sub">Pick the codec, tier to cold storage, and prove the bytes.</p></div>
+<main>
+  <article class="card" id="choose">
+    <div class="card-head"><span class="card-num n5">14</span><span class="card-title">Choosing an algorithm</span><span class="card-sub">the tradeoff</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="cm"># ratio ↑   xz/lzma  >  bzip2 ≈ zstd(hi)  >  gzip/brotli  >  lz4/snappy</span></code><span class="star">&#9733;</span><div class="desc">Rough ordering of <b>how small</b>. It's always a trade against speed &mdash; the tightest packers are the slowest to compress.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># speed ↑  lz4/snappy > zstd > gzip > brotli > bzip2 > xz</span></code><div class="desc">Rough ordering of <b>throughput</b>. zstd's edge: strong ratio <b>and</b> fast &mdash; and its decompression speed barely changes with level.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># write-once/read-rarely → xz · hot/streamed → lz4 · everything else → zstd</span></code><span class="star">&#9733;</span><div class="desc">Pick by access pattern: max shrink for long-term cold archives; max speed for real-time paths; zstd as the balanced default. Use gzip only when compatibility demands it.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># always benchmark on YOUR data — text, logs, binaries all differ wildly</span></code><span class="badge-warn">tip</span><div class="desc">Ratios are data-dependent. Measure <code>time</code> + output size at a few levels on a representative sample before committing.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="cold">
+    <div class="card-head"><span class="card-num n5">15</span><span class="card-title">Cold storage &amp; lifecycle</span><span class="card-sub">tiering</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd"><span class="cm"># object-store tiers: Standard → Infrequent Access → Archive/Glacier</span></code><span class="star">&#9733;</span><div class="desc">Cloud stores tier by access frequency: hot (instant, pricey) &rarr; cool &rarr; <b>cold/archive</b> (cheap per-GB, but retrieval costs money &amp; can take minutes-to-hours). Match the tier to how often you'll read it.</div></li>
+      <li class="c5"><code class="cmd">aws s3 cp big.tar.zst s3://bucket/ <span class="flag">--storage-class</span> DEEP_ARCHIVE</code><span class="star">&#9733;</span><div class="desc">Write straight to an archive class, or let a <b>lifecycle rule</b> auto-transition after N days &amp; expire after M. Glacier restores come in expedited/standard/bulk speeds (different fees).</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># WORM / Object Lock for compliance retention</span></code><div class="desc">Immutable (write-once-read-many) locks prevent deletion/overwrite for a retention window &mdash; for legal/regulatory archives. ⚠️ Archive-tier retrieval latency &amp; fees surprise people; test a restore.</div></li>
+    </ul>
+  </article>
+
+  <article class="card" id="integrity">
+    <div class="card-head"><span class="card-num n5">16</span><span class="card-title">Integrity &amp; practice</span><span class="card-sub">trust the bytes</span></div>
+    <ul class="cmds">
+      <li class="c5"><code class="cmd">sha256sum archive.tar.zst &gt; archive.sha256   &middot;   sha256sum <span class="flag">-c</span> archive.sha256</code><span class="star">&#9733;</span><div class="desc">Store a <b>checksum</b> next to every archive and verify on restore &mdash; catches bit-rot and truncated transfers. SHA-256 for integrity/tamper; CRC32 only for accidental corruption.</div></li>
+      <li class="c5"><code class="cmd">zstd <span class="flag">-t</span> file.zst   &middot;   gzip <span class="flag">-t</span> file.gz   &middot;   restic check   &middot;   borg check</code><span class="star">&#9733;</span><div class="desc">Most tools have a built-in integrity test (<code>-t</code>); backup tools have <code>check</code>. Run after writing and before deleting the source.</div></li>
+      <li class="danger"><code class="cmd"><span class="cm"># a backup you've never restored is not a backup</span></code><span class="badge-warn">rule</span><div class="desc">Periodically do a full test-restore. Keep the <b>tool/spec</b> to read the format (3-2-1 rule &mdash; 3 copies, 2 media, 1 offsite), and prefer open, documented formats for long-term survival.</div></li>
+      <li class="c5"><code class="cmd"><span class="cm"># compress THEN encrypt — never the other way around</span></code><div class="desc">Encrypted data is random &amp; incompressible, so encrypting first destroys the ratio. (Compressing secret-bearing data before encryption has known side-channel caveats &mdash; know your threat model.)</div></li>
+    </ul>
+  </article>
+</main>
+
+<section class="refs">
+  <h2>Worth memorizing</h2>
+  <div class="refs-inner">
+    <div><span class="k">tar -czf a.tar.gz dir/</span><span class="v">create · -xzf extract · -tf list</span></div>
+    <div><span class="k">zstd -19 · --ultra -22 · --max</span><span class="v">modern default; -T0 all cores</span></div>
+    <div><span class="k">xz -9 (cold) · lz4 (hot) · gzip (compat)</span><span class="v">access pattern picks codec</span></div>
+    <div><span class="k">tar -czg snap.snar · rsync --link-dest</span><span class="v">incremental backup</span></div>
+    <div><span class="k">restic / borg</span><span class="v">encrypted, deduplicated, incremental-forever</span></div>
+    <div><span class="k">zstd --patch-from · CDC</span><span class="v">deltas &amp; dedup chunking</span></div>
+    <div><span class="k">gzip.open / compress</span><span class="v">same API in bz2, lzma</span></div>
+    <div><span class="k">from compression import zstd</span><span class="v">stdlib zstd, new in 3.14</span></div>
+    <div><span class="k">tarfile extractall(filter="data")</span><span class="v">block tarbombs; w:zst on 3.14</span></div>
+    <div><span class="k">to_parquet(compression="zstd")</span><span class="v">row groups + encodings + pushdown</span></div>
+    <div><span class="k">aws s3 cp --storage-class DEEP_ARCHIVE</span><span class="v">tier + lifecycle + WORM</span></div>
+    <div><span class="k">sha256sum -c · restic/borg check</span><span class="v">verify; compress THEN encrypt</span></div>
+  </div>
+</section>
+
+<footer>
+  <b>Data archival &amp; compression cheat sheet</b> &middot; v1 &middot; content verified 2026-09-08 against GNU tar/coreutils &amp; rsync, the <code>zstd</code> 1.5.7/<code>xz</code>/<code>lz4</code>/<code>brotli</code> docs, restic &amp; BorgBackup docs, the CPython stdlib (incl. PEP&nbsp;784's <code>compression.zstd</code>, new in Python 3.14), and the Apache Parquet/ORC/Avro/Iceberg specs.<br>
+  Distinct jobs: <b>tar/zip bundle</b>, <b>an algorithm compresses</b>, <b>backup tools add incrementals &amp; dedup</b>. Choose the codec by access pattern (<code>xz</code> cold, <code>lz4</code> hot, <code>zstd</code> default); back up with incremental <code>tar</code>/<code>rsync</code> or deduplicating <b>restic</b>/<b>Borg</b>; store analytics data as columnar Parquet (row groups + encodings + pushdown). Always keep a checksum, test-restore, tier to cold storage with lifecycle rules, and compress before encrypting.<br>
+  Star (&#9733;) marks the most common operations. Compression ratios are data-dependent &mdash; benchmark on your own data before committing.
+</footer>
+</body>
+</html>
